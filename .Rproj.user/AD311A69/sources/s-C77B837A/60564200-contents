@@ -47,6 +47,6 @@ get_sd_G_prior.mixture_normal <- function(G_prior)
 
 get_sd_G_prior.mixture_normal_per_scale <- function(G_prior)
 {
-  out <- lapply(G_prior, function(x) x$fitted_g$pi)
+  out <- lapply(G_prior, function(x) x$fitted_g$sd)
   return(out)
 }
