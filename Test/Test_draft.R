@@ -86,5 +86,5 @@ plot( Bhat,  post_mat_mean(G,Bhat,Shat, indx_lst) )
 plot( Shat,  (post_mat_sd(G,Bhat,Shat, indx_lst) ))
 get_pi_G_prior(G)
 get_sd_G_prior(G)
-L_mixsq(G, Bhat, Shat)
+L_mixsq(G, Bhat, Shat, indx_lst)
 G_prior <- G

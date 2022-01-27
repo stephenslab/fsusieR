@@ -317,6 +317,9 @@ post_mat_sd.mixture_normal_per_scale <- function( G_prior ,Bhat,Shat, indx_lst, 
 
 #'@title EM algorithm to find Empirical Bayes prior under the mixture normal prior
 #'
+#'
+#'let try to make similar for the different prior
+#'
 #'@description
 #'@param G_prior mixture normal prior
 #'@param Bhat  matrix pxJ regression coefficient, Bhat[j,t] corresponds to regression coefficient of Y[,t] on X[,j]
@@ -330,7 +333,7 @@ post_mat_sd.mixture_normal_per_scale <- function( G_prior ,Bhat,Shat, indx_lst, 
 #'\item lBF log Bayes Factor
 
 
-EM_pi.mixture_normal <- function(G_prior,Bhat, Shat, indx_lst,
+EM_pi  <- function(G_prior,Bhat, Shat, indx_lst,
                                  max_step =100,
                                  espsilon =0.0001 ){
 
@@ -344,14 +347,14 @@ EM_pi.mixture_normal <- function(G_prior,Bhat, Shat, indx_lst,
   oldloglik <-0
   newloglik <-1
   n_wav_coef <- dim(Bhat)[2]
-  zeta <- rep(1/J,J)
-  k <- 1
+  zeta <- rep(1/J,J) #assignation
+  k <- 1 #counting the number of iteration
 
   lBF <- get_log_BF(G_prior,Bhat,Shat, indx_lst)
   if( prod(is.finite(lBF) )==0) #avoid extreme overflow problem when little noise is present
   {
-    lBF <-  ifelse(lBF==Inf,max(1000, 10*max(lBF[-which(lBF==Inf)])),lBF)
-    lBF <-  ifelse(lBF== -Inf,max(-1000, -10*max(lBF[-which(lBF== -Inf)])),lBF)
+    lBF <-  ifelse(lBF==Inf,max(10000, 10*max(lBF[-which(lBF==Inf)])),lBF)
+    lBF <-  ifelse(lBF== -Inf,max(-10000, -10*max(lBF[-which(lBF== -Inf)])),lBF)
   }
 
   while( k <max_step &  abs(newloglik-oldloglik)>=espsilon)
@@ -444,23 +447,6 @@ L_mixsq.mixture_normal <- function(G_prior,Bhat, Shat, indx_lst)
 
 L_mixsq.mixture_normal_per_scale <- function(G_prior,Bhat, Shat, indx_lst)
 {
-  get_L_mixsq_one_scale <- function(G_prior, Bhat, Shat,s ,indx_lst)
-  {
-    m <-  (G_prior[[s]])
-
-
-    sdmat <-sqrt(outer(c(Shat[,indx_lst[[s]]]^2),m$fitted_g$sd^2,"+"))
-    L = (dnorm(outer(c(Bhat[,indx_lst[[s]]]),m$fitted_g$mean,FUN="-")/sdmat,log=TRUE) -log(sdmat ))
-
-
-    return(L)
-  }
-
-  get_Ls <- function(s)
-  {
-    get_L_mixsq_one_scale(G_prior, Bhat, Shat,s)
-  }
-
   L  <- lapply(1:length(indx_lst  ) , function(s) cal_L_mixsq_s_per_scale (G_prior,s, Bhat, Shat, indx_lst))
 
   class(L) <- "lik_mixture_normal_per_scale"
@@ -484,3 +470,46 @@ cal_L_mixsq_s_per_scale <- function(G_prior,s, Bhat, Shat ,indx_lst)
   L = (dnorm(outer(c(Bhat[,indx_lst[[s]]]),m$fitted_g$mean,FUN="-")/sdmat,log=TRUE) -log(sdmat ))
   return(L)
 }
+
+
+
+
+
+m_step.lik_mixture_normal <- function(L, w)
+{
+  out <- mixsqp(L_mixsq,
+                w,
+                log=TRUE,
+                x0 = c(1, rep(1e-30,  tlength )),
+                control = list(eps = 1e-6,
+                               numiter.em = 20,
+                               verbose=FALSE
+                              )
+                 )
+  return(out)
+}
+
+
+m_step.lik_mixture_normal_per_scale <- function(L,zeta){
+  #setting the weight to fit the wieghted ash problem
+  scale_mixsqp <- function(s)
+  {
+    w <- rep(zeta,length(indx_lst[[s]] ))
+    tlength <- dim(L_mixsq_scale[[s]])[2]-1
+    return(mixsqp( L_mixsq_scale[[s]] ,
+                   w,
+                   x0 = c(1, rep(1e-30,  tlength )),
+                   log=TRUE ,
+                   control = list(
+                     eps = 1e-6,
+                     numiter.em = 20,
+                     verbose=FALSE
+                   )
+    )$x
+    )
+
+  }
+
+  out.mixsqp <- lapply(1:length(indx_lst) , scale_mixsqp)
+}
+
