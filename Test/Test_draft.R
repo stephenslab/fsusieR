@@ -4,7 +4,6 @@ library(wavethresh)
 library(Rfast)
 set.seed(2)
 f1 <- simu_IBSS_per_level(lev_res=9, alpha=1, prop_decay =1.5)
-f1 <- simu_IBSS_per_level(lev_res=9, alpha=0. , prop_decay = 0. )
 
 plot(f1$sim_func, type="l", ylab="y")
 N=500
@@ -33,7 +32,7 @@ Y_f <- cbind( W$D,W$C) #Using a column like phenotype
 update_Y <-Y_f
 v1 <- rep(1, dim(X)[2])
 indx_lst <- gen_wavelet_indx(9)
-lol <-  cal_Bhat_Shat(Y,X,v1)
+lol <-  cal_Bhat_Shat(Y_f,X,v1)
 test_that("Class of the prior is", {
   expect_equal(class(
                       init_prior(Y=Y_f,
@@ -54,7 +53,10 @@ test_that("Class of the prior is", {
               "mixture_normal_per_scale"
                )
 })
-tt <- cal_Bhat_Shat(Y,X,v1)
+tt <- cal_Bhat_Shat(Y_f,X,v1)
+
+
+### Test validity normal mixture  -----
 Bhat <- tt$Bhat
 Shat <- tt$Shat
 G <- init_prior(Y=Y_f,
@@ -66,7 +68,13 @@ G <- init_prior(Y=Y_f,
 log_BF (G, tt$Bhat, tt$Shat )
 plot( Bhat,post_mean(G,Bhat,Shat))
 plot( Shat,  t(post_mat_sd(G,Bhat,Shat, indx_lst) ))
+get_pi_G_prior(G)
+get_sd_G_prior(G)
+L_mixsq(G, Bhat, Shat)
 
+
+
+### Test validity normal mixture -----
 G <- init_prior(Y=Y_f,
                 X=X,
                 prior="mixture_normal_per_scale",
@@ -76,3 +84,7 @@ G <- init_prior(Y=Y_f,
 log_BF (G, tt$Bhat, tt$Shat, indx_lst)
 plot( Bhat,  post_mat_mean(G,Bhat,Shat, indx_lst) )
 plot( Shat,  (post_mat_sd(G,Bhat,Shat, indx_lst) ))
+get_pi_G_prior(G)
+get_sd_G_prior(G)
+L_mixsq(G, Bhat, Shat)
+G_prior <- G

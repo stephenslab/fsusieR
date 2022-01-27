@@ -85,7 +85,7 @@ susif <- function( Y,X, L = 2,
   while(check >tol & (h/L) <maxit)
   {
 
-    tt <- get_Bhat_Shat(update_Y,X,v1)
+    tt <- cal_Bhat_Shat(update_Y,X,v1)
     Bhat <- tt$Bhat
     Shat <- tt$Bhat
     t_prior <- G_prior
