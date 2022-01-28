@@ -94,6 +94,10 @@ test_that("Updated mixture proportion should be equal to provided input",
             )
           }
 )
+
+EM_pi(G_prior,Bhat,Shat, indx_lst)
+
+
 ### Test validity normal mixture per scale -----
 G <- init_prior(Y=Y_f,
                 X=X,
@@ -127,4 +131,4 @@ test_that("Updated mixture proportion should be equal to provided input",
             )
           }
 )
-
+EM_pi(G_prior,Bhat,Shat, indx_lst)

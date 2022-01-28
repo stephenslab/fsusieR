@@ -90,13 +90,10 @@ susif <- function( Y,X, L = 2,
     Shat <- tt$Bhat
     t_prior <- G_prior
     EM_out  <- EM_pi(G_prior= t_prior, Bhat,Shat, indx_lst  )
-
-
-    t_prior <- G_prior
-    EM_out <- EM_pi_mix(G_prior= t_prior, Bhat,Shat)
-    t_prior[[1]]$fitted_g$pi <-  EM_out$tpi_k
-    fitted_wc_col[[l]]   <- post_ash(t_prior , Bhat, Shat )
-    fitted_wc_col2[[l]]  <- post_sd(t_prior , Bhat, Shat )
-    log_BF <- EM_out$lBF
+    t_prior <-  update_prior(t_prior, EM_out$tpi_k)
+    fitted_wc_col[[l]]   <- post_mat_mean(t_prior , Bhat, Shat )
+    fitted_wc_col2[[l]]  <- post_mat_sd(t_prior , Bhat, Shat )
+    lBF <- EM_out$lBF
+    alpha_col[[l]] <-cal_zeta(lBF)
   }
 }

@@ -59,7 +59,7 @@ EM_pi  <- function(G_prior,Bhat, Shat, indx_lst,
                    espsilon =0.0001 ){
 
   #static parameters
-  L_mixsq <-  L_mixsq(G_prior, Bhat, Shat, indx_lst)
+  L  <-  L_mixsq(G_prior, Bhat, Shat, indx_lst)
   J <- dim(Bhat)[1]
   tsd_k = get_sd_G_prior(G_prior)
 
@@ -71,7 +71,7 @@ EM_pi  <- function(G_prior,Bhat, Shat, indx_lst,
   zeta <- rep(1/J,J) #assignation initial value
   k <- 1 #counting the number of iteration
 
-  lBF <- get_log_BF(G_prior,Bhat,Shat, indx_lst)
+  lBF <- log_BF(G_prior,Bhat,Shat, indx_lst)
 
   while( k <max_step &  abs(newloglik-oldloglik)>=espsilon)
   {
@@ -79,7 +79,7 @@ EM_pi  <- function(G_prior,Bhat, Shat, indx_lst,
     oldloglik <- cal_lik(lBF,zeta )
     zeta <- cal_zeta(lBF)
     ####M step ----
-    tpi_k <- m_step(L_mixsqp,zeta)
+    tpi_k <- m_step(L,zeta, indx_lst)
     G_prior <- update_prior(G_prior, tpi_k)
 
     lBF <- log_BF(G_prior,Bhat,Shat, indx_lst)
@@ -519,7 +519,7 @@ scale_m_step <- function(L,s,zeta, indx_lst)
   return( out)
 
 }
-#'@title Compute assignement probabilities from log Bayes factors
+#'@title Compute assignment probabilities from log Bayes factors
 #'@description
 #'@param lBF vector of log Bayes factors
 cal_zeta <- function(lBF)
@@ -528,6 +528,17 @@ cal_zeta <- function(lBF)
   return(out)
 }
 
+#'@title Compute likelihood for the weighted ash problem
+#'@description
+#'@param lBF vector of log Bayes factors
+#'@param zeta assignement probabilities
+#'@return Likelihood value
+#'@export
+cal_lik <- function(lBF,zeta)
+{
+  out <- sum( zeta*exp(lBF - max(lBF ) ))
+  return(out)
+}
 
 
 
