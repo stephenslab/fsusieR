@@ -6,6 +6,8 @@ Author: Who wrote it
 Maintainer: The package maintainer <yourself@somewhere.net>
 Description: Implementation fo the Sum of Signle Function method (SuSiF)
 Depends:
+    R (>= 3.1.0)
+Imports:
   Rfast,
   wavethresh,
   ashr

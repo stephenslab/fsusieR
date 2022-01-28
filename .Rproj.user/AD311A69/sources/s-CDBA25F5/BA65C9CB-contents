@@ -13,7 +13,7 @@
 #'@param plot_out If \code{plot_out = TRUE}, the algorithm's progress, and a summary of the optimization settings, are ploted.
 #'@param tol A small, non-negative number specifying the convergence tolerance for the IBSS fitting procedure. The fitting procedure will halt when the difference in the variational lower bound, or \dQuote{ELBO} (the objective function to be maximized), is less than \code{tol}. Currently checking the PIP
 #'@param maxit Maximum number of IBSS iterations to perform.
-
+#'@export
 susif <- function( Y,X, L = 2,
                    pos = NULL,
                    prior = "mixture_normal_per_scale",

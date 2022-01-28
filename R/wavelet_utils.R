@@ -49,7 +49,7 @@ interpolKS <-  function (y, bp)
 #'\item{D}{ matrix of size nx 2^(J -1) where each row contains the wavelet D coefficients, ordered in the same way as in the wavethresh package}
 #'\item{family}{ used for the wavelet transform}
 #'\item{filter.number}
-
+#'@export
 DWT2 <- function (data, filter.number = 10, family = "DaubLeAsymm")
 {
   if (sum(methods::is(data) == c("numeric", "vector")) == 2) {
@@ -83,7 +83,6 @@ DWT2 <- function (data, filter.number = 10, family = "DaubLeAsymm")
 #' twav <- wd(tem_func)
 #' indx_lst <- gen_wavelet_indx(8)
 #' plot(accessD(twav,level=6), ( twav$D[unlist(indx_lst[(6+1)])]) )
-
 gen_wavelet_indx <- function(lev_res)
 {
   indx_lst <- list()

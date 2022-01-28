@@ -1,6 +1,8 @@
+#'@export
 '%!in%' <- function(x,y)!('%in%'(x,y))
 
 #based on Rfast implementation
+#'@export
 fast_lm <- function(x,y)
 {
 

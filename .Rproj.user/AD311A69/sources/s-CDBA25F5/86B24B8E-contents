@@ -6,7 +6,7 @@ set.seed(2)
 f1 <- simu_IBSS_per_level(lev_res=9, alpha=1, prop_decay =1.5)
 
 plot(f1$sim_func, type="l", ylab="y")
-N=500
+N=10
 P=10
 set.seed(23)
 G = matrix(sample(c(0, 1,2), size=N*P, replace=T), nrow=N, ncol=P) #Genotype
@@ -64,14 +64,28 @@ G <- init_prior(Y=Y_f,
                 prior="mixture_normal",
                 v1=v1,
                 indx_lst = indx_lst)
+G_prior <- G
+lBF <- log_BF (G_prior, tt$Bhat, tt$Shat )
+lBF
+test_that("Max lBF should be in postion",
+          {
+  expect_equal(which.max(lBF),
+              pos1
+              )
+          }
+         )
+plot( Bhat,post_mat_mean(G,Bhat,Shat))
 
-log_BF (G, tt$Bhat, tt$Shat )
-plot( Bhat,post_mean(G,Bhat,Shat))
-plot( Shat,  t(post_mat_sd(G,Bhat,Shat, indx_lst) ))
+
+
+plot( Shat,  (post_mat_sd(G,Bhat,Shat, indx_lst) ))
 get_pi_G_prior(G)
 get_sd_G_prior(G)
-L_mixsq(G, Bhat, Shat)
-
+L <- L_mixsq(G, Bhat, Shat)
+L
+lBF <- ifelse(is.finite(lBF), lBF,1000)
+zeta <- cal_zeta(lBF)
+m_step(L, zeta , indx_lst)
 
 
 ### Test validity normal mixture -----
@@ -80,11 +94,22 @@ G <- init_prior(Y=Y_f,
                 prior="mixture_normal_per_scale",
                 v1=v1,
                 indx_lst = indx_lst)
-
-log_BF (G, tt$Bhat, tt$Shat, indx_lst)
+lBF <- log_BF (G_prior, tt$Bhat, tt$Shat )
+lBF
+test_that("Max lBF should be in postion",
+          {
+            expect_equal(which.max(lBF),
+                         pos1
+            )
+          }
+)
 plot( Bhat,  post_mat_mean(G,Bhat,Shat, indx_lst) )
 plot( Shat,  (post_mat_sd(G,Bhat,Shat, indx_lst) ))
 get_pi_G_prior(G)
 get_sd_G_prior(G)
-L_mixsq(G, Bhat, Shat, indx_lst)
-G_prior <- G
+L <- L_mixsq(G, Bhat, Shat, indx_lst)
+L
+lBF
+zeta <- cal_zeta(lBF)
+m_step(L, zeta , indx_lst)
+

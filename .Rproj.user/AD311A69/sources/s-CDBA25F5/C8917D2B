@@ -3,7 +3,7 @@
     "path": "D:/Document/Serieux/Travail/Package/suisF.alpha/R/Methods.R",
     "project_path": "R/Methods.R",
     "type": "r_source",
-    "hash": "4153876047",
+    "hash": "0",
     "contents": "",
     "dirty": false,
     "created": 1643297993379.0,
@@ -13,15 +13,15 @@
         "tempName": "Untitled3",
         "source_window_id": "",
         "Source": "Source",
-        "cursorPosition": "9,0",
+        "cursorPosition": "10,0",
         "scrollLine": "0"
     },
     "folds": "",
-    "lastKnownWriteTime": 1643308969,
+    "lastKnownWriteTime": 1643366459,
     "encoding": "UTF-8",
     "collab_server": "",
     "source_window": "",
-    "last_content_update": 1643308969561,
+    "last_content_update": 1643366459109,
     "read_only": false,
     "read_only_alternatives": []
 }

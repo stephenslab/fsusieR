@@ -1,0 +1,27 @@
+library(mvtnorm)
+library(ggplot2)
+
+XY <-rmvnorm(10000,
+                mean = rep(0, 2),
+                sigma = matrix(nrow = 2,
+                               byrow = TRUE,
+                               c(1,0.7,0.7,1)
+                )
+          )
+
+dat <- data.frame(x=XY[,1],y=XY[,2] )
+P1 <- ggplot( dat, aes( x, y))+
+  geom_point(alpha=0.7, col="grey")+
+
+  #   "#F0E442", "#0072B2", "#D55E00", "#CC79A7"))+
+  geom_abline(slope=1, intercept=0)+
+  #  coord_fixed()+
+  geom_density_2d( colour =  "black")+
+  theme_bw() +
+  geom_hline(yintercept = 0)+
+  geom_vline(xintercept = 0)+
+  xlab("EWAS 1 z-score")+
+  ylab("EWAS 2 z-score")+
+  coord_fixed()
+P1
+ggsave(P1, path = "whereyouwant/awesomeplot.png")
