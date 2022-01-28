@@ -3,9 +3,9 @@
     "path": "D:/Document/Serieux/Travail/Package/suisF.alpha/R/susiFutility.R",
     "project_path": "R/susiFutility.R",
     "type": "r_source",
-    "hash": "4067895780",
+    "hash": "0",
     "contents": "",
-    "dirty": true,
+    "dirty": false,
     "created": 1643196945851.0,
     "source_on_save": false,
     "relative_order": 6,
@@ -18,11 +18,11 @@
         "docOutlineVisible": "1"
     },
     "folds": "",
-    "lastKnownWriteTime": 1643371390,
+    "lastKnownWriteTime": 1643371605,
     "encoding": "UTF-8",
     "collab_server": "",
     "source_window": "",
-    "last_content_update": 1643371560371,
+    "last_content_update": 1643371605182,
     "read_only": false,
     "read_only_alternatives": []
 }

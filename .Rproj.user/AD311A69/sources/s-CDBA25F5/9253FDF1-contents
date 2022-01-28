@@ -41,7 +41,7 @@ init_prior <- function(Y,X, prior,v1 , indx_lst )
 }
 
 
-#'@title EM algorithm to find Empirical Bayes prior 
+#'@title EM algorithm to find Empirical Bayes prior
 #'@description
 #'@param G_prior mixture normal prior
 #'@param Bhat  matrix pxJ regression coefficient, Bhat[j,t] corresponds to regression coefficient of Y[,t] on X[,j]
@@ -57,22 +57,22 @@ init_prior <- function(Y,X, prior,v1 , indx_lst )
 EM_pi  <- function(G_prior,Bhat, Shat, indx_lst,
                    max_step =100,
                    espsilon =0.0001 ){
-  
+
   #static parameters
   L_mixsq <-  L_mixsq(G_prior, Bhat, Shat, indx_lst)
   J <- dim(Bhat)[1]
   tsd_k = get_sd_G_prior(G_prior)
-  
+
   #dynamic parameters
   tpi_k = get_pi_G_prior(G_prior)
   oldloglik <-0
   newloglik <-1
-  
+
   zeta <- rep(1/J,J) #assignation initial value
   k <- 1 #counting the number of iteration
-  
+
   lBF <- get_log_BF(G_prior,Bhat,Shat, indx_lst)
-  
+
   while( k <max_step &  abs(newloglik-oldloglik)>=espsilon)
   {
     ###E step----
@@ -81,11 +81,11 @@ EM_pi  <- function(G_prior,Bhat, Shat, indx_lst,
     ####M step ----
     tpi_k <- m_step(L_mixsqp,zeta)
     G_prior <- update_prior(G_prior, tpi_k)
-    
+
     lBF <- log_BF(G_prior,Bhat,Shat, indx_lst)
     newloglik <- cal_lik(lBF,zeta )
     k <- k+1
-    
+
   }
   out =list (tpi_k=tpi_k,
              lBF =lBF )
