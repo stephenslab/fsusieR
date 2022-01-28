@@ -1,4 +1,7 @@
-
+################################## SuSiF GET FUNCTIONS ############################
+#'
+#'
+#'
 #'@title Get mixture proportion for mixture normal prior
 #'
 #'@description

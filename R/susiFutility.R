@@ -345,14 +345,14 @@ EM_pi  <- function(G_prior,Bhat, Shat, indx_lst,
 
   #static parameters
   L_mixsq <-  L_mixsq(G_prior, Bhat, Shat, indx_lst)
+  J <- dim(Bhat)[1]
+  tsd_k = get_sd_G_prior(G_prior)
 
   #dynamic parameters
-  tpi_k= get_pi_G_prior(G_prior)##
-  tsd_k= get_sd_G_prior(G_prior) ## need method here
-  J <- dim(Bhat)[1]
+  tpi_k = get_pi_G_prior(G_prior)
   oldloglik <-0
   newloglik <-1
-  n_wav_coef <- dim(Bhat)[2]
+
   zeta <- rep(1/J,J) #assignation
   k <- 1 #counting the number of iteration
 
@@ -548,20 +548,79 @@ cal_zeta <- function(lBF)
 }
 
 
-#'@title Compute log likelihood of ash weighted problem
-#'@description
-#'@param zeta assignement probabilities
-#'@param lBF vector of log Bayes factors
-#'@export
-cal_zeta <- function(zeta, lBF)
-{
-  out <- sum( zeta*exp(lBF - max(lBF ) ))
-  return(out)
-}
-
 
 
 #'@title Update mixture proportion for mixture normal prior
 #'@description
 #'@param G a prior of class "mixture_normal"
-#'@param pi
+#'@param tpi a vector of proportion of class"pi_mixture_normal"
+#'@return a prior of class "mixture_normal"
+#'@export
+update_prior.mixture_normal <- function(G_prior, tpi)
+{
+  if( class(tpi)=="pi_mixture_normal"){
+    G_prior <- G_prior[[1]]$fitted_g$pi <- tpi
+  }else{
+    stop("Error: tpi is not of class pi_mixture_normal,\n please compute tpi using generic functions m_step or get_pi_G_prior")
+  }
+
+  return(G_prior)
+}
+
+
+#'@title Update mixture proportion for mixture normal prior
+#'@description
+#'@param G a prior of class "mixture_normal"
+#'@param tpi a vector of proportion of class"pi_mixture_normal"
+#'@return a prior of class "mixture_normal"
+#'@export
+update_prior.mixture_normal <- function(G_prior, tpi)
+{
+  if( class(tpi)=="pi_mixture_normal"){
+    G_prior[[1]] <- update_ash_pi(G_prior[[1]], tpi)
+  }else{
+    stop("Error: tpi is not of class pi_mixture_normal,\n please compute tpi using generic functions m_step or get_pi_G_prior")
+  }
+
+  return(G_prior)
+}
+
+#'@title Update mixture proportion for mixture normal per scale prior
+#'@description
+#'@param G a prior of class "mixture_normal_per_scale"
+#'@param tpi a vector of proportion of class"pi_mixture_normal_per_scale"
+#'@return a prior of class "mixture_normal_per_scale"
+#'@export
+update_prior.mixture_normal_per_scale <- function(G_prior, tpi)
+{
+  if( class(tpi)=="pi_mixture_normal_per_scale"){
+    out <- mapply(update_ash_pi ,G_prior, tpi, SIMPLIFY = FALSE)
+    class(out ) <- "mixture_normal_per_scale"
+  }else{
+    stop("Error: tpi is not of class pi_mixture_normal_per_scale,\n please compute tpi using generic functions m_step or get_pi_G_prior")
+  }
+
+  return(out)
+}
+
+#'@title Update ash object mixture proportion
+#'@description
+#'@param G a ash object
+#'@param tpi a vector of proportion
+#'@return an ash object with updated mixture proportion
+#'@export
+update_ash_pi<- function(G , tpi)
+{
+
+  if( length(G$fitted_g$pi )==length(tpi))
+  {
+    G$fitted_g$pi <- tpi
+  }else{
+    stop("Error: when updating ash object length of new mixture proportion
+    \nlonger than the mixture proportion in the ash object    ")
+
+  }
+
+  return(G)
+}
+

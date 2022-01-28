@@ -1,4 +1,7 @@
-
+################################## Defines Methods ############################
+#'
+#'
+#'
 
 log_BF         <- function( G_prior , ...) UseMethod("log_BF")
 post_mat_mean  <- function( G_prior , ...) UseMethod("post_mat_mean")
@@ -7,4 +10,5 @@ EM_pi          <- function( G_prior , ...) UseMethod("EM_pi")
 get_pi_G_prior <- function( G_prior , ...) UseMethod("get_pi_G_prior")
 get_sd_G_prior <- function( G_prior , ...) UseMethod("get_sd_G_prior")
 L_mixsq        <- function( G_prior , ...) UseMethod("L_mixsq")
+update_prior   <- function( G_prior , ...) UseMethod("update_prior")
 m_step         <- function( L , ...)       UseMethod("m_step")

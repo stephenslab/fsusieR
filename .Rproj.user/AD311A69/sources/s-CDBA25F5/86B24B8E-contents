@@ -83,18 +83,24 @@ get_pi_G_prior(G)
 get_sd_G_prior(G)
 L <- L_mixsq(G, Bhat, Shat)
 L
-lBF <- ifelse(is.finite(lBF), lBF,1000)
 zeta <- cal_zeta(lBF)
-m_step(L, zeta , indx_lst)
-
-
-### Test validity normal mixture -----
+tpi <- m_step(L, zeta , indx_lst)
+tpi
+G_update <- update_prior (G_prior, tpi)
+test_that("Updated mixture proportion should be equal to provided input",
+          {
+            expect_equal(identical(get_pi_G_prior(G_update) ,tpi),
+                         TRUE
+            )
+          }
+)
+### Test validity normal mixture per scale -----
 G <- init_prior(Y=Y_f,
                 X=X,
                 prior="mixture_normal_per_scale",
                 v1=v1,
                 indx_lst = indx_lst)
-lBF <- log_BF (G_prior, tt$Bhat, tt$Shat )
+lBF <- log_BF (G, tt$Bhat, tt$Shat , indx_lst)
 lBF
 test_that("Max lBF should be in postion",
           {
@@ -108,8 +114,17 @@ plot( Shat,  (post_mat_sd(G,Bhat,Shat, indx_lst) ))
 get_pi_G_prior(G)
 get_sd_G_prior(G)
 L <- L_mixsq(G, Bhat, Shat, indx_lst)
-L
 lBF
 zeta <- cal_zeta(lBF)
-m_step(L, zeta , indx_lst)
+tpi <- m_step(L, zeta , indx_lst)
+class(tpi)
+G_prior <- G
+G_update <- update_prior (G_prior, tpi)
+test_that("Updated mixture proportion should be equal to provided input",
+          {
+            expect_equal(identical(get_pi_G_prior(G_update) ,tpi),
+                         TRUE
+            )
+          }
+)
 
