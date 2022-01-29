@@ -2,15 +2,12 @@
 % Please edit documentation in R/susiFutility.R
 \name{EM_pi}
 \alias{EM_pi}
-\title{EM algorithm to find Empirical Bayes prior under the mixture normal prior
-
-
-let try to make similar for the different prior}
+\title{EM algorithm to find Empirical Bayes prior}
 \usage{
 EM_pi(G_prior, Bhat, Shat, indx_lst, max_step = 100, espsilon = 1e-04)
 }
 \arguments{
-\item{G_prior}{mixture normal prior}
+\item{G_prior}{mixture normal prior  or mixture  normal per scale}
 
 \item{Bhat}{matrix pxJ regression coefficient, Bhat[j,t] corresponds to regression coefficient of Y[,t] on X[,j]}
 
@@ -27,8 +24,5 @@ EM_pi(G_prior, Bhat, Shat, indx_lst, max_step = 100, espsilon = 1e-04)
 \item lBF log Bayes Factor
 }
 \description{
-EM algorithm to find Empirical Bayes prior under the mixture normal prior
-
-
-let try to make similar for the different prior
+EM algorithm to find Empirical Bayes prior
 }

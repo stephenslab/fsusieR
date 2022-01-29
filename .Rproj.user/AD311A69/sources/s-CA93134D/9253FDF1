@@ -1,27 +1,28 @@
 {
-    "id": "16C4540A",
-    "path": "D:/Document/Serieux/Travail/Package/suisF.alpha/R/misc.R",
-    "project_path": "R/misc.R",
+    "id": "9253FDF1",
+    "path": "D:/Document/Serieux/Travail/Package/suisF.alpha/R/susiFutility.R",
+    "project_path": "R/susiFutility.R",
     "type": "r_source",
     "hash": "0",
     "contents": "",
     "dirty": false,
-    "created": 1643197271650.0,
+    "created": 1643196945851.0,
     "source_on_save": false,
-    "relative_order": 10,
+    "relative_order": 4,
     "properties": {
         "tempName": "Untitled1",
         "source_window_id": "",
         "Source": "Source",
-        "cursorPosition": "14,0",
-        "scrollLine": "0"
+        "cursorPosition": "618,0",
+        "scrollLine": "410",
+        "docOutlineVisible": "1"
     },
     "folds": "",
-    "lastKnownWriteTime": 1643361955,
+    "lastKnownWriteTime": 1643485173,
     "encoding": "UTF-8",
     "collab_server": "",
     "source_window": "",
-    "last_content_update": 1643361955392,
+    "last_content_update": 1643485173637,
     "read_only": false,
     "read_only_alternatives": []
 }
