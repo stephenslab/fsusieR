@@ -129,6 +129,15 @@ test_that("Susif object pi are expected to be equal to ",
 )
 
 
+test_that("Susif internal prior to be equal to ",
+          {
+            susiF_obj <- init_susiF_obj(L=1, G_prior,Y,X)
+
+            expect_equal(get_G_prior (susiF_obj ),  G_prior)
+
+          }
+)
+
 test_that("Class of the prior is", {
 
   expect_equal(class(
@@ -230,4 +239,5 @@ test_that("The mixture propotion of the update susiF object shoudl be equal to  
 
 susiF_obj <- init_susiF_obj(L=1, G_prior,Y,X)
 
-class(susiF_obj)
+
+

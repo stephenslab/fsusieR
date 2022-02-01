@@ -89,6 +89,7 @@ EM_pi  <- function(G_prior,Bhat, Shat, indx_lst,
   }
   out =list (tpi_k=tpi_k,
              lBF =lBF )
+  class(out) <- "EM_pi"
   return(out )
 }
 
