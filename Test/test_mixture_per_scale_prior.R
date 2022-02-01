@@ -51,8 +51,7 @@ test_that("Max lBF should be in postion",
             )
           }
 )
-susiF_obj <- init_susiF_obj(L=1, G_prior,Y,X)
-
+susiF_obj <- init_susiF_obj(L=2, G_prior,Y,X)
 
 test_that("Susif object pi are expected to be equal to ",
           {
@@ -62,11 +61,21 @@ test_that("Susif object pi are expected to be equal to ",
             )
           }
 )
+test_that("Susif object pi are expected to be equal to ",
+          {
+            susiF_obj <- init_susiF_obj(L=2, G_prior,Y,X)
+
+            expect_equal(get_pi(susiF_obj,1), get_pi_G_prior(G_prior)
+            )
+            expect_equal(get_pi(susiF_obj,2), get_pi_G_prior(G_prior)
+            )
+          }
+)
 
 
 test_that("Susif internal prior to be equal to ",
           {
-            susiF_obj <- init_susiF_obj(L=1, G_prior,Y,X)
+            susiF_obj <- init_susiF_obj(L=2, G_prior,Y,X)
 
             expect_equal(get_G_prior (susiF_obj ),  G_prior)
 
@@ -197,3 +206,30 @@ test_that("The update susiF object should have its argument equal to    ",
 
           }
 )
+
+test_that("The partial residual should be    ",
+          {
+            outEM <-  EM_pi(G_prior,Bhat,Shat, indx_lst)
+            G_prior <- update_prior(G_prior,
+                                    tpi= outEM$tpi_k )
+
+            susiF_obj <- update_susiF_obj(susiF_obj, 1, outEM, Bhat, Shat, indx_lst )
+
+            expect_equal( susiF_obj$fitted_wc[[1]],post_mat_mean( G_prior , Bhat, Shat, indx_lst ))
+            expect_equal( susiF_obj$fitted_wc2[[1]],post_mat_sd  ( G_prior , Bhat, Shat , indx_lst))
+            expect_equal( get_alpha (susiF_obj , 1), cal_zeta(outEM$lBF))
+            expect_equal( get_G_prior(susiF_obj) ,G_prior)
+
+          }
+)
+
+
+cal_partial_resid(
+                  susiF.obj = susiF_obj,
+                  l         = 1,
+                  X         = X,
+                  D         = W$D,
+                  C         = W$C,
+                  L         = 2,
+                  indx_lst  = indx_lst
+                  )

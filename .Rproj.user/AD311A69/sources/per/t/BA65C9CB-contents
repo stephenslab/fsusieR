@@ -80,8 +80,7 @@ susif <- function( Y,X, L = 2,
 
   W <- DWT2(Y)
   update_D <- W
-  Y_f <- cbind( W$D,W$C) #Using a column like phenotype
-  update_Y <- Y_f # temporary matrix that will be regularly updated
+  update_Y <- cbind( W$D,W$C) #Using a column like phenotype, temporary matrix that will be regularly updated
 
 
 
@@ -97,28 +96,29 @@ susif <- function( Y,X, L = 2,
 
 
      tpi <-  get_pi(susiF.obj,l)
-     G_prior <- update_prior(G_prior,
-                             tpi= tpi )
-     EM_out  <- EM_pi(G_prior= G_prior,
-                      Bhat =  Bhat,
-                      Shat = Shat,
+     G_prior <- update_prior(G_prior, tpi= tpi ) #allow EM to start close to previous solution (to double check)
+
+     EM_out  <- EM_pi(G_prior  = G_prior,
+                      Bhat     =  Bhat,
+                      Shat     = Shat,
                       indx_lst =  indx_lst
                       )
+
      susiF.obj <-  update_susiF_obj(susiF.obj = susiF.obj ,
-                                    l = l,
-                                    EM_pi = EM_out
+                                    l         = l,
+                                    EM_pi     = EM_out
                                     )
 
+     update_Y  <-  cal_partial_resid(
+                                      susiF.obj = susiF_obj,
+                                      l         = 1,
+                                      X         = X,
+                                      D         = W$D,
+                                      C         = W$C,
+                                      L         = 2,
+                                      indx_lst  = indx_lst
+                                    )
 
-
-     G_prior <- update_prior(G_prior,
-                             tpi= EM_out$tpi_k )
-
-     fitted_wc_col[[l]]   <- post_mat_mean( G_prior , Bhat, Shat )
-     fitted_wc_col2[[l]]  <- post_mat_sd  (G_prior , Bhat, Shat )
-     lBF <- EM_out$lBF
-     alpha_col[[l]] <-cal_zeta(lBF)
-   }
 
   }
 }

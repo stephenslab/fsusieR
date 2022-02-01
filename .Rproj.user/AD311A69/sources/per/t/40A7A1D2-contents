@@ -116,6 +116,37 @@ test_that("Max lBF should be in postion",
 )
 
 
+susiF_obj <- init_susiF_obj(L=2, G_prior,Y,X)
+
+test_that("Susif object pi are expected to be equal to ",
+          {
+            susiF_obj <- init_susiF_obj(L=1, G_prior,Y,X)
+
+            expect_equal(get_pi(susiF_obj,1), get_pi_G_prior(G_prior)
+            )
+          }
+)
+test_that("Susif object pi are expected to be equal to ",
+          {
+            susiF_obj <- init_susiF_obj(L=2, G_prior,Y,X)
+
+            expect_equal(get_pi(susiF_obj,1), get_pi_G_prior(G_prior)
+            )
+            expect_equal(get_pi(susiF_obj,2), get_pi_G_prior(G_prior)
+            )
+          }
+)
+
+
+test_that("Susif internal prior to be equal to ",
+          {
+            susiF_obj <- init_susiF_obj(L=1, G_prior,Y,X)
+
+            expect_equal(get_G_prior (susiF_obj ),  G_prior)
+
+          }
+)
+
 test_that("Class of the prior is", {
 
   expect_equal(class(
@@ -190,7 +221,7 @@ test_that("Updated mixture proportion should be equal to provided input",
           }
 )
 EM_pi(G_prior,Bhat,Shat, indx_lst)
-EM_pi
+
 
 outEM <-  EM_pi(G_prior,Bhat,Shat, indx_lst)
 test_that("The outputs of the EM_pi function should be  ",
@@ -199,6 +230,59 @@ test_that("The outputs of the EM_pi function should be  ",
             expect_equal(class(outEM$tpi_k) ,"pi_mixture_normal")
             expect_equal(class(outEM$lBF) ,"numeric")
             expect_equal(length(outEM$lBF) ,dim(Bhat)[1])
+            tol <- 0.01 #tolerance
             expect_gt( get_pi0(tpi = tpi), (1-1/2^9 ) -tol  )
           }
 )
+
+
+
+test_that("The alpha value of  the update susiF object should be equal to   ",
+          {
+            outEM <-  EM_pi(G_prior,Bhat,Shat, indx_lst)
+            new_alpha <- cal_zeta(outEM$lBF)
+            susiF_obj <- update_alpha.susiF(susiF_obj, l, new_alpha)
+            expect_equal( get_alpha (susiF_obj , 1), new_alpha )
+          }
+)
+
+test_that("The mixture proportion of the update susiF object shoudl be equal to   ",
+          {
+            outEM <-  EM_pi(G_prior,Bhat,Shat, indx_lst)
+            susiF_obj <- update_pi_susiF( susiF_obj, 1,  outEM$tpi_k)
+
+            expect_equal( get_pi (susiF_obj , 1),outEM$tpi_k )
+          }
+)
+
+
+test_that("The alpha value of  the update susiF object should be equal to   ",
+          {
+            outEM <-  EM_pi(G_prior,Bhat,Shat, indx_lst)
+            new_alpha <- cal_zeta(outEM$lBF)
+            susiF_obj <- update_alpha.susiF(susiF_obj, l, new_alpha)
+            expect_equal( get_alpha (susiF_obj , 1), new_alpha )
+          }
+)
+
+
+susiF_obj <- init_susiF_obj(L=2, G_prior,Y,X)
+
+
+test_that("The update susiF object should have its argument equal to    ",
+          {
+            outEM <-  EM_pi(G_prior,Bhat,Shat, indx_lst)
+            G_prior <- update_prior(G_prior,
+                                    tpi= outEM$tpi_k )
+
+            susiF_obj <- update_susiF_obj(susiF_obj, 1, outEM, Bhat, Shat, indx_lst )
+
+            expect_equal( susiF_obj$fitted_wc[[1]],post_mat_mean( G_prior , Bhat, Shat, indx_lst ))
+            expect_equal( susiF_obj$fitted_wc2[[1]],post_mat_sd  ( G_prior , Bhat, Shat , indx_lst))
+            expect_equal( get_alpha (susiF_obj , 1), cal_zeta(outEM$lBF))
+            expect_equal( get_G_prior(susiF_obj) ,G_prior)
+
+          }
+)
+
+
