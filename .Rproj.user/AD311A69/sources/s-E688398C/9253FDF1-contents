@@ -133,6 +133,7 @@ cal_Bhat_Shat <- function(Y,X,v1 )
 #'
 #'@param Y  functional phenotype, matrix of size N by size J. The underlying algorithm uses wavelet which assume that J is of the form J^2. If J not a power of 2, susif internally remaps the data into grid of length 2^J
 #'@param X matrix of size n by p in
+#'@param v1 vector of 1 of length nn
 #'@return vector of 2 containing the regression coefficient and standard
 #'@export
 fit_lm <- function( l,j,Y,X,v1)  ## Speed Gain

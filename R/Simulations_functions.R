@@ -1,7 +1,15 @@
-
-#lev_res numerical corresponds to the resolution of the simulated function (idealy between 3 and 10)
-#length_grid vector numerical corresponds to the length of the grid of sigma for mixture component(cf ash)
-#piO vector numerical , contain a digit  between 0 and 1, which corresponds to the null proportion ( non assocatied wavelet coefficients)
+#'@title Simulate data under the mixture normal prior
+#'
+#'@description
+#'@param lev_res numerical corresponds to the resolution of the simulated function (idealy between 3 and 10)
+#'@param length_grid vector numerical corresponds to the length of the grid of sigma for mixture component(cf ash)
+#'@param piO vector numerical , contain a digit  between 0 and 1, which corresponds to the null proportion ( non assocatied wavelet coefficients)
+#'@export
+#'@examples
+#'
+#'out <- simu_IBSS_ash_vanilla(lev_res=8, length_grid= 10, pi0= 0.85)
+#'plot(out$sim_func, type="l", ylab="y")
+#'out$emp_pi0
 simu_IBSS_ash_vanilla <- function( lev_res=7, length_grid= 10, pi0= 0.85)
 {
   #define mixutre components
@@ -35,20 +43,24 @@ simu_IBSS_ash_vanilla <- function( lev_res=7, length_grid= 10, pi0= 0.85)
   return(out)
 }
 
-not_run <- FALSE
-if(not_run)
-{
 
-  out <- simu_IBSS_ash_vanilla(lev_res=8, length_grid= 10, pi0= 0.85)
-  plot(out$sim_func, type="l", ylab="y")
-  out$emp_pi0
-}
-#lev_res numerical corresponds to the resolution of the simulated function (idealy between 3 and 10)
-#piO vector of length lev_res, containing digits between 0 and 1, which correspond to the mixture component for each level of resolution to be zero.
-# by default set as 1-1/2^(0.1*(1:lev_res))
-#length_grid vector numerical corresponds the length of the grid of sigma for mixture component(cf ash)
-#alpha numeric >0, control smoothness of the curves, should be positive and up 4 in particular d_sl ~ \pi_{0,sl} \delta_0 + \sum_k \pi_k N(0, 2^{-\alpha * s}  \sigma_k^2)
-#prop_decay numeric >0, control the proportion of non zero wavelet coefficient per scale, \pi_{0,sl} = 1- exp(-prop_decay*s)
+#'@title Simulate data under the mixture normal prior
+#'
+#'@description
+#'@param lev_res numerical corresponds to the resolution of the simulated function (idealy between 3 and 10)
+#'@param length_grid vector numerical corresponds to the length of the grid of sigma for mixture component(cf ash)
+#'@param piO vector numerical , contain a digit  between 0 and 1, which corresponds to the null proportion ( non assocatied wavelet coefficients)
+#'@param alpha numeric >0, control smoothness of the curves, should be positive and up 4 in particular d_sl ~ \pi_{0,sl} \delta_0 + \sum_k \pi_k N(0, 2^{-\alpha * s}  \sigma_k^2)
+#'@param prop_decay numeric >0, control the proportion of non zero wavelet coefficient per scale, \pi_{0,sl} = 1- exp(-prop_decay*s)
+#'@export
+#'@examples
+#'out <- simu_IBSS_per_level(lev_res=9, alpha=1, prop_decay = 0.5)
+#'plot(out$sim_func, type="l", ylab="y")
+#'out$emp_pi0
+#'temp_func <- simu_IBSS_per_level(lev_res=9, alpha=1, prop_decay = 0)
+#'print( temp_func$emp_pi0)
+#'
+
 
 simu_IBSS_per_level  <-function( lev_res=7,
                                  length_grid= 10,
@@ -128,16 +140,3 @@ simu_IBSS_per_level  <-function( lev_res=7,
   return(out)
 }
 
-not_run <- FALSE
-if(not_run)
-{
-  out <- simu_IBSS_per_level(lev_res=9, alpha=1, prop_decay = 0.5)
-  plot(out$sim_func, type="l", ylab="y")
-  out$emp_pi0
-
-  temp_func <- simu_IBSS_per_level(lev_res=9, alpha=1, prop_decay = 0.)
-  print( temp_func$emp_pi0)
-
-
-
-}

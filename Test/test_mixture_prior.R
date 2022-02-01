@@ -116,6 +116,18 @@ test_that("Max lBF should be in postion",
 )
 
 
+
+susif_obj <- init_susiF_obj(L=1, G_prior,Y,X)
+
+test_that("Susif object pi are expected to be equal to ",
+          {
+            expect_equal(which.max(lBF),
+                         pos1
+            )
+          }
+)
+
+
 test_that("Class of the prior is", {
 
   expect_equal(class(
@@ -190,7 +202,7 @@ test_that("Updated mixture proportion should be equal to provided input",
           }
 )
 EM_pi(G_prior,Bhat,Shat, indx_lst)
-EM_pi
+
 
 outEM <-  EM_pi(G_prior,Bhat,Shat, indx_lst)
 test_that("The outputs of the EM_pi function should be  ",
@@ -199,6 +211,9 @@ test_that("The outputs of the EM_pi function should be  ",
             expect_equal(class(outEM$tpi_k) ,"pi_mixture_normal")
             expect_equal(class(outEM$lBF) ,"numeric")
             expect_equal(length(outEM$lBF) ,dim(Bhat)[1])
+            tol <- 0.01 #tolerance
             expect_gt( get_pi0(tpi = tpi), (1-1/2^9 ) -tol  )
           }
 )
+
+

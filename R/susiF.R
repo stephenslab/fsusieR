@@ -66,6 +66,13 @@ susif <- function( Y,X, L = 2,
 
 
   ### Definition of some static parameters ---
+  indx_lst <-  gen_wavelet_indx(log2(dim(Y_f)[2]))
+  v1 <- rep(1, dim(X)[1])### used in fit_lm to add a column of 1 in the design matrix
+
+
+  ### Definition of some dynamic parameters ---
+
+  G_prior <-  init_prior(Y_f,X,prior,v1 , indx_lst  )
 
   #Wavelet transform of the inputs
 
@@ -74,12 +81,8 @@ susif <- function( Y,X, L = 2,
   Y_f <- cbind( W$D,W$C) #Using a column like phenotype
   update_Y <-Y_f
 
-  if( prior == "mixture_normal_per_scale")
-  {
-    indx_lst <-  gen_wavelet_indx(log2(dim(Y_f)[2]))
-  }
-  v1 <- rep(1, dim(X)[1])### used in fit_lm to add a column of 1 in the design matrix
-  G_prior <-  init_prior(Y_f,X,prior,v1 , indx_lst  )
+
+
 
   #IBSS   ---------
   while(check >tol & (h/L) <maxit)
@@ -87,7 +90,7 @@ susif <- function( Y,X, L = 2,
 
     tt <- cal_Bhat_Shat(update_Y,X,v1)
     Bhat <- tt$Bhat
-    Shat <- tt$Bhat
+    Shat <- tt$Shat #UPDATE. could be nicer
     t_prior <- G_prior
     EM_out  <- EM_pi(G_prior= t_prior, Bhat,Shat, indx_lst  )
     t_prior <-  update_prior(t_prior, EM_out$tpi_k)
