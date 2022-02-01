@@ -115,7 +115,7 @@ test_that("Max lBF should be in postion",
 )
 
 
-susiF_obj <- init_susiF_obj(L=2, G_prior,Y,X)
+susiF_obj <- init_susiF_obj(L=1, G_prior,Y,X)
 
 test_that("Susif object pi are expected to be equal to ",
           {
@@ -248,7 +248,7 @@ test_that("The alpha value of  the update susiF object should be equal to   ",
 test_that("The mixture proportion of the update susiF object shoudl be equal to   ",
           {
             outEM <-  EM_pi(G_prior,Bhat,Shat, indx_lst)
-            susiF_obj <- update_pi_susiF( susiF_obj, 1,  outEM$tpi_k)
+            susiF_obj <- update_pi( susiF_obj, 1,  outEM$tpi_k)
 
             expect_equal( get_pi (susiF_obj , 1),outEM$tpi_k )
           }
@@ -300,7 +300,7 @@ test_that("The partial residual should be    ",
               X         = X,
               D         = W$D,
               C         = W$C,
-              L         = 2,
+              L         = 1,
               indx_lst  = indx_lst
             )
 

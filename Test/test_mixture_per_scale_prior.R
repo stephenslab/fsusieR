@@ -52,7 +52,7 @@ test_that("Max lBF should be in postion",
             )
           }
 )
-susiF_obj <- init_susiF_obj(L=2, G_prior,Y,X)
+susiF_obj <- init_susiF_obj(L=1, G_prior,Y,X)
 
 test_that("Susif object pi are expected to be equal to ",
           {
@@ -95,8 +95,8 @@ test_that("Class of the prior is", {
   "mixture_normal_per_scale"
   )
 })
-plot( Bhat,  post_mat_mean(G,Bhat,Shat, indx_lst) )
-plot( Shat,  (post_mat_sd(G,Bhat,Shat, indx_lst) ))
+plot( Bhat,  post_mat_mean(G_prior,Bhat,Shat, indx_lst) )
+plot( Shat,  (post_mat_sd(G_prior,Bhat,Shat, indx_lst) ))
 test_that("Class of the proportions  is", {
 
   expect_equal(class(get_pi_G_prior(G_prior))
@@ -174,7 +174,7 @@ test_that("The outputs of the EM_pi function should be  ",
 test_that("The mixture proportion of the updated susiF object should be equal to   ",
           {
             outEM <-  EM_pi(G_prior,Bhat,Shat, indx_lst)
-            susiF_obj <- update_pi_susiF( susiF_obj, 1,  outEM$tpi_k)
+            susiF_obj <- update_pi( susiF_obj, 1,  outEM$tpi_k)
 
             expect_equal( get_pi (susiF_obj , 1),outEM$tpi_k )
           }
@@ -185,7 +185,7 @@ test_that("The alpha value of  the update susiF object should be equal to   ",
           {
             outEM <-  EM_pi(G_prior,Bhat,Shat, indx_lst)
             new_alpha <- cal_zeta(outEM$lBF)
-            susiF_obj <- update_alpha.susiF(susiF_obj, l, new_alpha)
+            susiF_obj <- update_alpha(susiF_obj, 1, new_alpha)
             expect_equal( get_alpha (susiF_obj , 1), new_alpha )
           }
 )
@@ -220,7 +220,7 @@ test_that("The partial residual should be    ",
               X         = X,
               D         = W$D,
               C         = W$C,
-              L         = 2,
+              L         = 1,
               indx_lst  = indx_lst
             )
 
@@ -233,6 +233,61 @@ test_that("The partial residual should be    ",
 
             expect_equal(  update_T ,manual_update)
 
+          }
+)
+
+
+test_that("The out update should be equal to    ",
+          {
+            outEM <-  EM_pi(G_prior,Bhat,Shat, indx_lst)
+            G_prior <- update_prior(G_prior,
+                                    tpi= outEM$tpi_k )
+
+            susiF_obj <- update_susiF_obj(susiF_obj, 1, outEM, Bhat, Shat, indx_lst )
+            tcs <- list()
+            tpip <- list()
+            for ( l in 1:susiF_obj$L)
+            {
+              temp        <- susiF_obj$alpha[[l]]
+              temp_cumsum <- cumsum( temp[order(temp, decreasing =TRUE)])
+              max_indx_cs <- min(which( temp_cumsum >0.95))
+              max_indx_cs <- min(which( temp_cumsum >0.95))
+              tcs[[l]]  <- order(temp, decreasing = TRUE)[1:max_indx_cs ]
+              tpip[[l]] <- rep(1, lengths(susiF_obj$alpha)[[l]])-susiF_obj$alpha[[l]]
+            }
+             pip <- 1-  apply( do.call(rbind,tpip),2, prod)
+
+
+             fitted_func <- list ()
+             temp <- wd(rep(0, dim(Y_f)[2]))
+             for ( l in 1:susiF_obj$L)
+             {
+               temp$D <-    (susiF_obj$alpha[[l]])%*%susiF_obj$fitted_wc[[l]][,-indx_lst[[length(indx_lst)]]]
+               temp$C[length(temp$C)] <- (susiF_obj$alpha[[l]])%*%susiF_obj$fitted_wc[[l]][,indx_lst[[length(indx_lst)]]]
+               fitted_func[[l]] <- wr(temp)
+             }
+
+
+             ind_fitted_func  <- matrix(0, ncol=dim(Y)[2], nrow=dim(Y)[1])
+             for ( i in 1:dim(Y)[1])
+             {
+                ind_fitted_func[i,]  <- rep(0,dim(Y)[2])#fitted_baseline
+               for ( l in 1:susiF_obj$L)
+               {
+                 #add wavelet coefficient
+                 temp$D                         <-    (susiF_obj$alpha[[l]] *X[i,])%*%susiF_obj$fitted_wc[[l]][,-indx_lst[[length(indx_lst)]]]
+                 temp$C[length(temp$C)]         <-    (susiF_obj$alpha[[l]] *X[i,])%*%susiF_obj$fitted_wc[[l]][,indx_lst[[length(indx_lst)]]]
+                 #transform back
+                ind_fitted_func[i,]  <-  ind_fitted_func[i,]+wr(temp)
+               }
+             }
+
+
+            expect_equal(  update_cal_pip(susiF_obj)$pip        ,pip)
+            expect_equal(  update_cal_cs(susiF_obj)$cs          ,tcs)
+            expect_equal(  update_cal_indf(susiF_obj, Y, X, indx_lst)$ind_fitted_func ,ind_fitted_func)
+            expect_equal(  update_cal_fit_func(susiF_obj, indx_lst)$fitted_func   ,fitted_func)
+            expect_equal(  sum( abs(unlist(update_cal_fit_func(susiF_obj, indx_lst)$fitted_func) -f1$sim_func)), 0, tol=0.003)
           }
 )
 
