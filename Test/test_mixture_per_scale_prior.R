@@ -188,10 +188,10 @@ test_that("The update susiF object should have its argument equal to    ",
             G_prior <- update_prior(G_prior,
                                     tpi= outEM$tpi_k )
 
-            susiF_obj <- update_susiF_obj(susiF_obj, l, outEM, Bhat, Shat, indx_lst )
+            susiF_obj <- update_susiF_obj(susiF_obj, 1, outEM, Bhat, Shat, indx_lst )
 
-            expect_equal( susiF_obj$fitted_wc[[1]],post_mat_mean( G_prior , Bhat, Shat ))
-            expect_equal( susiF_obj$fitted_wc[[1]],post_mat_sd  ( G_prior , Bhat, Shat ))
+            expect_equal( susiF_obj$fitted_wc[[1]],post_mat_mean( G_prior , Bhat, Shat, indx_lst ))
+            expect_equal( susiF_obj$fitted_wc2[[1]],post_mat_sd  ( G_prior , Bhat, Shat , indx_lst))
             expect_equal( get_alpha (susiF_obj , 1), cal_zeta(outEM$lBF))
             expect_equal( get_G_prior(susiF_obj) ,G_prior)
 

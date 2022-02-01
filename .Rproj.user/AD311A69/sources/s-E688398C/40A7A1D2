@@ -3,17 +3,17 @@
     "path": "D:/Document/Serieux/Travail/Package/suisF.alpha/Test/test_mixture_prior.R",
     "project_path": "Test/test_mixture_prior.R",
     "type": "r_source",
-    "hash": "1485673202",
+    "hash": "0",
     "contents": "",
-    "dirty": false,
+    "dirty": true,
     "created": 1643711009922.0,
     "source_on_save": false,
     "relative_order": 7,
     "properties": {
         "source_window_id": "",
         "Source": "Source",
-        "cursorPosition": "263,0",
-        "scrollLine": "231",
+        "cursorPosition": "279,0",
+        "scrollLine": "251",
         "docOutlineVisible": "1"
     },
     "folds": "",
@@ -21,7 +21,7 @@
     "encoding": "UTF-8",
     "collab_server": "",
     "source_window": "",
-    "last_content_update": 1643720022993,
+    "last_content_update": 1643721436801,
     "read_only": false,
     "read_only_alternatives": []
 }

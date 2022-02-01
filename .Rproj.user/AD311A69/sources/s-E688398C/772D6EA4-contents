@@ -175,12 +175,12 @@ update_susiF_obj <- function(susiF.obj, l, EM_pi, Bhat, Shat, indx_lst)
                                   tpi =  EM_pi$tpi_k)
   susiF.obj$G_prior <- update_prior(get_G_prior(susiF.obj) , EM_pi$tpi_k  )
 
-  susiF.obj$fitted_wc_col[[l]]   <- post_mat_mean(get_G_prior(susiF.obj) , Bhat, Shat,indx_lst= indx_lst )
-  susiF.obj$fitted_wc_col2[[l]]  <- post_mat_sd  (get_G_prior(susiF.obj) , Bhat, Shat, indx_lst= indx_lst)
+  susiF.obj$fitted_wc[[l]]   <- post_mat_mean(get_G_prior(susiF.obj) , Bhat, Shat,indx_lst= indx_lst )
+  susiF.obj$fitted_wc2[[l]]  <- post_mat_sd  (get_G_prior(susiF.obj) , Bhat, Shat, indx_lst= indx_lst)
 
 
   new_alpha <- cal_zeta(  EM_pi$lBF)
   susiF.obj <- update_alpha.susiF(susiF.obj, l, new_alpha)
-
+  return(susiF.obj)
 }
 
