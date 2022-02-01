@@ -200,9 +200,8 @@ cal_partial_resid.susiF  <- function( susiF.obj, l, X, D, C, L, indx_lst )
     }
     if(class(get_G_prior(susiF.obj))=="mixture_normal" )
     {
-      id_L <- (1:L)[ - ( (l%%L)+1) ]#Computing residuals R_{l+1} by removing all the effect except effect l+1
-      update_D  <-  D - Reduce("+", lapply  ( id_L, function(l) (X*rep(alpha[[l]], rep.int(N,P))) %*% (susiF.obj$fitted_wc[[l]][,-dim(fitted_wc[[l]])[2]])   ) )
-      update_C  <-  C - Reduce("+", lapply  ( id_L, function(l) (X*rep(alpha[[l]], rep.int(N,P))) %*% susiF.obj$fitted_wc[[l]][,dim(fitted_wc[[l]])[2]] ) )
+      update_D  <-  D - Reduce("+", lapply  ( id_L, function(l) (X*rep(susiF.obj$alpha[[l]], rep.int(N,P))) %*% (susiF.obj$fitted_wc[[l]][,-dim(fitted_wc[[l]])[2]])   ) )
+      update_C  <-  C - Reduce("+", lapply  ( id_L, function(l) (X*rep(susiF.obj$alpha[[l]], rep.int(N,P))) %*% susiF.obj$fitted_wc[[l]][,dim(fitted_wc[[l]])[2]] ) )
       update_Y  <- cbind(  update_D, update_C)
     }
   }
