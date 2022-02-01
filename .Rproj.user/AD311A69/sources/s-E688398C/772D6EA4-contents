@@ -25,6 +25,7 @@ init_susiF_obj <- function(L, G_prior, Y,X ){
   obj <-list()
   fitted_wc       <-  list()
   fitted_wc2      <-  list()
+  alpha           <-  list()
   alpha_hist      <-  list()
   ind_fitted_func <-  list()
   cs              <-  list()
@@ -43,14 +44,15 @@ init_susiF_obj <- function(L, G_prior, Y,X ){
      est_sd [[l]]          <-  get_sd_G_prior(G_prior)
     }
  obj <- list( fitted_wc       = fitted_wc,
-              fitted_wc2      =  fitted_wc2,
-              alpha_hist      =  alpha_hist,
+              fitted_wc2      = fitted_wc2,
               ind_fitted_func = ind_fitted_func,
+              alpha_hist      = alpha_hist,
+              alpha           = alpha,
               cs              = cs,
               pip             = pip,
               est_pi          = est_pi,
               est_sd          = est_sd,
-              G_prior         =  G_prior)
+              G_prior         = G_prior)
 
  class(obj) <- "susiF"
  return(obj)
@@ -131,9 +133,21 @@ update_alpha.susiF <-  function(susiF.obj, l, alpha )
 {
   susiF.obj$alpha[[l]] <- alpha
   susiF.obj$alpha_hist[[ (length(susiF.obj$alpha_hist)+1)  ]] <- alpha
+  return( susiF.obj)
 }
 
-
+#'@title Update alpha   susif mixture proportion of effect l
+#'
+#'@param susiF.obj a susisf object defined by init_susiF_obj function
+#'@param l integer larger or equal to 1. Corresponds to the effect to be accessed
+#'@param alpha  vector of p alpha values summing up to one
+#'@return susiF object
+#'@export
+get_alpha.susiF <-  function(susiF.obj, l  )
+{
+  out <- susiF.obj$alpha[[l]]
+  return( out)
+}
 #'@title Update  susif object using output of EM
 #'
 #'@param susiF.obj a susisf object defined by init_susiF_bj function
@@ -166,6 +180,6 @@ update_susiF_obj <- function (susiF.obj  , l, EM_pi)
 
 
   new_alpha <- cal_zeta(  EM_out$lBF)
-  susiF.obj <- update_alpha.susiF()
+  susiF.obj <- update_alpha.susiF(susiF.obj, l, new_alpha)
 }
 

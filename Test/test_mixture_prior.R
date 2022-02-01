@@ -226,15 +226,35 @@ test_that("The outputs of the EM_pi function should be  ",
           }
 )
 
-test_that("The mixture propotion of the update susiF object shoudl be equal to   ",
+
+
+test_that("The alpha value of  the update susiF object should be equal to   ",
           {
             outEM <-  EM_pi(G_prior,Bhat,Shat, indx_lst)
-            susiF_obj <- update_pi_susiF( susiF.obj, 1,  outEM$tpi_k)
+            new_alpha <- cal_zeta(outEM$lBF)
+            susiF_obj <- update_alpha.susiF(susiF_obj, l, new_alpha)
+            expect_equal( get_alpha (susiF_obj , 1), new_alpha )
+          }
+)
+
+test_that("The mixture proportion of the update susiF object shoudl be equal to   ",
+          {
+            outEM <-  EM_pi(G_prior,Bhat,Shat, indx_lst)
+            susiF_obj <- update_pi_susiF( susiF_obj, 1,  outEM$tpi_k)
 
             expect_equal( get_pi (susiF_obj , 1),outEM$tpi_k )
           }
 )
 
+
+test_that("The alpha value of  the update susiF object should be equal to   ",
+          {
+            outEM <-  EM_pi(G_prior,Bhat,Shat, indx_lst)
+            new_alpha <- cal_zeta(outEM$lBF)
+            susiF_obj <- update_alpha.susiF(susiF_obj, l, new_alpha)
+            expect_equal( get_alpha (susiF_obj , 1), new_alpha )
+          }
+)
 
 
 susiF_obj <- init_susiF_obj(L=1, G_prior,Y,X)
