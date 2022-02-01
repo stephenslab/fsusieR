@@ -53,12 +53,11 @@ tt <- cal_Bhat_Shat(Y_f,X,v1)
 ### Test validity normal mixture  -----
 Bhat <- tt$Bhat
 Shat <- tt$Shat
-G <- init_prior(Y=Y_f,
+G_prior<- init_prior(Y=Y_f,
                 X=X,
                 prior="mixture_normal",
                 v1=v1,
                 indx_lst = indx_lst)
-G_prior <- G
 lBF <- log_BF (G_prior, tt$Bhat, tt$Shat )
 lBF
 test_that("Max lBF should be in postion",
@@ -68,14 +67,14 @@ test_that("Max lBF should be in postion",
               )
           }
          )
-plot( Bhat,post_mat_mean(G,Bhat,Shat))
+plot( Bhat,post_mat_mean(G_prior,Bhat,Shat))
 
 
 
-plot( Shat,  (post_mat_sd(G,Bhat,Shat, indx_lst) ))
-get_pi_G_prior(G)
-get_sd_G_prior(G)
-L <- L_mixsq(G, Bhat, Shat)
+plot( Shat,  (post_mat_sd(G_prior,Bhat,Shat, indx_lst) ))
+get_pi_G_prior(G_prior)
+get_sd_G_prior(G_prior)
+L <- L_mixsq(G_prior, Bhat, Shat)
 L
 zeta <- cal_zeta(lBF)
 tpi <- m_step(L, zeta , indx_lst)
@@ -99,13 +98,13 @@ EM_pi(G_prior,Bhat,Shat, indx_lst)
 #### New here -----
 Bhat <- tt$Bhat
 Shat <- tt$Shat
-G <- init_prior(Y=Y_f,
+G_prior<- init_prior(Y=Y_f,
                 X=X,
                 prior="mixture_normal",
                 v1=v1,
                 indx_lst = indx_lst)
 
-lBF <- log_BF (G, tt$Bhat, tt$Shat , indx_lst)
+lBF <- log_BF (G_prior, Bhat, Shat , indx_lst)
 lBF
 test_that("Max lBF should be in postion",
           {
@@ -159,29 +158,29 @@ test_that("Class of the prior is", {
   "mixture_normal"
   )
 })
-plot( Bhat,  post_mat_mean(G,Bhat,Shat, indx_lst) )
-plot( Shat,  (post_mat_sd(G,Bhat,Shat, indx_lst) ))
+plot( Bhat,  post_mat_mean(G_prior,Bhat,Shat, indx_lst) )
+plot( Shat,  (post_mat_sd(G_prior,Bhat,Shat, indx_lst) ))
 test_that("Class of the prior is", {
 
-  expect_equal(class(get_pi_G_prior(G))
+  expect_equal(class(get_pi_G_prior(G_prior))
                ,
                "pi_mixture_normal"
   )
 })
 test_that("Class of the standard deviations  is", {
 
-  expect_equal(class(get_sd_G_prior(G))
+  expect_equal(class(get_sd_G_prior(G_prior))
                ,
                "sd_mixture_normal"
   )
 })
-get_pi_G_prior(G)
-get_sd_G_prior(G)
+get_pi_G_prior(G_prior)
+get_sd_G_prior(G_prior)
 
 
-L <- L_mixsq(G, Bhat, Shat, indx_lst)
+L <- L_mixsq(G_prior, Bhat, Shat, indx_lst)
 test_that("The likelihood computed by L_mixsqp should be of class", {
-  L <- L_mixsq(G, Bhat, Shat, indx_lst)
+  L <- L_mixsq(G_prior, Bhat, Shat, indx_lst)
 
   expect_equal(class(L), "lik_mixture_normal"
   )
@@ -211,7 +210,7 @@ test_that("The estimated null proportion should greater or equal to", {
 })
 
 
-G_prior <- G
+
 G_update <- update_prior (G_prior, tpi)
 test_that("Updated mixture proportion should be equal to provided input",
           {
@@ -284,5 +283,38 @@ test_that("The update susiF object should have its argument equal to    ",
 
           }
 )
+
+
+
+test_that("The partial residual should be    ",
+          {
+            outEM <-  EM_pi(G_prior,Bhat,Shat, indx_lst)
+            G_prior <- update_prior(G_prior,
+                                    tpi= outEM$tpi_k )
+
+            susiF_obj <- update_susiF_obj(susiF_obj, 1, outEM, Bhat, Shat, indx_lst )
+
+            update_T <- cal_partial_resid(
+              susiF.obj = susiF_obj,
+              l         = 1,
+              X         = X,
+              D         = W$D,
+              C         = W$C,
+              L         = 2,
+              indx_lst  = indx_lst
+            )
+
+            L=2
+            l=1
+            id_L <- (1:L)[ - ( (l%%L)+1) ]
+            update_D  <-  W$D - Reduce("+", lapply  ( id_L, function(l) (X*rep(susiF_obj$alpha[[l]], rep.int(N,P))) %*% (susiF_obj$fitted_wc[[l]][,-dim(fitted_wc[[l]])[2]])  ) )
+            update_C  <-  W$C - Reduce("+", lapply  ( id_L, function(l) (X*rep(susiF_obj$alpha[[l]], rep.int(N,P))) %*% susiF_obj$fitted_wc[[l]][,dim(fitted_wc[[l]])[2]] ) )
+            manual_update <- cbind(  update_D, update_C)
+            expect_equal(  update_T ,manual_update)
+
+          }
+)
+
+
 
 

@@ -2,6 +2,7 @@ library(testthat)
 library(ashr)
 library(wavethresh)
 library(Rfast)
+library(mixsqp)
 set.seed(2)
 f1 <- simu_IBSS_per_level(lev_res=9, alpha=1, prop_decay =1.5)
 
@@ -36,13 +37,13 @@ indx_lst <- gen_wavelet_indx(9)
 Bhat <- tt$Bhat
 Shat <- tt$Shat
 ### Test validity normal mixture per scale -----
-G <- init_prior(Y=Y_f,
+G_prior <- init_prior(Y=Y_f,
                 X=X,
                 prior="mixture_normal_per_scale",
                 v1=v1,
                 indx_lst = indx_lst)
 
-lBF <- log_BF (G, tt$Bhat, tt$Shat , indx_lst)
+lBF <- log_BF (G_prior, tt$Bhat, tt$Shat , indx_lst)
 lBF
 test_that("Max lBF should be in postion",
           {
@@ -98,27 +99,26 @@ plot( Bhat,  post_mat_mean(G,Bhat,Shat, indx_lst) )
 plot( Shat,  (post_mat_sd(G,Bhat,Shat, indx_lst) ))
 test_that("Class of the proportions  is", {
 
-  expect_equal(class(get_pi_G_prior(G))
+  expect_equal(class(get_pi_G_prior(G_prior))
   ,
   "pi_mixture_normal_per_scale"
   )
 })
 test_that("Class of the standard deviations  is", {
 
-  expect_equal(class(get_sd_G_prior(G))
+  expect_equal(class(get_sd_G_prior(G_prior))
                ,
                "sd_mixture_normal_per_scale"
   )
 })
-get_pi_G_prior(G)
-get_sd_G_prior(G)
 
 
-L <- L_mixsq(G, Bhat, Shat, indx_lst)
+
+L <- L_mixsq(G_prior, Bhat, Shat, indx_lst)
 
 
 test_that("The likelihood computed by L_mixsqp should be of class", {
-  L <- L_mixsq(G, Bhat, Shat, indx_lst)
+  L <- L_mixsq(G_prior, Bhat, Shat, indx_lst)
 
   expect_equal(class(L), "lik_mixture_normal_per_scale"
   )
@@ -151,7 +151,6 @@ test_that("The output of the m_step for the pi_0 should equal", {
 })
 
 
-G_prior <- G
 G_update <- update_prior (G_prior, tpi)
 test_that("Updated mixture proportion should be equal to provided input",
           {
@@ -215,21 +214,26 @@ test_that("The partial residual should be    ",
 
             susiF_obj <- update_susiF_obj(susiF_obj, 1, outEM, Bhat, Shat, indx_lst )
 
-            expect_equal( susiF_obj$fitted_wc[[1]],post_mat_mean( G_prior , Bhat, Shat, indx_lst ))
-            expect_equal( susiF_obj$fitted_wc2[[1]],post_mat_sd  ( G_prior , Bhat, Shat , indx_lst))
-            expect_equal( get_alpha (susiF_obj , 1), cal_zeta(outEM$lBF))
-            expect_equal( get_G_prior(susiF_obj) ,G_prior)
+            update_T <- cal_partial_resid(
+              susiF.obj = susiF_obj,
+              l         = 1,
+              X         = X,
+              D         = W$D,
+              C         = W$C,
+              L         = 2,
+              indx_lst  = indx_lst
+            )
+
+            L=2
+            l=1
+            id_L <- (1:L)[ - ( (l%%L)+1) ]
+            update_D  <-  W$D - Reduce("+", lapply  ( id_L, function(l) (X*rep(susiF_obj$alpha[[l]], rep.int(N,P))) %*% (susiF_obj$fitted_wc[[l]][,-indx_lst[[length(indx_lst)]]])   ) )
+            update_C  <-  W$C - Reduce("+", lapply  ( id_L, function(l) (X*rep(susiF_obj$alpha[[l]], rep.int(N,P))) %*% susiF_obj$fitted_wc[[l]][,indx_lst[[length(indx_lst)]]] ) )
+            manual_update <- cbind(  update_D, update_C)
+
+            expect_equal(  update_T ,manual_update)
 
           }
 )
 
 
-cal_partial_resid(
-                  susiF.obj = susiF_obj,
-                  l         = 1,
-                  X         = X,
-                  D         = W$D,
-                  C         = W$C,
-                  L         = 2,
-                  indx_lst  = indx_lst
-                  )
