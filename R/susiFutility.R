@@ -79,7 +79,7 @@ EM_pi  <- function(G_prior,Bhat, Shat, indx_lst,
     oldloglik <- cal_lik(lBF,zeta )
     zeta <- cal_zeta(lBF)
     ####M step ----
-    tpi_k <- m_step(L,zeta, indx_lst)
+    tpi_k   <- m_step(L,zeta, indx_lst)
     G_prior <- update_prior(G_prior, tpi_k)
 
     lBF <- log_BF(G_prior,Bhat,Shat, indx_lst)
