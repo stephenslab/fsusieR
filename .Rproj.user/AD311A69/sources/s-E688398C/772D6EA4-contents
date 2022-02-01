@@ -57,11 +57,12 @@ init_susiF_obj <- function(L, G_prior, Y,X ){
 #'@title Access susif mixture proprotion of effect l
 #'
 #'@param susiF.obj a susisf object defined by init_susiF_bj function
-#'@param l integer larger or equal to 1. Corresponds to the effect to be accessed 
-#'
-get_pi.susif <- function(susiF.obj, l)
+#'@param l integer larger or equal to 1. Corresponds to the effect to be accessed
+#'@return susiF object
+#'@export
+get_pi.susiF <- function(susiF.obj, l)
 {
-  
+
   if( l > length(susiF.obj$est_pi))
   {
     stop("Error trying to acces mixture proportion")
@@ -71,5 +72,34 @@ get_pi.susif <- function(susiF.obj, l)
     stop("Error l should be larger ")
   }
   out <- susiF.obj$est_pi[[l]]
+  return(out)
+}
+
+#'@title Update mixture proportion of susif mixture proprotion of effect l
+#'
+#'@param susiF.obj a susisf object defined by init_susiF_bj function
+#'@param l integer larger or equal to 1. Corresponds to the effect to be accessed
+#'@param tpi an object of the class "pi_mixture_normal" or "pi_mixture_normal_per_scale"
+#'@return susiF object
+#'@export
+update_pi_susiF <- function( susiF.obj, l, tpi)
+{
+
+  if( l > length(susiF.obj$est_pi))
+  {
+    stop("Error trying to acces mixture proportion")
+  }
+  if( l < 1)
+  {
+    stop("Error l should be larger ")
+  }
+  if( class(tpi)%!in% c("pi_mixture_normal" , "pi_mixture_normal_per_scale"))
+  {
+    stop("Error tpi should be of one of the follwoing class:\n
+          pi_mixture_normal \n pi_mixture_normal_per_scale")
+  }
+  susiF.obj$est_pi[[l]] <- tpi
+  out <- susiF.obj
+  class(out) <- "susiF"
   return(out)
 }
