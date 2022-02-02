@@ -38,10 +38,10 @@ Bhat <- tt$Bhat
 Shat <- tt$Shat
 ### Test validity normal mixture per scale -----
 G_prior <- init_prior(Y=Y_f,
-                X=X,
-                prior="mixture_normal_per_scale",
-                v1=v1,
-                indx_lst = indx_lst)
+                      X=X,
+                      prior="mixture_normal_per_scale",
+                      v1=v1,
+                      indx_lst = indx_lst)
 
 lBF <- log_BF (G_prior, tt$Bhat, tt$Shat , indx_lst)
 lBF
@@ -53,7 +53,7 @@ test_that("Max lBF should be in postion",
           }
 )
 
-test_that("Susif object pi are expected to be equal to ",
+test_that("susiF object pi are expected to be equal to ",
           {
             susiF_obj <- init_susiF_obj(L=2, G_prior,Y,X)
 
@@ -67,7 +67,7 @@ test_that("Susif object pi are expected to be equal to ",
 susiF_obj <- init_susiF_obj(L=1, G_prior,Y,X)
 
 
-test_that("Susif object pi are expected to be equal to ",
+test_that("susiF object pi are expected to be equal to ",
           {
             susiF_obj <- init_susiF_obj(L=1, G_prior,Y,X)
 
@@ -77,7 +77,7 @@ test_that("Susif object pi are expected to be equal to ",
 )
 
 
-test_that("Susif internal prior to be equal to ",
+test_that("susiF internal prior to be equal to ",
           {
             susiF_obj <- init_susiF_obj(L=2, G_prior,Y,X)
 
@@ -103,8 +103,8 @@ plot( Shat,  (post_mat_sd(G_prior,Bhat,Shat, indx_lst) ))
 test_that("Class of the proportions  is", {
 
   expect_equal(class(get_pi_G_prior(G_prior))
-  ,
-  "pi_mixture_normal_per_scale"
+               ,
+               "pi_mixture_normal_per_scale"
   )
 })
 test_that("Class of the standard deviations  is", {
@@ -165,7 +165,7 @@ test_that("Updated mixture proportion should be equal to provided input",
 outEM <-  EM_pi(G_prior,Bhat,Shat, indx_lst)
 test_that("The outputs of the EM_pi function should be  ",
           {
-           outEM <-  EM_pi(G_prior,Bhat,Shat, indx_lst)
+            outEM <-  EM_pi(G_prior,Bhat,Shat, indx_lst)
             expect_equal(class(outEM$tpi_k) ,"pi_mixture_normal_per_scale")
             expect_equal(class(outEM$lBF) ,"numeric")
             expect_equal(length(outEM$lBF) ,dim(Bhat)[1])
@@ -258,32 +258,32 @@ test_that("The output update should be equal to    ",
               tcs[[l]]  <- order(temp, decreasing = TRUE)[1:max_indx_cs ]
               tpip[[l]] <- rep(1, lengths(susiF_obj$alpha)[[l]])-susiF_obj$alpha[[l]]
             }
-             pip <- 1-  apply( do.call(rbind,tpip),2, prod)
+            pip <- 1-  apply( do.call(rbind,tpip),2, prod)
 
 
-             fitted_func <- list ()
-             temp <- wd(rep(0, dim(Y_f)[2]))
-             for ( l in 1:susiF_obj$L)
-             {
-               temp$D <-    (susiF_obj$alpha[[l]])%*%susiF_obj$fitted_wc[[l]][,-indx_lst[[length(indx_lst)]]]
-               temp$C[length(temp$C)] <- (susiF_obj$alpha[[l]])%*%susiF_obj$fitted_wc[[l]][,indx_lst[[length(indx_lst)]]]
-               fitted_func[[l]] <- wr(temp)
-             }
+            fitted_func <- list ()
+            temp <- wd(rep(0, dim(Y_f)[2]))
+            for ( l in 1:susiF_obj$L)
+            {
+              temp$D <-    (susiF_obj$alpha[[l]])%*%susiF_obj$fitted_wc[[l]][,-indx_lst[[length(indx_lst)]]]
+              temp$C[length(temp$C)] <- (susiF_obj$alpha[[l]])%*%susiF_obj$fitted_wc[[l]][,indx_lst[[length(indx_lst)]]]
+              fitted_func[[l]] <- wr(temp)
+            }
 
 
-             ind_fitted_func  <- matrix(0, ncol=dim(Y)[2], nrow=dim(Y)[1])
-             for ( i in 1:dim(Y)[1])
-             {
-                ind_fitted_func[i,]  <- rep(0,dim(Y)[2])#fitted_baseline
-               for ( l in 1:susiF_obj$L)
-               {
-                 #add wavelet coefficient
-                 temp$D                         <-    (susiF_obj$alpha[[l]] *X[i,])%*%susiF_obj$fitted_wc[[l]][,-indx_lst[[length(indx_lst)]]]
-                 temp$C[length(temp$C)]         <-    (susiF_obj$alpha[[l]] *X[i,])%*%susiF_obj$fitted_wc[[l]][,indx_lst[[length(indx_lst)]]]
-                 #transform back
+            ind_fitted_func  <- matrix(0, ncol=dim(Y)[2], nrow=dim(Y)[1])
+            for ( i in 1:dim(Y)[1])
+            {
+              ind_fitted_func[i,]  <- rep(0,dim(Y)[2])#fitted_baseline
+              for ( l in 1:susiF_obj$L)
+              {
+                #add wavelet coefficient
+                temp$D                         <-    (susiF_obj$alpha[[l]] *X[i,])%*%susiF_obj$fitted_wc[[l]][,-indx_lst[[length(indx_lst)]]]
+                temp$C[length(temp$C)]         <-    (susiF_obj$alpha[[l]] *X[i,])%*%susiF_obj$fitted_wc[[l]][,indx_lst[[length(indx_lst)]]]
+                #transform back
                 ind_fitted_func[i,]  <-  ind_fitted_func[i,]+wr(temp)
-               }
-             }
+              }
+            }
 
 
             expect_equal(  update_cal_pip(susiF_obj)$pip                              ,pip)

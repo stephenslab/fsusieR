@@ -2,7 +2,7 @@
 % Please edit documentation in R/wavelet_utils.R
 \name{interpolKS}
 \alias{interpolKS}
-\title{Interpolation procedure from Kovac and Silveramnn 2000}
+\title{Interpolation procedure from Kovac and Silverman 2000}
 \usage{
 interpolKS(y, bp)
 }

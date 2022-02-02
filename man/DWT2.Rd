@@ -2,14 +2,14 @@
 % Please edit documentation in R/wavelet_utils.R
 \name{DWT2}
 \alias{DWT2}
-\title{wavelet transform on matrix of functions}
+\title{wavelet transform on a matrix of functions}
 \usage{
 DWT2(data, filter.number = 10, family = "DaubLeAsymm")
 }
 \arguments{
 \item{data}{matrix of size NxJ where J is a power of two}
 
-\item{filter.number}{This selects the smoothness of wavelet that you want to use in the decomposition. By default this is 10, the Daubechies least-asymmetric orthonormal compactly supported wavelet with 10 vanishing moments. Description from Guy Nason (wavethresh package)}
+\item{filter.number}{This selects the smoothness of the wavelet that you want to use in the decomposition. By default, this is 10, the Daubechies least-asymmetric orthonormal compactly supported wavelet with 10 vanishing moments. Description from Guy Nason (wavethresh package)}
 
 \item{family}{specifies the family of wavelets that you want to use. Two popular options are "DaubExPhase" and "DaubLeAsymm" but see the help for filter.select for more possibilities.. Description from Guy Nason (wavethresh package)}
 }
