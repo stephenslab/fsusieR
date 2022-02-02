@@ -288,12 +288,12 @@ test_that("The output update should be equal to    ",
 
             expect_equal(  update_cal_pip(susiF_obj)$pip                              ,pip)
             expect_equal(  update_cal_cs(susiF_obj)$cs                                ,tcs)
-            expect_equal(  update_cal_indf(susiF_obj, Y, X, indx_lst)$ind_fitted_func ,ind_fitted_func)
+            expect_equal(  update_cal_indf(susiF_obj, Y=Y, X, indx_lst)$ind_fitted_func ,ind_fitted_func)
             expect_equal(  update_cal_fit_func(susiF_obj, indx_lst)$fitted_func       ,fitted_func)
-            expect_equal(  out_prep(susiF_obj,Y, X=X, indx_lst=indx_lst)$pip             ,pip)
-            expect_equal(  out_prep(susiF_obj,Y, X=X, indx_lst=indx_lst)$cs              ,tcs)
-            expect_equal(  out_prep(susiF_obj,Y, X=X, indx_lst=indx_lst)$ind_fitted_func ,ind_fitted_func)
-            expect_equal(  out_prep(susiF_obj,Y, X=X, indx_lst=indx_lst)$fitted_func     ,fitted_func)
+            expect_equal(  out_prep(susiF_obj,Y=Y, X=X, indx_lst=indx_lst)$pip             ,pip)
+            expect_equal(  out_prep(susiF_obj,Y=Y, X=X, indx_lst=indx_lst)$cs              ,tcs)
+            expect_equal(  out_prep(susiF_obj,Y=Y, X=X, indx_lst=indx_lst)$ind_fitted_func ,ind_fitted_func)
+            expect_equal(  out_prep(susiF_obj,Y=Y, X=X, indx_lst=indx_lst)$fitted_func     ,fitted_func)
 
           }
 )
@@ -358,3 +358,4 @@ test_that("SusiF performance should be",
 
           }
 )
+

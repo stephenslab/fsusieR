@@ -35,6 +35,9 @@ init_susiF_obj <- function(L, G_prior, Y,X )
   est_sd          <-  list()
   L               <-  L
   G_prior         <-  G_prior
+  N               <- dim(Y)[1]
+  n_wac           <- dim(Y)[2]
+  P               <- dim(X)[2]
   for ( l in 1:L )
   {
     fitted_wc[[l]]        <-  matrix(NA, nrow = dim(X)[2], ncol=dim(Y)[2]  )
@@ -47,14 +50,17 @@ init_susiF_obj <- function(L, G_prior, Y,X )
   obj <- list( fitted_wc       = fitted_wc,
                fitted_wc2      = fitted_wc2,
                ind_fitted_func = ind_fitted_func,
+               G_prior         = G_prior,
                alpha_hist      = alpha_hist,
+               N               = N,
+               n_wac           = n_wac,
+               P               = P,
                alpha           = alpha,
                cs              = cs,
                pip             = pip,
                est_pi          = est_pi,
                est_sd          = est_sd,
-               L               = L,
-               G_prior         = G_prior)
+               L               = L)
 
   class(obj) <- "susiF"
   return(obj)
@@ -307,14 +313,14 @@ update_cal_indf.susiF <- function(susiF.obj, Y, X, indx_lst)
   {
     stop("Error: some alpha value not updated, please update alpha value first")
   }
-  temp <- wd(rep(0, dim(Y)[2])) #create dummy wd object
+  temp <- wd(rep(0, susiF.obj$n_wac)) #create dummy wd object
 
 
   if(class(get_G_prior(susiF.obj))=="mixture_normal_per_scale" )
   {
-    for ( i in 1:dim(Y)[1])
+    for ( i in 1:susiF.obj$N)
     {
-      susiF.obj$ind_fitted_func[i,]  <- rep(0,dim(Y)[2])#fitted_baseline future implementation
+      susiF.obj$ind_fitted_func[i,]  <- rep(0,susiF.obj$n_wac)#fitted_baseline future implementation
       for ( l in 1:susiF.obj$L)
       {
         #add wavelet coefficient
@@ -327,9 +333,9 @@ update_cal_indf.susiF <- function(susiF.obj, Y, X, indx_lst)
   }
   if(class(get_G_prior(susiF.obj))=="mixture_normal" )
   {
-    for ( i in 1:dim(Y)[1])
+    for ( i in 1:susiF.obj$N)
     {
-      susiF.obj$ind_fitted_func[i,]  <- rep(0,dim(Y)[2])#fitted_baseline
+      susiF.obj$ind_fitted_func[i,]  <- rep(0,susif$n_wac)#fitted_baseline
       for ( l in 1:susiF.obj$L)
       {
         #add wavelet coefficient
@@ -360,11 +366,11 @@ update_cal_fit_func.susiF <- function(susiF.obj, indx_lst)
   {
     stop("Error: some alpha value not updated, please update alpha value first")
   }
+  temp <- wd(rep(0, susiF.obj$n_wac))
 
   if(class(get_G_prior(susiF.obj))=="mixture_normal_per_scale" )
   {
-    temp <- wd(rep(0, dim(Y)[2]))
-    for ( l in 1:susiF.obj$L)
+      for ( l in 1:susiF.obj$L)
     {
       temp$D                     <- (susiF.obj$alpha[[l]])%*%susiF.obj$fitted_wc[[l]][,-indx_lst[[length(indx_lst)]]]
       temp$C[length(temp$C)]     <- (susiF.obj$alpha[[l]])%*%susiF.obj$fitted_wc[[l]][,indx_lst[[length(indx_lst)]]]
@@ -373,8 +379,7 @@ update_cal_fit_func.susiF <- function(susiF.obj, indx_lst)
   }
   if(class(get_G_prior(susiF.obj))=="mixture_normal" )
   {
-    temp <- wd(rep(0, dim(Y)[2]))
-    for ( l in 1:susiF.obj$L)
+     for ( l in 1:susiF.obj$L)
     {
       temp$D                     <- (susiF.obj$alpha[[l]])%*%susiF.obj$fitted_wc[[l]][,-dim(susiF.obj$fitted_wc[[l]])[2]]
       temp$C[length(temp$C)]     <- (susiF.obj$alpha[[l]])%*%susiF.obj$fitted_wc[[l]][,dim(susiF.obj$fitted_wc[[l]])[2]]

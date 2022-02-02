@@ -1,5 +1,21 @@
 {
     "debugBreakpointsState": {
-        "breakpoints": []
+        "breakpoints": [
+            {
+                "id": 0,
+                "path": "D:/Document/Serieux/Travail/Package/susiF.alpha/R/computational_functions.R",
+                "line_number": 162,
+                "function_steps": "3",
+                "function_name": "log_BF.mixture_normal",
+                "state": 1,
+                "editor_state": 1,
+                "editor_line_number": 162,
+                "is_pending_debug_completion": false,
+                "needs_updated_steps": false,
+                "type": 0,
+                "is_package_breakpoint": true,
+                "package_name": "suisF.alpha"
+            }
+        ]
     }
 }

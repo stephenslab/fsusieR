@@ -1,0 +1,26 @@
+{
+    "id": "40B797F7",
+    "path": "D:/Document/Serieux/Travail/Package/susiF.alpha/tests/testthat/test_mixture_prior.R",
+    "project_path": "tests/testthat/test_mixture_prior.R",
+    "type": "r_source",
+    "hash": "1901565660",
+    "contents": "",
+    "dirty": false,
+    "created": 1643810977577.0,
+    "source_on_save": false,
+    "relative_order": 6,
+    "properties": {
+        "source_window_id": "",
+        "Source": "Source",
+        "cursorPosition": "363,87",
+        "scrollLine": "350"
+    },
+    "folds": "",
+    "lastKnownWriteTime": 1643826298,
+    "encoding": "UTF-8",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1643826298346,
+    "read_only": false,
+    "read_only_alternatives": []
+}
