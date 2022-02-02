@@ -70,17 +70,16 @@ susiF <- function( Y,X, L = 2,
   v1 <- rep(1, dim(X)[1])### used in fit_lm to add a column of 1 in the design matrix
 
 
-  ### Definition of some dynamic parameters ---
-
-  G_prior     <-  init_prior(Y,X,prior,v1 , indx_lst  )
-  susiF.obj   <-  init_susiF_obj(L=L, G_prior, Y,X)
-
 
   #Wavelet transform of the inputs
 
   W <- DWT2(Y)
   update_D <- W
+  ### Definition of some dynamic parameters ---
   update_Y <- cbind( W$D,W$C) #Using a column like phenotype, temporary matrix that will be regularly updated
+  G_prior     <-  init_prior(Y,X,prior,v1 , indx_lst  )
+  susiF.obj   <-  init_susiF_obj(L=L, G_prior, Y,X)
+
 
   # numerical value to check breaking condition of while
   check <- 1

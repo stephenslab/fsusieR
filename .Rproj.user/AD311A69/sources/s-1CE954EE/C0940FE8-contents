@@ -1,0 +1,18 @@
+Package: suisF.alpha
+Type: Package
+Title: Sum of Single Functions
+Version: 0.1.0
+Author: William R.P. Denault
+Maintainer: William R.P. Denault <wdenault@uchicago.edu>
+Description: Implementation fo the Sum of Signle Function method (SuSiF).
+Depends:
+    R (>= 3.1.0)
+Imports:
+  Rfast,
+  wavethresh,
+  ashr,
+  mixsqp
+License: GPL (>=3)
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 7.1.2
