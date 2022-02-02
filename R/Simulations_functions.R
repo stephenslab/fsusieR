@@ -50,8 +50,8 @@ simu_IBSS_ash_vanilla <- function( lev_res=7, length_grid= 10, pi0= 0.85)
 #'@param lev_res numerical corresponds to the resolution of the simulated function (idealy between 3 and 10)
 #'@param length_grid vector numerical corresponds to the length of the grid of sigma for mixture component(cf ash)
 #'@param piO vector numerical , contain a digit  between 0 and 1, which corresponds to the null proportion ( non assocatied wavelet coefficients)
-#'@param alpha numeric >0, control smoothness of the curves, should be positive and up 4 in particular d_sl ~ \pi_{0,sl} \delta_0 + \sum_k \pi_k N(0, 2^{-\alpha * s}  \sigma_k^2)
-#'@param prop_decay numeric >0, control the proportion of non zero wavelet coefficient per scale, \pi_{0,sl} = 1- exp(-prop_decay*s)
+#'@param alpha numeric >0, control smoothness of the curves, should be positive and up 4 in particular d_sl ~  pi_{0,sl}  delta_0 + sum_k  pi_k N(0, 2^{- alpha * s}   sigma_k^2)
+#'@param prop_decay numeric >0, control the proportion of non zero wavelet coefficient per scale, pi_{0,sl} = 1- exp(-prop_decay*s)
 #'@export
 #'@examples
 #'out <- simu_IBSS_per_level(lev_res=9, alpha=1, prop_decay = 0.5)

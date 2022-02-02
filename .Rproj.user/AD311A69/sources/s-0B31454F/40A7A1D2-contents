@@ -267,7 +267,7 @@ test_that("The alpha value of  the update susiF object should be equal to   ",
 )
 
 
-susiF_obj <- init_susiF_obj(L=2, G_prior,Y,X)
+susiF_obj <- init_susiF_obj(L=1, G_prior,Y,X)
 
 
 test_that("The update susiF object should have its argument equal to    ",
