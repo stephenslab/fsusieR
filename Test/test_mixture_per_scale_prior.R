@@ -307,5 +307,16 @@ test_that("The precision of the fitted curves should be   ",
           }
 )
 
+outEM <-  EM_pi(G_prior,Bhat,Shat, indx_lst)
+G_prior <- update_prior(G_prior,
+                        tpi= outEM$tpi_k )
 
+susiF_obj <-  update_susiF_obj(susiF_obj, 1, outEM, Bhat, Shat, indx_lst )
+susiF.obj <-  update_cal_pip(susiF_obj)
+susiF.obj <-  update_cal_cs(susiF_obj)
+susiF.obj <-  update_cal_indf(susiF_obj, Y, X, indx_lst)
+susiF.obj <-  update_cal_fit_func(susiF_obj, indx_lst)
+
+plot( unlist(update_cal_fit_func(susiF_obj, indx_lst)$fitted_func), type="l", col="green")
+lines(f1$sim_func, col="red")
 
