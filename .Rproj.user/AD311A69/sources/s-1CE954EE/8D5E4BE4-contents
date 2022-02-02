@@ -3,7 +3,7 @@
 #'
 #'
 #'
-#'#'@title Initialise the prior
+#'#'@title Initialize the prior
 #'
 #'@description generate list of object corresponding to the parameters of the prior set for analysis
 #'@param Y  functional phenotype, matrix of size N by size J. The underlying algorithm uses wavelet which assume that J is of the form J^2. If J not a power of 2, susif internally remaps the data into grid of length 2^J

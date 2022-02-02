@@ -76,8 +76,8 @@ susiF <- function( Y,X, L = 2,
   W <- DWT2(Y)
   update_D <- W
   ### Definition of some dynamic parameters ---
-  update_Y <- cbind( W$D,W$C) #Using a column like phenotype, temporary matrix that will be regularly updated
-  G_prior     <-  init_prior(Y,X,prior,v1 , indx_lst  )
+  update_Y    <-  cbind( W$D,W$C) #Using a column like phenotype, temporary matrix that will be regularly updated
+  G_prior     <-  init_prior(update_Y,X,prior,v1 , indx_lst  )
   susiF.obj   <-  init_susiF_obj(L=L, G_prior, Y,X)
 
 
