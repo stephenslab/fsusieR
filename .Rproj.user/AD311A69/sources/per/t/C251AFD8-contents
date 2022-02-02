@@ -52,9 +52,7 @@ interpolKS <-  function (y, bp)
 #'@export
 DWT2 <- function (data, filter.number = 10, family = "DaubLeAsymm")
 {
-  if (sum(methods::is(data) == c("numeric", "vector")) == 2) {
-    data <- matrix(data, nrow = 1)
-  }
+
   J <- ncol(data)
   n <- nrow(data)
   D <- matrix(NA, nrow = n, ncol = J - 1)

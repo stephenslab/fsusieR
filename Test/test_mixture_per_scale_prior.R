@@ -307,7 +307,7 @@ test_that("The precision of the fitted curves should be   ",
                                     tpi= outEM$tpi_k )
 
             susiF_obj <- update_susiF_obj(susiF_obj, 1, outEM, Bhat, Shat, indx_lst )
-            expect_equal(  sum( abs(unlist(update_cal_fit_func(susiF_obj, indx_lst)$fitted_func) -f1$sim_func)), 0, tol=0.003)
+            expect_equal(  sum( abs(unlist(update_cal_fit_func(susiF_obj, indx_lst)$fitted_func) -f1$sim_func)), 0, tol=0.004)
 
           }
 )
@@ -322,3 +322,39 @@ susiF_obj <-  out_prep(susiF_obj,Y, X=X, indx_lst=indx_lst)
 plot( unlist(susiF_obj$fitted_func), type="l", col="green")
 lines(f1$sim_func, col="red")
 
+
+
+test_that("SusiF performance should be",
+          {
+            set.seed(1)
+            sim  <- simu_test_function(rsnr=2,is.plot = FALSE)
+            Y <- sim$noisy.data
+            X <- sim$G
+            out <- susiF(Y,X,L=1, prior="mixture_normal_per_scale")
+            expect_equal(  unlist( out$alpha) , c(1, rep(0,9)) , tol=1e-5)
+            expect_equal(  sum( abs(unlist(out$fitted_func) -sim$f1)), 0, tol=0.2*length(sim$f1))
+
+          }
+)
+
+
+
+test_that("SusiF performance should be",
+          {
+            set.seed(1)
+            sim  <- simu_test_function(rsnr=2,pos2= 2 ,is.plot = FALSE)
+            Y <- sim$noisy.data
+            X <- sim$G
+            out <- susiF(Y,X,L=2, prior="mixture_normal_per_scale")
+            expect_equal(  Reduce("+", out$alpha) , c(1, 1,rep(0,8)) , tol=1e-5)
+            expect_equal( max(  sum( abs(unlist(out$fitted_func[[1]]) -sim$f1)),
+                                sum( abs(unlist(out$fitted_func[[1]]) -sim$f2))
+            )
+            , 0, tol=0.2*length(sim$f1))
+            expect_equal( max(  sum( abs(unlist(out$fitted_func[[2]]) -sim$f1)),
+                                sum( abs(unlist(out$fitted_func[[2]]) -sim$f2))
+            )
+            , 0, tol=0.2*length(sim$f1))
+
+          }
+)

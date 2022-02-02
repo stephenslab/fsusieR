@@ -70,7 +70,7 @@ init_susiF_obj <- function(L, G_prior, Y,X )
 get_pi.susiF <- function(susiF.obj, l)
 {
 
-  if( l > length(susiF.obj$est_pi))
+  if( l >  length(susiF.obj$est_pi))
   {
     stop("Error trying to acces mixture proportion")
   }
@@ -177,15 +177,15 @@ cal_partial_resid.susiF  <- function( susiF.obj, l, X, D, C, L, indx_lst )
 
     if(class(get_G_prior(susiF.obj))=="mixture_normal_per_scale" )
     {
-      update_D  <-  D - Reduce("+", lapply  ( id_L, function(l) (X*rep(susiF.obj$alpha[[l]], rep.int(N,P))) %*% (susiF.obj$fitted_wc[[l]][,-indx_lst[[length(indx_lst)]]])   ) )
-      update_C  <-  C - Reduce("+", lapply  ( id_L, function(l) (X*rep(susiF.obj$alpha[[l]], rep.int(N,P))) %*% susiF.obj$fitted_wc[[l]][,indx_lst[[length(indx_lst)]]] ) )
+      update_D  <-  D - Reduce("+", lapply  ( id_L, function(l) (X*rep(susiF.obj$alpha[[l]], rep.int(dim(X)[1],dim(X)[2]))) %*% (susiF.obj$fitted_wc[[l]][,-indx_lst[[length(indx_lst)]]])   ) )
+      update_C  <-  C - Reduce("+", lapply  ( id_L, function(l) (X*rep(susiF.obj$alpha[[l]], rep.int(dim(X)[1],dim(X)[2]))) %*% susiF.obj$fitted_wc[[l]][,indx_lst[[length(indx_lst)]]] ) )
       update_Y  <- cbind(  update_D, update_C)
     }
     if(class(get_G_prior(susiF.obj))=="mixture_normal" )
     {
       id_L <- (1:L)[ - ( (l%%L)+1) ]#Computing residuals R_{l+1} by removing all the effect except effect l+1
-      update_D  <-  D - Reduce("+", lapply  ( id_L, function(l) (X*rep(susiF.obj$alpha[[l]], rep.int(N,P))) %*% (susiF.obj$fitted_wc[[l]][,-dim(susiF.obj$fitted_wc[[l]])[2]])   ) )
-      update_C  <-  C - Reduce("+", lapply  ( id_L, function(l) (X*rep(susiF.obj$alpha[[l]], rep.int(N,P))) %*% susiF.obj$fitted_wc[[l]][,dim(susiF.obj$fitted_wc[[l]])[2]] ) )
+      update_D  <-  D - Reduce("+", lapply  ( id_L, function(l) (X*rep(susiF.obj$alpha[[l]], rep.int(dim(X)[1],dim(X)[2]))) %*% (susiF.obj$fitted_wc[[l]][,-dim(susiF.obj$fitted_wc[[l]])[2]])   ) )
+      update_C  <-  C - Reduce("+", lapply  ( id_L, function(l) (X*rep(susiF.obj$alpha[[l]], rep.int(dim(X)[1],dim(X)[2]))) %*% susiF.obj$fitted_wc[[l]][,dim(susiF.obj$fitted_wc[[l]])[2]] ) )
       update_Y  <- cbind(  update_D, update_C)
     }
   }
@@ -194,14 +194,14 @@ cal_partial_resid.susiF  <- function( susiF.obj, l, X, D, C, L, indx_lst )
 
     if(class(get_G_prior(susiF.obj))=="mixture_normal_per_scale" )
     {
-      update_D  <-  D - Reduce("+", lapply  ( id_L, function(l) (X*rep(susiF.obj$alpha[[l]], rep.int(N,P))) %*% (susiF.obj$fitted_wc[[l]][,-indx_lst[[length(indx_lst)]]])   ) )
-      update_C  <-  C - Reduce("+", lapply  ( id_L, function(l) (X*rep(susiF.obj$alpha[[l]], rep.int(N,P))) %*% susiF.obj$fitted_wc[[l]][,indx_lst[[length(indx_lst)]]] ) )
+      update_D  <-  D - Reduce("+", lapply  ( id_L, function(l) (X*rep(susiF.obj$alpha[[l]], rep.int(dim(X)[1],dim(X)[2]))) %*% (susiF.obj$fitted_wc[[l]][,-indx_lst[[length(indx_lst)]]])   ) )
+      update_C  <-  C - Reduce("+", lapply  ( id_L, function(l) (X*rep(susiF.obj$alpha[[l]], rep.int(dim(X)[1],dim(X)[2]))) %*% susiF.obj$fitted_wc[[l]][,indx_lst[[length(indx_lst)]]] ) )
       update_Y  <- cbind(  update_D, update_C)
     }
     if(class(get_G_prior(susiF.obj))=="mixture_normal" )
     {
-      update_D  <-  D - Reduce("+", lapply  ( id_L, function(l) (X*rep(susiF.obj$alpha[[l]], rep.int(N,P))) %*% (susiF.obj$fitted_wc[[l]][,-dim(susiF.obj$fitted_wc[[l]])[2]])   ) )
-      update_C  <-  C - Reduce("+", lapply  ( id_L, function(l) (X*rep(susiF.obj$alpha[[l]], rep.int(N,P))) %*% susiF.obj$fitted_wc[[l]][,dim(susiF.obj$fitted_wc[[l]])[2]] ) )
+      update_D  <-  D - Reduce("+", lapply  ( id_L, function(l) (X*rep(susiF.obj$alpha[[l]], rep.int(dim(X)[1],dim(X)[2]))) %*% (susiF.obj$fitted_wc[[l]][,-dim(susiF.obj$fitted_wc[[l]])[2]])   ) )
+      update_C  <-  C - Reduce("+", lapply  ( id_L, function(l) (X*rep(susiF.obj$alpha[[l]], rep.int(dim(X)[1],dim(X)[2]))) %*% susiF.obj$fitted_wc[[l]][,dim(susiF.obj$fitted_wc[[l]])[2]] ) )
       update_Y  <- cbind(  update_D, update_C)
     }
   }

@@ -31,7 +31,6 @@ susiF <- function( Y,X, L = 2,
   {
     stop("Error: provide valid prior input")
   }
-  prior  = match.arg(prior)
 
   ## Input error messages
 
@@ -93,7 +92,7 @@ susiF <- function( Y,X, L = 2,
     tt <- cal_Bhat_Shat(update_Y,X,v1)
     Bhat <- tt$Bhat
     Shat <- tt$Shat #UPDATE. could be nicer
-    tpi <-  get_pi(susiF.obj,l)
+    tpi <-  get_pi(susiF.obj,1)
     G_prior <- update_prior(G_prior, tpi= tpi ) #allow EM to start close to previous solution (to double check)
 
     EM_out  <- EM_pi(G_prior  = G_prior,
@@ -101,9 +100,9 @@ susiF <- function( Y,X, L = 2,
                      Shat     = Shat,
                      indx_lst =  indx_lst
     )
-    print(susiF.obj$alpha)
+
     susiF.obj <-  update_susiF_obj(susiF.obj = susiF.obj ,
-                                   l         = l,
+                                   l         = 1,
                                    EM_pi     = EM_out,
                                    Bhat      = Bhat,
                                    Shat      = Shat,
@@ -127,7 +126,7 @@ susiF <- function( Y,X, L = 2,
                          Shat     = Shat,
                          indx_lst =  indx_lst
         )
-        print(susiF.obj$alpha)
+
         susiF.obj <-  update_susiF_obj(susiF.obj = susiF.obj ,
                                        l         = l,
                                        EM_pi     = EM_out,
@@ -146,12 +145,12 @@ susiF <- function( Y,X, L = 2,
           indx_lst  = indx_lst
         )
 
-        if(ceiling(h/L)>2)#update parameter convergence, no ELBO for the moment
+        if(floor(h/L)>2)#update parameter convergence, no ELBO for the moment
         {
           check <- 0
           for( tt in 0:(L-1))
           {
-            check <-  check + var( susiF.obj$alpha_hist[[h-tt]] -susiF.obj$alpha_histalpha_col_hist[[h-L-tt]])
+            check <-  check + var( susiF.obj$alpha_hist[[h-tt]] -susiF.obj$alpha_hist[[h-L-tt]])
           }
         }
       }#end for l in 1:L

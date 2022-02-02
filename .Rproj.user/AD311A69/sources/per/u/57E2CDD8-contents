@@ -98,5 +98,16 @@ legend(x = c(0),
 )
 Y <- noisy.data
 X <- G
-out <- susiF(Y=Y,X=X,L=1 , verbose = TRUE)
+out <- susiF(Y=Y,X=X,L=2 , verbose = TRUE)
 
+
+sim  <- simu_test_function(N=100,rsnr=1,  lev_res= 6,is.plot = TRUE)
+Y <- sim$noisy.data
+X <- sim$G
+out <- susiF(Y,X,L=1, prior="mixture_normal")
+plot( sim$f1, type="l")
+lines(unlist(out$fitted_func),col='red' )
+out$est_pi
+out <- susiF(Y,X,L=1, prior="mixture_normal_per_scale")
+lines(unlist(out$fitted_func),col='green' )
+out$est_pi

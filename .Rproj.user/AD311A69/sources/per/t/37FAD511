@@ -3,7 +3,7 @@
     "path": "D:/Document/Serieux/Travail/Package/suisF.alpha/Test/test_mixture_per_scale_prior.R",
     "project_path": "Test/test_mixture_per_scale_prior.R",
     "type": "r_source",
-    "hash": "3421339798",
+    "hash": "3742787256",
     "contents": "",
     "dirty": false,
     "created": 1643750458250.0,
@@ -12,15 +12,15 @@
     "properties": {
         "source_window_id": "",
         "Source": "Source",
-        "cursorPosition": "324,0",
-        "scrollLine": "288"
+        "cursorPosition": "360,0",
+        "scrollLine": "334"
     },
     "folds": "",
-    "lastKnownWriteTime": 1643798601,
+    "lastKnownWriteTime": 1643806764,
     "encoding": "UTF-8",
     "collab_server": "",
     "source_window": "",
-    "last_content_update": 1643798601935,
+    "last_content_update": 1643806764752,
     "read_only": false,
     "read_only_alternatives": []
 }

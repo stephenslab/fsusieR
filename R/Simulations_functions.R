@@ -143,6 +143,7 @@ simu_IBSS_per_level  <-function( lev_res=7,
 #'@title Simulation using Donoho and Johnstone test functions
 #'@param N integer number of sample to simulate
 #'@param P number of covariate
+#'@param lev_res control length of the generated function (length function = 2^lev_res)
 #'@param rsnr root signal noise ratio for the noise
 #'@param is.plot logical if set to TRUE plot underying function
 #'@param pos1 position of the first active covariate
@@ -150,7 +151,7 @@ simu_IBSS_per_level  <-function( lev_res=7,
 #'
 #'
 #'
-simu_test_function <- function(N=50, P=10, rsnr=2,is.plot=TRUE, pos1 =1, pos2)
+simu_test_function <- function(N=50, P=10,lev_res=7, rsnr=2,is.plot=TRUE, pos1 =1, pos2)
 {
 
   if(!missing(pos2)){
@@ -166,17 +167,30 @@ simu_test_function <- function(N=50, P=10, rsnr=2,is.plot=TRUE, pos1 =1, pos2)
   beta2       <- ifelse(missing(pos2), 0,1)
   noisy.data  <- list()
   idx <- sample( size =3, 1:4)#sample at random the different function for basaline/effect
-  for ( i in 1:N)
-  {
-    test_func <- wavethresh::DJ.EX(n = 128, rsnr = rsnr, noisy = TRUE )
-    f0        <- beta0*test_func[[idx[1]]] #Baseline
-    f1        <- test_func[[idx[2]]]
-    f2        <- test_func[[idx[3]]]
-    noisy.data [[i]] <-  beta0*f0 +  beta1*G[i,pos1]*f1 + beta2*G[i,pos2]*f2
+  if(!missing(pos2)){
+    for ( i in 1:N)
+    {
+      test_func <- wavethresh::DJ.EX(n = 128, rsnr = rsnr, noisy = TRUE )
+      f0        <- beta0*test_func[[idx[1]]] #Baseline
+      f1        <- test_func[[idx[2]]]
+      f2        <- test_func[[idx[3]]]
+      noisy.data [[i]] <-  beta0*f0 +  beta1*G[i,pos1]*f1 + beta2*G[i,pos2]*f2
 
+    }
+  }else{
+    for ( i in 1:N)
+    {
+      test_func <- wavethresh::DJ.EX(n = 2^lev_res, rsnr = rsnr, noisy = TRUE )
+      f0        <- beta0*test_func[[idx[1]]] #Baseline
+      f1        <- test_func[[idx[2]]]
+
+      noisy.data [[i]] <-  beta0*f0 +  beta1*G[i,pos1]*f1
+
+    }
   }
+
   noisy.data <- do.call(rbind, noisy.data)
-  test_func <- wavethresh::DJ.EX(n = 128,   noisy = FALSE )
+  test_func <- wavethresh::DJ.EX(n = 2^lev_res,   noisy = FALSE )
   f0        <- beta0*test_func[[idx[1]]] #Baseline
   f1        <- test_func[[idx[2]]]
   f2        <- test_func[[idx[3]]]
@@ -306,7 +320,5 @@ simu_test_function <- function(N=50, P=10, rsnr=2,is.plot=TRUE, pos1 =1, pos2)
 }
 
 
-
-simu_test_function()
 
 
