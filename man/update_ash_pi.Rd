@@ -7,9 +7,9 @@
 update_ash_pi(G, tpi)
 }
 \arguments{
-\item{G}{a ash object}
-
 \item{tpi}{a vector of proportion}
+
+\item{G_prior}{a ash object}
 }
 \value{
 an ash object with updated mixture proportion

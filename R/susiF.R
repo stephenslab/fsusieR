@@ -139,31 +139,13 @@ susif <- function( Y,X, L = 2,
 
 
 
-  ##### Tidding output ----
-  temp <- wd(rep(0, dim(Y_f)[2]))
-  for ( l in 1:L)
-  {
-
-
-    temp$D        <-    (alpha_col[[l]])%*%fitted_wc_col[[l]][,-indx_lst[[length(indx_lst)]]]
-    temp$C[length(temp$C)] <- (alpha_col[[l]])%*%fitted_wc_col[[l]][,indx_lst[[length(indx_lst)]]]
-    fitted_func[[l]] <- wr(temp)
-
-
-  }
-
-
   ########################
   #Individual prediction -----
   ########################
 
 
   #preparing output
-  susiF.obj <- update_cal_pip     (susiF.obj)
-  susiF.obj <- update_cal_cs      (susiF.obj, cov_lev)
-  susiF.obj <- update_cal_indf    (susiF.obj,Y,X)
-  susiF.obj <- update_cal_fit_func(susiF.obj)
-
+  susiF.obj <- out_prep(susiF.obj,Y, X=X, indx_lst=indx_lst)
 
   return(susiF.obj)
 }

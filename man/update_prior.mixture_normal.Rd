@@ -9,9 +9,9 @@
 \method{update_prior}{mixture_normal}(G_prior, tpi)
 }
 \arguments{
-\item{tpi}{a vector of proportion of class"pi_mixture_normal"}
+\item{G_prior}{a prior of class "mixture_normal"}
 
-\item{G}{a prior of class "mixture_normal"}
+\item{tpi}{a vector of proportion of class"pi_mixture_normal"}
 }
 \value{
 a prior of class "mixture_normal"

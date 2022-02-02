@@ -48,7 +48,7 @@ interpolKS <-  function (y, bp)
 #'\item{C}{ vector length n containing the wavelet C coefficient}
 #'\item{D}{ matrix of size nx 2^(J -1) where each row contains the wavelet D coefficients, ordered in the same way as in the wavethresh package}
 #'\item{family}{ used for the wavelet transform}
-#'\item{filter.number}
+#'\item{filter.number}{ }
 #'@export
 DWT2 <- function (data, filter.number = 10, family = "DaubLeAsymm")
 {

@@ -17,5 +17,5 @@ fit_lm(l, j, Y, X, v1)
 vector of 2 containing the regression coefficient and standard
 }
 \description{
-
+Regress column l of Y on column j of X
 }

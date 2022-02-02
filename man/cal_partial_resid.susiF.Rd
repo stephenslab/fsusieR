@@ -7,7 +7,7 @@
 \method{cal_partial_resid}{susiF}(susiF.obj, l, X, D, C, L, indx_lst)
 }
 \arguments{
-\item{susiF.obj}{a susisf object defined by init_susiF_obj function}
+\item{susiF.obj}{a susisf object defined by \code{\link{init_susiF_obj}} function}
 
 \item{l}{integer larger or equal to 1. Corresponds to the effect to be accessed}
 

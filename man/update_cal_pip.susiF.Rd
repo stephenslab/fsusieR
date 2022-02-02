@@ -7,7 +7,7 @@
 \method{update_cal_pip}{susiF}(susiF.obj)
 }
 \arguments{
-\item{susiF.obj}{a susisf object defined by init_susiF_obj function}
+\item{susiF.obj}{a susisf object defined by \code{\link{init_susiF_obj}} function}
 }
 \value{
 susiF object

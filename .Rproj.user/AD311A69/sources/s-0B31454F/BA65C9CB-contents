@@ -145,11 +145,7 @@ susif <- function( Y,X, L = 2,
 
 
   #preparing output
-  susiF.obj <- update_cal_pip     (susiF.obj)
-  susiF.obj <- update_cal_cs      (susiF.obj, cov_lev)
-  susiF.obj <- update_cal_indf    (susiF.obj,Y,X)
-  susiF.obj <- update_cal_fit_func(susiF.obj)
-
+  susiF.obj <- out_prep(susiF.obj,Y, X=X, indx_lst=indx_lst)
 
   return(susiF.obj)
 }
