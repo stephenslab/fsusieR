@@ -12,7 +12,7 @@ interpol_mat(Y, pos)
 \item{pos}{vector of positive values, each the vector component corresponds the measurement time. (the values of pos should increase along with the index)}
 }
 \description{
-Interpolation procedure from Kovac and Silveramnn 2000 for matrix of function
+Interpolation procedure from Kovac and Silvermann 2000 for matrix of function
 }
 \details{
 We suppose that we observe n functions/curves at T different time points. We remap this functions into a grid of length equal to a power of two using the lifting scheme of Kovac and Silvermann 2000.

@@ -15,7 +15,7 @@
 #'@param maxit Maximum number of IBSS iterations to perform.
 #'@param cov_lev numeric between 0 and 1, corresponding to the expected level of coverage of the cs if not specified set to 0.95
 #'@export
-susif <- function( Y,X, L = 2,
+susiF <- function( Y,X, L = 2,
                    pos = NULL,
                    prior = "mixture_normal_per_scale",
                    verbose = TRUE,
@@ -26,7 +26,7 @@ susif <- function( Y,X, L = 2,
 
 )
 {
-
+  #Y;X; L = 2;  pos = NULL;  prior = "mixture_normal_per_scale";  verbose = TRUE;  plot_out = TRUE;  maxit = 100;  tol = 1e-6;  cov_lev = 0.95
   if( prior %!in% c("normal", "mixture_normal", "mixture_normal_per_scale"))
   {
     stop("Error: provide valid prior input")
@@ -48,7 +48,6 @@ susif <- function( Y,X, L = 2,
   }
   orignal_Y <-Y
 
-  i
 
   if(!is.wholenumber(log2(dim(Y)[2])) | !(sum( duplicated(diff( pos)))== (length(pos) -2)) ) #check wether dim(Y) not equal to 2^J or if the data are unevenly spaced
   {
@@ -68,13 +67,13 @@ susif <- function( Y,X, L = 2,
 
 
   ### Definition of some static parameters ---
-  indx_lst <-  gen_wavelet_indx(log2(dim(Y_f)[2]))
+  indx_lst <-  gen_wavelet_indx(log2(length( outing_grid)))
   v1 <- rep(1, dim(X)[1])### used in fit_lm to add a column of 1 in the design matrix
 
 
   ### Definition of some dynamic parameters ---
 
-  G_prior     <-  init_prior(Y_f,X,prior,v1 , indx_lst  )
+  G_prior     <-  init_prior(Y,X,prior,v1 , indx_lst  )
   susiF.obj   <-  init_susiF_obj(L=L, G_prior, Y,X)
 
 
@@ -84,64 +83,80 @@ susif <- function( Y,X, L = 2,
   update_D <- W
   update_Y <- cbind( W$D,W$C) #Using a column like phenotype, temporary matrix that will be regularly updated
 
+  # numerical value to check breaking condition of while
+  check <- 1
+  h     <- 0
 
 
-
-  #IBSS   ---------
-  while(check >tol & (h/L) <maxit)
+  if(L==1)
   {
-   for( l in 1:L)
-   {
-     tt <- cal_Bhat_Shat(update_Y,X,v1)
-     Bhat <- tt$Bhat
-     Shat <- tt$Shat #UPDATE. could be nicer
-     tpi <-  get_pi(susiF.obj,l)
-     G_prior <- update_prior(G_prior, tpi= tpi ) #allow EM to start close to previous solution (to double check)
+    tt <- cal_Bhat_Shat(update_Y,X,v1)
+    Bhat <- tt$Bhat
+    Shat <- tt$Shat #UPDATE. could be nicer
+    tpi <-  get_pi(susiF.obj,l)
+    G_prior <- update_prior(G_prior, tpi= tpi ) #allow EM to start close to previous solution (to double check)
 
-     EM_out  <- EM_pi(G_prior  = G_prior,
-                      Bhat     =  Bhat,
-                      Shat     = Shat,
-                      indx_lst =  indx_lst
-                      )
-     susiF.obj <-  update_susiF_obj(susiF.obj = susiF.obj ,
-                                    l         = l,
-                                    EM_pi     = EM_out,
-                                    Bhat      = Bhat,
-                                    Shat      = Shat,
-                                    indx_lst  = indx_lst
-                                    )
-     update_Y  <-  cal_partial_resid(
-                                      susiF.obj = susiF_obj,
-                                      l         = 1,
-                                      X         = X,
-                                      D         = W$D,
-                                      C         = W$C,
-                                      L         = 2,
-                                      indx_lst  = indx_lst
-                                    )
+    EM_out  <- EM_pi(G_prior  = G_prior,
+                     Bhat     =  Bhat,
+                     Shat     = Shat,
+                     indx_lst =  indx_lst
+    )
+    print(susiF.obj$alpha)
+    susiF.obj <-  update_susiF_obj(susiF.obj = susiF.obj ,
+                                   l         = l,
+                                   EM_pi     = EM_out,
+                                   Bhat      = Bhat,
+                                   Shat      = Shat,
+                                   indx_lst  = indx_lst
+    )
 
+  }else{
+    while(check >tol & (h/L) <maxit)
+    {
+      for( l in 1:L)
+      {
+        h <- h+1
+        tt <- cal_Bhat_Shat(update_Y,X,v1)
+        Bhat <- tt$Bhat
+        Shat <- tt$Shat #UPDATE. could be nicer
+        tpi <-  get_pi(susiF.obj,l)
+        G_prior <- update_prior(G_prior, tpi= tpi ) #allow EM to start close to previous solution (to double check)
 
-     if(L==1){
-       break
-     }
-     if(ceiling(h/L)>2)#update parameter convergence, no ELBO for the moment
-     {
-       check <-0
-       for( tt in 0:(L-1))
-       {
-         check <-  check + var( susiF.obj$alpha_hist[[h-tt]] -susiF.obj$alpha_histalpha_col_hist[[h-L-tt]])
-       }
-     }
-   }#end for l in 1:L
-  }#end while
+        EM_out  <- EM_pi(G_prior  = G_prior,
+                         Bhat     =  Bhat,
+                         Shat     = Shat,
+                         indx_lst =  indx_lst
+        )
+        print(susiF.obj$alpha)
+        susiF.obj <-  update_susiF_obj(susiF.obj = susiF.obj ,
+                                       l         = l,
+                                       EM_pi     = EM_out,
+                                       Bhat      = Bhat,
+                                       Shat      = Shat,
+                                       indx_lst  = indx_lst
+        )
 
-  #preparing the output
+        update_Y  <-  cal_partial_resid(
+          susiF.obj = susiF.obj,
+          l         = l,
+          X         = X,
+          D         = W$D,
+          C         = W$C,
+          L         = L,
+          indx_lst  = indx_lst
+        )
 
-
-
-  ########################
-  #Individual prediction -----
-  ########################
+        if(ceiling(h/L)>2)#update parameter convergence, no ELBO for the moment
+        {
+          check <- 0
+          for( tt in 0:(L-1))
+          {
+            check <-  check + var( susiF.obj$alpha_hist[[h-tt]] -susiF.obj$alpha_histalpha_col_hist[[h-L-tt]])
+          }
+        }
+      }#end for l in 1:L
+    }#end while
+  }
 
 
   #preparing output

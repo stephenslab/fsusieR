@@ -2,6 +2,7 @@ library(testthat)
 library(ashr)
 library(wavethresh)
 library(Rfast)
+library(mixsqp)
 set.seed(2)
 f1 <- simu_IBSS_per_level(lev_res=9, alpha=1, prop_decay =1.5)
 
@@ -368,10 +369,10 @@ test_that("The output update should be equal to    ",
             expect_equal(  update_cal_cs(susiF_obj)$cs          ,tcs)
             expect_equal(  update_cal_indf(susiF_obj, Y, X, indx_lst)$ind_fitted_func ,ind_fitted_func)
             expect_equal(  update_cal_fit_func(susiF_obj, indx_lst)$fitted_func   ,fitted_func)
-            expect_equal(  out_prep(susiF.obj,Y, X=X, indx_lst=indx_lst)$pip        ,pip)
-            expect_equal(  out_prep(susiF.obj,Y, X=X, indx_lst=indx_lst)$cs          ,tcs)
-            expect_equal(  out_prep(susiF.obj,Y, X=X, indx_lst=indx_lst)$ind_fitted_func ,ind_fitted_func)
-            expect_equal(  out_prep(susiF.obj,Y, X=X, indx_lst=indx_lst)$fitted_func   ,fitted_func)
+            expect_equal(  out_prep(susiF_obj,Y, X=X, indx_lst=indx_lst)$pip        ,pip)
+            expect_equal(  out_prep(susiF_obj,Y, X=X, indx_lst=indx_lst)$cs          ,tcs)
+            expect_equal(  out_prep(susiF_obj,Y, X=X, indx_lst=indx_lst)$ind_fitted_func ,ind_fitted_func)
+            expect_equal(  out_prep(susiF_obj,Y, X=X, indx_lst=indx_lst)$fitted_func   ,fitted_func)
 
           }
 )
@@ -385,7 +386,7 @@ test_that("The precision of the fitted curves should be   ",
                                     tpi= outEM$tpi_k )
 
             susiF_obj <- update_susiF_obj(susiF_obj, 1, outEM, Bhat, Shat, indx_lst )
-            expect_equal(  sum( abs(unlist(update_cal_fit_func(susiF_obj, indx_lst)$fitted_func) -f1$sim_func)), 0, tol=0.003)
+            expect_equal(  sum( abs(unlist(update_cal_fit_func(susiF_obj, indx_lst)$fitted_func) -f1$sim_func)), 0, tol=0.03)
 
           }
 )
@@ -395,7 +396,7 @@ G_prior <- update_prior(G_prior,
                         tpi= outEM$tpi_k )
 
 susiF_obj <-  update_susiF_obj(susiF_obj, 1, outEM, Bhat, Shat, indx_lst )
-susiF_obj <-  out_prep(susiF.obj,Y, X=X, indx_lst=indx_lst)
+susiF_obj <-  out_prep(susiF_obj,Y, X=X, indx_lst=indx_lst)
 
 plot( unlist(susiF_obj$fitted_func), type="l", col="green")
 lines(f1$sim_func, col="red")

@@ -140,3 +140,173 @@ simu_IBSS_per_level  <-function( lev_res=7,
   return(out)
 }
 
+#'@title Simulation using Donoho and Johnstone test functions
+#'@param N integer number of sample to simulate
+#'@param P number of covariate
+#'@param rsnr root signal noise ratio for the noise
+#'@param is.plot logical if set to TRUE plot underying function
+#'@param pos1 position of the first active covariate
+#'@param pos2 position of the first active covariate (optional)
+#'
+#'
+#'
+simu_test_function <- function(N=50, P=10, rsnr=2,is.plot=TRUE, pos1 =1, pos2)
+{
+
+  if(!missing(pos2)){
+    if( pos1==pos2)
+    {
+      stop("Error pos2 and pos1 should be different byu default pos=1")
+    }
+  }
+
+  G = matrix(sample(c(0, 1,2), size=N*P, replace=T), nrow=N, ncol=P) #Genotype
+  beta0       <- 0
+  beta1       <- 1
+  beta2       <- ifelse(missing(pos2), 0,1)
+  noisy.data  <- list()
+  idx <- sample( size =3, 1:4)#sample at random the different function for basaline/effect
+  for ( i in 1:N)
+  {
+    test_func <- wavethresh::DJ.EX(n = 128, rsnr = rsnr, noisy = TRUE )
+    f0        <- beta0*test_func[[idx[1]]] #Baseline
+    f1        <- test_func[[idx[2]]]
+    f2        <- test_func[[idx[3]]]
+    noisy.data [[i]] <-  beta0*f0 +  beta1*G[i,pos1]*f1 + beta2*G[i,pos2]*f2
+
+  }
+  noisy.data <- do.call(rbind, noisy.data)
+  test_func <- wavethresh::DJ.EX(n = 128,   noisy = FALSE )
+  f0        <- beta0*test_func[[idx[1]]] #Baseline
+  f1        <- test_func[[idx[2]]]
+  f2        <- test_func[[idx[3]]]
+
+  if( is.plot)
+  {
+    plot(f0-0.1,
+         type="l",
+         main="Underlying function depending on the SNP",
+         ylim=c(3*min(f0,f1,f2),3*max(f0,f1,f2)),
+         ylab="y",
+         xlab="time"
+    )
+    lines(f1+0.1+f0, col="red")
+    if( !missing(pos2)){
+      lines(f2-0.2+f0, col="green")
+      lines(f1+f2+f0+0.3, col="blue")
+      legend(x = c(0),
+             y= 100,
+             c("0,0", "1,0", "0,1","1,1"),
+             col= c("black", "red","green", "blue"),
+             lty = rep(1,4)
+      )
+    }else{
+
+      legend(x = c(0),
+             y= 100,
+             c("0 ", "1 " ),
+             col= c("black", "red" ),
+             lty = rep(1,2)
+      )
+    }
+
+
+
+
+
+    if (!missing( pos2)){
+      plot( noisy.data[1,],
+            col= "black",
+            type ="l",
+            ylim=c(-150,150),
+            ylab="y",
+            xlab="time",
+            main="Observed noisy curves"
+      )
+      for ( i  in 2: N)
+      {
+        if( G[i, pos1]==0  & G[i,pos2]==0)
+        {
+          my_col <- "black"
+        }
+
+        if( G[i, pos1]>0  & G[i,pos2]==0)
+        {
+          my_col <- "red"
+        }
+        if( G[i, pos1]==0  & G[i,pos2]>0)
+        {
+          my_col <- "green"
+        }
+        if( G[i, pos1]>0  & G[i,pos2]>0)
+        {
+          my_col <- "blue"
+        }
+
+        lines( noisy.data[i,], col=   my_col)
+        legend(x = c(0),
+               y= -5,
+               c("0,0", "1,0", "0,1","1,1"),
+               col= c("black", "red","green", "blue"),
+               lty = rep(1,4)
+        )
+    }
+
+    }else{
+      plot( noisy.data[1,],
+            col= "black",
+            type ="l",
+            ylim=c(-150,150),
+            ylab="y",
+            xlab="time",
+            main="Observed noisy curves"
+      )
+      for ( i  in 2: N)
+      {
+        if( G[i, pos1]==0  )
+        {
+          my_col <- "black"
+        }
+
+        if( G[i, pos1]>0  )
+        {
+          my_col <- "red"
+        }
+
+
+        lines( noisy.data[i,], col=   my_col)
+
+
+      }
+      legend(x = c(0),
+             y= -5,
+             c("0", "1" ),
+             col= c("black", "red"),
+             lty = rep(1,2)
+      )
+    }
+  }
+        if(!missing(pos2))
+          {
+           out <- list( G=G,
+                       noisy.data = noisy.data,
+                       pos1       = pos1,
+                       pos2       = pos2,
+                       f0         = f0,
+                       f1         = f1,
+                       f2         = f2)
+        }else{
+          out <- list( G=G,
+                       noisy.data = noisy.data,
+                       pos1       = pos1,
+                       f0         = f0,
+                       f1         = f1 )
+          }
+  return(out)
+}
+
+
+
+simu_test_function()
+
+

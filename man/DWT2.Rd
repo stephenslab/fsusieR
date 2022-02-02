@@ -19,7 +19,7 @@ A list with the following components
 \item{C}{ vector length n containing the wavelet C coefficient}
 \item{D}{ matrix of size nx 2^(J -1) where each row contains the wavelet D coefficients, ordered in the same way as in the wavethresh package}
 \item{family}{ used for the wavelet transform}
-\item{filter.number}
+\item{filter.number}{ }
 }
 \description{
 function adapted from grove R package from Ma and Soriano. Perform wavelet transform of each row of a matrix

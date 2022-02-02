@@ -307,7 +307,7 @@ update_cal_indf.susiF <- function(susiF.obj, Y, X, indx_lst)
   {
     stop("Error: some alpha value not updated, please update alpha value first")
   }
-  temp <- wd(rep(0, dim(Y_f)[2])) #create dummy wd object
+  temp <- wd(rep(0, dim(Y)[2])) #create dummy wd object
 
 
   if(class(get_G_prior(susiF.obj))=="mixture_normal_per_scale" )
@@ -363,21 +363,21 @@ update_cal_fit_func.susiF <- function(susiF.obj, indx_lst)
 
   if(class(get_G_prior(susiF.obj))=="mixture_normal_per_scale" )
   {
-    temp <- wd(rep(0, dim(Y_f)[2]))
+    temp <- wd(rep(0, dim(Y)[2]))
     for ( l in 1:susiF.obj$L)
     {
-      temp$D <-    (susiF.obj$alpha[[l]])%*%susiF.obj$fitted_wc[[l]][,-indx_lst[[length(indx_lst)]]]
-      temp$C[length(temp$C)] <- (susiF.obj$alpha[[l]])%*%susiF.obj$fitted_wc[[l]][,indx_lst[[length(indx_lst)]]]
+      temp$D                     <- (susiF.obj$alpha[[l]])%*%susiF.obj$fitted_wc[[l]][,-indx_lst[[length(indx_lst)]]]
+      temp$C[length(temp$C)]     <- (susiF.obj$alpha[[l]])%*%susiF.obj$fitted_wc[[l]][,indx_lst[[length(indx_lst)]]]
       susiF.obj$fitted_func[[l]] <- wr(temp)
     }
   }
   if(class(get_G_prior(susiF.obj))=="mixture_normal" )
   {
-    temp <- wd(rep(0, dim(Y_f)[2]))
+    temp <- wd(rep(0, dim(Y)[2]))
     for ( l in 1:susiF.obj$L)
     {
-      temp$D <-    (susiF.obj$alpha[[l]])%*%susiF.obj$fitted_wc[[l]][,-dim(susiF.obj$fitted_wc[[l]])[2]]
-      temp$C[length(temp$C)] <- (susiF.obj$alpha[[l]])%*%susiF.obj$fitted_wc[[l]][,dim(susiF.obj$fitted_wc[[l]])[2]]
+      temp$D                     <- (susiF.obj$alpha[[l]])%*%susiF.obj$fitted_wc[[l]][,-dim(susiF.obj$fitted_wc[[l]])[2]]
+      temp$C[length(temp$C)]     <- (susiF.obj$alpha[[l]])%*%susiF.obj$fitted_wc[[l]][,dim(susiF.obj$fitted_wc[[l]])[2]]
       susiF.obj$fitted_func[[l]] <- wr(temp)
     }
   }
