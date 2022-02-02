@@ -2,7 +2,7 @@
 % Please edit documentation in R/operation_on_prior.R
 \name{init_prior}
 \alias{init_prior}
-\title{#'@title Initialise the prior}
+\title{#'@title Initialize the prior}
 \usage{
 init_prior(Y, X, prior, v1, indx_lst)
 }
