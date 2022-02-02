@@ -2,12 +2,12 @@
 
 #' @title Lifting scheme for non decimated and unevenly spaced data on matrix
 #'
-#' @description  Interpolation procedure from Kovac and Silvermann 2000 for matrix of function
+#' @description  Interpolation procedure from Kovac and Silvermann 2000 for a matrix of functions
 #'
 #'
-#' @details We suppose that we observe n functions/curves at T different time points. We remap this functions into a grid of length equal to a power of two using the lifting scheme of Kovac and Silvermann 2000.
-#' @param Y matrix of curve of size nXT, where the curves are stored by row
-#' @param pos vector of positive values, each the vector component corresponds the measurement time. (the values of pos should increase along with the index)
+#' @details We suppose that we observe n functions/curves at T different time points. We remap these functions into a grid of length equal to a power of two using the lifting scheme of Kovac and Silvermann 2000.
+#' @param Y matrix of curves of size nXT, where the curves are stored by row
+#' @param pos vector of positive values, each the vector component corresponds to the measurement time. (the values of pos should increase along with the index)
 #' @export
 #'
 interpol_mat <- function(Y, pos)
@@ -25,7 +25,7 @@ interpol_mat <- function(Y, pos)
 
 
 
-#' @title Interpolation procedure from Kovac and Silveramnn 2000
+#' @title Interpolation procedure from Kovac and Silverman 2000
 #'
 #' @description  Interpolation procedure from Kovac and Silveramnn 2000
 #' @param y vector of observed curves
@@ -37,11 +37,11 @@ interpolKS <-  function (y, bp)
 }
 
 
-#'@title  wavelet transform on matrix of functions
+#'@title  wavelet transform on a matrix of functions
 #'@description function adapted from grove R package from Ma and Soriano. Perform wavelet transform of each row of a matrix
 #'
 #'@param data matrix of size NxJ where J is a power of two
-#'@param filter.number This selects the smoothness of wavelet that you want to use in the decomposition. By default this is 10, the Daubechies least-asymmetric orthonormal compactly supported wavelet with 10 vanishing moments. Description from Guy Nason (wavethresh package)
+#'@param filter.number This selects the smoothness of the wavelet that you want to use in the decomposition. By default, this is 10, the Daubechies least-asymmetric orthonormal compactly supported wavelet with 10 vanishing moments. Description from Guy Nason (wavethresh package)
 #'@param family specifies the family of wavelets that you want to use. Two popular options are "DaubExPhase" and "DaubLeAsymm" but see the help for filter.select for more possibilities.. Description from Guy Nason (wavethresh package)
 #'@return A list with the following components
 #'
@@ -95,7 +95,7 @@ gen_wavelet_indx <- function(lev_res)
   }
   indx_lst[[length(indx_lst)+1]] <- 2^lev_res# C coefficient
   out <- indx_lst
-return(out)
+  return(out)
 
 }
 

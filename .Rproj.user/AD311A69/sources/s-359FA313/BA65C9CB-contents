@@ -43,7 +43,7 @@ susiF <- function( Y,X, L = 2,
   #reshaping of the data
   if ( !(length(pos)==dim(Y)[2])) #miss matching positions and number of observations
   {
-    stop("Error: number of position provided different from number of column of Y")
+    stop("Error: number of position provided different from the number of column of Y")
   }
   orignal_Y <-Y
 
