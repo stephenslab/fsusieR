@@ -18,25 +18,39 @@ susiF(
 )
 }
 \arguments{
-\item{Y}{functional phenotype, matrix of size N by size J. The underlying algorithm uses wavelet which assume that J is of the form J^2. If J not a power of 2, susif internally remaps the data into grid of length 2^J}
+\item{Y}{functional phenotype, matrix of size N by size J. The
+underlying algorithm uses wavelet which assume that J is of the
+form J^2. If J not a power of 2, susif internally remaps the data
+into grid of length 2^J}
 
 \item{X}{matrix of size n by p in}
 
 \item{L}{the number of effect to fit (if not specified set to =2)}
 
-\item{pos}{vector of length J, corresponding to position/time pf the observed column in Y, if missing suppose that the observation are evenly spaced}
+\item{pos}{vector of length J, corresponding to position/time pf
+the observed column in Y, if missing suppose that the observation
+are evenly spaced}
 
-\item{prior}{specify the prior used in susif. Three choice are available "normal", "mixture_normal", "mixture_normal_per_scale"}
+\item{prior}{specify the prior used in susif. Three choice are
+available "normal", "mixture_normal", "mixture_normal_per_scale"}
 
-\item{verbose}{If \code{verbose = TRUE}, the algorithm's progress, and a summary of the optimization settings, are printed to the console.}
+\item{verbose}{If \code{verbose = TRUE}, the algorithm's progress,
+and a summary of the optimization settings, are printed to the
+console.}
 
-\item{plot_out}{If \code{plot_out = TRUE}, the algorithm's progress, and a summary of the optimization settings, are ploted.}
+\item{plot_out}{If \code{plot_out = TRUE}, the algorithm's progress,
+and a summary of the optimization settings, are ploted.}
 
 \item{maxit}{Maximum number of IBSS iterations to perform.}
 
-\item{tol}{A small, non-negative number specifying the convergence tolerance for the IBSS fitting procedure. The fitting procedure will halt when the difference in the variational lower bound, or \dQuote{ELBO} (the objective function to be maximized), is less than \code{tol}. Currently checking the PIP}
+\item{tol}{A small, non-negative number specifying the convergence
+tolerance for the IBSS fitting procedure. The fitting procedure
+will halt when the difference in the variational lower bound, or
+\dQuote{ELBO} (the objective function to be maximized), is less
+than \code{tol}. Currently checking the PIP}
 
-\item{cov_lev}{numeric between 0 and 1, corresponding to the expected level of coverage of the cs if not specified set to 0.95}
+\item{cov_lev}{numeric between 0 and 1, corresponding to the
+expected level of coverage of the cs if not specified set to 0.95}
 }
 \description{
 Implementation of the SuSiF method

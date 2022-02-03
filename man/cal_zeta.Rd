@@ -10,5 +10,5 @@ cal_zeta(lBF)
 \item{lBF}{vector of log Bayes factors}
 }
 \description{
-Compute assignment probabilities from log Bayes factors
+Add description here.
 }

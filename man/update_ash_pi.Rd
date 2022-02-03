@@ -15,5 +15,5 @@ update_ash_pi(G, tpi)
 an ash object with updated mixture proportion
 }
 \description{
-Update ash object mixture proportion
+Add description here.
 }

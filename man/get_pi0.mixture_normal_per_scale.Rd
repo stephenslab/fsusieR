@@ -13,5 +13,5 @@
 A number between 0 and 1
 }
 \description{
-Get mixture proportion for of the null component in mixture normal prior
+Add description here.
 }

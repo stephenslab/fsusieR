@@ -1,28 +1,53 @@
-#'@title Sum of Single Functions
+#' @title Sum of Single Functions
 #'
-#'
-#'@description Implementation of the SuSiF method
+#' @description Implementation of the SuSiF method
+#' 
 #'@details tbd
 #'
-#'@param Y functional phenotype, matrix of size N by size J. The underlying algorithm uses wavelet which assume that J is of the form J^2. If J not a power of 2, susif internally remaps the data into grid of length 2^J
-#'@param X matrix of size n by p in
-#'@param L the number of effect to fit (if not specified set to =2)
-#'@param pos vector of length J, corresponding to position/time pf the observed column in Y, if missing suppose that the observation are evenly spaced
-#'@param prior specify the prior used in susif. Three choice are available "normal", "mixture_normal", "mixture_normal_per_scale"
-#'@param verbose If \code{verbose = TRUE}, the algorithm's progress, and a summary of the optimization settings, are printed to the console.
-#'@param plot_out If \code{plot_out = TRUE}, the algorithm's progress, and a summary of the optimization settings, are ploted.
-#'@param tol A small, non-negative number specifying the convergence tolerance for the IBSS fitting procedure. The fitting procedure will halt when the difference in the variational lower bound, or \dQuote{ELBO} (the objective function to be maximized), is less than \code{tol}. Currently checking the PIP
-#'@param maxit Maximum number of IBSS iterations to perform.
-#'@param cov_lev numeric between 0 and 1, corresponding to the expected level of coverage of the cs if not specified set to 0.95
+#'@param Y functional phenotype, matrix of size N by size J. The
+#'   underlying algorithm uses wavelet which assume that J is of the
+#'   form J^2. If J not a power of 2, susif internally remaps the data
+#'   into grid of length 2^J
+#' 
+#' @param X matrix of size n by p in
+#' 
+#' @param L the number of effect to fit (if not specified set to =2)
+#' 
+#' @param pos vector of length J, corresponding to position/time pf
+#' the observed column in Y, if missing suppose that the observation
+#' are evenly spaced
+#' 
+#' @param prior specify the prior used in susif. Three choice are
+#' available "normal", "mixture_normal", "mixture_normal_per_scale"
+#' 
+#' @param verbose If \code{verbose = TRUE}, the algorithm's progress,
+#' and a summary of the optimization settings, are printed to the
+#' console.
+#' 
+#' @param plot_out If \code{plot_out = TRUE}, the algorithm's progress,
+#' and a summary of the optimization settings, are ploted.
+#' 
+#' @param tol A small, non-negative number specifying the convergence
+#' tolerance for the IBSS fitting procedure. The fitting procedure
+#' will halt when the difference in the variational lower bound, or
+#' \dQuote{ELBO} (the objective function to be maximized), is less
+#' than \code{tol}. Currently checking the PIP
+#' 
+#' @param maxit Maximum number of IBSS iterations to perform.
+#' 
+#' @param cov_lev numeric between 0 and 1, corresponding to the
+#' expected level of coverage of the cs if not specified set to 0.95
+#' 
 #'@export
-susiF <- function( Y,X, L = 2,
-                   pos = NULL,
-                   prior = "mixture_normal_per_scale",
-                   verbose = TRUE,
-                   plot_out = TRUE,
-                   maxit = 100,
-                   tol = 1e-6,
-                   cov_lev = 0.95
+#' 
+susiF <- function(Y, X, L = 2,
+                  pos = NULL,
+                  prior = "mixture_normal_per_scale",
+                  verbose = TRUE,
+                  plot_out = TRUE,
+                  maxit = 100,
+                  tol = 1e-6,
+                  cov_lev = 0.95
 
 )
 {
@@ -55,9 +80,9 @@ susiF <- function( Y,X, L = 2,
     Y             <- inter_pol.obj$Y
     bp            <-  inter_pol.obj$bp
     outing_grid   <- inter_pol.obj$grid
-    if(verbose ==TRUE)
+    if(verbose)
     {
-      print( "Response matrix dimensions not equal to nx 2^J \n or unevenly spaced data \n interpolation procedure used")
+      message( "Response matrix dimensions not equal to nx 2^J \n or unevenly spaced data \n interpolation procedure used")
     }
   }  else{
 
@@ -69,9 +94,7 @@ susiF <- function( Y,X, L = 2,
   indx_lst <-  gen_wavelet_indx(log2(length( outing_grid)))
   v1 <- rep(1, dim(X)[1])### used in fit_lm to add a column of 1 in the design matrix
 
-
-
-  #Wavelet transform of the inputs
+  # Wavelet transform of the inputs
 
   W <- DWT2(Y)
   update_D <- W
@@ -80,11 +103,9 @@ susiF <- function( Y,X, L = 2,
   G_prior     <-  init_prior(update_Y,X,prior,v1 , indx_lst  )
   susiF.obj   <-  init_susiF_obj(L=L, G_prior, Y,X)
 
-
   # numerical value to check breaking condition of while
   check <- 1
   h     <- 0
-
 
   if(L==1)
   {

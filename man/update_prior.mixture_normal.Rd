@@ -19,7 +19,7 @@ a prior of class "mixture_normal"
 a prior of class "mixture_normal"
 }
 \description{
-Update mixture proportion for mixture normal prior
+Add description here.
 
-Update mixture proportion for mixture normal prior
+Add description here.
 }

@@ -1,6 +1,7 @@
-#'@title Simulate data under the mixture normal prior
+#' @title Simulate data under the mixture normal prior
 #'
-#'@description
+#' @description Add description here.
+#' 
 #'@param lev_res numerical corresponds to the resolution of the simulated function (idealy between 3 and 10)
 #'@param length_grid vector numerical corresponds to the length of the grid of sigma for mixture component(cf ash)
 #'@param piO vector numerical , contain a digit  between 0 and 1, which corresponds to the null proportion ( non assocatied wavelet coefficients)
@@ -46,7 +47,8 @@ simu_IBSS_ash_vanilla <- function( lev_res=7, length_grid= 10, pi0= 0.85)
 
 #'@title Simulate data under the mixture normal prior
 #'
-#'@description
+#' @description Add description here.
+#' 
 #'@param lev_res numerical corresponds to the resolution of the simulated function (idealy between 3 and 10)
 #'@param length_grid vector numerical corresponds to the length of the grid of sigma for mixture component(cf ash)
 #'@param piO vector numerical , contain a digit  between 0 and 1, which corresponds to the null proportion ( non assocatied wavelet coefficients)

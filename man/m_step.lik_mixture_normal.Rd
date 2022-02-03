@@ -2,7 +2,8 @@
 % Please edit documentation in R/computational_functions.R
 \name{m_step.lik_mixture_normal}
 \alias{m_step.lik_mixture_normal}
-\title{Compute M step in the wieghted ash problem for normal mixture prior}
+\title{Compute M step in the weighted ash problem for normal mixture
+  prior}
 \usage{
 \method{m_step}{lik_mixture_normal}(L, zeta, indx_lst)
 }
@@ -17,5 +18,5 @@
 a vector of proportion (class pi_mixture_normal)
 }
 \description{
-Compute M step in the wieghted ash problem for normal mixture prior
+Add description here.
 }

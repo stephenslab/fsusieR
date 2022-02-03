@@ -19,5 +19,5 @@
 p log Bayes factor
 }
 \description{
-#'
+Add description here.
 }

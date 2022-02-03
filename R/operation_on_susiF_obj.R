@@ -2,7 +2,6 @@
 #'
 #'@title Initialize a susiF object using regression coefficients
 #'
-#'
 #'@param L number of non zero coefficients An L-vector containing the indices of the
 #'   nonzero coefficients.
 #'
@@ -10,16 +9,14 @@
 #' @param Y Matrix of outcomes
 #' @param X Matrix of covariate
 #' @return A list with elements
-#' @item fitted_wc2
-#' @item fitted_wc2
-#' @item alpha_hist
-#' @item  ind_fitted_func
-#' @item cs (credible set)
-#' @item pip Posterior inclusion probabilites
-#' @item G_prior a G_prior of the same class as the input G_prior, used for internal calculation
+#' fitted_wc2
+#' fitted_wc2
+#' alpha_hist
+#' ind_fitted_func
+#' cs (credible set)
+#' pip Posterior inclusion probabilites
+#' G_prior a G_prior of the same class as the input G_prior, used for internal calculation
 #'
-
-
 init_susiF_obj <- function(L, G_prior, Y,X )
 {
 

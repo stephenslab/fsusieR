@@ -43,7 +43,8 @@ init_prior <- function(Y,X, prior,v1 , indx_lst )
 
 #'@title Get mixture proportion for mixture normal prior
 #'
-#'@description
+#' @description Add description here.
+#' 
 #'@param G_prior mixture normal prior
 #'@return vector of mixture proportion
 #'@export
@@ -54,9 +55,10 @@ get_pi_G_prior.mixture_normal <- function(G_prior)
   return(out)
 }
 
-#'@title Get mixture proportion for mixture normal prior per scale
+#' @title Get mixture proportion for mixture normal prior per scale
 #'
-#'@description
+#' @description Add description here.
+#' 
 #'@param G_prior mixture normal prior
 #'@return list of vector of mixture proportion
 #'@export
@@ -70,7 +72,7 @@ get_pi_G_prior.mixture_normal_per_scale <- function(G_prior)
 
 #'@title Get mixture proportion for mixture normal prior per scale
 #'
-#'@description
+#'@description Add description here.
 #'@param G_prior mixture normal prior
 #'@return list of vector of mixture proportion
 #'@export
@@ -82,7 +84,8 @@ get_pi0.mixture_normal <- function(G_prior)
 
 #'@title Get mixture proportion for mixture normal prior
 #'
-#'@description
+#' @description Add description here.
+#' 
 #'@param tpi  object of class pi_mixture_normal
 #'@return numeric between 0 an 1
 #'@export
@@ -95,7 +98,8 @@ get_pi0.pi_mixture_normal  <- function(tpi)
 
 #'@title Get mixture proportion for of the null component in mixture normal prior
 #'
-#'@description
+#'@description Add description here.
+#' 
 #'@param G_prior mixture normal prior
 #'@return A number between 0 and 1
 #'@export
@@ -108,7 +112,8 @@ get_pi0.mixture_normal_per_scale <- function(G_prior)
 
 #'@title Get mixture proportion for mixture normal prior
 #'
-#'@description
+#' @description Add description here.
+#' 
 #'@param tpi  object of class pi_mixture_normal
 #'@return A number between 0 and 1
 #'@export
@@ -121,7 +126,8 @@ get_pi0.pi_mixture_normal_per_scale  <- function(tpi)
 
 #'@title Get mixture standard deviations for mixture normal prior
 #'
-#'@description
+#'@description Add description here.
+#' 
 #'@param G_prior mixture normal prior
 #'@return vector of standard deviations
 #'@export
@@ -136,7 +142,8 @@ get_sd_G_prior.mixture_normal <- function(G_prior)
 
 #'@title Get mixture standard deviations mixture normal prior per scale
 #'
-#'@description
+#' @description Add description here.
+#' 
 #'@param G_prior mixture normal prior
 #'@return list of vectors of standard deviations
 #'@export
@@ -151,12 +158,18 @@ get_sd_G_prior.mixture_normal_per_scale <- function(G_prior)
 
 
 
-#'@title Update mixture proportion for mixture normal prior
-#'@description
-#'@param G_prior a prior of class "mixture_normal"
-#'@param tpi a vector of proportion of class"pi_mixture_normal"
-#'@return a prior of class "mixture_normal"
-#'@export
+#' @title Update mixture proportion for mixture normal prior
+#'
+#' @description Add description here.
+#' 
+#' @param G_prior a prior of class "mixture_normal"
+#' 
+#' @param tpi a vector of proportion of class"pi_mixture_normal"
+#' 
+#' @return a prior of class "mixture_normal"
+#' 
+#' @export
+#' 
 update_prior.mixture_normal <- function(G_prior, tpi)
 {
   if( class(tpi)=="pi_mixture_normal"){
@@ -170,7 +183,9 @@ update_prior.mixture_normal <- function(G_prior, tpi)
 
 
 #'@title Update mixture proportion for mixture normal prior
-#'@description
+#' 
+#' @description Add description here.
+#' 
 #'@param G_prior a prior of class "mixture_normal"
 #'@param tpi a vector of proportion of class"pi_mixture_normal"
 #'@return a prior of class "mixture_normal"
@@ -187,7 +202,7 @@ update_prior.mixture_normal <- function(G_prior, tpi)
 }
 
 #'@title Update mixture proportion for mixture normal per scale prior
-#'@description
+#'@description Add description here.
 #'@param G_prior a prior of class "mixture_normal_per_scale"
 #'@param tpi a vector of proportion of class"pi_mixture_normal_per_scale"
 #'@return a prior of class "mixture_normal_per_scale"
@@ -205,7 +220,7 @@ update_prior.mixture_normal_per_scale <- function(G_prior, tpi)
 }
 
 #'@title Update ash object mixture proportion
-#'@description
+#'@description Add description here.
 #'@param G_prior a ash object
 #'@param tpi a vector of proportion
 #'@return an ash object with updated mixture proportion

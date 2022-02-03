@@ -13,5 +13,5 @@
 list of vectors of standard deviations
 }
 \description{
-Get mixture standard deviations mixture normal prior per scale
+Add description here.
 }

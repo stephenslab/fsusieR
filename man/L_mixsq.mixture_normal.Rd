@@ -19,5 +19,5 @@
 See L argument mixsqp package mixsqp function
 }
 \description{
-Compute likelihood matrix for mixsqp under mixture normal prior
+Add description here.
 }

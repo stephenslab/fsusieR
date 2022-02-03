@@ -19,5 +19,5 @@ scale_m_step(L, s, zeta, indx_lst)
 a vector of proportion for the scale s
 }
 \description{
-Subroutine to compute M step in the weighted ash problem for normal mixture prior per scale at a given scale s
+Add description here.
 }

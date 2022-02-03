@@ -8,10 +8,12 @@
 }
 \arguments{
 \item{L}{output of L_mixsqp function}
+
+\item{zeta}{assignment probabilities for each covariate}
 }
 \value{
 a list if vector of proportion (class pi_mixture_normal_per_scale)
 }
 \description{
-Compute M step in the weighted ash problem for normal mixture prior
+Add description here.
 }

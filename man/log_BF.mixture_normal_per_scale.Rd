@@ -19,5 +19,5 @@
 p log Bayes factor
 }
 \description{
-Compute log Bayes Factor under mixture normal per scale prior
+Add description here.
 }

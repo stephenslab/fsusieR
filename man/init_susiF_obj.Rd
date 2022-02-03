@@ -18,6 +18,13 @@ nonzero coefficients.}
 }
 \value{
 A list with elements
+fitted_wc2
+fitted_wc2
+alpha_hist
+ind_fitted_func
+cs (credible set)
+pip Posterior inclusion probabilites
+G_prior a G_prior of the same class as the input G_prior, used for internal calculation
 }
 \description{
 Initialize a susiF object using regression coefficients

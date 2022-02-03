@@ -21,5 +21,5 @@ cal_L_mixsq_s_per_scale(G_prior, s, Bhat, Shat, indx_lst)
 L see L argument mixsqp package mixsqp function
 }
 \description{
-Subroutine to compute likelihood matrix at scale s for mixsqp under mixture normal per scale prior
+Add description here.
 }

@@ -13,5 +13,5 @@
 list of vector of mixture proportion
 }
 \description{
-Get mixture proportion for mixture normal prior per scale
+Add description here.
 }

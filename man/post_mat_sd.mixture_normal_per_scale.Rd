@@ -2,7 +2,8 @@
 % Please edit documentation in R/computational_functions.R
 \name{post_mat_sd.mixture_normal_per_scale}
 \alias{post_mat_sd.mixture_normal_per_scale}
-\title{Compute posterior standard deviation under mixture normal per scale prior}
+\title{Compute posterior standard deviation under mixture normal per
+scale prior}
 \usage{
 \method{post_mat_sd}{mixture_normal_per_scale}(G_prior, Bhat, Shat, indx_lst, ...)
 }
@@ -19,5 +20,5 @@
 pxJ matrix of posterior standard deviation
 }
 \description{
-Compute posterior standard deviation under mixture normal per scale prior
+Add description here.
 }

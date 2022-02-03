@@ -13,5 +13,5 @@
 numeric between 0 an 1
 }
 \description{
-Get mixture proportion for mixture normal prior
+Add description here.
 }

@@ -1,10 +1,10 @@
 Package: suisF.alpha
 Type: Package
 Title: Sum of Single Functions
-Version: 0.1.0
+Version: 0.1.1
 Author: William R.P. Denault
 Maintainer: William R.P. Denault <wdenault@uchicago.edu>
-Description: Implementation fo the Sum of Signle Function method (SuSiF).
+Description: Implementation of the Sum of Signle Function method (SuSiF).
 Depends:
     R (>= 3.1.0)
 Imports:

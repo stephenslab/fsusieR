@@ -15,5 +15,5 @@
 a prior of class "mixture_normal_per_scale"
 }
 \description{
-Update mixture proportion for mixture normal per scale prior
+Add description here.
 }

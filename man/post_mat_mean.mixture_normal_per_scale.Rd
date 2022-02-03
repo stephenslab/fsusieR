@@ -19,5 +19,5 @@
 pxJ matrix of posterior mean
 }
 \description{
-Compute posterior mean under mixture normal per scale prior
+Add description here.
 }

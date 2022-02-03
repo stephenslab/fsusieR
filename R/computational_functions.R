@@ -1,10 +1,9 @@
-
 ################################## susiF computational FUNCTIONS ############################
 #'
 #'
 #'
 #'@title EM algorithm to find Empirical Bayes prior
-#'@description
+#' @description Add description here.
 #'@param G_prior mixture normal prior  or mixture  normal per scale
 #'@param Bhat  matrix pxJ regression coefficient, Bhat[j,t] corresponds to regression coefficient of Y[,t] on X[,j]
 #'@param Shat matrix pxJ standard error, Shat[j,t] corresponds to standard error of the regression coefficient of Y[,t] on X[,j]
@@ -15,15 +14,16 @@
 #'\item{tpi_k}{ fitted mixture proportion}
 #'\item{lBF}{ log Bayes Factor}
 #'
-#'@export
-EM_pi  <- function(G_prior,Bhat, Shat, indx_lst,
-                   max_step =100,
-                   espsilon =0.0001 ){
+#' @export
+#' 
+EM_pi <- function(G_prior,Bhat, Shat, indx_lst,
+                  max_step =100,
+                  espsilon =0.0001 ){
 
   #static parameters
   L  <-  L_mixsq(G_prior, Bhat, Shat, indx_lst)
   J <- dim(Bhat)[1]
-  tsd_k = get_sd_G_prior(G_prior)
+  tsd_k <- get_sd_G_prior(G_prior)
 
   #dynamic parameters
   tpi_k = get_pi_G_prior(G_prior)
@@ -40,23 +40,21 @@ EM_pi  <- function(G_prior,Bhat, Shat, indx_lst,
     ###E step----
     oldloglik <- cal_lik(lBF,zeta )
     zeta <- cal_zeta(lBF)
+    
     ####M step ----
-    tpi_k   <- m_step(L,zeta, indx_lst)
-    G_prior <- update_prior(G_prior, tpi_k)
+    tpi_k   <- m_step(L,zeta,indx_lst)
+    G_prior <- update_prior(G_prior,tpi_k)
 
-    lBF <- log_BF(G_prior,Bhat,Shat, indx_lst)
-    newloglik <- cal_lik(lBF,zeta )
+    lBF <- log_BF(G_prior,Bhat,Shat,indx_lst)
+    newloglik <- cal_lik(lBF,zeta)
     k <- k+1
 
   }
-  out =list (tpi_k=tpi_k,
-             lBF =lBF )
+  out <- list(tpi_k = tpi_k,
+              lBF = lBF)
   class(out) <- "EM_pi"
-  return(out )
+  return(out)
 }
-
-
-
 
 #'@title Regress Y nxJ on X nxp
 #'@description regression coefficients (and sd) of the column wise regression
@@ -85,10 +83,8 @@ cal_Bhat_Shat <- function(Y,X,v1 )
   return(out)
 }
 
-
-
 #'@title Regress column l of Y on column j of X
-#'@description
+#'@description Add description here.
 #'@param Y  functional phenotype, matrix of size N by size J. The underlying algorithm uses wavelets that assume that J is of the form J^2. If J is not a power of 2, susiF internally remaps the data into a grid of length 2^J
 #'@param X matrix of size n by p in
 #'@param v1 vector of 1 of length n
@@ -111,7 +107,7 @@ fit_lm <- function( l,j,Y,X,v1)  ## Speed Gain
 
 #'@title Fit ash of coefficient from scale s
 #'
-#'@description
+#'@description Add description here.
 #'@param Bhat  matrix pxJ regression coefficient, Bhat[j,t] corresponds to regression coefficient of Y[,t] on X[,j]
 #'@param Shat matrix pxJ standard error, Shat[j,t] corresponds to standard error of the regression coefficient of Y[,t] on X[,j]
 #'@param s scale of interest
@@ -131,7 +127,7 @@ fit_ash_level <- function(Bhat, Shat,s,indx_lst)
 
 #'@title Compute log Bayes Factor under mixture normal prior
 #'
-#'@description  #'
+#'@description Add description here.
 #'@param G_prior mixture normal prior
 #'@param Bhat  matrix pxJ regression coefficient, Bhat[j,t] corresponds to regression coefficient of Y[,t] on X[,j]
 #'@param Shat matrix pxJ standard error, Shat[j,t] corresponds to standard error of the regression coefficient of Y[,t] on X[,j]
@@ -172,7 +168,8 @@ log_BF.mixture_normal  <- function( G_prior, Bhat, Shat, indx_lst, ...)
 
 #'@title Compute log Bayes Factor under mixture normal per scale prior
 #'
-#'@description
+#'@description Add description here.
+#' 
 #'@param G_prior mixture normal prior
 #'@param Bhat  matrix pxJ regression coefficient, Bhat[j,t] corresponds to regression coefficient of Y[,t] on X[,j]
 #'@param Shat matrix pxJ standard error, Shat[j,t] corresponds to standard error of the regression coefficient of Y[,t] on X[,j]
@@ -213,7 +210,8 @@ log_BF.mixture_normal_per_scale <- function( G_prior ,Bhat,Shat, indx_lst, ... )
 
 #'@title Compute posterior mean under mixture normal prior
 #'
-#'@description
+#' @description Add description here.
+#' 
 #'@param G_prior mixture normal prior
 #'@param Bhat  matrix pxJ regression coefficient, Bhat[j,t] corresponds to regression coefficient of Y[,t] on X[,j]
 #'@param Shat matrix pxJ standard error, Shat[j,t] corresponds to standard error of the regression coefficient of Y[,t] on X[,j]
@@ -237,7 +235,8 @@ post_mat_mean.mixture_normal  <- function( G_prior ,Bhat,Shat, ...  )
 
 #'@title Compute posterior mean under mixture normal per scale prior
 #'
-#'@description
+#' @description Add description here.
+#' 
 #'@param G_prior mixture normal prior
 #'@param Bhat  matrix pxJ regression coefficient, Bhat[j,t] corresponds to regression coefficient of Y[,t] on X[,j]
 #'@param Shat matrix pxJ standard error, Shat[j,t] corresponds to standard error of the regression coefficient of Y[,t] on X[,j]
@@ -277,7 +276,8 @@ post_mat_mean.mixture_normal_per_scale <- function( G_prior ,Bhat,Shat, indx_lst
 
 #'@title Compute posterior standard deviation under mixture normal prior
 #'
-#'@description
+#' @description Add description here.
+#' 
 #'@param G_prior mixture normal prior
 #'@param Bhat  matrix pxJ regression coefficient, Bhat[j,t] corresponds to regression coefficient of Y[,t] on X[,j]
 #'@param Shat matrix pxJ standard error, Shat[j,t] corresponds to standard error of the regression coefficient of Y[,t] on X[,j]
@@ -299,9 +299,11 @@ post_mat_sd.mixture_normal  <- function( G_prior ,Bhat,Shat, ...  )
 
 
 
-#'@title Compute posterior standard deviation under mixture normal per scale prior
+#'@title Compute posterior standard deviation under mixture normal per
+#' scale prior
 #'
-#'@description
+#' @description Add description here.
+#' 
 #'@param G_prior mixture normal prior
 #'@param Bhat  matrix pxJ regression coefficient, Bhat[j,t] corresponds to regression coefficient of Y[,t] on X[,j]
 #'@param Shat matrix pxJ standard error, Shat[j,t] corresponds to standard error of the regression coefficient of Y[,t] on X[,j]
@@ -336,7 +338,8 @@ post_mat_sd.mixture_normal_per_scale <- function( G_prior ,Bhat,Shat, indx_lst, 
 
 #'@title Compute likelihood matrix for mixsqp under mixture normal prior
 #'
-#'@description
+#' @description Add description here.
+#' 
 #'@param G_prior mixture normal prior
 #'@param Bhat  matrix pxJ regression coefficient, Bhat[j,t] corresponds to regression coefficient of Y[,t] on X[,j]
 #'@param Shat matrix pxJ standard error, Shat[j,t] corresponds to standard error of the regression coefficient of Y[,t] on X[,j]
@@ -366,7 +369,8 @@ L_mixsq.mixture_normal <- function(G_prior,Bhat, Shat, indx_lst)
 
 #'@title Compute likelihood matrix for mixsqp under mixture  normal per scale prior
 #'
-#'@description
+#' @description Add description here.
+#' 
 #'@param G_prior mixture normal prior
 #'@param Bhat  matrix pxJ regression coefficient, Bhat[j,t] corresponds to regression coefficient of Y[,t] on X[,j]
 #'@param Shat matrix pxJ standard error, Shat[j,t] corresponds to standard error of the regression coefficient of Y[,t] on X[,j]
@@ -384,7 +388,8 @@ L_mixsq.mixture_normal_per_scale <- function(G_prior,Bhat, Shat, indx_lst)
 
 #'@title Subroutine to compute likelihood matrix at scale s for mixsqp under mixture normal per scale prior
 #'
-#'@description
+#'@description Add description here.
+#' 
 #'@param G_prior mixture normal prior
 #'@param s scale where the likelihood matrix should be computed
 #'@param Bhat  matrix pxJ regression coefficient, Bhat[j,t] corresponds to regression coefficient of Y[,t] on X[,j]
@@ -403,8 +408,11 @@ cal_L_mixsq_s_per_scale <- function(G_prior,s, Bhat, Shat ,indx_lst)
 
 
 
-#'@title Compute M step in the wieghted ash problem for normal mixture prior
-#'@description
+#' @title Compute M step in the weighted ash problem for normal mixture
+#'   prior
+#' 
+#' @description Add description here.
+#' 
 #'@param L output of L_mixsqp function
 #'@param zeta assignment probabilities for each covariate
 #'@param indx_list list generated by \code{\link{gen_wavelet_indx}} for the given level of resolution, used only with class  mixture_normal_per_scale
@@ -431,9 +439,11 @@ m_step.lik_mixture_normal <- function(L, zeta, indx_lst)
 
 
 #'@title Compute M step in the weighted ash problem for normal mixture prior
-#'@description
+#' 
+#' @description Add description here.
+#' 
 #'@param L output of L_mixsqp function
-#'@param zeta assignment probabilities for each covariate }
+#'@param zeta assignment probabilities for each covariate
 #'@return a list if vector of proportion (class pi_mixture_normal_per_scale)
 #'@export
 m_step.lik_mixture_normal_per_scale <- function(L, zeta, indx_lst)
@@ -452,7 +462,9 @@ m_step.lik_mixture_normal_per_scale <- function(L, zeta, indx_lst)
 
 
 #'@title Subroutine to compute M step in the weighted ash problem for normal mixture prior per scale at a given scale s
-#'@description
+#' 
+#' @description Add description here.
+#' 
 #'@param L output of the L_mixsqp.mixture_normal_per_scale function
 #'@param s scale
 #'@param zeta assignment probabilities for each covariate
@@ -477,21 +489,29 @@ scale_m_step <- function(L,s,zeta, indx_lst)
   return( out)
 
 }
-#'@title Compute assignment probabilities from log Bayes factors
-#'@description
-#'@param lBF vector of log Bayes factors
+#' @title Compute assignment probabilities from log Bayes factors
+#' 
+#' @description Add description here.
+#' 
+#' @param lBF vector of log Bayes factors
 cal_zeta <- function(lBF)
 {
   out <- exp(lBF - max(lBF ) ) /sum( exp(lBF - max(lBF ) ))
   return(out)
 }
 
-#'@title Compute likelihood for the weighted ash problem
-#'@description
-#'@param lBF vector of log Bayes factors
-#'@param zeta assignement probabilities
-#'@return Likelihood value
-#'@export
+#' @title Compute likelihood for the weighted ash problem
+#' 
+#' @description Add description here.
+#' 
+#' @param lBF vector of log Bayes factors
+#' 
+#' @param zeta assignement probabilities
+#' 
+#' @return Likelihood value
+#' 
+#' @export
+#' 
 cal_lik <- function(lBF,zeta)
 {
   out <- sum( zeta*exp(lBF - max(lBF ) ))

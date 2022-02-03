@@ -15,5 +15,5 @@ cal_lik(lBF, zeta)
 Likelihood value
 }
 \description{
-Compute likelihood for the weighted ash problem
+Add description here.
 }

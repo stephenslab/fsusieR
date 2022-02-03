@@ -19,5 +19,5 @@ fit_ash_level(Bhat, Shat, s, indx_lst)
 an ash object
 }
 \description{
-Fit ash of coefficient from scale s
+Add description here.
 }
