@@ -1,9 +1,3 @@
-################################## Define Methods ############################
-#'
-#'
-#'
-
-log_BF              <- function( G_prior , ...)   UseMethod("log_BF")
 post_mat_mean       <- function( G_prior , ...)   UseMethod("post_mat_mean")
 post_mat_sd         <- function( G_prior , ...)   UseMethod("post_mat_sd")
 get_pi_G_prior      <- function( G_prior , ...)   UseMethod("get_pi_G_prior")
