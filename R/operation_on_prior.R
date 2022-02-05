@@ -21,7 +21,7 @@ init_prior <- function(Y,X, prior,v1 , indx_lst )
 
     G_prior <- list()
     G_prior[[1]]  <-  ash(c(temp$Bhat), c(temp$Shat),mixcompdist ="normal")
-    attr(G_prior, "class") <- "foo" <- "mixture_normal"
+    attr(G_prior, "class")  <- "mixture_normal"
   }
 
   if( prior == "mixture_normal_per_scale")
@@ -189,9 +189,9 @@ get_sd_G_prior <- function(G_prior , ...)
 
 #' @rdname get_sd_G_prior
 #'
-#' @method get_sd_G_prior pi_mixture_normal
+#' @method get_sd_G_prior mixture_normal
 #'
-#' @export get_sd_G_prior.pi_mixture_normal
+#' @export get_sd_G_prior.mixture_normal
 #'
 #' @export
 #'
@@ -206,9 +206,9 @@ get_sd_G_prior.mixture_normal <- function(G_prior, ...)
 
 #' @rdname get_sd_G_prior
 #'
-#' @method get_sd_G_prior pi_mixture_normal_per_scale
+#' @method get_sd_G_prior mixture_normal_per_scale
 #'
-#' @export get_sd_G_prior.pi_mixture_normal_per_scale
+#' @export get_sd_G_prior.mixture_normal_per_scale
 #'
 #' @export
 #'
@@ -251,8 +251,8 @@ update_prior <- function(G_prior, tpi, ...)
 #'
 update_prior.mixture_normal <- function(G_prior, tpi, ...)
 {
-  if( class(tpi)=="pi_mixture_normal"){
-    G_prior <- G_prior[[1]]$fitted_g$pi <- tpi
+  if( class(tpi)[1]=="pi_mixture_normal"){
+   G_prior[[1]]$fitted_g$pi <- tpi
   }else{
     stop("Error: tpi is not of class pi_mixture_normal,\n please compute tpi using generic functions m_step or get_pi_G_prior")
   }
@@ -272,7 +272,7 @@ update_prior.mixture_normal <- function(G_prior, tpi, ...)
 
 update_prior.mixture_normal_per_scale <- function(G_prior, tpi, ...)
 {
-  if( class(tpi)=="pi_mixture_normal_per_scale"){
+  if( class(tpi)[1]=="pi_mixture_normal_per_scale"){
     out <- mapply(update_ash_pi ,G_prior, tpi, SIMPLIFY = FALSE)
     class(out ) <- "mixture_normal_per_scale"
   }else{

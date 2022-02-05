@@ -1,13 +1,1 @@
 
-get_pi              <- function( susiF , ...)     UseMethod("get_pi")
-get_G_prior         <- function( susiF , ...)     UseMethod("get_G_prior")
-get_alpha           <- function( susiF , ...)     UseMethod("get_alpha")
-update_alpha        <- function( susiF , ...)     UseMethod("update_alpha")
-update_pi           <- function( susiF , ...)     UseMethod("update_pi")
-cal_partial_resid   <- function( susiF , ...)     UseMethod("cal_partial_resid")
-update_susiF_obj    <- function( susiF , ...)     UseMethod("update_susiF_obj")
-update_cal_pip      <- function( susiF , ...)     UseMethod("update_cal_pip")
-update_cal_cs       <- function( susiF , ...)     UseMethod("update_cal_cs")
-update_cal_indf     <- function( susiF , ...)     UseMethod("update_cal_indf")
-update_cal_fit_func <- function( susiF , ...)     UseMethod("update_cal_fit_func")
-out_prep            <- function( susiF , ...)     UseMethod("out_prep")

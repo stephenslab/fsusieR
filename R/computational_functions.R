@@ -313,8 +313,8 @@ post_mat_mean.mixture_normal_per_scale <- function( G_prior ,Bhat,Shat, indx_lst
 #' @export
 
 
-post_mat_mean <- function (G_prior, Bhat, Shat, ...)
-  UseMethod("post_mat_mean")
+post_mat_sd <- function (G_prior, Bhat, Shat, ...)
+  UseMethod("post_mat_sd")
 
 #' @rdname post_mat_sd
 #'
@@ -491,9 +491,9 @@ m_step <- function(L, zeta, indx_lst, ...)
 
 #' @rdname m_step
 #'
-#' @method m_step mixture_normal
+#' @method m_step lik_mixture_normal
 #'
-#' @export m_step.mixture_normal
+#' @export m_step.lik_mixture_normal
 #'
 #' @export
 #'
@@ -518,9 +518,9 @@ m_step.lik_mixture_normal <- function(L, zeta, indx_lst, ...)
 
 #' @rdname m_step
 #'
-#' @method m_step mixture_normal_per_scale
+#' @method m_step lik_mixture_normal_per_scale
 #'
-#' @export m_step.mixture_normal_per_scale
+#' @export m_step.lik_mixture_normal_per_scale
 #'
 #' @export
 #'
@@ -532,7 +532,7 @@ m_step.lik_mixture_normal_per_scale <- function(L, zeta, indx_lst, ...)
   out <- lapply(1:length(indx_lst) ,
                 function(s) scale_m_step(L,s,zeta,indx_lst)
   )
-  class( out ) <-  "pi_mixture_normal_per_scale"
+  class( out ) <-  c("pi_mixture_normal_per_scale" )
   return(out)
 
 }

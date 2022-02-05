@@ -4,7 +4,7 @@
 \alias{EM_pi}
 \title{EM algorithm to find Empirical Bayes prior}
 \usage{
-EM_pi(G_prior, Bhat, Shat, indx_lst, max_step = 100, espsilon = 0.0001)
+EM_pi(G_prior, Bhat, Shat, indx_lst, max_step = 100, espsilon = 1e-04)
 }
 \arguments{
 \item{G_prior}{mixture normal prior  or mixture  normal per scale}
