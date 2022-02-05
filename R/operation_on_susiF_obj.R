@@ -232,7 +232,7 @@ update_susiF_obj.susiF <- function(susiF.obj, l, EM_pi, Bhat, Shat, indx_lst)
   {
     stop("Error l should be larger ")
   }
-  if( class(EM_pi)%!in% c("EM_pi"))
+  if(  "EM_pi"  %!in%  class(EM_pi)  )
   {
     stop("Error EM_pi should be of the class EM_pi")
   }
