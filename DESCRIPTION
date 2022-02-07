@@ -1,18 +1,18 @@
 Package: susiF.alpha
 Type: Package
 Title: Sum of Single Functions
-Version: 0.1.4
-Date: 2022-02-04
+Version: 0.1.5
+Date: 2022-02-07
 Author: William R. P. Denault
 Maintainer: William R. P. Denault <wdenault@uchicago.edu>
 Description: Implementation of the Sum of Single Function method ("SuSiF").
 Depends:
   R (>= 3.1.0),
-  wavethresh (>= 4.6.8),
+  wavethresh (>= 4.6.8)
+Imports:
+  Rfast,
   ashr (>= 2.2-47),
   mixsqp (>= 0.3-43)
-Imports:
-  Rfast
 License: GPL (>=3)
 Encoding: UTF-8
 LazyData: true
