@@ -1,12 +1,18 @@
 #' @title Simulate data under the mixture normal prior
 #'
 #' @description Add description here.
-#' 
-#'@param lev_res numerical corresponds to the resolution of the simulated function (idealy between 3 and 10)
-#'@param length_grid vector numerical corresponds to the length of the grid of sigma for mixture component(cf ash)
-#'@param piO vector numerical , contain a digit  between 0 and 1, which corresponds to the null proportion ( non assocatied wavelet coefficients)
-#'@export
-#'@examples
+#'
+#' @param lev_res numerical corresponds to the resolution of the simulated function (idealy between 3 and 10)
+#'
+#' @param length_grid vector numerical corresponds to the length of the grid of sigma for mixture component(cf ash)
+#'
+#' @param piO vector numerical , contain a digit  between 0 and 1, which corresponds to the null proportion ( non assocatied wavelet coefficients)
+#'
+#' @importFrom wavethresh wd
+#'
+#' @export
+#'
+#' @examples
 #'
 #'out <- simu_IBSS_ash_vanilla(lev_res=8, length_grid= 10, pi0= 0.85)
 #'plot(out$sim_func, type="l", ylab="y")
@@ -45,17 +51,25 @@ simu_IBSS_ash_vanilla <- function( lev_res=7, length_grid= 10, pi0= 0.85)
 }
 
 
-#'@title Simulate data under the mixture normal prior
+#' @title Simulate data under the mixture normal prior
 #'
 #' @description Add description here.
-#' 
-#'@param lev_res numerical corresponds to the resolution of the simulated function (idealy between 3 and 10)
-#'@param length_grid vector numerical corresponds to the length of the grid of sigma for mixture component(cf ash)
-#'@param piO vector numerical , contain a digit  between 0 and 1, which corresponds to the null proportion ( non assocatied wavelet coefficients)
-#'@param alpha numeric >0, control smoothness of the curves, should be positive and up 4 in particular d_sl ~  pi_{0,sl}  delta_0 + sum_k  pi_k N(0, 2^{- alpha * s}   sigma_k^2)
-#'@param prop_decay numeric >0, control the proportion of non zero wavelet coefficient per scale, pi_{0,sl} = 1- exp(-prop_decay*s)
-#'@export
-#'@examples
+#'
+#' @param lev_res numerical corresponds to the resolution of the simulated function (idealy between 3 and 10)
+#'
+#' @param length_grid vector numerical corresponds to the length of the grid of sigma for mixture component(cf ash)
+#'
+#' @param piO vector numerical , contain a digit  between 0 and 1, which corresponds to the null proportion ( non assocatied wavelet coefficients)
+#'
+#' @param alpha numeric >0, control smoothness of the curves, should be positive and up 4 in particular d_sl ~  pi_{0,sl}  delta_0 + sum_k  pi_k N(0, 2^{- alpha * s}   sigma_k^2)
+#'
+#' @param prop_decay numeric >0, control the proportion of non zero wavelet coefficient per scale, pi_{0,sl} = 1- exp(-prop_decay*s)
+#'
+#' @importFrom wavethresh wd
+#'
+#' @export
+#'
+#' @examples
 #'out <- simu_IBSS_per_level(lev_res=9, alpha=1, prop_decay = 0.5)
 #'plot(out$sim_func, type="l", ylab="y")
 #'out$emp_pi0
@@ -142,16 +156,25 @@ simu_IBSS_per_level  <-function( lev_res=7,
   return(out)
 }
 
-#'@title Simulation using Donoho and Johnstone test functions
-#'@param N integer number of sample to simulate
-#'@param P number of covariate
-#'@param lev_res control length of the generated function (length function = 2^lev_res)
-#'@param rsnr root signal noise ratio for the noise
-#'@param is.plot logical if set to TRUE plot underying function
-#'@param pos1 position of the first active covariate
-#'@param pos2 position of the first active covariate (optional)
+#' @title Simulation using Donoho and Johnstone test functions
 #'
-#'@export
+#' @param N integer number of sample to simulate
+#'
+#' @param P number of covariate
+#'
+#' @param lev_res control length of the generated function (length function = 2^lev_res)
+#'
+#' @param rsnr root signal noise ratio for the noise
+#'
+#' @param is.plot logical if set to TRUE plot underying function
+#'
+#' @param pos1 position of the first active covariate
+#'
+#' @param pos2 position of the first active covariate (optional)
+#'
+#' @importFrom wavethresh DJ.EX
+#'
+#' @export
 #'
 simu_test_function <- function(N=50, P=10,lev_res=7, rsnr=2,is.plot=TRUE, pos1 =1, pos2)
 {

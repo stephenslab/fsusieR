@@ -6,8 +6,13 @@
 #'
 #'
 #' @details We suppose that we observe n functions/curves at T different time points. We remap these functions into a grid of length equal to a power of two using the lifting scheme of Kovac and Silvermann 2000.
+#'
 #' @param Y matrix of curves of size nXT, where the curves are stored by row
+#'
 #' @param pos vector of positive values, each the vector component corresponds to the measurement time. (the values of pos should increase along with the index)
+#'
+#' @importFrom  wavethresh makegrid
+#'
 #' @export
 #'
 interpol_mat <- function(Y, pos)
@@ -28,8 +33,13 @@ interpol_mat <- function(Y, pos)
 #' @title Interpolation procedure from Kovac and Silverman 2000
 #'
 #' @description  Interpolation procedure from Kovac and Silveramnn 2000
+#'
 #' @param y vector of observed curves
+#'
 #' @param bp scaled observation time points on 0,1
+#'
+#' @importFrom wavethresh makegrid
+#'
 #' @export
 interpolKS <-  function (y, bp)
 {
@@ -37,19 +47,26 @@ interpolKS <-  function (y, bp)
 }
 
 
-#'@title  wavelet transform on a matrix of functions
-#'@description function adapted from grove R package from Ma and Soriano. Perform wavelet transform of each row of a matrix
+#' @title  wavelet transform on a matrix of functions
 #'
-#'@param data matrix of size NxJ where J is a power of two
-#'@param filter.number This selects the smoothness of the wavelet that you want to use in the decomposition. By default, this is 10, the Daubechies least-asymmetric orthonormal compactly supported wavelet with 10 vanishing moments. Description from Guy Nason (wavethresh package)
-#'@param family specifies the family of wavelets that you want to use. Two popular options are "DaubExPhase" and "DaubLeAsymm" but see the help for filter.select for more possibilities.. Description from Guy Nason (wavethresh package)
-#'@return A list with the following components
+#' @description function adapted from grove R package from Ma and Soriano. Perform wavelet transform of each row of a matrix
+#'
+#' @param data matrix of size NxJ where J is a power of two
+#'
+#' @param filter.number This selects the smoothness of the wavelet that you want to use in the decomposition. By default, this is 10, the Daubechies least-asymmetric orthonormal compactly supported wavelet with 10 vanishing moments. Description from Guy Nason (wavethresh package)
+#'
+#' @param family specifies the family of wavelets that you want to use. Two popular options are "DaubExPhase" and "DaubLeAsymm" but see the help for filter.select for more possibilities.. Description from Guy Nason (wavethresh package)
+#'
+#' @return A list with the following components
 #'
 #'\item{C}{ vector length n containing the wavelet C coefficient}
 #'\item{D}{ matrix of size nx 2^(J -1) where each row contains the wavelet D coefficients, ordered in the same way as in the wavethresh package}
 #'\item{family}{ used for the wavelet transform}
 #'\item{filter.number}{ }
-#'@export
+#'
+#' @importFrom wavethresh accessC
+#' @importFrom wavethresh wd
+#' @export
 DWT2 <- function (data, filter.number = 10, family = "DaubLeAsymm")
 {
 
@@ -70,13 +87,16 @@ DWT2 <- function (data, filter.number = 10, family = "DaubLeAsymm")
 }
 
 
-#'@title Generate list of index wavelet coefficients
+#' @title Generate list of index wavelet coefficients
 #'
-#'@description Generate list of index corresponding to where the wavelet coefficient of scale s are stored in wd$D.
+#' @description Generate list of index corresponding to where the wavelet coefficient of scale s are stored in wd$D.
 #'First element of the list corresponds to the index for the wavelet coefficient at scale 0, the second component corresponds to the index for the wavelet coefficient at scale 1 (and so on). The last componnet of the list correspond to where the C coefficients is stored in init_prior for class mixture_normal_per_scale
-#'@param s integer, corresponding to log2 of the signal length. WARNING the ordering change for different values of s.
-#'@export
-#'@examples
+#'
+#' @param s integer, corresponding to log2 of the signal length. WARNING the ordering change for different values of s.
+#'
+#' @export
+#'
+#' @examples
 #' tem_func <- rnorm( 2^8)
 #' twav <- wd(tem_func)
 #' indx_lst <- gen_wavelet_indx(8)
