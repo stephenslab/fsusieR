@@ -58,3 +58,94 @@ Implementation of the SuSiF method
 \details{
 tbd
 }
+\examples{
+
+set.seed(1)
+#Example using curves simulated under the Mixture normal per scale prior
+rsnr <- 0.2 #wished root signal noise ratio
+N <- 100 #Number of individuals
+P <- 10 # Number of covariates
+pos1 <- 1#Position of the causal covariate
+lev_res <- 7
+temp_func <-  simu_IBSS_per_level(lev_res )
+f1 <-  temp_func$sim_func
+plot( f1, type ="l")
+G = matrix(sample(c(0, 1,2), size=N*P, replace=T), nrow=N, ncol=P) #Genotype
+beta0       <- 0
+beta1       <- 1
+
+noisy.data  <- list()
+
+for ( i in 1:N)
+{
+ f1_obs <- f1
+ noise <- rnorm(length(f1), sd=  (1/  rsnr ) * var(f1))
+ noisy.data [[i]] <-   beta1*G[i,pos1]*f1_obs +  noise
+
+}
+noisy.data <- do.call(rbind, noisy.data)
+
+
+
+
+plot( noisy.data[1,], type = "l", col=(G[1, pos1]*3+1),
+     main="Observed curves \n colored by the causal effect", ylim= c(-20,20))
+for ( i in 2:N)
+{
+ lines( noisy.data[i,], type = "l", col=(G[i, pos1]*3+1))
+
+}
+legend(x=0.3,
+      y=-10,
+      lty = rep(1,3),
+      legend= c("0", "1","2"),
+      col=c("black","blue","yellow"))
+
+Y <- noisy.data
+X <- G
+out <- susiF(Y,X,L=1, prior="mixture_normal")
+temp_func$emp_pi0
+plot( f1, type="l", main="fitted curves for different prior", xlab="")
+lines(unlist(out$fitted_func),col='red' )
+out <- susiF(Y,X,L=1, prior="mixture_normal_per_scale")
+lines(unlist(out$fitted_func),col='blue' )
+legend(x= 60,
+      y=3,
+      lty= rep(1,3),
+      legend = c("Objective", "Mixture of Normals","Mixture of Normals per scale"),
+      col=c("black","red","blue")
+      )
+
+
+set.seed(3)
+sim  <- simu_test_function(N=100,rsnr=0.2,  lev_res= 8,is.plot = TRUE)
+Y <- sim$noisy.data
+X <- sim$G
+out <- susiF(Y,X,L=1, prior="mixture_normal")
+plot( sim$f1, type="l",main="fitted curves for different prior", xlab="")
+lines(unlist(out$fitted_func),col='red' )
+
+out <- susiF(Y,X,L=1, prior="mixture_normal_per_scale")
+lines(unlist(out$fitted_func),col='blue' )
+
+legend(x= 1,
+      y=-8,
+      lty= rep(1,3),
+      legend= c("Objective", "Mixture of Normals","Mixture of Normals per scale"),
+       col=c("black","red","blue"))
+
+
+
+set.seed(2)
+#Problematic exemple where per scale prior do not shrink enough
+#Example using curves simulated under the Mixture normal per scale prior
+sim  <- simu_test_function(N=100,rsnr=0.2,  lev_res= 8,is.plot = TRUE)
+Y <- sim$noisy.data
+X <- sim$G
+out <- susiF(Y,X,L=1, prior="mixture_normal")
+plot( sim$f1, type="l")
+lines(unlist(out$fitted_func),col='red' )
+out <- susiF(Y,X,L=1, prior="mixture_normal_per_scale")
+lines(unlist(out$fitted_func),col='blue' )
+
+}

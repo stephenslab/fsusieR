@@ -94,7 +94,7 @@ test_that("Class of the prior is", {
                prior="mixture_normal_per_scale",
                v1=v1,
                indx_lst = indx_lst)
-  ),
+  )[1],
   "mixture_normal_per_scale"
   )
 })
@@ -102,14 +102,14 @@ plot( Bhat,  post_mat_mean(G_prior,Bhat,Shat, indx_lst) )
 plot( Shat,  (post_mat_sd(G_prior,Bhat,Shat, indx_lst) ))
 test_that("Class of the proportions  is", {
 
-  expect_equal(class(get_pi_G_prior(G_prior))
+  expect_equal(class(get_pi_G_prior(G_prior))[1]
                ,
                "pi_mixture_normal_per_scale"
   )
 })
 test_that("Class of the standard deviations  is", {
 
-  expect_equal(class(get_sd_G_prior(G_prior))
+  expect_equal(class(get_sd_G_prior(G_prior))[1]
                ,
                "sd_mixture_normal_per_scale"
   )
@@ -120,10 +120,10 @@ test_that("Class of the standard deviations  is", {
 L <- L_mixsq(G_prior, Bhat, Shat, indx_lst)
 
 
-test_that("The likelihood computed by L_mixsqp should be of class", {
+test_that("The likelihood computed by L_mixsq  should be of class", {
   L <- L_mixsq(G_prior, Bhat, Shat, indx_lst)
 
-  expect_equal(class(L), "lik_mixture_normal_per_scale"
+  expect_equal(class(L)[1], "lik_mixture_normal_per_scale"
   )
 })
 
@@ -143,7 +143,7 @@ class(tpi)
 test_that("The output of the m_step function should of the class", {
   tpi <- m_step(L, zeta , indx_lst)
 
-  expect_equal( class(tpi),"pi_mixture_normal_per_scale"
+  expect_equal( class(tpi)[1],"pi_mixture_normal_per_scale"
   )
 })
 
@@ -166,9 +166,9 @@ outEM <-  EM_pi(G_prior,Bhat,Shat, indx_lst)
 test_that("The outputs of the EM_pi function should be  ",
           {
             outEM <-  EM_pi(G_prior,Bhat,Shat, indx_lst)
-            expect_equal(class(outEM$tpi_k) ,"pi_mixture_normal_per_scale")
-            expect_equal(class(outEM$lBF) ,"numeric")
-            expect_equal(length(outEM$lBF) ,dim(Bhat)[1])
+            expect_equal(class(outEM$tpi_k)[1] ,"pi_mixture_normal_per_scale")
+            expect_equal(class(outEM$lBF)[1] ,"numeric")
+            expect_equal(length(outEM$lBF)[1] ,dim(Bhat)[1])
             expect_equal( get_pi0(tpi = outEM$tpi_k), c(0,0.5, rep(1, 8)),
                           tolerance = 0.01)
           }

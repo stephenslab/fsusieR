@@ -9,7 +9,7 @@ cal_lik(lBF, zeta)
 \arguments{
 \item{lBF}{vector of log Bayes factors}
 
-\item{zeta}{assignement probabilities}
+\item{zeta}{assignment probabilities}
 }
 \value{
 Likelihood value
