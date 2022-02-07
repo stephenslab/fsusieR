@@ -60,7 +60,7 @@
 #'{
 #'  f1_obs <- f1
 #'  noise <- rnorm(length(f1), sd=  (1/  rsnr ) * var(f1))
-#'  noisy.data [[i]] <-  beta0*f0 +  beta1*G[i,pos1]*f1_obs +  noise
+#'  noisy.data [[i]] <-   beta1*G[i,pos1]*f1_obs +  noise
 #'
 #'}
 #'noisy.data <- do.call(rbind, noisy.data)
@@ -70,7 +70,7 @@
 #'
 #'
 #'plot( noisy.data[1,], type = "l", col=(G[1, pos1]*3+1),
-#'      main="Observed curves \n colored by the causal effect", ylim= c(-20,20))
+#'      main="Observed curves \n colored by the causal effect", ylim= c(-40,40), xlab="")
 #'for ( i in 2:N)
 #'{
 #'  lines( noisy.data[i,], type = "l", col=(G[i, pos1]*3+1))

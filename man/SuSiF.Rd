@@ -80,7 +80,7 @@ for ( i in 1:N)
 {
  f1_obs <- f1
  noise <- rnorm(length(f1), sd=  (1/  rsnr ) * var(f1))
- noisy.data [[i]] <-  beta0*f0 +  beta1*G[i,pos1]*f1_obs +  noise
+ noisy.data [[i]] <-   beta1*G[i,pos1]*f1_obs +  noise
 
 }
 noisy.data <- do.call(rbind, noisy.data)
@@ -109,11 +109,11 @@ plot( f1, type="l", main="fitted curves for different prior", xlab="")
 lines(unlist(out$fitted_func),col='red' )
 out <- susiF(Y,X,L=1, prior="mixture_normal_per_scale")
 lines(unlist(out$fitted_func),col='blue' )
-legend(x= 80,
+legend(x= 60,
       y=3,
       lty= rep(1,3),
       legend = c("Objective", "Mixture of Normals","Mixture of Normals per scale"),
-      col=c("black","blue","yellow")
+      col=c("black","red","blue")
       )
 
 
