@@ -2,9 +2,9 @@
 #'
 #' @description Implementation of the SuSiF method
 #'
-#'@details tbd
+#' @details tbd
 #'
-#'@param Y functional phenotype, matrix of size N by size J. The
+#' @param Y functional phenotype, matrix of size N by size J. The
 #'   underlying algorithm uses wavelet which assume that J is of the
 #'   form J^2. If J not a power of 2, susif internally remaps the data
 #'   into grid of length 2^J

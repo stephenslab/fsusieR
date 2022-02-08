@@ -18,13 +18,13 @@ nonzero coefficients.}
 }
 \value{
 A list with elements
-fitted_wc2
-fitted_wc2
-alpha_hist
-ind_fitted_func
-cs (credible set)
-pip Posterior inclusion probabilites
-G_prior a G_prior of the same class as the input G_prior, used for internal calculation
+\item{fitted_wc}{ list of length L, each element contains the fitted wavelet coefficients of effect l}
+\item{fitted_wc2}{list of length L, each element contains the variance of the fitted wavelet coefficients of effect l}
+\item{alpha_hist}{ history of the fitted alpha value}
+\item{ind_fitted_func}{fitted curves of each individual }
+\item{cs}{credible set}
+\item{pip}{Posterior inclusion probabilites}
+\item{G_prior}{a G_prior of the same class as the input G_prior, used for internal calculation}
 }
 \description{
 Initialize a susiF object using regression coefficients

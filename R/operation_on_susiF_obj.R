@@ -1,21 +1,23 @@
 ################################## Operations on susiF object ############################
 #'
-#'@title Initialize a susiF object using regression coefficients
+#' @title Initialize a susiF object using regression coefficients
 #'
-#'@param L number of non zero coefficients An L-vector containing the indices of the
+#' @param L number of non zero coefficients An L-vector containing the indices of the
 #'   nonzero coefficients.
 #'
 #' @param G_prior prior object defined by init_prior function
+#'
 #' @param Y Matrix of outcomes
+#'
 #' @param X Matrix of covariate
 #' @return A list with elements
-#' fitted_wc2
-#' fitted_wc2
-#' alpha_hist
-#' ind_fitted_func
-#' cs (credible set)
-#' pip Posterior inclusion probabilites
-#' G_prior a G_prior of the same class as the input G_prior, used for internal calculation
+#' \item{fitted_wc}{ list of length L, each element contains the fitted wavelet coefficients of effect l}
+#' \item{fitted_wc2}{list of length L, each element contains the variance of the fitted wavelet coefficients of effect l}
+#' \item{alpha_hist}{ history of the fitted alpha value}
+#' \item{ind_fitted_func}{fitted curves of each individual }
+#' \item{cs}{credible set}
+#' \item{pip}{Posterior inclusion probabilites}
+#' \item{G_prior}{a G_prior of the same class as the input G_prior, used for internal calculation}
 #'
 init_susiF_obj <- function(L, G_prior, Y,X )
 {
@@ -64,12 +66,15 @@ init_susiF_obj <- function(L, G_prior, Y,X )
 }
 
 #'
-#'@title Access susiF mixture proportion of effect l
+#' @title Access susiF mixture proportion of effect l
 #'
-#'@param susiF.obj a susisf object defined by \code{\link{init_susiF_obj}} function
-#'@param l integer larger or equal to 1. Corresponds to the effect to be accessed
-#'@return susiF object
-#'@export
+#' @param susiF.obj a susisf object defined by \code{\link{init_susiF_obj}} function
+#'
+#' @param l integer larger or equal to 1. Corresponds to the effect to be accessed
+#'
+#' @return susiF object
+#'
+#' @export
 #'
 get_pi  <- function(susiF.obj, l, ...)
   UseMethod("get_pi")
@@ -101,9 +106,11 @@ get_pi.susiF <- function(susiF.obj, l, ...)
 #'
 #'@title Access susiF internal prior
 #'
-#'@param susiF.obj a susisf object defined by \code{\link{init_susiF_obj}} function
-#'@return G_prior object
-#'@export
+#' @param susiF.obj a susisf object defined by \code{\link{init_susiF_obj}} function
+#'
+#' @return G_prior object
+#'
+#' @export
 #'
 #'
 get_G_prior  <- function(susiF.obj, ...)
@@ -124,13 +131,17 @@ get_G_prior.susiF <- function(susiF.obj, ...)
   return(out)
 }
 
-#'@title Update mixture proportion of susiF mixture proportions of effect l
+#' @title Update mixture proportion of susiF mixture proportions of effect l
 #'
-#'@param susiF.obj a susisf object defined by \code{\link{init_susiF_obj}} function
-#'@param l integer larger or equal to 1. Corresponds to the effect to be accessed
-#'@param tpi an object of the class "pi_mixture_normal" or "pi_mixture_normal_per_scale"
-#'@return susiF object
-#'@export
+#' @param susiF.obj a susif object defined by \code{\link{init_susiF_obj}} function
+#'
+#' @param l integer larger or equal to 1. Corresponds to the effect to be accessed
+#'
+#' @param tpi an object of the class "pi_mixture_normal" or "pi_mixture_normal_per_scale"
+#'
+#' @return susiF object
+#'
+#' @export
 
 update_pi <- function( susiF.obj, l, tpi, ...)
     UseMethod("update_pi")
@@ -453,6 +464,10 @@ update_cal_indf <- function(susiF.obj, Y, X, indx_lst, ...)
 #'
 #' @export update_cal_indf.susiF
 #'
+#' @importFrom wavethresh wr
+#'
+#' @importFrom wavethresh wd
+#'
 #' @export
 #'
 
@@ -521,6 +536,10 @@ update_cal_fit_func  <- function(susiF.obj, indx_lst, ...)
 #' @method update_cal_fit_func susiF
 #'
 #' @export update_cal_fit_func.susiF
+#'
+#' @importFrom wavethresh wr
+#'
+#' @importFrom wavethresh wd
 #'
 #' @export
 #'

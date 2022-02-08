@@ -13,7 +13,9 @@ cal_Bhat_Shat(Y, X, v1)
 }
 \value{
 list of two
+
 \item{Bhat}{ matrix pxJ regression coefficient, Bhat[j,t] corresponds to regression coefficient of Y[,t] on X[,j] }
+
 \item{Shat}{ matrix pxJ standard error, Shat[j,t] corresponds to standard error of the regression coefficient of Y[,t] on X[,j] }
 }
 \description{
