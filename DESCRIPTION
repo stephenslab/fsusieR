@@ -1,11 +1,14 @@
-Package: susiF.alpha
+Encoding: UTF-8
 Type: Package
-Title: Sum of Single Functions
-Version: 0.1.6
+Package: susiF.alpha
+Version: 0.1.7
 Date: 2022-02-11
-Author: William R. P. Denault
-Maintainer: William R. P. Denault <wdenault@uchicago.edu>
-Description: Implementation of the Sum of Single Function method ("SuSiF").
+Title: Sum of Single Functions
+Authors@R: person("William","Denault",middle = "R. P.",role = c("aut","cre"),
+                  email = "wdenault@uchicago.edu")
+URL: https://github.com/stephenslab/susiF.alpha
+BugReports: https://github.com/stephenslab/susiF.alpha
+Description: Implementation of the Sum of Single Function ("SuSiF") method.
 Depends:
   R (>= 3.1.0),
   wavethresh (>= 4.6.8)
@@ -14,6 +17,7 @@ Imports:
   ashr (>= 2.2-47),
   mixsqp (>= 0.3-43)
 License: GPL (>=3)
-Encoding: UTF-8
 LazyData: true
+LazyDataCompression: xz
+NeedsCompilation: no
 RoxygenNote: 7.1.2
