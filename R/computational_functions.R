@@ -111,9 +111,11 @@ cal_Bhat_Shat <- function(Y, X, v1)
 #'
 #' @return vector of 2 containing the regression coefficient and standard
 #'
+#' @importFrom stats var
 #' @importFrom Rfast lmfit
 #'
 #' @export
+#' 
 fit_lm <- function( l,j,Y,X,v1)  ## Speed Gain
 {
 
@@ -181,6 +183,8 @@ log_BF <- function (G_prior, Bhat, Shat, ...)
 
 #' @rdname log_BF
 #'
+#' @importFrom stats dnorm
+#'  
 #' @method log_BF mixture_normal
 #'
 #' @export log_BF.mixture_normal
@@ -439,13 +443,14 @@ L_mixsq <- function(G_prior,Bhat, Shat, indx_lst, ...)
 
 #' @rdname L_mixsq
 #'
+#' @importFrom stats dnorm
+#' 
 #' @method L_mixsq mixture_normal
 #'
 #' @export L_mixsq.mixture_normal
 #'
 #' @export
 #'
-
 L_mixsq.mixture_normal <- function(G_prior,Bhat, Shat, indx_lst, ...)
 {
   m     <-  (G_prior[[1]])
@@ -474,7 +479,6 @@ L_mixsq.mixture_normal <- function(G_prior,Bhat, Shat, indx_lst, ...)
 #'
 #' @export
 #'
-
 L_mixsq.mixture_normal_per_scale <- function(G_prior,Bhat, Shat, indx_lst)
 {
   L  <- lapply(1:length(indx_lst  ) , function(s) cal_L_mixsq_s_per_scale (G_prior,s, Bhat, Shat, indx_lst))
@@ -499,12 +503,11 @@ L_mixsq.mixture_normal_per_scale <- function(G_prior,Bhat, Shat, indx_lst)
 #'
 #' @return L see L argument mixsqp package mixsqp function
 #'
+#' @importFrom stats dnorm
+#' 
 #' @export
 #'
 #'
-
-
-
 cal_L_mixsq_s_per_scale <- function(G_prior,s, Bhat, Shat ,indx_lst)
 {
   m <-  (G_prior[[s]])
@@ -512,9 +515,6 @@ cal_L_mixsq_s_per_scale <- function(G_prior,s, Bhat, Shat ,indx_lst)
   L = (dnorm(outer(c(Bhat[,indx_lst[[s]]]),m$fitted_g$mean,FUN="-")/sdmat,log=TRUE) -log(sdmat ))
   return(L)
 }
-
-
-
 
 #' @title Compute M step in the weighted ash problem for different prior
 #'

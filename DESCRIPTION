@@ -1,10 +1,10 @@
 Encoding: UTF-8
 Type: Package
 Package: susiF.alpha
-Version: 0.1.7
+Version: 0.1.8
 Date: 2022-02-11
 Title: Sum of Single Functions
-Authors@R: person("William","Denault",middle = "R. P.",role = c("aut","cre"),
+Authors@R: person("William R. P.","Denault",role = c("aut","cre"),
                   email = "wdenault@uchicago.edu")
 URL: https://github.com/stephenslab/susiF.alpha
 BugReports: https://github.com/stephenslab/susiF.alpha
@@ -13,6 +13,8 @@ Depends:
   R (>= 3.1.0),
   wavethresh (>= 4.6.8)
 Imports:
+  graphics,
+  stats,
   Rfast,
   ashr (>= 2.2-47),
   mixsqp (>= 0.3-43)

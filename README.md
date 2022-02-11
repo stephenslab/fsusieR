@@ -1,5 +1,6 @@
 # susiF.alpha
- draft package for Sum of Single Functions method
+
+draft package for Sum of Single Functions method
 ```{r , eval=FALSE}
 install.packages( "devtools" )
 library( devtools )

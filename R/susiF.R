@@ -130,6 +130,8 @@
 #'out <- susiF(Y,X,L=1, prior="mixture_normal_per_scale")
 #'lines(unlist(out$fitted_func),col='blue' )
 #'
+#' @importFrom stats var
+#' 
 #' @export
 #'
 susiF <- function(Y, X, L = 2,

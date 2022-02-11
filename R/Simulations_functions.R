@@ -8,6 +8,9 @@
 #'
 #' @param piO vector numerical , contain a digit  between 0 and 1, which corresponds to the null proportion ( non assocatied wavelet coefficients)
 #'
+#' @importFrom stats rchisq
+#' @importFrom stats runif
+#' @importFrom stats rnorm
 #' @importFrom wavethresh wd
 #'
 #' @export
@@ -65,7 +68,11 @@ simu_IBSS_ash_vanilla <- function( lev_res=7, length_grid= 10, pi0= 0.85)
 #'
 #' @param prop_decay numeric >0, control the proportion of non zero wavelet coefficient per scale, pi_{0,sl} = 1- exp(-prop_decay*s)
 #'
+#' @importFrom stats rchisq
+#' @importFrom stats runif
+#' @importFrom stats rnorm
 #' @importFrom wavethresh wd
+#' @importFrom wavethresh accessD
 #'
 #' @export
 #'
@@ -76,8 +83,6 @@ simu_IBSS_ash_vanilla <- function( lev_res=7, length_grid= 10, pi0= 0.85)
 #'temp_func <- simu_IBSS_per_level(lev_res=9, alpha=1, prop_decay = 0)
 #'print( temp_func$emp_pi0)
 #'
-
-
 simu_IBSS_per_level  <-function( lev_res=7,
                                  length_grid= 10,
                                  pi0,
