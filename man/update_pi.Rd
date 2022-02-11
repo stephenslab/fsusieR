@@ -10,7 +10,7 @@ update_pi(susiF.obj, l, tpi, ...)
 \method{update_pi}{susiF}(susiF.obj, l, tpi, ...)
 }
 \arguments{
-\item{susiF.obj}{a susisf object defined by \code{\link{init_susiF_obj}} function}
+\item{susiF.obj}{a susif object defined by \code{\link{init_susiF_obj}} function}
 
 \item{l}{integer larger or equal to 1. Corresponds to the effect to be accessed}
 

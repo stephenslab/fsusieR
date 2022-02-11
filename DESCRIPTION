@@ -1,8 +1,8 @@
 Package: susiF.alpha
 Type: Package
 Title: Sum of Single Functions
-Version: 0.1.5
-Date: 2022-02-07
+Version: 0.1.6
+Date: 2022-02-11
 Author: William R. P. Denault
 Maintainer: William R. P. Denault <wdenault@uchicago.edu>
 Description: Implementation of the Sum of Single Function method ("SuSiF").
