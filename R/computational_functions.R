@@ -115,11 +115,11 @@ cal_Bhat_Shat <- function(Y, X, v1)
 #' @importFrom Rfast lmfit
 #'
 #' @export
-#' 
+#'
 fit_lm <- function( l,j,Y,X,v1)  ## Speed Gain
 {
 
-  out <- lmfit(cbind(v1,X[,j]),Y[,l])
+  out <- fast_lm(cbind(v1,X[,j]),Y[,l])
   return(c(out$be[2,1],
            sqrt(
              var(out$residuals)/sum(
@@ -184,7 +184,7 @@ log_BF <- function (G_prior, Bhat, Shat, ...)
 #' @rdname log_BF
 #'
 #' @importFrom stats dnorm
-#'  
+#'
 #' @method log_BF mixture_normal
 #'
 #' @export log_BF.mixture_normal
@@ -444,7 +444,7 @@ L_mixsq <- function(G_prior,Bhat, Shat, indx_lst, ...)
 #' @rdname L_mixsq
 #'
 #' @importFrom stats dnorm
-#' 
+#'
 #' @method L_mixsq mixture_normal
 #'
 #' @export L_mixsq.mixture_normal
@@ -504,7 +504,7 @@ L_mixsq.mixture_normal_per_scale <- function(G_prior,Bhat, Shat, indx_lst)
 #' @return L see L argument mixsqp package mixsqp function
 #'
 #' @importFrom stats dnorm
-#' 
+#'
 #' @export
 #'
 #'
