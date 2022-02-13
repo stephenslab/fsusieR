@@ -12,6 +12,7 @@
 #' @importFrom stats runif
 #' @importFrom stats rnorm
 #' @importFrom wavethresh wd
+#' @importFrom ashr normalmix
 #'
 #' @export
 #'
@@ -33,7 +34,7 @@ simu_IBSS_ash_vanilla <- function( lev_res=7, length_grid= 10, pi0= 0.85)
   #generating a set of wavelet coefficients under this model
   tem_func <- rep(0, 2^lev_res)
   twav <- wd(tem_func)
-  while ( sum(twav$D ==0 ) == length(twav$D))#to ensure that ther is at least one coefficient different from 0
+  while ( sum(twav$D ==0 ) == length(twav$D))#to ensure that there is at least one coefficient different from 0
   {
     clust  <-  c()
     for ( i in 1:length(twav$D))
@@ -73,6 +74,9 @@ simu_IBSS_ash_vanilla <- function( lev_res=7, length_grid= 10, pi0= 0.85)
 #' @importFrom stats rnorm
 #' @importFrom wavethresh wd
 #' @importFrom wavethresh accessD
+#' @importFrom ashr normalmix
+#'
+#'
 #'
 #' @export
 #'
