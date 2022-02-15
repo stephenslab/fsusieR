@@ -15,7 +15,6 @@ Depends:
 Imports:
   graphics,
   stats,
-  Rfast,
   ashr (>= 2.2-47),
   mixsqp (>= 0.3-43)
 License: GPL (>=3)
