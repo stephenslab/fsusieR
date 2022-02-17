@@ -223,7 +223,6 @@ test_that("The partial residual should be    ",
               X         = X,
               D         = W$D,
               C         = W$C,
-              L         = 1,
               indx_lst  = indx_lst
             )
 
@@ -362,7 +361,7 @@ test_that("SusiF performance should be",
 
 test_that("The expected sum of square should be below ",
           {
-            expect_lte(  get_ER2( Y_f,X, susiF_obj), 0.3)
+            expect_lte(  get_ER2( susiF_obj, Y_f,X ), 0.3)
 
 
           }
@@ -370,7 +369,7 @@ test_that("The expected sum of square should be below ",
 
 test_that("The residual variance should be ",
           {
-            sigma2 <- estimate_residual_variance(Y_f,X,susiF.obj)
+            sigma2 <- estimate_residual_variance(susiF.obj,Y_f,X)
             susiF_obj <- update_residual_variance(susiF_obj, sigma2 = sigma2 )
 
             expect_equal(  susiF_obj$sigma2, sigma2)
@@ -379,3 +378,5 @@ test_that("The residual variance should be ",
 )
 
 loglik_SFR(susiF_obj, l,Y,X)
+Eloglik(susiF_obj, Y,X)
+get_objective(susiF_obj, Y,X)
