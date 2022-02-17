@@ -651,3 +651,19 @@ cal_lik <- function(lBF,zeta)
   return(out)
 }
 
+
+#' @title Update residual variance
+#'
+#' @param Y wavelet transformed  functional phenotype, matrix of size N by size J.
+#'
+#' @param X matrix of size N by p
+#'
+#' @param susiF.obj a susiF object defined by \code{\link{init_susiF_obj}} function
+#'
+#' @return estimated residual variance
+
+estimate_residual_variance <- function(Y,X,susiF.obj)
+{
+  out <-  (1/(prod(dim(Y))))*get_ER2 (Y, X, susiF.obj)
+  return(out)
+}

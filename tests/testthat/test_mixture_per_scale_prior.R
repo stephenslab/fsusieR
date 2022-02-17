@@ -202,10 +202,10 @@ test_that("The update susiF object should have its argument equal to    ",
             susiF_obj <- update_susiF_obj(susiF_obj, 1, outEM, Bhat, Shat, indx_lst )
 
             expect_equal( susiF_obj$fitted_wc[[1]],post_mat_mean( G_prior , Bhat, Shat, indx_lst ))
-            expect_equal( susiF_obj$fitted_wc2[[1]],post_mat_sd  ( G_prior , Bhat, Shat , indx_lst))
+            expect_equal( susiF_obj$fitted_wc2[[1]],post_mat_sd  ( G_prior , Bhat, Shat , indx_lst)^2)
             expect_equal( get_alpha (susiF_obj , 1), cal_zeta(outEM$lBF))
             expect_equal( get_G_prior(susiF_obj) ,G_prior)
-
+            expect_equal(   susiF_obj$lBF[[1]]  , outEM$lBF )
           }
 )
 
@@ -309,6 +309,7 @@ test_that("The precision of the fitted curves should be   ",
             susiF_obj <- update_susiF_obj(susiF_obj, 1, outEM, Bhat, Shat, indx_lst )
             expect_equal(  sum( abs(unlist(update_cal_fit_func(susiF_obj, indx_lst)$fitted_func) -f1$sim_func)), 0, tol=0.004)
 
+
           }
 )
 
@@ -359,3 +360,22 @@ test_that("SusiF performance should be",
           }
 )
 
+test_that("The expected sum of square should be below ",
+          {
+            expect_lte(  get_ER2( Y_f,X, susiF_obj), 0.3)
+
+
+          }
+)
+
+test_that("The residual variance should be ",
+          {
+            sigma2 <- estimate_residual_variance(Y_f,X,susiF.obj)
+            susiF_obj <- update_residual_variance(susiF_obj, sigma2 = sigma2 )
+
+            expect_equal(  susiF_obj$sigma2, sigma2)
+
+          }
+)
+
+loglik_SFR(susiF_obj, l,Y,X)

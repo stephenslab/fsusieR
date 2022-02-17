@@ -16,7 +16,7 @@ update_cal_fit_func(susiF.obj, indx_lst, ...)
 
 \item{Y}{functional phenotype, matrix of size N by size J. The underlying algorithm uses wavelet which assume that J is of the form J^2. If J not a power of 2, susiF internally remaps the data into grid of length 2^J}
 
-\item{X}{matrix of size n by p}
+\item{X}{matrix of size N by p}
 }
 \value{
 susiF object

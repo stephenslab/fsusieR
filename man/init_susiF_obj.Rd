@@ -21,6 +21,9 @@ A list with elements
 \item{fitted_wc}{ list of length L, each element contains the fitted wavelet coefficients of effect l}
 \item{fitted_wc2}{list of length L, each element contains the variance of the fitted wavelet coefficients of effect l}
 \item{alpha_hist}{ history of the fitted alpha value}
+\item{N}{ number of indidivual in the study}
+\item{sigma2}{residual variance}
+\item{n_wac}{number of wavelet coefficients}
 \item{ind_fitted_func}{fitted curves of each individual }
 \item{cs}{credible set}
 \item{pip}{Posterior inclusion probabilites}
