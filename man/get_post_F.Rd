@@ -13,8 +13,8 @@ get_post_F(susiF.obj, l, ...)
 }
 \value{
 A J by T matrix of posterior wavelet coefficient,
-\item{if l missng}  { return the posterior mean of the effect under  sum of single functions model}
-\item{if l not missng}   {return effect specific posterior mean }
+\item{if l missng}{ return the posterior mean of the effect under  sum of single functions model}
+\item{if l not missng}{return effect specific posterior mean }
 }
 \description{
 Compute posterior mean of the fitted effect
