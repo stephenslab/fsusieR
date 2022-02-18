@@ -164,7 +164,7 @@ susiF <- function(Y, X, L = 2,
   {
     stop("Error: number of position provided different from the number of column of Y")
   }
-  orignal_Y <-Y
+  original_Y <-Y
 
 
   if(!is.wholenumber(log2(dim(Y)[2])) | !(sum( duplicated(diff( pos)))== (length(pos) -2)) ) #check wether dim(Y) not equal to 2^J or if the data are unevenly spaced
@@ -182,17 +182,18 @@ susiF <- function(Y, X, L = 2,
 
     outing_grid <- 1:dim(Y)[2]
   }
-
+  W <- DWT2(Y)
 
   ### Definition of some static parameters ---
   indx_lst <-  gen_wavelet_indx(log2(length( outing_grid)))
-  v1 <- rep(1, dim(X)[1])### used in fit_lm to add a column of 1 in the design matrix
-
+  v1       <- rep(1, dim(X)[1])### used in fit_lm to add a column of 1 in the design matrix
+  Y_f      <-  cbind( W$D,W$C)
   # Wavelet transform of the inputs
 
-  W <- DWT2(Y)
+
   update_D <- W
   ### Definition of some dynamic parameters ---
+
   update_Y    <-  cbind( W$D,W$C) #Using a column like phenotype, temporary matrix that will be regularly updated
   G_prior     <-  init_prior(update_Y,X,prior,v1 , indx_lst  )
   susiF.obj   <-  init_susiF_obj(L=L, G_prior, Y,X)
@@ -201,7 +202,7 @@ susiF <- function(Y, X, L = 2,
   check <- 1
   h     <- 0
 
-  if(L==1)
+  if(susiF.obj$L==1)
   {
     tt <- cal_Bhat_Shat(update_Y,X,v1)
     Bhat <- tt$Bhat
@@ -226,7 +227,7 @@ susiF <- function(Y, X, L = 2,
   }else{
     while(check >tol & (h/L) <maxit)
     {
-      for( l in 1:L)
+      for( l in 1:susiF.obj$L)
       {
         h <- h+1
         tt <- cal_Bhat_Shat(update_Y,X,v1)
@@ -237,7 +238,7 @@ susiF <- function(Y, X, L = 2,
 
         EM_out  <- EM_pi(G_prior  = G_prior,
                          Bhat     =  Bhat,
-                         Shat     = Shat,
+                         Shat     =  Shat,
                          indx_lst =  indx_lst
         )
 
@@ -257,7 +258,7 @@ susiF <- function(Y, X, L = 2,
           C         = W$C,
           indx_lst  = indx_lst
         )
-        susiF.obj <- update_ELBO(susiF.obj, get_objective(susiF.obj,update_Y,X))
+
         if(floor(h/L)>2)#update parameter convergence, no ELBO for the moment
         {
           check <- 0
@@ -267,12 +268,26 @@ susiF <- function(Y, X, L = 2,
           }
         }
       }#end for l in 1:L
+
+
+      susiF.obj <- update_ELBO(susiF.obj,
+                               get_objective( susiF.obj = susiF.obj,
+                                              Y         = Y_f,
+                                              X         = X,
+                                              D         = W$D,
+                                              C         = W$C,
+                                              indx_lst  = indx_lst
+                               )
+                           )
+
+      #sigma2    <- estimate_residual_variance(susiF_obj,Y=Y_f,X)
+      #print(sigma2)
+      #susiF_obj <- update_residual_variance(susiF_obj, sigma2 = sigma2 )
     }#end while
   }
 
 
   #preparing output
   susiF.obj <- out_prep(susiF.obj,Y, X=X, indx_lst=indx_lst)
-
   return(susiF.obj)
 }

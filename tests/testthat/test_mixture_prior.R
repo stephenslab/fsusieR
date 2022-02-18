@@ -1,7 +1,6 @@
 library(testthat)
 library(ashr)
 library(wavethresh)
-library(Rfast)
 library(mixsqp)
 set.seed(2)
 f1 <- simu_IBSS_per_level(lev_res=9, alpha=1, prop_decay =1.5)
@@ -269,7 +268,7 @@ test_that("The update susiF object should have its argument equal to    ",
             susiF_obj <- update_susiF_obj(susiF_obj, 1, outEM, Bhat, Shat, indx_lst )
 
             expect_equal( susiF_obj$fitted_wc[[1]],post_mat_mean( G_prior , Bhat, Shat, indx_lst ))
-            expect_equal( susiF_obj$fitted_wc2[[1]],post_mat_sd  ( G_prior , Bhat, Shat , indx_lst))
+            expect_equal( susiF_obj$fitted_wc2[[1]],post_mat_sd  ( G_prior , Bhat, Shat , indx_lst)^2)
             expect_equal( get_alpha (susiF_obj , 1), cal_zeta(outEM$lBF))
             expect_equal( get_G_prior(susiF_obj) ,G_prior)
 
@@ -291,7 +290,7 @@ test_that("The partial residual should be    ",
               l         = 1,
               X         = X,
               D         = W$D,
-              C         = W$C
+              C         = W$C,
               indx_lst  = indx_lst
             )
 

@@ -30,7 +30,7 @@ EM_pi <- function(G_prior,Bhat, Shat, indx_lst,
                   espsilon = 0.0001){
 
   #static parameters
-  L  <-  L_mixsq(G_prior, Bhat, Shat, indx_lst)
+  Lmat  <-  L_mixsq(G_prior, Bhat, Shat, indx_lst)
   J <- dim(Bhat)[1]
   tsd_k <- get_sd_G_prior(G_prior)
 
@@ -51,7 +51,7 @@ EM_pi <- function(G_prior,Bhat, Shat, indx_lst,
     zeta      <- cal_zeta(lBF)
 
     # M step ----
-    tpi_k   <- m_step(L,zeta,indx_lst)
+    tpi_k   <- m_step(Lmat,zeta,indx_lst)
     G_prior <- update_prior(G_prior,tpi_k)
 
     lBF <- log_BF(G_prior,Bhat,Shat,indx_lst)
@@ -112,7 +112,6 @@ cal_Bhat_Shat <- function(Y, X, v1)
 #' @return vector of 2 containing the regression coefficient and standard
 #'
 #' @importFrom stats var
-#' @importFrom Rfast lmfit
 #'
 #' @export
 #'
@@ -651,30 +650,3 @@ cal_lik <- function(lBF,zeta)
   return(out)
 }
 
-
-#' @title Update residual variance
-#'
-#' @param susiF.obj a susiF object defined by \code{\link{init_susiF_obj}} function
-#'
-#' @param Y wavelet transformed  functional phenotype, matrix of size N by size J.
-#'
-#' @param X matrix of size N by p
-#'
-#'
-#' @return estimated residual variance
-estimate_residual_variance <- function(susiF.obj,Y,X, ... )
-  UseMethod("estimate_residual_variance")
-
-
-#' @rdname estimate_residual_variance
-#'
-#' @method estimate_residual_variance susiF
-#'
-#' @export estimate_residual_variance.susiF
-#'
-#' @export
-estimate_residual_variance.susiF <- function(susiF.obj,Y,X, ... )
-{
-  out <-  (1/(prod(dim(Y))))*get_ER2 (susiF.obj,Y, X  )
-  return(out)
-}

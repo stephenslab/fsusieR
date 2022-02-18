@@ -10,6 +10,8 @@
 #' @param Y Matrix of outcomes
 #'
 #' @param X Matrix of covariates
+#'
+#' @export
 #' @return A list with elements
 #' \item{fitted_wc}{ list of length L, each element contains the fitted wavelet coefficients of effect l}
 #' \item{fitted_wc2}{list of length L, each element contains the variance of the fitted wavelet coefficients of effect l}
@@ -42,7 +44,7 @@ init_susiF_obj <- function(L, G_prior, Y,X )
   P               <- dim(X)[2]
   sigma2          <- 1
   lBF             <- list()
-  KL              <- rep(NA,ncol(X))
+  KL              <- rep(NA,L)
   ELBO            <- c()
   for ( l in 1:L )
   {
@@ -784,3 +786,31 @@ get_post_F2 <- function(susiF.obj, l,...)
   return(out)
 }
 
+
+#' @title Update residual variance
+#'
+#' @param susiF.obj a susiF object defined by \code{\link{init_susiF_obj}} function
+#'
+#' @param Y wavelet transformed  functional phenotype, matrix of size N by size J.
+#'
+#' @param X matrix of size N by p
+#'
+#'
+#' @return estimated residual variance
+#' @export
+estimate_residual_variance <- function(susiF.obj,Y,X, ... )
+  UseMethod("estimate_residual_variance")
+
+
+#' @rdname estimate_residual_variance
+#'
+#' @method estimate_residual_variance susiF
+#'
+#' @export estimate_residual_variance.susiF
+#'
+#' @export
+estimate_residual_variance.susiF <- function(susiF.obj,Y,X, ... )
+{
+  out <-  (1/(prod(dim(Y))))*get_ER2 (susiF.obj,Y, X  )
+  return(out)
+}

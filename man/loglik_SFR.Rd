@@ -14,7 +14,7 @@ loglik_SFR(susiF.obj, l, ...)
 
 \item{l}{effect to update}
 
-\item{Y}{Matrix of outcomes}
+\item{Y}{wavelet transformed phenotype}
 
 \item{X}{Matrix of covariates}
 }

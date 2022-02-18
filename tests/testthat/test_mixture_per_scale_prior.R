@@ -1,7 +1,6 @@
 library(testthat)
 library(ashr)
 library(wavethresh)
-library(Rfast)
 library(mixsqp)
 set.seed(2)
 f1 <- simu_IBSS_per_level(lev_res=9, alpha=1, prop_decay =1.5)
@@ -52,7 +51,7 @@ test_that("Max lBF should be in postion",
             )
           }
 )
-
+susiF_obj <- init_susiF_obj(L=2, G_prior,Y,X)
 test_that("susiF object pi are expected to be equal to ",
           {
             susiF_obj <- init_susiF_obj(L=2, G_prior,Y,X)
@@ -339,6 +338,40 @@ test_that("SusiF performance should be",
 
 
 
+test_that("The expected sum of square should be below and residual variance should be ",
+          {
+            outEM <-  EM_pi(G_prior,Bhat,Shat, indx_lst)
+            G_prior <- update_prior(G_prior,
+                                    tpi= outEM$tpi_k )
+
+            susiF_obj <- update_susiF_obj(susiF_obj, 1, outEM, Bhat, Shat, indx_lst )
+            expect_lte(  get_ER2( susiF_obj, Y_f,X ), 0.3)
+            sigma2 <- estimate_residual_variance(susiF_obj,Y_f,X)
+            susiF_obj <- update_residual_variance(susiF_obj, sigma2 = sigma2 )
+            expect_equal(  susiF_obj$sigma2, sigma2)
+
+
+          }
+)
+
+
+test_that("The KL of effect one ",
+          {
+            outEM <-  EM_pi(G_prior,Bhat,Shat, indx_lst)
+            G_prior <- update_prior(G_prior,
+                                    tpi= outEM$tpi_k )
+
+            susiF_obj <- update_susiF_obj(susiF_obj, 1, outEM, Bhat, Shat, indx_lst )
+            KL_l <- cal_KL_l(susiF_obj,l=1,Y=Y_f, X, D=W$D, C=W$D , indx_lst)
+            susiF_obj <- update_KL ( susiF_obj, l,Y=Y_f, X, D=W$D, C=W$C , indx_lst)
+            expect_equal( susiF.obj$KL[l], KL_l)
+            get_objective(susiF.obj,Y,X, D=W$D, C=W$C , indx_lst)
+
+          }
+)
+
+
+
 test_that("SusiF performance should be",
           {
             set.seed(1)
@@ -359,24 +392,4 @@ test_that("SusiF performance should be",
           }
 )
 
-test_that("The expected sum of square should be below ",
-          {
-            expect_lte(  get_ER2( susiF_obj, Y_f,X ), 0.3)
 
-
-          }
-)
-
-test_that("The residual variance should be ",
-          {
-            sigma2 <- estimate_residual_variance(susiF.obj,Y_f,X)
-            susiF_obj <- update_residual_variance(susiF_obj, sigma2 = sigma2 )
-
-            expect_equal(  susiF_obj$sigma2, sigma2)
-
-          }
-)
-
-loglik_SFR(susiF_obj, l,Y,X)
-Eloglik(susiF_obj, Y,X)
-get_objective(susiF_obj, Y,X)
