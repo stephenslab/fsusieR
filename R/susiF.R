@@ -31,7 +31,7 @@
 #' tolerance for the IBSS fitting procedure. The fitting procedure
 #' will halt when the difference in the variational lower bound, or
 #' \dQuote{ELBO} (the objective function to be maximized), is less
-#' than \code{tol}. Currently checking the PIP
+#' than \code{tol}.
 #'
 #' @param maxit Maximum number of IBSS iterations to perform.
 #'
@@ -140,7 +140,7 @@ susiF <- function(Y, X, L = 2,
                   verbose = TRUE,
                   plot_out = TRUE,
                   maxit = 100,
-                  tol = 1e-6,
+                  tol = 1e-3,
                   cov_lev = 0.95
 
 )
@@ -211,9 +211,9 @@ susiF <- function(Y, X, L = 2,
     G_prior <- update_prior(G_prior, tpi= tpi ) #allow EM to start close to previous solution (to double check)
 
     EM_out  <- EM_pi(G_prior  = G_prior,
-                     Bhat     =  Bhat,
+                     Bhat     = Bhat,
                      Shat     = Shat,
-                     indx_lst =  indx_lst
+                     indx_lst = indx_lst
     )
 
     susiF.obj <-  update_susiF_obj(susiF.obj = susiF.obj ,
@@ -238,6 +238,7 @@ susiF <- function(Y, X, L = 2,
     {
       for( l in 1:susiF.obj$L)
       {
+
         h <- h+1
         tt <- cal_Bhat_Shat(update_Y,X,v1)
         Bhat <- tt$Bhat
@@ -268,14 +269,7 @@ susiF <- function(Y, X, L = 2,
           indx_lst  = indx_lst
         )
 
-        if(floor(h/L)>2 )#update parameter convergence, no ELBO for the moment
-        {
-          check <- 0
-          for( tt in 0:(L-1))
-          {
-            check <-  check + var( susiF.obj$alpha_hist[[h-tt]] -susiF.obj$alpha_hist[[h-L-tt]])
-          }
-        }
+
       }#end for l in 1:L
 
 
@@ -291,6 +285,12 @@ susiF <- function(Y, X, L = 2,
 
       sigma2    <- estimate_residual_variance(susiF.obj,Y=Y_f,X)
       susiF.obj <- update_residual_variance(susiF.obj, sigma2 = sigma2 )
+
+      if(length(susiF.obj$ELBO)>1 )#update parameter convergence,
+      {
+        check <- diff(susiF.obj$ELBO)[(length( susiF.obj$ELBO )-1)]
+
+      }
     }#end while
   }
 

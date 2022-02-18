@@ -13,7 +13,7 @@ susiF(
   verbose = TRUE,
   plot_out = TRUE,
   maxit = 100,
-  tol = 1e-06,
+  tol = 0.001,
   cov_lev = 0.95
 )
 }
@@ -47,7 +47,7 @@ and a summary of the optimization settings, are ploted.}
 tolerance for the IBSS fitting procedure. The fitting procedure
 will halt when the difference in the variational lower bound, or
 \dQuote{ELBO} (the objective function to be maximized), is less
-than \code{tol}. Currently checking the PIP}
+than \code{tol}.}
 
 \item{cov_lev}{numeric between 0 and 1, corresponding to the
 expected level of coverage of the cs if not specified set to 0.95}
