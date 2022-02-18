@@ -83,8 +83,8 @@ cal_KL_l.susiF <- function(susiF.obj, l, Y, X, D, C , indx_lst, ...)
   EF_l <- get_post_F(susiF.obj,l)
   R_l <- cal_partial_resid(
                            susiF.obj = susiF.obj,
-                           l         = (l-1 ) ,
-                           X         = X,
+                           l         =  (l-1 ) ,
+                           X         =  X,
                            D         =  D,
                            C         =  C,
                            indx_lst  = indx_lst
@@ -235,7 +235,7 @@ get_objective <- function    (susiF.obj,  Y, X, D, C , indx_lst,  ...)
 #' @export
 get_objective.susiF <- function    (susiF.obj, Y, X, D, C , indx_lst,  ...)
 {
-  susiF.obj <- update_KL(susiF.obj, X, D, C , indx_lst)
+  susiF.obj <- update_KL(susiF.obj, Y, X, D, C , indx_lst)
   out <- Eloglik(susiF.obj, Y, X) - sum(susiF.obj$KL)
   return(out)
 

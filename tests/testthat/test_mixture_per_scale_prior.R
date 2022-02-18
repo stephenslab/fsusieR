@@ -365,7 +365,7 @@ test_that("The KL of effect one ",
             KL_l <- cal_KL_l       (susiF_obj,l=1,Y=Y_f, X, D=W$D, C=W$C , indx_lst)
             susiF_obj <- update_KL ( susiF_obj,   Y=Y_f, X, D=W$D, C=W$C , indx_lst)
             expect_equal( susiF_obj$KL[1], KL_l)
-            get_objective(susiF_obj,Y,X, D=W$D, C=W$C , indx_lst)
+            get_objective(susiF_obj,Y_f,X, D=W$D, C=W$C , indx_lst)
 
           }
 )

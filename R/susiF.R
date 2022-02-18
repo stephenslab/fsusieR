@@ -223,6 +223,15 @@ susiF <- function(Y, X, L = 2,
                                    Shat      = Shat,
                                    indx_lst  = indx_lst
     )
+    susiF.obj <- update_ELBO(susiF.obj,
+                             get_objective( susiF.obj = susiF.obj,
+                                            Y         = Y_f,
+                                            X         = X,
+                                            D         = W$D,
+                                            C         = W$C,
+                                            indx_lst  = indx_lst
+                             )
+    )
 
   }else{
     while(check >tol & (h/L) <maxit)
@@ -259,7 +268,7 @@ susiF <- function(Y, X, L = 2,
           indx_lst  = indx_lst
         )
 
-        if(floor(h/L)>2)#update parameter convergence, no ELBO for the moment
+        if(floor(h/L)>2 )#update parameter convergence, no ELBO for the moment
         {
           check <- 0
           for( tt in 0:(L-1))
@@ -270,19 +279,18 @@ susiF <- function(Y, X, L = 2,
       }#end for l in 1:L
 
 
-      #  susiF.obj <- update_ELBO(susiF.obj,
-                               # get_objective( susiF.obj = susiF.obj,
-                                              #               Y         = Y_f,
-                                              #                X         = X,
-                                              #             D         = W$D,
-                                              #                  C         = W$C,
-                                              #               indx_lst  = indx_lst
-                                              #  )
-                               #                    )
+       susiF.obj <- update_ELBO(susiF.obj,
+                                 get_objective( susiF.obj = susiF.obj,
+                                                Y         = Y_f,
+                                                X         = X,
+                                                D         = W$D,
+                                                C         = W$C,
+                                                indx_lst  = indx_lst
+                                                )
+                                          )
 
-      #sigma2    <- estimate_residual_variance(susiF_obj,Y=Y_f,X)
-      #print(sigma2)
-      #susiF_obj <- update_residual_variance(susiF_obj, sigma2 = sigma2 )
+      sigma2    <- estimate_residual_variance(susiF.obj,Y=Y_f,X)
+      susiF.obj <- update_residual_variance(susiF.obj, sigma2 = sigma2 )
     }#end while
   }
 
