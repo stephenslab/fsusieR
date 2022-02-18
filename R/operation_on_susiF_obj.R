@@ -747,7 +747,7 @@ out_prep.susiF <- function(susiF.obj,Y, X, indx_lst, ...)
 #'
 #' @return  A J by T matrix of posterior wavelet coefficient,
 #' \item{if l missng}{return the posterior mean of the effect under  sum of single functions model}
-#' \item{if l not missng}{return effect specific posterior mean }
+#' \item{if l not missng}{return effect specific posterior mean}
 
 get_post_F <- function(susiF.obj,l,...)
 {
@@ -770,7 +770,7 @@ get_post_F <- function(susiF.obj,l,...)
 #'
 #' @return  A J by T matrix of posterior wavelet coefficient,
 #' \item{if l missng}{return the posterior second moment  of the effect under  sum of single functions model}
-#' \item{if l not missng}{return effect specific posterior second moment }
+#' \item{if l not missng}{return effect specific posterior second moment}
 
 get_post_F2 <- function(susiF.obj, l,...)
 {
