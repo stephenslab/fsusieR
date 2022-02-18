@@ -2,16 +2,20 @@
 % Please edit documentation in R/operation_on_susiF_obj.R
 \name{get_post_F2}
 \alias{get_post_F2}
-\title{Compute posterior mean of the fitted effect}
+\title{Compute posterior second moment}
 \usage{
-get_post_F2(susiF.obj)
+get_post_F2(susiF.obj, l, ...)
 }
 \arguments{
 \item{susiF.obj}{a susiF object defined by \code{\link{init_susiF_obj}} function}
+
+\item{l}{, optional effect to update}
 }
 \value{
-A J by T matrix of posterior wavelet coefficient
+A J by T matrix of posterior wavelet coefficient,
+\item{if l missng}  { return the posterior second moment  of the effect under  sum of single functions model}
+\item{if l not missng}   {return effect specific posterior second moment }
 }
 \description{
-Compute posterior mean of the fitted effect
+Compute posterior second moment
 }

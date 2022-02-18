@@ -14,7 +14,7 @@ nonzero coefficients.}
 
 \item{Y}{Matrix of outcomes}
 
-\item{X}{Matrix of covariate}
+\item{X}{Matrix of covariates}
 }
 \value{
 A list with elements

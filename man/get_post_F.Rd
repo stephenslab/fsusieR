@@ -4,13 +4,17 @@
 \alias{get_post_F}
 \title{Compute posterior mean of the fitted effect}
 \usage{
-get_post_F(susiF.obj)
+get_post_F(susiF.obj, l, ...)
 }
 \arguments{
 \item{susiF.obj}{a susiF object defined by \code{\link{init_susiF_obj}} function}
+
+\item{l}{, optional effect to update}
 }
 \value{
-A J by T matrix of posterior wavelet coefficient
+A J by T matrix of posterior wavelet coefficient,
+\item{if l missng}  { return the posterior mean of the effect under  sum of single functions model}
+\item{if l not missng}   {return effect specific posterior mean }
 }
 \description{
 Compute posterior mean of the fitted effect
