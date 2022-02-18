@@ -1,6 +1,6 @@
 # susiF.alpha
 
-R package implementing the Sum of Single Function ("SuSiF") method.
+R package implementing the Sum of Single Functions ("SuSiF") method.
 
 ## Quick Start
 
