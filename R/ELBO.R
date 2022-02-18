@@ -38,7 +38,7 @@ update_KL <- function(susiF.obj,   X, D, C , indx_lst, ...)
 #' @export
 #'
 
-update_KL.susiF <- function(susiF.obj,   Y, X, D, C , indx_lst, ...)
+update_KL.susiF <- function(susiF.obj, Y, X, D, C , indx_lst, ...)
 {
   susiF.obj$KL <-  do.call(c,lapply(1:susiF.obj$L,FUN=function(l) cal_KL_l(susiF.obj, l, Y, X, D, C , indx_lst )))
   return( susiF.obj)
@@ -235,7 +235,7 @@ get_objective <- function    (susiF.obj,  Y, X, D, C , indx_lst,  ...)
 #' @export
 get_objective.susiF <- function    (susiF.obj, Y, X, D, C , indx_lst,  ...)
 {
-  susiF.obj <- update_KL(susiF.obj, l, X, D, C , indx_lst)
+  susiF.obj <- update_KL(susiF.obj, X, D, C , indx_lst)
   out <- Eloglik(susiF.obj, Y, X) - sum(susiF.obj$KL)
   return(out)
 

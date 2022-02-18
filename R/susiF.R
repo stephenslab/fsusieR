@@ -270,15 +270,15 @@ susiF <- function(Y, X, L = 2,
       }#end for l in 1:L
 
 
-      susiF.obj <- update_ELBO(susiF.obj,
-                               get_objective( susiF.obj = susiF.obj,
-                                              Y         = Y_f,
-                                              X         = X,
-                                              D         = W$D,
-                                              C         = W$C,
-                                              indx_lst  = indx_lst
-                               )
-                           )
+      #  susiF.obj <- update_ELBO(susiF.obj,
+                               # get_objective( susiF.obj = susiF.obj,
+                                              #               Y         = Y_f,
+                                              #                X         = X,
+                                              #             D         = W$D,
+                                              #                  C         = W$C,
+                                              #               indx_lst  = indx_lst
+                                              #  )
+                               #                    )
 
       #sigma2    <- estimate_residual_variance(susiF_obj,Y=Y_f,X)
       #print(sigma2)

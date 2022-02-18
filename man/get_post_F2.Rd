@@ -13,8 +13,8 @@ get_post_F2(susiF.obj, l, ...)
 }
 \value{
 A J by T matrix of posterior wavelet coefficient,
-\item{if l missng}  { return the posterior second moment  of the effect under  sum of single functions model}
-\item{if l not missng}   {return effect specific posterior second moment }
+\item{if l not missng}{return effect specific posterior second moment }
+\item{if l not missng}{return effect specific posterior second moment}
 }
 \description{
 Compute posterior second moment
