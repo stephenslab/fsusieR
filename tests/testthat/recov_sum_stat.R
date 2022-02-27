@@ -44,7 +44,7 @@ Bhat2 <- tt2$Bhat
 Shat2 <- tt2$Shat
 
 
-W1 <-(GenW(n=  ncol(Shat2)  , filter.number = 10, family = "DaubLeAsymm"))
+W1 <- (GenW(n=  ncol(Shat2)  , filter.number = 10, family = "DaubLeAsymm"))
 
 W <- DWT2(Bhat2 )
 WBhat2 <-   cbind( W$D,W$C)
@@ -66,38 +66,3 @@ mat_recov <- function(Bhat2, W1)
 }
 
 plot(Bhat, mat_recov(Bhat2,W1))
-
-
-t_Bhat <- Bhat2%*%W1
-
-
-t_Bhat [, c(1,ncol(W1 ))]<-t_Bhat [, c(ncol(W1),1)]
-plot( Bhat,t_Bhat)
-hist(WBhat2-Bhat)
-
-
-
-plot( Bhat,Bhat2%*%t(W1 ))
-plot( Bhat,Bhat2%*%t(W1 ))
-
-W1 <- (GenW(n=  ncol(Shat2)  , filter.number = 10, family = "DaubLeAsymm"))
-
-mat_recov <- function(Shat2, W1)
-{
-  t_Bhat <- matrix(NA, ncol = ncol(Shat2),nrow=nrow(Shat2))
-  for ( i  in 1:nrow(t_Bhat))
-  {
-    tt <-  sqrt(apply(  (rep(1, ncol(Shat2)-1 )%o%  Shat2[i,] ^2)  * (W1[-1,]^2),1,sum))
-    ttC <-  sqrt(sum(  (    Shat2[i,] ^2)  *  t(W1[  ,1])^2 ))
-
-
-    t_Bhat[i,] <- shifter(tt,-1)
-  }
-  return(t_Bhat)
-}
-
-
-
-sqrt(diag(t(W1)%*% diag( Shat2[1,]^2) %*%(W1)))
-sqrt(diag(t(W1)%*% diag( Shat[1,]^2) %*%(W1)))
-sqrt(diag((W1)%*% diag( Shat[1,]^2) %*%t(W1)))

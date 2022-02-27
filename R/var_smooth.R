@@ -20,7 +20,7 @@ ndwt.mat = function (n, filter.number, family) {
   J = log2(n)
   X = diag(rep(1, n))
   W = matrix(0, n * J, n)
-  W = apply(X, 1, wd.D, filter.number = filter.number, family = family )
+  W = apply(X, 1, wd.D, filter.number = filter.number, family = family)#,type = "station" )
   return(list(W2 = W^2))
 }
 
@@ -28,9 +28,8 @@ x <- Bhat2[1,]
 
 x.var <- (Shat2[1,])^2
 
-x.w.d = wavethresh::wd(x, filter.number = filter.number,
-                       family = family )
-
+x.w.d = wavethresh::wd(x, filter.number =10,
+                       family = "DaubLeAsymm" )
 
 
 n <- length(x)
@@ -45,9 +44,11 @@ family="DaubLeAsymm"
 
 filter.number = 10
 
-Wl = ndwt.mat(n, filter.number = filter.number, family = family)
-
-
+Wl = ndwt.mat(n=length(x), filter.number =   10, family ="DaubLeAsymm")
+W1 <- (GenW(n=  ncol(Shat2)  , filter.number = 10, family = "DaubLeAsymm"))
+image(t(W1[,-1]^2))
+image(Wl$W2)
+  t(W1[,-1]^2) -Wl$W2
 var.smooth = function (data, data.var, x.var.ini, basis, v.basis, Wl,
                        filter.number, family, post.var, ashparam, jash,
                        weight, J, n, SGD) {
@@ -55,7 +56,7 @@ var.smooth = function (data, data.var, x.var.ini, basis, v.basis, Wl,
   wvar = matrix(0, J, n)
 
     x.w = wavethresh::wd(data, filter.number = filter.number,
-                         family = family, type = "station")
+                         family = family )#, type = "station")
 
     # Diagonal of W*V*W'.
     x.w.v = apply((rep(1, n * J) %o% data.var) * Wl$W2, 1, sum)
@@ -375,3 +376,27 @@ n=2^10
  x.w.v = apply((rep(1, n * J) %o% data.var) * W1^2, 1, sum)
  x.pm = rep(0, n)
  x.w.v.s = rep(0, n * J)
+
+
+
+
+
+ dencvwd
+ plotdenwd(datavar, top.level=(datahr$res$J-1))
+
+
+ data <- rclaw(100)
+
+ data.wd <- denwd(datahr)
+   plotdenwd(data.wd, top.level=(datahr$res$J-1))
+ datavar <- dencvwd(Shat[1,]^2)
+   plotdenwd(datavar, top.level=(datahr$res$J-1))
+ denplot
+
+
+
+ datahr <- denproj(rep(1,16), J=4, filter.number=10,family="DaubLeAsymm", covar=FALSE)
+ data.wd <- denwd(datahr)
+ datavar <- dencvwd(datahr)
+ datavar$D
+ make.dwwt(16, filter.number = 10, family = "DaubLeAsymm")

@@ -18,3 +18,19 @@ fast_lm <- function(x,y)
               residuals = resid)
   return(out)
 }
+
+
+#Circular permutation on vector
+# Code adapted from https://mzuer.github.io
+
+shifter <- function(x, n = 1) {
+  # if (n == 0) x else c(tail(x, -n), head(x, n))
+  if (n == 0) x else c(tail(x, n), head(x, -n))
+}
+
+#shifter(c(1:10), n=-1)
+# [1]  1  2  3  4  5  6  7  8  9 10
+#shifter(c(1:10), n=1)
+# [1] 10  1  2  3  4  5  6  7  8  9
+#shifter(c(1:10), n=2)
+# [1]  9 10  1  2  3  4  5  6  7  8
