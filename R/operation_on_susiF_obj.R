@@ -265,7 +265,7 @@ update_alpha.susiF <-  function(susiF.obj, l, alpha, ... )
   return( susiF.obj)
 }
 
-#' @title Update alpha   susiF mixture proportion of effect l
+#' @title Update alpha  susiF mixture proportion of effect l
 #'
 #' @param susiF.obj a susisf object defined by \code{\link{init_susiF_obj}} function
 #'
@@ -492,7 +492,7 @@ update_ELBO.susiF <- function    (susiF.obj,ELBO, ...)
 #'@return susiF object
 #'@export
 
-update_cal_pip  <- function    (susiF.obj, ...)
+update_cal_pip  <- function (susiF.obj, ...)
   UseMethod("update_cal_pip")
 
 #' @rdname update_cal_pip
@@ -504,7 +504,7 @@ update_cal_pip  <- function    (susiF.obj, ...)
 #' @export
 #'
 
-update_cal_pip.susiF <- function    (susiF.obj, ...)
+update_cal_pip.susiF <- function (susiF.obj, ...)
 {
   if(sum( is.na(unlist(susiF.obj$alpha))))
   {

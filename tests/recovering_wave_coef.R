@@ -1,4 +1,4 @@
-rm(list=ls())
+
 library(testthat)
 library(ashr)
 library(wavethresh)
@@ -9,7 +9,7 @@ set.seed(2)
 f1 <- simu_IBSS_per_level(lev_res=4, alpha=1, prop_decay =1.5)
 
 plot(f1$sim_func, type="l", ylab="y")
-N=100
+N=500
 P=10
 set.seed(23)
 G = matrix(sample(c(0, 1,2), size=N*P, replace=T), nrow=N, ncol=P) #Genotype
@@ -68,17 +68,46 @@ mat_recov <- function(Bhat2, W1)
 plot(Bhat, mat_recov(Bhat2,W1))
 
 
-t_Bhat <- Bhat2%*%W1
-
-
-t_Bhat [, c(1,ncol(W1 ))]<-t_Bhat [, c(ncol(W1),1)]
-plot( Bhat,t_Bhat)
-hist(WBhat2-Bhat)
 
 
 
-plot( Bhat,Bhat2%*%t(W1 ))
-plot( Bhat,Bhat2%*%t(W1 ))
+
+
+
+
+
+
+
+
+
+
+
+
+
+hope_var <-  list( )
+for ( i in 1:10)
+{
+  var_wc <-  c()
+  for ( j in 1:16)
+  {
+    var_wc  <- c(  var_wc ,sum((W1[ ,j]^2)* (Shat2[i,  ] )^2))
+  }
+  hope_var [[i]] <- shifter ( sqrt(var_wc),-1)
+
+}
+plot( do.call(rbind, hope_var), Shat)
+abline(a=0,b=1)
+
+
+
+
+
+
+
+
+
+
+
 
 W1 <- (GenW(n=  ncol(Shat2)  , filter.number = 10, family = "DaubLeAsymm"))
 
