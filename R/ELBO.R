@@ -1,13 +1,4 @@
 
-# Expected squared residuals.
-#
-get_ER2 = function (  susiF.obj,Y, X) {
-  postF <- get_post_F(susiF.obj )# J by N matrix
-  Xr_L = t(X%*% postF)
-  postF2 <- get_post_F2(susiF.obj ) # Posterior second moment.
-  return(sum((Y - X%*%postF )^2)  -sum(postF)^2 + sum(postF2))
-}
-
 
 
 #' @title Compute KL divergence effect l

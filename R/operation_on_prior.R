@@ -87,6 +87,9 @@ init_prior.suff_stat <- function(data, prior,  indx_lst )
 {
   if( prior == "mixture_normal")
   {
+    Bhat  <- data$Xty /diag(XtX)
+
+    Shat  <- sqrt( 1 * matrix(1, ncol = ncol(Bhat), nrow= nrow(Bhat))/ diag(data$XtX))
 
 
     G_prior <- list()

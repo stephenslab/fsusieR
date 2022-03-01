@@ -750,8 +750,19 @@ out_prep.susiF <- function(susiF.obj,Y, X, indx_lst, ...)
 #' @return  A J by T matrix of posterior wavelet coefficient,
 #' \item{if l not missng}{return effect specific posterior mean }
 #' \item{if l not missng}{return effect specific posterior mean}
-
 get_post_F <- function(susiF.obj,l,...)
+  UseMethod("get_post_F")
+
+#' @rdname get_post_F
+#'
+#' @method get_post_F susiF
+#'
+#' @export get_post_F.susiF
+#'
+#' @export
+#'
+
+get_post_F.default <- function(susiF.obj,l,...)
 {
   if(missing(l))
   {
@@ -774,7 +785,18 @@ get_post_F <- function(susiF.obj,l,...)
 #' \item{if l not missng}{return effect specific posterior second moment }
 #' \item{if l not missng}{return effect specific posterior second moment}
 
-get_post_F2 <- function(susiF.obj, l,...)
+get_post_F2 <- function(susiF.obj,l,...)
+  UseMethod("get_post_F2")
+
+#' @rdname get_post_F2
+#'
+#' @method get_post_F2 susiF
+#'
+#' @export get_post_F2.susiF
+#'
+#' @export
+#'
+get_post_F2.default <- function(susiF.obj, l,...)
 {
   if(missing(l))
   {
@@ -813,4 +835,37 @@ estimate_residual_variance.susiF <- function(susiF.obj,Y,X, ... )
 {
   out <-  (1/(prod(dim(Y))))*get_ER2 (susiF.obj,Y, X  )
   return(out)
+}
+
+
+
+
+#' @titleCompute Epected sum of square
+#'
+#' @param susiF.obj a susiF object defined by \code{\link{init_susiF_obj}} function
+#'
+#' @param Y wavelet transformed  functional phenotype, matrix of size N by size J.
+#'
+#' @param X matrix of size N by p
+#'
+#'
+#' @return estimated residual variance
+#' @export
+get_ER2 <- function(susiF.obj,Y,X, ... )
+  UseMethod("estimate_residual_variance")
+
+
+#' @rdname get_ER2
+#'
+#' @method get_ER2 susiF
+#'
+#' @export get_ER2.susiF
+#'
+#' @export
+
+get_ER2.susiF = function (  susiF.obj,Y, X) {
+  postF <- get_post_F(susiF.obj )# J by N matrix
+  Xr_L = t(X%*% postF)
+  postF2 <- get_post_F2(susiF.obj ) # Posterior second moment.
+  return(sum((Y - X%*%postF )^2)  -sum(postF)^2 + sum(postF2))
 }

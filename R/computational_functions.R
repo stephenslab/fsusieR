@@ -80,7 +80,19 @@ EM_pi <- function(G_prior,Bhat, Shat, indx_lst,
 #' \item{Shat}{ matrix pxJ standard error, Shat[j,t] corresponds to standard error of the regression coefficient of Y[,t] on X[,j] }
 #'
 #' @export
-cal_Bhat_Shat <- function(Y, X, v1)
+cal_Bhat_Shat <- function(Y, X, v1,...)
+  UseMethod("cal_Bhat_Shat")
+
+
+#' @rdname cal_Bhat_Shat
+#'
+#' @method cal_Bhat_Shat  default
+#'
+#' @export cal_Bhat_Shat. default
+#'
+#' @export
+#'
+cal_Bhat_Shat.default  <- function(Y, X, v1)
 {
   Bhat  <- list()
   Shat  <- list()

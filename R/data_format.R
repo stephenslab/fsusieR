@@ -37,7 +37,16 @@
 #'
 make_data_suff_stat <- function(Bhat , Shat , R , N  , var_y , XtX , Xty , yty )
 {
-  out <-  list( Bhat=Bhat, Shat=Shat, R=R, N=N , var_y=var_y, XtX=XtX, Xty=Xty, yty=yty)
+  out <-  list( Bhat=Bhat,
+                Shat=Shat,
+                R=R,
+                N=N,
+                var_y=var_y,
+                XtX=XtX,
+                Xty=Xty,
+                yty=yty,
+                exp_residual= Xty,
+                part_exp_residual= Xty)
   class(out)  <- c("suff_stat","list")
   return(out)
 }

@@ -122,19 +122,27 @@ susiF_ss <- function(Bhat, Shat, R, N , var_y, XtX, Xty, yty, L = 2,
 
   if(susiF_ss.obj$L==1)
   {
-    Bhat <-  update_data$Bhat
-    Shat <-  update_data$Shat
-    tpi  <-  get_pi(susiF_ss.obj,l)
 
-    G_prior <- update_prior(G_prior, tpi= tpi )
+    update_data <- cal_expected_residual(susiF_ss.obj,update_data)
+
+    update_data <- get_partial_residual(susiF_ss.obj,update_data,l=1)
+    tt <- cal_Bhat_Shat(susiF_ss.obj,update_data,partial=TRUE)
+    Bhat <- tt$Bhat
+    Shat <- tt$Shat #UPDATE. could be nicer
+    tpi <-  get_pi(susiF.obj,l)
+    G_prior <- update_prior(G_prior, tpi= tpi ) #allow EM to start close to previous solution (to double check)
+
     EM_out  <- EM_pi(G_prior  = G_prior,
                      Bhat     =  Bhat,
                      Shat     =  Shat,
                      indx_lst =  indx_lst
-                    )
+    )
 
 
-    susiF_ss.obj <-  update_susiF_obj(susiF.obj = susiF_ss.obj ,
+
+
+
+    susiF_ss.obj <-  update_susiF_obj(susiF_ss.obj = susiF_ss.obj ,
                                       l         = l,
                                       EM_pi     = EM_out,
                                       Bhat      = Bhat,
@@ -142,24 +150,32 @@ susiF_ss <- function(Bhat, Shat, R, N , var_y, XtX, Xty, yty, L = 2,
                                       indx_lst  = indx_lst
     )
 
-    update_data  <-  cal_partial_resid(
-      susiF.obj = susiF.obj,
-      l         = l,
-      X         = X,
-      D         = W$D,
-      C         = W$C,
-      indx_lst  = indx_lst
-    )
-
-
 
   }else{
     while(check >tol & (h/L) <maxit)
     {
+      update_data <- cal_expected_residual(susiF_ss.obj,update_data)
+
       for( l in 1:susiF_ss.obj$L)
       {
+        update_data <- get_partial_residual(susiF_ss.obj,update_data,l=l)
+
+        tt <- cal_Bhat_Shat(susiF_ss.obj,update_data,partial=TRUE)
+        Bhat <- tt$Bhat
+        Shat <- tt$Shat #UPDATE. could be nicer
+        tpi <-  get_pi(susiF.obj,l)
+        G_prior <- update_prior(G_prior, tpi= tpi ) #allow EM to start close to previous solution (to double check)
+
+        EM_out  <- EM_pi(G_prior  = G_prior,
+                         Bhat     =  Bhat,
+                         Shat     =  Shat,
+                         indx_lst =  indx_lst
+        )
 
 
+
+
+        update_data <- update_expected_residual( susiF_ss.obj, data,l)
       }#end for l in 1:L
 
 
