@@ -1,4 +1,7 @@
-#' @title Sum of Single Functions
+#TODO
+#Recover stat
+
+#' @title Sum of Single Functions using sufficient statistics
 #'
 #' @description Implementation of the SuSiF method
 #'
