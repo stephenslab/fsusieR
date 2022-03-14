@@ -64,17 +64,17 @@
 susiF_ss <- function(Bhat, Shat, R, N , var_y, XtX, Xty, yty,
                      L = 2,
                      wav_trans=FALSE,
-                  pos = NULL,
-                  prior = "mixture_normal_per_scale",
-                  verbose = TRUE,
-                  plot_out = TRUE,
-                  maxit = 100,
-                  tol = 1e-3,
-                  cov_lev = 0.95
+                     pos = NULL,
+                     prior = "mixture_normal_per_scale",
+                     verbose = TRUE,
+                     plot_out = TRUE,
+                     maxit = 100,
+                     tol = 1e-3,
+                     cov_lev = 0.95
 
 )
 {
-  #Y;X; L = 2;  pos = NULL;  prior = "mixture_normal_per_scale";  verbose = TRUE;  plot_out = TRUE;  maxit = 100;  tol = 1e-6;  cov_lev = 0.95
+  L = 2;  pos = NULL;  prior = "mixture_normal_per_scale";  verbose = TRUE;  plot_out = TRUE;  maxit = 100;  tol = 1e-6;  cov_lev = 0.95;wav_trans=TRUE
   if( prior %!in% c("normal", "mixture_normal", "mixture_normal_per_scale"))
   {
     stop("Error: provide valid prior input")
@@ -84,12 +84,12 @@ susiF_ss <- function(Bhat, Shat, R, N , var_y, XtX, Xty, yty,
 
   if (is.null(pos))
   {
-    pos <- 1:dim(Y)[2]
+    pos <- 1:ncol(Xty)
   }
 
 
   #reshaping of the data
-  if ( !(length(pos)==dim(Y)[2])) #miss matching positions and number of observations
+  if ( !(length(pos)==ncol(Xty))) #miss matching positions and number of observations
   {
     stop("Error: number of position provided different from the number of column of Y")
   }
@@ -144,10 +144,11 @@ susiF_ss <- function(Bhat, Shat, R, N , var_y, XtX, Xty, yty,
   check <- 1
   h     <- 0
 
+  update_data <- cal_expected_residual(susiF_ss.obj,update_data)
   if(susiF_ss.obj$L==1)
   {
 
-    update_data <- cal_expected_residual(susiF_ss.obj,update_data)
+
 
     update_data <- get_partial_residual(susiF_ss.obj,update_data,l=1)
     tt <- cal_Bhat_Shat(susiF_ss.obj,update_data,partial=TRUE)
@@ -178,7 +179,7 @@ susiF_ss <- function(Bhat, Shat, R, N , var_y, XtX, Xty, yty,
   }else{
     while(check >tol & (h/L) <maxit)
     {
-      update_data <- cal_expected_residual(susiF_ss.obj,update_data)
+
 
       for( l in 1:susiF_ss.obj$L)
       {
@@ -197,16 +198,38 @@ susiF_ss <- function(Bhat, Shat, R, N , var_y, XtX, Xty, yty,
         )
 
 
-
-
-        update_data <- update_expected_residual( susiF_ss.obj, data,l)
+        susiF_ss.obj <- update_susiF_obj(
+                                          susiF_ss.obj = susiF_ss.obj,
+                                          l            = l,
+                                          EM_pi        = EM_out,
+                                          Bhat         = Bhat,
+                                          Shat         = Shat,
+                                          indx_lst     = indx_lst
+                                          )
+        update_data  <- update_expected_residual(
+                                                  susiF_ss.obj = susiF_ss.obj,
+                                                  data         = update_data,
+                                                  l            = l
+                                                  )
       }#end for l in 1:L
 
+      update_data <- cal_expected_residual(susiF_ss.obj,update_data)
+
+      susiF_ss.obj <- update_ELBO( susiF_ss.obj,
+                               get_objective(  susiF_ss.obj =  susiF_ss.obj,
+                                               data         = update_data,
+                                               indx_lst  = indx_lst
+                               )
+      )
+
+      sigma2       <- estimate_residual_variance(susiF_ss.obj,data= update_data)
+      susiF_ss.obj <- update_residual_variance(susiF_ss.obj, sigma2 = sigma2 )
 
 
 
       if(length(susiF_ss.obj$ELBO)>1 )#update parameter convergence,
       {
+
       }
 
     }#end while

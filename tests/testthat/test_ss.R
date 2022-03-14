@@ -1,8 +1,9 @@
 library(testthat)
+library(susiF.alpha)
 library(ashr)
 library(wavethresh)
 library(mixsqp)
-N =100
+N =1000
 P=10
 set.seed(23)
 G = matrix(sample(c(0, 1,2), size=N*P, replace=T), nrow=N, ncol=P) #Genotype
@@ -11,23 +12,21 @@ beta1       <- 1
 pos1 <- 5
 noisy.data  <- list()
 set.seed(2)
-f1 <- simu_IBSS_per_level(lev_res=9, alpha=1, prop_decay = .5)
+f1 <- simu_IBSS_per_level(lev_res=8, alpha=1, prop_decay = .5)
 
 plot(f1$sim_func, type="l", ylab="y")
-N=500
+N=200
 P=10
-set.seed(23)
 G = matrix(sample(c(0, 1,2), size=N*P, replace=T), nrow=N, ncol=P) #Genotype
 beta0       <- 0
 beta1       <- 1
-pos1 <- 5
+pos1        <- 5
 noisy.data  <- list()
-rsnr= 2
+rsnr        =  0.02
 for ( i in 1:N)
 {
-  f1_obs <- f1$sim_func
-  noisy.data [[i]] <-   beta1*G[i,pos1]*f1_obs +  rnorm(length(f1$sim_func), sd= 1)
-
+  f1_obs           <- f1$sim_func
+  noisy.data [[i]] <- beta1*G[i,pos1]*f1_obs +  rnorm(length(f1$sim_func), sd= 1)
 }
 noisy.data <- do.call(rbind, noisy.data)
 
@@ -35,36 +34,51 @@ noisy.data <- do.call(rbind, noisy.data)
 Y <- noisy.data
 X <- G
 
+Y <- apply(Y, 2,scale)
 
+v1 <- rep(1,nrow(Y) )
+
+
+X <- apply(X, 2,scale)
 
 W <- DWT2(Y)
 update_D <- W
 Y_f <- cbind( W$D,W$C) #Using a column like phenotype
-
-Y_f <- apply(Y_f, 2,scale)
-
-X <- apply(X, 2,scale)
-
 
 tt <-  cal_Bhat_Shat(Y ,X,v1)
 Bhatb <- tt$Bhat
 Shatb <- tt$Shat
 
 
-update_Y <-Y_f
-v1 <- rep(1, dim(X)[2])
-tt <-  cal_Bhat_Shat(Y_f,X,v1)
+update_Y <- Y_f
+v1       <- rep(1, dim(X)[2])
+tt       <- cal_Bhat_Shat(Y_f,X,v1)
 indx_lst <- gen_wavelet_indx(9)
-Bhat <- tt$Bhat
-Shat <- tt$Shat
+Bhat     <- tt$Bhat
+Shat     <- tt$Shat
 
-XtX <- t(X)%*%X
-Xty <- t(X)%*%Y_f
-yty <- t(Y_f)%*%Y_f
+XtX   <- t(X)%*%X
+Xty   <- t(X)%*%Y_f
+yty   <- t(Y_f)%*%Y_f
 var_y <- apply(Y_f, 2,var)
-R <- cor(X)
-data_suff <- make_data_suff_stat (Bhat , Shat , R , N  , var_y , XtX , Xty , yty )
+R     <- cor(X)
+data_suff  <- make_data_suff_stat (Bhat , Shat , R , N  , var_y , XtX , Xty , yty,wav_trans = TRUE )
+data_suffb <- make_data_suff_stat (Bhatb , Shatb , R , N  , var_y , XtX , Xty , yty)
+
 class(data_suff)
+
+
+plot( data_suff$Bhat, data_suffb$Bhat)
+abline(a=0,b=1)
+plot( data_suff$Shat, data_suffb$Shat)
+
+
+plot( data_suff$Bhat/data_suff$Shat, data_suffb$Bhat/data_suffb$Shat)
+abline(a=0,b=1)
+
+
+plot( data_suff$Bhat/data_suff$Shat, data_suffb$Bhat/data_suffb$Shat, xlim=c(-10,10), ylim=c(-10,10))
+abline(a=0,b=1)
 
 test_that("Class of data_suff is", {
 
@@ -74,6 +88,14 @@ test_that("Class of data_suff is", {
   "suff_stat"
   )
 })
+
+test_that("The transform coefficient should be equal to", {
+
+  data_suff  <- make_data_suff_stat (Bhat , Shat , R , N  , var_y , XtX , Xty , yty,wav_trans = TRUE )
+  data_suffb <- make_data_suff_stat (Bhatb , Shatb , R , N  , var_y , XtX , Xty , yty)
+  expect_equal( data_suff$Bhat, data_suffb$Bhat)
+})
+
 indx_lst <- gen_wavelet_indx(9)
 
 G_prior <- init_prior(data_suff, prior="mixture_normal_per_scale",  indx_lst )
@@ -162,9 +184,9 @@ test_that("Correct updating of the susiF_ss object",{
 })
 
 
- plot(c(Shat), c(tt$Shat))
-hist( Shat)
-hist( tt$Shat)
+plot(c(Shat), c(tt$Shat))
+hist( Shat
+hist( tt$Shat )
 
 
 

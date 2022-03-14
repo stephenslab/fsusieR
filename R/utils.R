@@ -22,7 +22,7 @@ fast_lm <- function(x,y)
 
 #Circular permutation on vector
 # Code adapted from https://mzuer.github.io
-
+#'@export
 shifter <- function(x, n = 1) {
   # if (n == 0) x else c(tail(x, -n), head(x, n))
   if (n == 0) x else c(tail(x, n), head(x, -n))

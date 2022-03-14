@@ -697,7 +697,22 @@ update_cal_fit_func.susiF <- function(susiF.obj, indx_lst, ...)
 #'
 #' @return updated susiF.obj
 
-update_residual_variance <- function(susiF.obj,sigma2)
+
+
+
+update_residual_variance  <- function(susiF.obj,sigma2, ...)
+  UseMethod("update_residual_variance")
+
+#' @rdname update_residual_variance
+#'
+#' @method update_residual_variance susiF
+#'
+#' @export update_residual_variance.susiF
+#'
+#' @export
+#'
+
+update_residual_variance.susiF <- function(susiF.obj,sigma2)
 {
   susiF.obj$sigma2 <- sigma2
   return(susiF.obj)

@@ -85,13 +85,14 @@ make_data_suff_stat <- function(Bhat , Shat , R , N  , var_y , XtX , Xty , yty ,
 #' @return list of two
 #'
 #' \item{Bhat}{ matrix pxJ wavelet  regression coefficient}
-#' \item{Shat}{ matrix pxJ  wavelet  regression coefficient standard error}#'
+#' \item{Shat}{ matrix pxJ  wavelet  regression coefficient standard error}
+#'@export
 
 trans_sum_stat_wreg <- function( Bhat, Shat){
 
   W1 <- (GenW(n=ncol(Bhat)  , filter.number = 10, family = "DaubLeAsymm"))
-  wBhat <-  Bhat_recov(Bhat,W1)
-  wShat <-  Bhat_recov(Shat,W1)
+  wBhat <-  Bhat_recov(Bhat)
+  wShat <-  Shat_recov(Shat,W1)
   out  <- list( Bhat = wBhat,
                 Shat = wShat)
   return(out)
@@ -105,15 +106,11 @@ trans_sum_stat_wreg <- function( Bhat, Shat){
 #' @param W1 matrix associated with a wavelet transform
 #'
 #' @return Wavelet regression coefficient using wavelet transform from W1
-
-Bhat_recov <- function(Bhat, W1)
+#'@export
+Bhat_recov <- function(Bhat)
 {
-  t_Bhat <- matrix(NA, ncol = ncol(Bhat),nrow=nrow(Bhat))
-  for ( i  in 1:nrow(t_Bhat))
-  {
-    tt <- as.vector (Bhat2[i,]%*%W1)
-    t_Bhat[i,] <- shifter(tt,-1)
-  }
+  W <- DWT2(Bhat )
+  t_Bhat <-   cbind( W$D,W$C)
   return(t_Bhat)
 }
 
@@ -125,13 +122,14 @@ Bhat_recov <- function(Bhat, W1)
 #' @param W1 matrix associated with a wavelet transform
 #'
 #' @return Matrix of standard error of the wavelet regression coefficient  using wavelet transform from W1
+#'@export
 Shat_recov <- function(Shat, W1)
 {
   t_Shat <- matrix(NA, ncol = ncol(Shat),nrow=nrow(Shat))
-  for ( i  in 1:nrow(t_Bhat))
+  for ( i  in 1:nrow(t_Shat))
   {
     tt <-  sqrt(apply(  (rep(1, ncol(Shat)-1 )%o%  Shat[i,] ^2)  * (W1[-1,]^2),1,sum))
-    ttC <-  sqrt(sum(  (    Shat2[i,] ^2)  *  t(W1[  ,1])^2 ))
+    ttC <-  sqrt(sum(  (    Shat[i,] ^2)  *  t(W1[  ,1])^2 ))
 
 
     t_Shat[i,] <- c(shifter(tt,-1),ttC)

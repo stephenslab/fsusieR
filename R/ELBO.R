@@ -35,6 +35,21 @@ update_KL.susiF <- function(susiF.obj, Y, X, D, C , indx_lst, ...)
   return( susiF.obj)
 }
 
+#' @rdname update_KL
+#'
+#' @method update_KL susiF_ss
+#'
+#' @export update_KL.susiF_ss
+#'
+#' @export
+#'
+###### TO BE DONE -----
+update_KL.susiF_ss <- function(susiF_ss.obj, data, indx_lst, ...)
+{
+  susiF_ss.obj$KL <-  do.call(c,lapply(1:susiF_ss.obj$L,FUN=function(l) cal_KL_l(susiF_ss.obj, l, data, indx_lst )))
+  return( susiF_ss.obj)
+}
+
 
 #' @title Compute KL divergence effect l
 #'
@@ -131,6 +146,34 @@ loglik_SFR.susiF <- function(susiF.obj, l,Y ,X )
 
 
 
+#' @rdname loglik_SFR
+#'
+#' @method loglik_SFR susiF_ss
+#'
+#' @export loglik_SFR.susiF_ss
+#'
+#' @export
+#'
+
+
+
+###### TO BE DONE -----
+loglik_SFR.susiF_ss <- function(susiF.obj_ss, l, data )
+{
+  lBF <- get_lBF(susiF.obj_ss,l)
+  prior_weights <- rep(1/nrow(data$Bhat),nrow(data$Bhat))
+  maxlBF <- max(lBF)
+  w = exp( lBF- maxlBF)
+  w_weighted = w * prior_weights
+  weighted_sum_w = sum(w_weighted)
+
+  lBF_model = maxlBF + log(weighted_sum_w)
+  loglik <- lBF_model + sum(dnorm(Y,0,sqrt(susiF.obj$sigma2),log = TRUE))
+
+  return(loglik)
+}
+
+
 
 #' @title Compute posterior expected loglikelihood for  single function regression of effect l
 #'
@@ -168,6 +211,28 @@ loglik_SFR_post.susiF <- function(susiF.obj, l,Y,X)
 }
 
 
+#' @rdname loglik_SFR_post
+#'
+#' @method loglik_SFR_post susiF_ss
+#'
+#' @export loglik_SFR_post.susiF_ss
+#'
+#' @export
+#'
+
+loglik_SFR_post.susiF_ss <- function(susiF_ss.obj, data)
+{
+  n <- data$N
+  t <- ncol(data$Bhat)
+  EF  <- get_post_F(susiF_ss.obj,l)
+  EF2 <- get_post_F2(susiF_ss.obj,l)
+  s2  <- susiF_ss.obj$sigma2
+  return(-0.5*n*t*log(2*pi*s2) - 0.5/s2*(sum(data$yty)- 2*sum(t(data$Xty)%*%EF)+ sum(c(nrow(data$Bhat),data$N) * EF2)))
+}
+
+
+
+
 #' @title Expected log likelihood for a   susiF   object
 #'
 #' @param susiF.obj a susiF object defined by \code{\link{init_susiF_obj}} function
@@ -195,11 +260,16 @@ Eloglik.susiF = function (susiF.obj,Y ,X) {
   return(-(n*t/2) * log(2*pi*susiF.obj$sigma2) - (1/(2*susiF.obj$sigma2)) * get_ER2( susiF.obj, Y, X))
 }
 
+Eloglik.susiF_ss = function (susiF_ss.obj,data) {
+  n <- data$N
+  t <- ncol(data$Bhat)
 
+  return(-(n*t/2) * log(2*pi*susiF_ss.obj$sigma2) - (1/(2*susiF_ss.obj$sigma2)) * get_ER2( susiF_ss.obj,sata))
+}
 
 #' @title Get objective function from data and susiF object
 #'
-#' @param susiF.obj a susisF object defined by \code{\link{init_susiF_obj}} function
+#' @param susiF.obj a susiF object defined by \code{\link{init_susiF_obj}} function
 #'
 #' @param Y Matrix of outcomes
 #'
@@ -225,6 +295,23 @@ get_objective <- function    (susiF.obj,  Y, X, D, C , indx_lst,  ...)
 #' @export get_objective.susiF
 #' @export
 get_objective.susiF <- function    (susiF.obj, Y, X, D, C , indx_lst,  ...)
+{
+  susiF.obj <- update_KL(susiF.obj, Y, X, D, C , indx_lst)
+  out <- Eloglik(susiF.obj, Y, X) - sum(susiF.obj$KL)
+  return(out)
+
+}
+
+
+###### TO BE DONE -----
+
+#' @rdname get_objective
+#'
+#' @method get_objective susiF
+#'
+#' @export get_objective.susiF
+#' @export
+get_objective.susiF_ss <- function    (susiF.obj,data, indx_lst,  ...)
 {
   susiF.obj <- update_KL(susiF.obj, Y, X, D, C , indx_lst)
   out <- Eloglik(susiF.obj, Y, X) - sum(susiF.obj$KL)
