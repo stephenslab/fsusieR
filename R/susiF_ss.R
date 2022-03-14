@@ -31,6 +31,10 @@
 #' @param yty A T by T scalar \eqn{y'y} in which y is centered to have mean
 #'   zero.
 #'
+#' @param L integer, number of effect considered.
+#'
+#' @param wav_trans logical, if true the algorithm will consider that the summary statistics based on wavelet transformed data (\code{Bhat} and \code{Shat}).
+#'  if False, the algorithm will rescale \code{Bhat} and \code{Shat} to obtain summary statistics from wavelet regression. Default set as FALSE .
 #'
 #' @param pos vector of length J, corresponding to position/time pf
 #' the observed column in Y, if missing suppose that the observation
@@ -57,7 +61,9 @@
 #' @param cov_lev numeric between 0 and 1, corresponding to the
 #' expected level of coverage of the cs if not specified set to 0.95
 #'
-susiF_ss <- function(Bhat, Shat, R, N , var_y, XtX, Xty, yty, L = 2,
+susiF_ss <- function(Bhat, Shat, R, N , var_y, XtX, Xty, yty,
+                     L = 2,
+                     wav_trans=FALSE,
                   pos = NULL,
                   prior = "mixture_normal_per_scale",
                   verbose = TRUE,
@@ -87,7 +93,6 @@ susiF_ss <- function(Bhat, Shat, R, N , var_y, XtX, Xty, yty, L = 2,
   {
     stop("Error: number of position provided different from the number of column of Y")
   }
-  original_data <- make_data_suff_stat( Bhat=Bhat, Shat=Shat, R=R, N=N , var_y=var_y, XtX=XtX, Xty=Xty, yty=yty)
 
 
   if(!is.wholenumber(log2(dim(Bhat)[2])) | !(sum( duplicated(diff( pos)))== (length(pos) -2)) ) #check wether dim(Y) not equal to 2^J or if the data are unevenly spaced
@@ -112,11 +117,27 @@ susiF_ss <- function(Bhat, Shat, R, N , var_y, XtX, Xty, yty, L = 2,
   ### Definition of some static parameters ---
   indx_lst <-  gen_wavelet_indx(log2(length( outing_grid)))
 
+  original_data <- make_data_suff_stat(
+    Bhat      = Bhat,
+    Shat      = Shat,
+    R         = R,
+    N         = N,
+    var_y     = var_y,
+    XtX       = XtX,
+    Xty       = Xty,
+    yty       = yty,
+    wav_trans = wav_trans
+  )
+
+
+
   update_data <- original_data
   ### Definition of some dynamic parameters ---
 
    #Using a column like phenotype, temporary matrix that will be regularly updated
-  G_prior        <-  init_prior( update_data , indx_lst  )
+  G_prior        <-  init_prior( data     =  update_data ,
+                                 prior    = prior,
+                                 indx_lst = indx_lst )
   susiF_ss.obj   <-  init_susiF_ss_obj(L, G_prior, update_data )
 
   # numerical value to check breaking condition of while
@@ -166,7 +187,7 @@ susiF_ss <- function(Bhat, Shat, R, N , var_y, XtX, Xty, yty, L = 2,
         tt <- cal_Bhat_Shat(susiF_ss.obj,update_data,partial=TRUE)
         Bhat <- tt$Bhat
         Shat <- tt$Shat #UPDATE. could be nicer
-        tpi <-  get_pi(susiF.obj,l)
+        tpi <-  get_pi(susiF_ss.obj,l)
         G_prior <- update_prior(G_prior, tpi= tpi ) #allow EM to start close to previous solution (to double check)
 
         EM_out  <- EM_pi(G_prior  = G_prior,
@@ -187,6 +208,7 @@ susiF_ss <- function(Bhat, Shat, R, N , var_y, XtX, Xty, yty, L = 2,
       if(length(susiF_ss.obj$ELBO)>1 )#update parameter convergence,
       {
       }
+
     }#end while
   }
 

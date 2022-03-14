@@ -352,15 +352,16 @@ update_susiF_obj.susiF_ss <- function(susiF_ss.obj, l, EM_pi,Bhat, Shat , indx_l
     stop("Error EM_pi should be of the class EM_pi")
   }
   susiF_ss.obj         <-   update_pi(susiF_ss.obj   = susiF_ss.obj   ,
-                                   l = l ,
-                                   tpi =  EM_pi$tpi_k)
-  susiF_ss.obj$G_prior <-   update_prior(get_G_prior(susiF_ss.obj  ) , EM_pi$tpi_k  )
+                                      l              = l ,
+                                      tpi            =  EM_pi$tpi_k
+                                      )
 
-  susiF_ss.obj$fitted_wc[[l]]   <- post_mat_mean(get_G_prior(susiF_ss.obj) , Bhat=data$Bhat, Shat=data$Shat,indx_lst= indx_lst )
-  susiF_ss.obj$fitted_wc2[[l]]  <- post_mat_sd  (get_G_prior(susiF_ss.obj) , Bhat=data$Bhat, Shat=data$Shat, indx_lst= indx_lst)^2
+  susiF_ss.obj$G_prior          <-  update_prior(get_G_prior(susiF_ss.obj  ) , EM_pi$tpi_k  )
+  susiF_ss.obj$fitted_wc[[l]]   <-  post_mat_mean(get_G_prior(susiF_ss.obj) , Bhat=data$Bhat, Shat=data$Shat,indx_lst= indx_lst )
+  susiF_ss.obj$fitted_wc2[[l]]  <-  post_mat_sd  (get_G_prior(susiF_ss.obj) , Bhat=data$Bhat, Shat=data$Shat, indx_lst= indx_lst)^2
 
 
-  new_alpha <- cal_zeta(  EM_pi$lBF)
+  new_alpha    <- cal_zeta(  EM_pi$lBF)
   susiF_ss.obj <- update_alpha(susiF_ss.obj, l, new_alpha)
   susiF_ss.obj <- update_lBF(susiF_ss.obj, l, EM_pi$lBF)
   return(susiF_ss.obj)
@@ -448,7 +449,7 @@ get_partial_residual.susiF_ss <- function( susiF_ss.obj, data,l)
 #'
 #' @param l, optional effect to update
 #'
-#' @return an update suff_stat object
+#' @return an updated suff_stat object
 #'
 #' @export
 #'

@@ -137,7 +137,7 @@ susiF_ss.obj <- update_lBF(susiF_ss.obj, l, EM_pi$lBF)
 
 get_post_F(susiF_ss.obj,1)
 
-get_post_F(susiF_ss2.obj,1)
+get_post_F2(susiF_ss.obj,1)
 
 
 cal_expected_residual (susiF_ss.obj , data)

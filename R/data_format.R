@@ -16,10 +16,10 @@
 #' @param Shat A p by t matrix of standard errors.
 #'
 #' @param R A p by p correlation matrix. It should be estimated from
-#'   the same samples used to compute \code{bhat} and \code{shat}. Using
+#'   the same samples used to compute \code{Bhat} and \code{Shat}. Using
 #'   an out-of-sample matrix may produce unreliable results.
 #'
-#'  @param N The sample size.
+#' @param N The sample size.
 #'
 #' @param var_y a T vector of The sample variance of Y at each time point , defined as \eqn{y'y/(n-1)}.
 #'   When the sample variance cannot be provided, the coefficients
@@ -35,18 +35,108 @@
 #' @param yty A T by T scalar \eqn{y'y} in which y is centered to have mean
 #'   zero.
 #'
-make_data_suff_stat <- function(Bhat , Shat , R , N  , var_y , XtX , Xty , yty )
+#' @param wav_trans logical, if true the algorithm will consider that the summary statistics based on wavelet transformed data (\code{Bhat} and \code{Shat}).
+#'  if False, the algorithm will rescale \code{Bhat} and \code{Shat} to obtain summary statistics from wavelet regression. Default set as FALSE .
+#'
+make_data_suff_stat <- function(Bhat , Shat , R , N  , var_y , XtX , Xty , yty , wav_trans=  FALSE)
 {
-  out <-  list( Bhat=Bhat,
-                Shat=Shat,
-                R=R,
-                N=N,
-                var_y=var_y,
-                XtX=XtX,
-                Xty=Xty,
-                yty=yty,
-                exp_residual= Xty,
-                part_exp_residual= Xty)
+
+
+  if(wav_trans){
+    out <-  list( Bhat=Bhat,
+                  Shat=Shat,
+                  R=R,
+                  N=N,
+                  var_y=var_y,
+                  XtX=XtX,
+                  Xty=Xty,
+                  yty=yty,
+                  exp_residual= Xty,
+                  part_exp_residual= Xty)
+  }else{
+
+
+    wav_suff_stat <- trans_sum_stat_wreg(Bhat,Shat)
+
+
+    out <-  list( Bhat=wav_suff_stat$Bhat,
+                  Shat=wav_suff_stat$Shat,
+                  R=R,
+                  N=N,
+                  var_y=var_y,
+                  XtX=XtX,
+                  Xty=Xty,
+                  yty=yty,
+                  exp_residual= Xty,
+                  part_exp_residual= Xty)
+  }
+
   class(out)  <- c("suff_stat","list")
   return(out)
 }
+
+#' @title Transform raw regression coefficient to wavelet regression coefficients
+#'
+#' @param Bhat matrix of regression coefficient
+#'
+#' @param Shat matrix of standard error
+#'
+#'
+#' @return list of two
+#'
+#' \item{Bhat}{ matrix pxJ wavelet  regression coefficient}
+#' \item{Shat}{ matrix pxJ  wavelet  regression coefficient standard error}#'
+
+trans_sum_stat_wreg <- function( Bhat, Shat){
+
+  W1 <- (GenW(n=ncol(Bhat)  , filter.number = 10, family = "DaubLeAsymm"))
+  wBhat <-  Bhat_recov(Bhat,W1)
+  wShat <-  Bhat_recov(Shat,W1)
+  out  <- list( Bhat = wBhat,
+                Shat = wShat)
+  return(out)
+}
+
+
+#' @title Transform raw regression coefficient to wavelet regression coefficients
+#'
+#' @param Bhat matrix of regression coefficient
+#'
+#' @param W1 matrix associated with a wavelet transform
+#'
+#' @return Wavelet regression coefficient using wavelet transform from W1
+
+Bhat_recov <- function(Bhat, W1)
+{
+  t_Bhat <- matrix(NA, ncol = ncol(Bhat),nrow=nrow(Bhat))
+  for ( i  in 1:nrow(t_Bhat))
+  {
+    tt <- as.vector (Bhat2[i,]%*%W1)
+    t_Bhat[i,] <- shifter(tt,-1)
+  }
+  return(t_Bhat)
+}
+
+
+#' @title Transform raw regression coefficient standard error to wavelet regression coefficients standard error
+#'
+#' @param Shat matrix of standard error
+#'
+#' @param W1 matrix associated with a wavelet transform
+#'
+#' @return Matrix of standard error of the wavelet regression coefficient  using wavelet transform from W1
+Shat_recov <- function(Shat, W1)
+{
+  t_Shat <- matrix(NA, ncol = ncol(Shat),nrow=nrow(Shat))
+  for ( i  in 1:nrow(t_Bhat))
+  {
+    tt <-  sqrt(apply(  (rep(1, ncol(Shat)-1 )%o%  Shat[i,] ^2)  * (W1[-1,]^2),1,sum))
+    ttC <-  sqrt(sum(  (    Shat2[i,] ^2)  *  t(W1[  ,1])^2 ))
+
+
+    t_Shat[i,] <- c(shifter(tt,-1),ttC)
+  }
+  return(t_Shat)
+}
+
+
