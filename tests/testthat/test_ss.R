@@ -12,7 +12,7 @@ beta1       <- 1
 pos1 <- 5
 noisy.data  <- list()
 set.seed(2)
-f1 <- simu_IBSS_per_level(lev_res=8, alpha=1, prop_decay = .5)
+f1 <- simu_IBSS_per_level(lev_res=9, alpha=1, prop_decay = .5)
 
 plot(f1$sim_func, type="l", ylab="y")
 N=200
@@ -71,7 +71,7 @@ class(data_suff)
 plot( data_suff$Bhat, data_suffb$Bhat)
 abline(a=0,b=1)
 plot( data_suff$Shat, data_suffb$Shat)
-
+abline(a=0,b=1)
 
 plot( data_suff$Bhat/data_suff$Shat, data_suffb$Bhat/data_suffb$Shat)
 abline(a=0,b=1)
@@ -131,10 +131,35 @@ test_that("Class of the pis should be", {
 test_that("Correct updating of the susiF_ss object",{
 
   EM_pi  <- EM_pi(G_prior, data_suff$Bhat, data_suff$Shat, indx_lst = indx_lst)
-  susiF_ss.obj <-   update_susiF_obj(susiF_ss.obj,l=1, EM_pi, data=data_suff, indx_lst = indx_lst)
+  susiF_ss.obj <-   update_susiF_obj(susiF_ss.obj,l=1, EM_pi, data_suff$Bhat, data_suff$Shat, indx_lst = indx_lst)
   expect_equal(class(susiF_ss.obj), "susiF_ss")
 
 })
+
+
+
+test_that("Correct updating of the susiF_ss object",{
+  update_data <- get_partial_residual(susiF_ss.obj,update_data,l=1)
+  tt <- cal_Bhat_Shat(susiF_ss.obj,update_data,partial=TRUE)
+
+  expect_equal(Bhat, tt$Bhat)
+
+})
+
+get_ER2(susiF_ss.obj,data_suff )
+
+
+estimate_residual_variance(susiF_ss.obj,data = data_suff)
+
+
+loglik_SFR_post(susiF_ss.obj,data = data_suff)
+Eloglik(susiF_ss.obj,data = data_suff)
+
+
+cal_KL_l(susiF_ss.obj, 1, data)
+
+lol  <- update_KL.susiF_ss  (susiF_ss.obj, data  )
+lol$KL
 
 get_pi(susiF_ss.obj,l=1)
 data <-data_suff
@@ -174,14 +199,6 @@ update_data <- cal_expected_residual(susiF_ss.obj,data)
 update_data <- get_partial_residual(susiF_ss.obj,update_data,l=1)
 tt <- cal_Bhat_Shat(susiF_ss.obj,update_data,partial=TRUE)
 plot( Bhat, tt$Bhat)
-
-test_that("Correct updating of the susiF_ss object",{
-  update_data <- get_partial_residual(susiF_ss.obj,update_data,l=1)
-  tt <- cal_Bhat_Shat(susiF_ss.obj,update_data,partial=TRUE)
-
-  expect_equal(Bhat, tt$Bhat)
-
-})
 
 
 plot(c(Shat), c(tt$Shat))

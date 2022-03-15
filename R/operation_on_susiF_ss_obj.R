@@ -350,20 +350,6 @@ update_susiF_obj.susiF_ss <- function(susiF_ss.obj, l, EM_pi,Bhat, Shat , indx_l
 
 
 
-#' @rdname estimate_residual_variance
-#'
-#' @method estimate_residual_variance susiF_ss
-#'
-#' @export estimate_residual_variance.susiF_ss
-#'
-#' @export
-estimate_residual_variance.susiF_ss <- function(susiF_ss.obj,data, ... )
-{
-  out <-  (1/(data$N*ncol(data$Bhat)))*get_ER2 (susiF_ss.obj,data  )
-  return(out)
-}
-
-
 #' @rdname update_residual_variance
 #'
 #' @method update_residual_variance susiF_ss
@@ -418,6 +404,24 @@ update_expected_residual.susiF_ss <- function( susiF_ss.obj, data,l)
 
 
 
+
+
+
+#' @rdname update_KL
+#'
+#' @method update_KL susiF_ss
+#'
+#' @export update_KL.susiF_ss
+#'
+#' @export
+#'
+update_KL.susiF_ss <- function(susiF_ss.obj, data , ...)
+{
+  susiF_ss.obj$KL <-  do.call(c,lapply(1:susiF_ss.obj$L,FUN=function(l) cal_KL_l(susiF_ss.obj, l, data  )))
+  return( susiF_ss.obj)
+}
+
+
 #' @rdname out_prep
 #'
 #' @method out_prep susiF_ss
@@ -427,7 +431,7 @@ update_expected_residual.susiF_ss <- function( susiF_ss.obj, data,l)
 #' @export
 #'
 
-out_prep.susiF_ss <- function(susiF_ss.obj, indx_lst, ...)
+out_prep.susiF_ss <- function(susiF_ss.obj, ...)
 {
   susiF_ss.obj <-  update_cal_pip(susiF_ss.obj)
   susiF_ss.obj <-  update_cal_cs(susiF_ss.obj)
@@ -543,9 +547,9 @@ get_post_F2.susiF_ss <- function(susiF_ss.obj, l,...)
 {
   if(missing(l))
   {
-    out <-  Reduce("+",lapply(1:susiF_ss.obj$L, FUN=function(l) susiF_ss.obj$alpha[[l]] *(susiF_ss.obj$s2+ susiF_ss.obj$fitted_wc2[[l]])))
+    out <-  Reduce("+",lapply(1:susiF_ss.obj$L, FUN=function(l) susiF_ss.obj$alpha[[l]] *(susiF_ss.obj$sigma2 + susiF_ss.obj$fitted_wc2[[l]])))
   }else{
-    out <-   susiF_ss.obj$alpha[[l]] *(susiF_ss.obj$s2+ susiF_ss.obj$fitted_wc2[[l]])
+    out <-   susiF_ss.obj$alpha[[l]] *(susiF_ss.obj$sigma2 + susiF_ss.obj$fitted_wc2[[l]])
   }
 
   return(out)
@@ -558,9 +562,9 @@ get_post_F2.susiF_ss <- function(susiF_ss.obj, l,...)
 
 #' @rdname cal_Bhat_Shat
 #'
-#' @method cal_Bhat_Shat  default
+#' @method cal_Bhat_Shat  susiF_ss
 #'
-#' @export cal_Bhat_Shat. default
+#' @export cal_Bhat_Shat.susiF_ss
 #'
 #' @export
 #'
@@ -594,9 +598,22 @@ cal_Bhat_Shat.susiF_ss <- function( susiF_ss.obj,data , partial=TRUE )
 
 get_ER2.susiF_ss = function (  susiF_ss.obj,data ) {
   postF <- get_post_F( susiF_ss.obj )# J by N matrix
-
-  Xr_L = t(X%*% postF)
   postF2 <- get_post_F2( susiF_ss.obj ) # Posterior second moment.
-   return( sum(data$yty) -2*sum(t(postF)%*%Xty) +  sum(( t(postF) %*% data$XtX %*% postF))  -sum(postF)^2 + sum(postF2))
+  return( sum(data$yty) -2*sum(t(postF)%*%Xty) +  sum(( t(postF) %*% data$XtX %*% postF))  -sum(postF)^2 + sum( postF2))
 
+}
+
+
+
+#' @rdname estimate_residual_variance
+#'
+#' @method estimate_residual_variance susiF_ss
+#'
+#' @export estimate_residual_variance.susiF_ss
+#'
+#' @export
+estimate_residual_variance.susiF_ss <- function(susiF_ss.obj,data, ... )
+{
+  out <-  (1/(data$N*ncol(data$Bhat)))*get_ER2 (susiF_ss.obj,data  )
+  return(out)
 }

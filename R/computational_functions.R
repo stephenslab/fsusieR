@@ -638,6 +638,7 @@ scale_m_step <- function(L,s,zeta, indx_lst)
 #' @description Add description here.
 #'
 #' @param lBF vector of log Bayes factors
+#' @export
 cal_zeta <- function(lBF)
 {
   out <- exp(lBF - max(lBF ) ) /sum( exp(lBF - max(lBF ) ))

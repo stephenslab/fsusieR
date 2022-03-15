@@ -815,9 +815,9 @@ get_post_F2.default <- function(susiF.obj, l,...)
 {
   if(missing(l))
   {
-    out <-  Reduce("+",lapply(1:susiF.obj$L, FUN=function(l) susiF.obj$alpha[[l]] *(susiF.obj$s2+ susiF.obj$fitted_wc2[[l]])))
+    out <-  Reduce("+",lapply(1:susiF.obj$L, FUN=function(l) susiF.obj$alpha[[l]] *(susiF.obj$sigma2+ susiF.obj$fitted_wc2[[l]])))
   }else{
-    out <-   susiF.obj$alpha[[l]] *(susiF.obj$s2+ susiF.obj$fitted_wc2[[l]])
+    out <-   susiF.obj$alpha[[l]] *(susiF.obj$sigma2+ susiF.obj$fitted_wc2[[l]])
   }
 
   return(out)
@@ -867,7 +867,7 @@ estimate_residual_variance.susiF <- function(susiF.obj,Y,X, ... )
 #' @return estimated residual variance
 #' @export
 get_ER2 <- function(susiF.obj,Y,X, ... )
-  UseMethod("estimate_residual_variance")
+  UseMethod("get_ER2")
 
 
 #' @rdname get_ER2

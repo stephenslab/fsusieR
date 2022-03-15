@@ -144,6 +144,8 @@ susiF_ss <- function(Bhat, Shat, R, N , var_y, XtX, Xty, yty,
   check <- 1
   h     <- 0
 
+
+  #potentially usefull of one would like to provide "starting values"
   update_data <- cal_expected_residual(susiF_ss.obj,update_data)
   if(susiF_ss.obj$L==1)
   {
@@ -151,11 +153,11 @@ susiF_ss <- function(Bhat, Shat, R, N , var_y, XtX, Xty, yty,
 
 
     update_data <- get_partial_residual(susiF_ss.obj,update_data,l=1)
-    tt <- cal_Bhat_Shat(susiF_ss.obj,update_data,partial=TRUE)
-    Bhat <- tt$Bhat
-    Shat <- tt$Shat #UPDATE. could be nicer
-    tpi <-  get_pi(susiF.obj,l)
-    G_prior <- update_prior(G_prior, tpi= tpi ) #allow EM to start close to previous solution (to double check)
+    tt          <- cal_Bhat_Shat(susiF_ss.obj,update_data,partial=TRUE)
+    Bhat        <- tt$Bhat
+    Shat        <- tt$Shat #UPDATE. could be nicer
+    tpi         <-  get_pi(susiF.obj,l)
+    G_prior     <- update_prior(G_prior, tpi= tpi ) #allow EM to start close to previous solution (to double check)
 
     EM_out  <- EM_pi(G_prior  = G_prior,
                      Bhat     =  Bhat,
@@ -213,31 +215,31 @@ susiF_ss <- function(Bhat, Shat, R, N , var_y, XtX, Xty, yty,
                                                   )
       }#end for l in 1:L
 
-      update_data <- cal_expected_residual(susiF_ss.obj,update_data)
-
+      update_data  <- cal_expected_residual(susiF_ss.obj, update_data)
       susiF_ss.obj <- update_ELBO( susiF_ss.obj,
-                               get_objective(  susiF_ss.obj =  susiF_ss.obj,
-                                               data         = update_data,
-                                               indx_lst  = indx_lst
-                               )
-      )
+                                   get_objective(
+                                                  susiF_ss.obj = susiF_ss.obj,
+                                                  data         = original_data
+                                                 )
+                                   )
+      susiF_ss.obj$ELBO
 
       sigma2       <- estimate_residual_variance(susiF_ss.obj,data= update_data)
-      susiF_ss.obj <- update_residual_variance(susiF_ss.obj, sigma2 = sigma2 )
+      susiF_ss.obj <- update_residual_variance(  susiF_ss.obj, sigma2 = sigma2 )
 
-
+      susiF_ss.obj$sigma2
 
       if(length(susiF_ss.obj$ELBO)>1 )#update parameter convergence,
       {
-
+        check <- diff(susiF_ss.obj$ELBO)[(length( susiF_ss.obj$ELBO )-1)]
       }
 
     }#end while
-  }
+  }#end if
 
 
   #preparing output
-
+  susiF_ss.obj <- out_prep(susiF_ss.obj )
   return(susiF_ss.obj)
 }
 
