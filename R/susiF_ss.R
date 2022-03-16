@@ -216,18 +216,23 @@ susiF_ss <- function(Bhat, Shat, R, N , var_y, XtX, Xty, yty,
       }#end for l in 1:L
 
       update_data  <- cal_expected_residual(susiF_ss.obj, update_data)
-      susiF_ss.obj <- update_ELBO( susiF_ss.obj,
-                                   get_objective(
-                                                  susiF_ss.obj = susiF_ss.obj,
-                                                  data         = original_data
-                                                 )
-                                   )
-      susiF_ss.obj$ELBO
+
+
+      if( check >2 )
+      {
+        susiF_ss.obj <- update_ELBO( susiF_ss.obj,
+                                     get_objective(
+                                       susiF_ss.obj = susiF_ss.obj,
+                                       data         = original_data
+                                     )
+        )
+      }
+
+
 
       sigma2       <- estimate_residual_variance(susiF_ss.obj,data= update_data)
       susiF_ss.obj <- update_residual_variance(  susiF_ss.obj, sigma2 = sigma2 )
 
-      susiF_ss.obj$sigma2
 
       if(length(susiF_ss.obj$ELBO)>1 )#update parameter convergence,
       {
