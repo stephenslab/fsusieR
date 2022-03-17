@@ -199,35 +199,3 @@ update_data <- cal_expected_residual(susiF_ss.obj,data)
 update_data <- get_partial_residual(susiF_ss.obj,update_data,l=1)
 tt <- cal_Bhat_Shat(susiF_ss.obj,update_data,partial=TRUE)
 plot( Bhat, tt$Bhat)
-
-
-plot(c(Shat), c(tt$Shat))
-hist( Shat
-hist( tt$Shat )
-
-
-
-
-
-Bhat <- tt$Bhat
-Shat <- tt$Shat #UPDATE. could be nicer
-tpi <-  get_pi(susiF.obj,l)
-G_prior <- update_prior(G_prior, tpi= tpi ) #allow EM to start close to previous solution (to double check)
-
-EM_out  <- EM_pi(G_prior  = G_prior,
-                 Bhat     =  Bhat,
-                 Shat     =  Shat,
-                 indx_lst =  indx_lst
-)
-
-
-
-
-
-susiF_ss.obj <-  update_susiF_obj(susiF_ss.obj = susiF_ss.obj ,
-                                  l         = l,
-                                  EM_pi     = EM_out,
-                                  Bhat      = Bhat,
-                                  Shat      = Shat,
-                                  indx_lst  = indx_lst
-)

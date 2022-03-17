@@ -88,7 +88,7 @@ cal_Bhat_Shat <- function(Y, X, v1,...)
 #'
 #' @method cal_Bhat_Shat  default
 #'
-#' @export cal_Bhat_Shat. default
+#' @export cal_Bhat_Shat.default
 #'
 #' @export
 #'
@@ -566,11 +566,11 @@ m_step.lik_mixture_normal <- function (L, zeta, indx_lst, ...)
                        log = TRUE,
                        x0 = c(1,rep(1e-30,tlength)), # put starting point close to sparse solution
                        control = list(
-                         eps = 1e-6,
-                         numiter.em = 20,
-                         verbose = FALSE
+                                      eps = 1e-6,
+                                      numiter.em = 20,
+                                      verbose = FALSE
+                                      )
                        )
-  )
   out <- mixsqp_out$x
   class(out) <-  "pi_mixture_normal"
   return(out)
@@ -590,8 +590,8 @@ m_step.lik_mixture_normal_per_scale <- function(L, zeta, indx_lst, ...)
 
 
   out <- lapply(1:length(indx_lst) ,
-                function(s) scale_m_step(L,s,zeta,indx_lst)
-  )
+                                    function(s) scale_m_step(L,s,zeta,indx_lst)
+                )
   class( out ) <-  c("pi_mixture_normal_per_scale" )
   return(out)
 
@@ -623,11 +623,11 @@ scale_m_step <- function(L,s,zeta, indx_lst)
                         x0 = c(1, rep(1e-30,  tlength )),
                         log=TRUE ,
                         control = list(
-                          eps = 1e-6,
-                          numiter.em = 20,
-                          verbose=FALSE
-                        )
-  )
+                                       eps = 1e-6,
+                                       numiter.em = 20,
+                                       verbose=FALSE
+                                      )
+                      )
 
   out <- mixsqp_out$x
   return( out)

@@ -1,6 +1,6 @@
 
 #testing if x is a wholenumber
-#'@export
+#'
 is.wholenumber <- function (x, tol = .Machine$double.eps^0.5)
   abs(x - round(x)) < tol
 
@@ -9,7 +9,7 @@ is.wholenumber <- function (x, tol = .Machine$double.eps^0.5)
 '%!in%' <- function(x,y)!('%in%'(x,y))
 
 #based on Rfast implementation
-#'@export
+#'
 fast_lm <- function(x,y)
 {
   be <- solve(crossprod(x),crossprod(x,y))
@@ -22,7 +22,7 @@ fast_lm <- function(x,y)
 
 #Circular permutation on vector
 # Code adapted from https://mzuer.github.io
-#'@export
+#'
 shifter <- function(x, n = 1) {
   # if (n == 0) x else c(tail(x, -n), head(x, n))
   if (n == 0) x else c(tail(x, n), head(x, -n))

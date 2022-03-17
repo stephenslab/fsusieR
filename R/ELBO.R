@@ -67,7 +67,7 @@ cal_KL_l.susiF <- function(susiF.obj, l, Y, X, D, C , indx_lst, ...)
 #' @export
 #'
 
-cal_KL_l.susiF_ss <- function(susiF.obj_ss, l, data , ...)
+cal_KL_l.susiF_ss <- function(susiF_ss.obj, l, data , ...)
 {
   lBF           <- get_lBF(susiF_ss.obj,l)
   prior_weights <- rep(1/nrow(data$Bhat),nrow(data$Bhat))
@@ -84,7 +84,7 @@ cal_KL_l.susiF_ss <- function(susiF.obj_ss, l, data , ...)
                                                      )
 
 
-  out <-  -lBF_model + loglik_SFR_post(susiF.obj_ss, l,data = data_partial_residual )
+  out <-  -lBF_model + loglik_SFR_post(susiF_ss.obj, l,data = data_partial_residual )
   return(out)
 }
 
@@ -259,9 +259,6 @@ get_objective.susiF <- function    (susiF.obj, Y, X, D, C , indx_lst,  ...)
   return(out)
 
 }
-
-
-###### TO BE DONE -----
 
 #' @rdname get_objective
 #'

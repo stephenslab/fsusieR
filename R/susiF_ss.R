@@ -61,6 +61,68 @@
 #' @param cov_lev numeric between 0 and 1, corresponding to the
 #' expected level of coverage of the cs if not specified set to 0.95
 #'
+#'
+#'
+#' @examples
+#'rsnr <- 1#wished root signal noise ratio
+#'N <- 200   #Number of individuals
+#'P <- 20 # Number of covariates
+#'pos1 <- 1#Position of the causal covariate
+#'lev_res <- 6
+#'temp_func <-  simu_IBSS_per_level(lev_res )
+#'f1 <-  temp_func$sim_func
+#'plot( f1, type ="l")
+#'G = matrix(sample(c(0, 1,2), size=N*P, replace=TRUE), nrow=N, ncol=P) #Genotype
+#'beta0       <- 0
+#'beta1       <- 1
+#'noisy.data  <- list()
+#'for ( i in 1:N)
+#'{
+#'  f1_obs <- f1
+#'  noise <- rnorm(length(f1), sd=  (1/  rsnr ) * var(f1))
+#'  noisy.data [[i]] <-   beta1*G[i,pos1]*f1_obs+ beta1*G[i,4]*f1_obs  +  noise
+#'
+#'}
+#'noisy.data <- do.call(rbind, noisy.data)
+#'plot( noisy.data[1,], type = "l", col=(G[1, pos1]*3+1),
+#'      main="Observed curves \n colored by the causal effect", ylim= c(-40,40), xlab="")
+#'for ( i in 2:N)
+#'{
+#'  lines( noisy.data[i,], type = "l", col=(G[i, pos1]*3+1))
+#'
+#'}
+#'legend(x=0.3,
+#'       y=-10,
+#'       lty = rep(1,3),
+#'       legend= c("0", "1","2"),
+#'       col=c("black","blue","yellow"))
+#'
+#'Y <- noisy.data
+#'X <- G
+#'
+#'Y <- apply(Y, 2,scale)
+#'X <- apply(X, 2,scale)
+#'
+#'W <- DWT2(Y)
+#'update_D <- W
+#'Y_f <- cbind( W$D,W$C) #Using a column like phenotype
+#'
+#'update_Y <- Y_f
+#'v1       <- rep(1,nrow(Y_f) )
+#'tt       <- cal_Bhat_Shat(Y_f,X,v1)
+#'Bhat     <- tt$Bhat
+#'Shat     <- tt$Shat
+#'XtX   <- t(X)%*%X
+#'Xty   <- t(X)%*%Y_f
+#'yty   <- t(Y_f)%*%Y_f
+#'var_y <- apply(Y_f, 2,var)
+#'R     <- cor(X)
+#'
+#'out <- susiF_ss(Bhat, Shat, R, N , var_y, XtX, Xty, yty, L = 2, wav_trans=TRUE)
+#'
+#'
+#' @export
+#'
 susiF_ss <- function(Bhat, Shat, R, N , var_y, XtX, Xty, yty,
                      L = 2,
                      wav_trans=FALSE,
@@ -74,7 +136,7 @@ susiF_ss <- function(Bhat, Shat, R, N , var_y, XtX, Xty, yty,
 
 )
 {
-  L = 2;  pos = NULL;  prior = "mixture_normal_per_scale";  verbose = TRUE;  plot_out = TRUE;  maxit = 100;  tol = 1e-6;  cov_lev = 0.95;wav_trans=TRUE
+ # L = 2;  pos = NULL;  prior = "mixture_normal_per_scale";  verbose = TRUE;  plot_out = TRUE;  maxit = 100;  tol = 1e-6;  cov_lev = 0.95;wav_trans=TRUE
   if( prior %!in% c("normal", "mixture_normal", "mixture_normal_per_scale"))
   {
     stop("Error: provide valid prior input")
@@ -218,27 +280,27 @@ susiF_ss <- function(Bhat, Shat, R, N , var_y, XtX, Xty, yty,
       update_data  <- cal_expected_residual(susiF_ss.obj, update_data)
 
 
-      if( check >2 )
+      if( h >2 )
       {
         susiF_ss.obj <- update_ELBO( susiF_ss.obj,
                                      get_objective(
-                                       susiF_ss.obj = susiF_ss.obj,
-                                       data         = original_data
-                                     )
-        )
+                                                   susiF_ss.obj = susiF_ss.obj,
+                                                   data         = original_data
+                                                  )
+                                    )
       }
 
 
 
-      sigma2       <- estimate_residual_variance(susiF_ss.obj,data= update_data)
-      susiF_ss.obj <- update_residual_variance(  susiF_ss.obj, sigma2 = sigma2 )
+       sigma2       <- estimate_residual_variance(susiF_ss.obj,data= update_data)
+         susiF_ss.obj <- update_residual_variance(  susiF_ss.obj, sigma2 = sigma2 )
 
 
       if(length(susiF_ss.obj$ELBO)>1 )#update parameter convergence,
       {
         check <- diff(susiF_ss.obj$ELBO)[(length( susiF_ss.obj$ELBO )-1)]
       }
-
+      h <-  h+1
     }#end while
   }#end if
 

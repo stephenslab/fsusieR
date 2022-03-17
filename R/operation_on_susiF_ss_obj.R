@@ -1,4 +1,89 @@
+################################## Operations on susiF_ss object ############################
 #'
+#'
+
+
+
+
+
+
+#' @title Compute expected residuals for susiF_ss.obj
+#'
+#' @description Compute expected residuals for susiF_ss.obj
+#'
+#' @param  susiF_ss.obj  susiF_ss.obj object
+#'
+#' @param data  an object of the class suff_stat define by function \code{\link{make_data_suff_stat}}
+#'
+#' @return an update suff_stat object
+#'
+#' @export
+#'
+cal_expected_residual <- function (susiF_ss.obj, data, ...)
+  UseMethod("cal_expected_residual")
+
+#' @rdname cal_expected_residual
+#'
+#' @method cal_expected_residual susiF_ss
+#'
+#' @export cal_expected_residual.susiF_ss
+#'
+#' @export
+#'
+cal_expected_residual.susiF_ss <- function( susiF_ss.obj, data)
+{
+
+  data$exp_residual <- data$Xty - data$XtX%*%get_post_F(susiF_ss.obj)
+
+  return( data)
+}
+
+
+
+
+
+#' @rdname cal_Bhat_Shat
+#'
+#' @method cal_Bhat_Shat  susiF_ss
+#'
+#' @export cal_Bhat_Shat.susiF_ss
+#'
+#' @export
+#'
+cal_Bhat_Shat.susiF_ss <- function( susiF_ss.obj,data , partial=TRUE )
+{
+
+
+  if (partial)
+  {
+    rho <-data$part_exp_residual
+  }else{
+    rho <-data$Xty
+  }
+  Bhat  <- rho /diag(XtX)
+
+  Shat  <- sqrt( susiF_ss.obj$sigma2 * matrix(1, ncol = ncol(Bhat), nrow= nrow(Bhat))/ diag(data$XtX))
+
+  out  <- list( Bhat = Bhat,
+                Shat = Shat)
+  return(out)
+}
+
+
+#' @rdname estimate_residual_variance
+#'
+#' @method estimate_residual_variance susiF_ss
+#'
+#' @export estimate_residual_variance.susiF_ss
+#'
+#' @export
+estimate_residual_variance.susiF_ss <- function(susiF_ss.obj,data, ... )
+{
+  out <-  (1/(data$N*ncol(data$Bhat)))*get_ER2 (susiF_ss.obj,data  )
+  return(out)
+}
+
+
 #' @title Initialize a susiF object using regression coefficients
 #'
 #' @param L number of non zero coefficients An L-vector containing the indices of the
@@ -81,9 +166,9 @@ init_susiF_ss_obj <- function(L, G_prior, data )
 
 #' @rdname get_pi
 #'
-#' @method get_pi susif_ss
+#' @method get_pi susiF_ss
 #'
-#' @export get_pi.susif_ss
+#' @export get_pi.susiF_ss
 #'
 #' @export
 #'
@@ -107,9 +192,9 @@ get_pi.susiF_ss <- function(susiF_ss.obj, l, ...)
 
 #' @rdname get_pi
 #'
-#' @method get_pi susiF_ss
+#' @method get_lBF susiF_ss
 #'
-#' @export get_pi.susiF_ss
+#' @export get_lBF.susiF_ss
 #'
 #' @export
 #'
@@ -143,6 +228,140 @@ get_G_prior.susiF_ss <- function(susiF_ss.obj, ...)
 }
 
 
+
+#' @rdname get_alpha
+#'
+#' @method get_alpha susiF_ss
+#'
+#' @export get_alpha.susiF_ss
+#'
+#' @export
+#'
+
+get_alpha.susiF_ss <-  function(susiF_ss.obj, l, ...  )
+{
+  out <- susiF_ss.obj$alpha[[l]]
+  return( out)
+}
+
+
+
+
+
+#' @title Compute partial residuals for susiF_ss.obj
+#'
+#' @description Compute partial residuals for susiF_ss.obj
+#'
+#' @param  susiF_ss.obj  susiF_ss.obj object
+#'
+#' @param data  an object of the class suff_stat define by function \code{\link{make_data_suff_stat}}
+#'
+#' @param l, optional effect to update
+#'
+#' @return an update suff_stat object
+#'
+#' @export
+#'
+get_partial_residual <- function (susiF_ss.obj, data, l, ...)
+  UseMethod("get_partial_residual")
+
+#' @rdname get_partial_residual
+#'
+#' @method get_partial_residual susiF_ss
+#'
+#' @export get_partial_residual.susiF_ss
+#'
+#' @export
+#'
+get_partial_residual.susiF_ss <- function( susiF_ss.obj, data,l)
+{
+
+  data$part_exp_residual <- data$exp_residual + data$XtX%*%get_post_F(susiF_ss.obj,l)
+
+  return( data)
+}
+
+
+
+
+
+
+#' @rdname get_post_F
+#'
+#' @method get_post_F susiF_ss
+#'
+#' @export get_post_F.susiF_ss
+#'
+#' @export
+#'
+
+get_post_F.susiF_ss <- function(susiF_ss.obj,l,...)
+{
+  if(missing(l))
+  {
+    out <-  Reduce("+",lapply(1:susiF_ss.obj$L, FUN=function(l) susiF_ss.obj$alpha[[l]] * susiF_ss.obj$fitted_wc[[l]]))
+  }else{
+    out <-   susiF_ss.obj$alpha[[l]] * susiF_ss.obj$fitted_wc[[l]]
+  }
+
+  return(out)
+}
+
+
+
+#' @rdname get_post_F2
+#'
+#' @method get_post_F2 susiF_ss
+#'
+#' @export get_post_F2.susiF_ss
+#'
+#' @export
+#'
+get_post_F2.susiF_ss <- function(susiF_ss.obj, l,...)
+{
+  if(missing(l))
+  {
+    out <-  Reduce("+",lapply(1:susiF_ss.obj$L, FUN=function(l) susiF_ss.obj$alpha[[l]] *(susiF_ss.obj$sigma2 + susiF_ss.obj$fitted_wc2[[l]])))
+  }else{
+    out <-   susiF_ss.obj$alpha[[l]] *(susiF_ss.obj$sigma2 + susiF_ss.obj$fitted_wc2[[l]])
+  }
+
+  return(out)
+}
+
+
+
+#' @rdname get_ER2
+#'
+#' @method get_ER2 susiF_ss
+#'
+#' @export get_ER2.susiF_ss
+#'
+#' @export
+
+get_ER2.susiF_ss = function (  susiF_ss.obj,data ) {
+  postF <- get_post_F( susiF_ss.obj )# J by N matrix
+  postF2 <- get_post_F2( susiF_ss.obj ) # Posterior second moment.
+  return( sum(data$yty) -2*sum(t(postF)%*%Xty) +  sum(( t(postF) %*% data$XtX %*% postF))  -sum(postF)^2 + sum( postF2))
+
+}
+
+
+#' @rdname out_prep
+#'
+#' @method out_prep susiF_ss
+#'
+#' @export out_prep.susiF_ss
+#'
+#' @export
+#'
+
+out_prep.susiF_ss <- function(susiF_ss.obj, ...)
+{
+  susiF_ss.obj <-  update_cal_pip(susiF_ss.obj)
+  susiF_ss.obj <-  update_cal_cs(susiF_ss.obj)
+  return(susiF_ss.obj)
+}
 
 
 #' @rdname update_pi
@@ -194,21 +413,6 @@ update_alpha.susiF_ss <-  function(susiF_ss.obj, l, alpha, ... )
 }
 
 
-
-#' @rdname get_alpha
-#'
-#' @method get_alpha susiF_ss
-#'
-#' @export get_alpha.susiF_ss
-#'
-#' @export
-#'
-
-get_alpha.susiF_ss <-  function(susiF_ss.obj, l, ...  )
-{
-  out <- susiF_ss.obj$alpha[[l]]
-  return( out)
-}
 
 
 #' @rdname update_lBF
@@ -359,7 +563,7 @@ update_susiF_obj.susiF_ss <- function(susiF_ss.obj, l, EM_pi,Bhat, Shat , indx_l
 #' @export
 #'
 
-update_residual_variance.susiF_ss <- function(susiF.obj,sigma2)
+update_residual_variance.susiF_ss <- function(susiF_ss.obj,sigma2)
 {
   susiF_ss.obj$sigma2 <- sigma2
   return(susiF_ss.obj)
@@ -422,198 +626,5 @@ update_KL.susiF_ss <- function(susiF_ss.obj, data , ...)
 }
 
 
-#' @rdname out_prep
-#'
-#' @method out_prep susiF_ss
-#'
-#' @export out_prep.susiF_ss
-#'
-#' @export
-#'
-
-out_prep.susiF_ss <- function(susiF_ss.obj, ...)
-{
-  susiF_ss.obj <-  update_cal_pip(susiF_ss.obj)
-  susiF_ss.obj <-  update_cal_cs(susiF_ss.obj)
-   return(susiF_ss.obj)
-}
 
 
-
-
-#' @title Compute expected residuals for susiF_ss.obj
-#'
-#' @description Compute expected residuals for susiF_ss.obj
-#'
-#' @param  susiF_ss.obj  susiF_ss.obj object
-#'
-#' @param data  an object of the class suff_stat define by function \code{\link{make_data_suff_stat}}
-#'
-#' @return an update suff_stat object
-#'
-#' @export
-#'
-cal_expected_residual <- function (susiF_ss.obj, data, ...)
-  UseMethod("cal_expected_residual")
-
-#' @rdname cal_expected_residual
-#'
-#' @method cal_expected_residual susiF_ss
-#'
-#' @export cal_expected_residual.susiF_ss
-#'
-#' @export
-#'
-cal_expected_residual.susiF_ss <- function( susiF_ss.obj, data)
-{
-
-  data$exp_residual <- data$Xty - data$XtX%*%get_post_F(susiF_ss.obj)
-
-  return( data)
-}
-
-
-
-#' @title Compute partial residuals for susiF_ss.obj
-#'
-#' @description Compute partial residuals for susiF_ss.obj
-#'
-#' @param  susiF_ss.obj  susiF_ss.obj object
-#'
-#' @param data  an object of the class suff_stat define by function \code{\link{make_data_suff_stat}}
-#'
-#' @param l, optional effect to update
-#'
-#' @return an update suff_stat object
-#'
-#' @export
-#'
-get_partial_residual <- function (susiF_ss.obj, data, l, ...)
-  UseMethod("get_partial_residual")
-
-#' @rdname get_partial_residual
-#'
-#' @method get_partial_residual susiF_ss
-#'
-#' @export get_partial_residual.susiF_ss
-#'
-#' @export
-#'
-get_partial_residual.susiF_ss <- function( susiF_ss.obj, data,l)
-{
-
-  data$part_exp_residual <- data$exp_residual + data$XtX%*%get_post_F(susiF_ss.obj,l)
-
-  return( data)
-}
-
-
-
-
-
-
-#' @rdname get_post_F
-#'
-#' @method get_post_F susiF_ss
-#'
-#' @export get_post_F.susiF_ss
-#'
-#' @export
-#'
-
-get_post_F.susiF_ss <- function(susiF_ss.obj,l,...)
-{
-  if(missing(l))
-  {
-    out <-  Reduce("+",lapply(1:susiF_ss.obj$L, FUN=function(l) susiF_ss.obj$alpha[[l]] * susiF_ss.obj$fitted_wc[[l]]))
-  }else{
-    out <-   susiF_ss.obj$alpha[[l]] * susiF_ss.obj$fitted_wc[[l]]
-  }
-
-  return(out)
-}
-
-
-
-#' @rdname get_post_F2
-#'
-#' @method get_post_F2 susiF_ss
-#'
-#' @export get_post_F2.susiF_ss
-#'
-#' @export
-#'
-get_post_F2.susiF_ss <- function(susiF_ss.obj, l,...)
-{
-  if(missing(l))
-  {
-    out <-  Reduce("+",lapply(1:susiF_ss.obj$L, FUN=function(l) susiF_ss.obj$alpha[[l]] *(susiF_ss.obj$sigma2 + susiF_ss.obj$fitted_wc2[[l]])))
-  }else{
-    out <-   susiF_ss.obj$alpha[[l]] *(susiF_ss.obj$sigma2 + susiF_ss.obj$fitted_wc2[[l]])
-  }
-
-  return(out)
-}
-
-
-
-
-
-
-#' @rdname cal_Bhat_Shat
-#'
-#' @method cal_Bhat_Shat  susiF_ss
-#'
-#' @export cal_Bhat_Shat.susiF_ss
-#'
-#' @export
-#'
-cal_Bhat_Shat.susiF_ss <- function( susiF_ss.obj,data , partial=TRUE )
-{
-
-
-  if (partial)
-  {
-    rho <-data$part_exp_residual
-  }else{
-    rho <-data$Xty
-  }
-  Bhat  <- rho /diag(XtX)
-
-  Shat  <- sqrt( susiF_ss.obj$sigma2 * matrix(1, ncol = ncol(Bhat), nrow= nrow(Bhat))/ diag(data$XtX))
-
-  out  <- list( Bhat = Bhat,
-                Shat = Shat)
-  return(out)
-}
-
-
-#' @rdname get_ER2
-#'
-#' @method get_ER2 susiF_ss
-#'
-#' @export get_ER2.susiF_ss
-#'
-#' @export
-
-get_ER2.susiF_ss = function (  susiF_ss.obj,data ) {
-  postF <- get_post_F( susiF_ss.obj )# J by N matrix
-  postF2 <- get_post_F2( susiF_ss.obj ) # Posterior second moment.
-  return( sum(data$yty) -2*sum(t(postF)%*%Xty) +  sum(( t(postF) %*% data$XtX %*% postF))  -sum(postF)^2 + sum( postF2))
-
-}
-
-
-
-#' @rdname estimate_residual_variance
-#'
-#' @method estimate_residual_variance susiF_ss
-#'
-#' @export estimate_residual_variance.susiF_ss
-#'
-#' @export
-estimate_residual_variance.susiF_ss <- function(susiF_ss.obj,data, ... )
-{
-  out <-  (1/(data$N*ncol(data$Bhat)))*get_ER2 (susiF_ss.obj,data  )
-  return(out)
-}
