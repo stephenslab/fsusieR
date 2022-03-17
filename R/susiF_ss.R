@@ -64,6 +64,7 @@
 #'
 #'
 #' @examples
+#' library(ashr)
 #'rsnr <- 1#wished root signal noise ratio
 #'N <- 200   #Number of individuals
 #'P <- 20 # Number of covariates
