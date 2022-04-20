@@ -70,7 +70,7 @@ lev_res <- 7
 temp_func <-  simu_IBSS_per_level(lev_res )
 f1 <-  temp_func$sim_func
 plot( f1, type ="l")
-G = matrix(sample(c(0, 1,2), size=N*P, replace=T), nrow=N, ncol=P) #Genotype
+G = matrix(sample(c(0, 1,2), size=N*P, replace=TRUE), nrow=N, ncol=P) #Genotype
 beta0       <- 0
 beta1       <- 1
 
@@ -118,6 +118,8 @@ legend(x= 60,
 
 
 set.seed(3)
+#Example using curves simulated under the Mixture normal per scale prior
+library(ashr)
 sim  <- simu_test_function(N=100,rsnr=0.2,  lev_res= 8,is.plot = TRUE)
 Y <- sim$noisy.data
 X <- sim$G

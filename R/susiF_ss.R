@@ -12,7 +12,7 @@
 #' @param Shat A p by t matrix of standard errors.
 #'
 #' @param R A p by p correlation matrix. It should be estimated from
-#'   the same samples used to compute \code{bhat} and \code{shat}. Using
+#'   the same samples used to compute \code{Bhat} and \code{Shat}. Using
 #'   an out-of-sample matrix may produce unreliable results.
 #'
 #'  @param N The sample size.
@@ -156,6 +156,79 @@ susiF_ss <- function(Bhat, Shat, R, N , var_y, XtX, Xty, yty,
   {
     stop("Error: number of position provided different from the number of column of Y")
   }
+
+  if (missing(N))
+    stop("N must be provided")
+  if (any(N <= 1))
+    stop("N must be more than 1")
+
+  # Check sufficient statistics.
+  missing_Bhat = c(missing(Bhat), missing(Shat), missing(R))
+  missing_XtX = c(missing(XtX), missing(Xty), missing(yty))
+
+
+  if (all(missing_Bhat) & all(missing_XtX))
+    stop("Please provide either all of bhat, Shat, R, N, var_y or all of ",
+         "XtX, Xty, yty, N")
+  if (any(missing_bhat) & any(missing_XtX))
+    stop("Please provide either all of bhat, Shat, R, N, var_y or all of ",
+         "XtX, Xty, yty, n")
+  if (all(missing_Bhat) & any(missing_XtX))
+    stop("Please provide all of XtX, Xty, yty, N")
+  if (all(missing_XtX) & any(missing_Bhat))
+    stop("Please provide all of Bhat, Shat, R, N, var_y")
+  if ((!any(missing_XtX)) & (!all(missing_Bhat)))
+    warning("Only using information from XtX, Xty, yty, N")
+  if (!any(missing_Bhat)) {
+    if (!all(missing_XtX))
+      warning("Only using information from Bhat, Shat, R, N, var_y")
+
+    # Compute XtX, Xty, yty from Bhat, Shat, R, N, var_y.
+    if (length(Shat) == 1)
+      Shat = rep(Shat,length(Bhat))
+    if (length(Bhat) != length(Shat))
+      stop("The length of Bhat does not agree with length of Shat")
+    if (anyNA(Bhat) || anyNA(Shat))
+      stop("The input summary statistics have missing values")
+    if (any(Shat == 0))
+      stop("Shat contains one or more zeros")
+
+    that = bhat/shat
+    that[is.na(that)] = 0
+    R2 = that^2/(that^2 + N-2)
+    sigma2 = (N-1)*(1-R2)/(N-2)
+
+
+    if (missing(var_y)) {
+      XtX = (n-1)*R
+      Xty = sqrt(sigma2) * sqrt(n-1) * that
+      var_y = 1
+    } else {
+      XtXdiag = var_y * sigma2/(shat^2)
+      Xty = that * var_y * sigma2/shat
+      XtX = R
+      XtX = R * sqrt(XtXdiag)
+      XtX = t(XtX)
+      XtX = XtX * sqrt(XtXdiag)
+      XtX = XtX + t(XtX)
+      XtX = XtX/2
+    }
+    yty = var_y * (n-1)
+  }
+
+
+  #Check input XtX.
+  if (ncol(XtX) != length(Xty))
+    stop(paste0("The dimension of XtX (",nrow(XtX)," by ",ncol(XtX),
+                ") does not agree with expected (",length(Xty)," by ",
+                length(Xty),")"))
+  if (!is_symmetric_matrix(XtX)) {
+    message(red("XtX is not symmetric; forcing XtX to be symmetric by",
+                "replacing XtX with (XtX + t(XtX))/2"))
+    XtX = XtX + t(XtX)
+    XtX = XtX/2
+  }
+
 
 
   if(!is.wholenumber(log2(dim(Bhat)[2])) | !(sum( duplicated(diff( pos)))== (length(pos) -2)) ) #check wether dim(Y) not equal to 2^J or if the data are unevenly spaced

@@ -2,18 +2,19 @@
 % Please edit documentation in R/susiF_ss.R
 \name{susiF_ss}
 \alias{susiF_ss}
-\title{Sum of Single Functions}
+\title{Sum of Single Functions using sufficient statistics}
 \usage{
 susiF_ss(
   Bhat,
   Shat,
   R,
-  n,
+  N,
   var_y,
   XtX,
   Xty,
   yty,
   L = 2,
+  wav_trans = FALSE,
   pos = NULL,
   prior = "mixture_normal_per_scale",
   verbose = TRUE,
@@ -29,10 +30,10 @@ susiF_ss(
 \item{Shat}{A p by t matrix of standard errors.}
 
 \item{R}{A p by p correlation matrix. It should be estimated from
-  the same samples used to compute \code{bhat} and \code{shat}. Using
+  the same samples used to compute \code{Bhat} and \code{Shat}. Using
   an out-of-sample matrix may produce unreliable results.
 
- @param n The sample size.}
+ @param N The sample size.}
 
 \item{var_y}{a T vector of The sample variance of Y at each time point , defined as \eqn{y'y/(n-1)}.
 When the sample variance cannot be provided, the coefficients
@@ -47,6 +48,11 @@ centered to have mean zero.}
 
 \item{yty}{A T by T scalar \eqn{y'y} in which y is centered to have mean
 zero.}
+
+\item{L}{integer, number of effect considered.}
+
+\item{wav_trans}{logical, if true the algorithm will consider that the summary statistics based on wavelet transformed data (\code{Bhat} and \code{Shat}).
+if False, the algorithm will rescale \code{Bhat} and \code{Shat} to obtain summary statistics from wavelet regression. Default set as FALSE .}
 
 \item{pos}{vector of length J, corresponding to position/time pf
 the observed column in Y, if missing suppose that the observation
@@ -78,4 +84,64 @@ Implementation of the SuSiF method
 }
 \details{
 tbd
+}
+\examples{
+library(ashr)
+rsnr <- 1#wished root signal noise ratio
+N <- 200   #Number of individuals
+P <- 20 # Number of covariates
+pos1 <- 1#Position of the causal covariate
+lev_res <- 6
+temp_func <-  simu_IBSS_per_level(lev_res )
+f1 <-  temp_func$sim_func
+plot( f1, type ="l")
+G = matrix(sample(c(0, 1,2), size=N*P, replace=TRUE), nrow=N, ncol=P) #Genotype
+beta0       <- 0
+beta1       <- 1
+noisy.data  <- list()
+for ( i in 1:N)
+{
+ f1_obs <- f1
+ noise <- rnorm(length(f1), sd=  (1/  rsnr ) * var(f1))
+ noisy.data [[i]] <-   beta1*G[i,pos1]*f1_obs+ beta1*G[i,4]*f1_obs  +  noise
+
+}
+noisy.data <- do.call(rbind, noisy.data)
+plot( noisy.data[1,], type = "l", col=(G[1, pos1]*3+1),
+     main="Observed curves \n colored by the causal effect", ylim= c(-40,40), xlab="")
+for ( i in 2:N)
+{
+ lines( noisy.data[i,], type = "l", col=(G[i, pos1]*3+1))
+
+}
+legend(x=0.3,
+      y=-10,
+      lty = rep(1,3),
+      legend= c("0", "1","2"),
+      col=c("black","blue","yellow"))
+
+Y <- noisy.data
+X <- G
+
+Y <- apply(Y, 2,scale)
+X <- apply(X, 2,scale)
+
+W <- DWT2(Y)
+update_D <- W
+Y_f <- cbind( W$D,W$C) #Using a column like phenotype
+
+update_Y <- Y_f
+v1       <- rep(1,nrow(Y_f) )
+tt       <- cal_Bhat_Shat(Y_f,X,v1)
+Bhat     <- tt$Bhat
+Shat     <- tt$Shat
+XtX   <- t(X)\%*\%X
+Xty   <- t(X)\%*\%Y_f
+yty   <- t(Y_f)\%*\%Y_f
+var_y <- apply(Y_f, 2,var)
+R     <- cor(X)
+
+out <- susiF_ss(Bhat, Shat, R, N , var_y, XtX, Xty, yty, L = 2, wav_trans=TRUE)
+
+
 }

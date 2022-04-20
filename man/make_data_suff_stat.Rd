@@ -4,7 +4,7 @@
 \alias{make_data_suff_stat}
 \title{Define sufficient stat data format}
 \usage{
-make_data_suff_stat()
+make_data_suff_stat(Bhat, Shat, R, N, var_y, XtX, Xty, yty, wav_trans = FALSE)
 }
 \arguments{
 \item{Bhat}{A p by t matrix of estimated effects.}
@@ -12,10 +12,10 @@ make_data_suff_stat()
 \item{Shat}{A p by t matrix of standard errors.}
 
 \item{R}{A p by p correlation matrix. It should be estimated from
-  the same samples used to compute \code{bhat} and \code{shat}. Using
-  an out-of-sample matrix may produce unreliable results.
+the same samples used to compute \code{Bhat} and \code{Shat}. Using
+an out-of-sample matrix may produce unreliable results.}
 
- @param n The sample size.}
+\item{N}{The sample size.}
 
 \item{var_y}{a T vector of The sample variance of Y at each time point , defined as \eqn{y'y/(n-1)}.
 When the sample variance cannot be provided, the coefficients
@@ -30,6 +30,9 @@ centered to have mean zero.}
 
 \item{yty}{A T by T scalar \eqn{y'y} in which y is centered to have mean
 zero.}
+
+\item{wav_trans}{logical, if true the algorithm will consider that the summary statistics based on wavelet transformed data (\code{Bhat} and \code{Shat}).
+if False, the algorithm will rescale \code{Bhat} and \code{Shat} to obtain summary statistics from wavelet regression. Default set as FALSE .}
 }
 \description{
 Define sufficient stat data format
