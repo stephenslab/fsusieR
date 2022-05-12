@@ -38,8 +38,13 @@
 #' @param cov_lev numeric between 0 and 1, corresponding to the
 #' expected level of coverage of the cs if not specified set to 0.95
 #'
+#' @param min.purity minimum purity for estimated credible sets
+#'
+#' @param filter.cs logical, if TRUE filter the credible set (removing low purity cs and cs with estimated prior equal to 0)
+#'
 #' @examples
 #'
+#'library(ashr)
 #'set.seed(1)
 #'#Example using curves simulated under the Mixture normal per scale prior
 #'rsnr <- 0.2 #wished root signal noise ratio
@@ -142,7 +147,9 @@ susiF <- function(Y, X, L = 2,
                   plot_out = TRUE,
                   maxit = 100,
                   tol = 1e-3,
-                  cov_lev = 0.95
+                  cov_lev = 0.95,
+                  min.purity=0.5,
+                  filter.cs =TRUE
 
 )
 {
@@ -296,6 +303,11 @@ susiF <- function(Y, X, L = 2,
 
 
   #preparing output
-  susiF.obj <- out_prep(susiF.obj,Y, X=X, indx_lst=indx_lst)
+  susiF.obj <- out_prep(susiF.obj,
+                        Y,
+                        X=X,
+                        indx_lst=indx_lst,
+                        filter.cs = filter.cs
+                        )
   return(susiF.obj)
 }

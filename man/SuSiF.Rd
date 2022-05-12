@@ -14,7 +14,9 @@ susiF(
   plot_out = TRUE,
   maxit = 100,
   tol = 0.001,
-  cov_lev = 0.95
+  cov_lev = 0.95,
+  min.purity = 0.5,
+  filter.cs = TRUE
 )
 }
 \arguments{
@@ -51,6 +53,10 @@ than \code{tol}.}
 
 \item{cov_lev}{numeric between 0 and 1, corresponding to the
 expected level of coverage of the cs if not specified set to 0.95}
+
+\item{min.purity}{minimum purity for estimated credible sets}
+
+\item{filter.cs}{logical, if TRUE filter the credible set (removing low purity cs and cs with estimated prior equal to 0)}
 }
 \description{
 Implementation of the SuSiF method
@@ -60,6 +66,7 @@ tbd
 }
 \examples{
 
+library(ashr)
 set.seed(1)
 #Example using curves simulated under the Mixture normal per scale prior
 rsnr <- 0.2 #wished root signal noise ratio
