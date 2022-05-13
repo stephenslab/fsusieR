@@ -40,6 +40,8 @@
 #'
 #' @param min.purity minimum purity for estimated credible sets
 #'
+#' @param lfsr_curve Maximum local false sign rate of the wavelet coefficients used to reconstruct lfsr_curves (set at 0.05 by default; see output)
+#'
 #' @param filter.cs logical, if TRUE filter the credible set (removing low purity cs and cs with estimated prior equal to 0)
 #'
 #' @examples
@@ -149,6 +151,7 @@ susiF <- function(Y, X, L = 2,
                   tol = 1e-3,
                   cov_lev = 0.95,
                   min.purity=0.5,
+                  lfsr_curve = 0.05,
                   filter.cs =TRUE
 
 )
@@ -303,11 +306,12 @@ susiF <- function(Y, X, L = 2,
 
 
   #preparing output
-  susiF.obj <- out_prep(susiF.obj,
-                        Y,
-                        X=X,
-                        indx_lst=indx_lst,
-                        filter.cs = filter.cs
+  susiF.obj <- out_prep(susiF.obj  = susiF.obj,
+                        Y          = Y,
+                        X          = X,
+                        indx_lst   =indx_lst,
+                        filter.cs  = filter.cs,
+                        lfsr_curve = lfsr_curve
                         )
   return(susiF.obj)
 }

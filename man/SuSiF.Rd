@@ -16,6 +16,7 @@ susiF(
   tol = 0.001,
   cov_lev = 0.95,
   min.purity = 0.5,
+  lfsr_curve = 0.05,
   filter.cs = TRUE
 )
 }
@@ -55,6 +56,8 @@ than \code{tol}.}
 expected level of coverage of the cs if not specified set to 0.95}
 
 \item{min.purity}{minimum purity for estimated credible sets}
+
+\item{lfsr_curve}{Maximum local false sign rate of the wavelet coefficients used to reconstruct lfsr_curves (set at 0.05 by default; see output)}
 
 \item{filter.cs}{logical, if TRUE filter the credible set (removing low purity cs and cs with estimated prior equal to 0)}
 }

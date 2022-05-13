@@ -14,7 +14,7 @@ update_lBF(susiF.obj, l, lBF, ...)
 \method{update_lBF}{susiF_ss}(susiF_ss.obj, l, lBF, ...)
 }
 \arguments{
-\item{susiF.obj}{a susisf object defined by \code{\link{init_susiF_obj}} function}
+\item{susiF.obj}{a susiF object defined by \code{\link{init_susiF_obj}} function}
 
 \item{l}{effect to update}
 

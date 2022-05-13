@@ -288,10 +288,10 @@ test_that("The output update should be equal to    ",
             expect_equal(  update_cal_cs(susiF_obj)$cs                                ,tcs)
             expect_equal(  update_cal_indf(susiF_obj, Y=Y, X, indx_lst)$ind_fitted_func ,ind_fitted_func)
             expect_equal(  update_cal_fit_func(susiF_obj, indx_lst)$fitted_func       ,fitted_func)
-            expect_equal(  out_prep(susiF_obj,Y=Y, X=X, indx_lst=indx_lst,filter.cs = FALSE)$pip             ,pip)
-            expect_equal(  out_prep(susiF_obj,Y=Y, X=X, indx_lst=indx_lst,filter.cs = FALSE)$cs              ,tcs)
-            expect_equal(  out_prep(susiF_obj,Y=Y, X=X, indx_lst=indx_lst,filter.cs = FALSE)$ind_fitted_func ,ind_fitted_func)
-            expect_equal(  out_prep(susiF_obj,Y=Y, X=X, indx_lst=indx_lst,filter.cs = FALSE)$fitted_func     ,fitted_func)
+            expect_equal(  out_prep(susiF_obj,Y=Y, X=X, indx_lst=indx_lst,filter.cs = FALSE,lfsr_curve = 0.05)$pip             ,pip)
+            expect_equal(  out_prep(susiF_obj,Y=Y, X=X, indx_lst=indx_lst,filter.cs = FALSE,lfsr_curve = 0.05)$cs              ,tcs)
+            expect_equal(  out_prep(susiF_obj,Y=Y, X=X, indx_lst=indx_lst,filter.cs = FALSE,lfsr_curve = 0.05)$ind_fitted_func ,ind_fitted_func)
+            expect_equal(  out_prep(susiF_obj,Y=Y, X=X, indx_lst=indx_lst,filter.cs = FALSE,lfsr_curve = 0.05)$fitted_func     ,fitted_func)
 
           }
 )
@@ -316,7 +316,7 @@ G_prior <- update_prior(G_prior,
                         tpi= outEM$tpi_k )
 
 susiF_obj <-  update_susiF_obj(susiF_obj, 1, outEM, Bhat, Shat, indx_lst )
-susiF_obj <-  out_prep(susiF_obj,Y, X=X, indx_lst=indx_lst,filter.cs = FALSE)
+susiF_obj <-  out_prep(susiF_obj,Y, X=X, indx_lst=indx_lst,filter.cs = FALSE,lfsr_curve = 0.05)
 
 plot( unlist(susiF_obj$fitted_func), type="l", col="green")
 lines(f1$sim_func, col="red")
@@ -392,3 +392,9 @@ test_that("SusiF performance should be",
 )
 
 
+test_that("Coef 510, 511 should have very low lfsr",
+          {
+            expect_equal(susiF_obj$lfsr_wc[[1]][510],0, tol= 1e-4)
+            expect_equal(susiF_obj$lfsr_wc[[1]][511],0, tol= 1e-4)
+          }
+)

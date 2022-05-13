@@ -6,7 +6,7 @@
 
 #' @title Compute partial residual for effect l
 #'
-#' @param susiF.obj a susisF object defined by \code{\link{init_susiF_obj}} function
+#' @param susiF.obj a susiF object defined by \code{\link{init_susiF_obj}} function
 #'
 #' @param l integer larger or equal to 1. Corresponds to the effect to be accessed
 #'
@@ -188,8 +188,9 @@ discard_cs <- function(susiF.obj, cs)
   susiF.obj$fitted_wc2  <-  susiF.obj$fitted_wc2[ -cs]
   susiF.obj$cs          <-  susiF.obj$cs[ -cs]
   susiF.obj$fitted_func <-  susiF.obj$fitted_func[ -cs]
-  susiF.obj$est_sd      <- susiF.obj$est_sd[ -cs]
-  susiF.obj$est_pi      <- susiF.obj$est_pi[ -cs]
+  susiF.obj$est_sd      <-  susiF.obj$est_sd[ -cs]
+  susiF.obj$est_pi      <-  susiF.obj$est_pi[ -cs]
+  susiF.obj$lfsr_wc     <-  susiF.obj$lfsr_wc [ -cs]
   susiF.obj$L           <-  susiF.obj$L -length(cs)
   return(susiF.obj)
 }
@@ -260,6 +261,8 @@ init_susiF_obj <- function(L, G_prior, Y,X )
   pip             <-  rep(0, dim(X)[2])
   est_pi          <-  list()
   est_sd          <-  list()
+  lfsr_wc         <-  list()
+  lfsr_func       <-  list()
   L               <-  L
   G_prior         <-  G_prior
   N               <- dim(Y)[1]
@@ -277,10 +280,13 @@ init_susiF_obj <- function(L, G_prior, Y,X )
     cs[[l]]               <-  list()
     est_pi [[l]]          <-  get_pi_G_prior(G_prior)
     est_sd [[l]]          <-  get_sd_G_prior(G_prior)
-    lBF[[l]]              <- rep(NA, ncol(X))
+    lBF[[l]]              <-  rep(NA, ncol(X))
+    lfsr_wc[[l]]          <-  rep(1, ncol(Y))
+    lfsr_func[[l]]        <-  rep(1, ncol(Y))
   }
   obj <- list( fitted_wc       = fitted_wc,
                fitted_wc2      = fitted_wc2,
+               lfsr_wc         = lfsr_wc,
                lBF             = lBF,
                KL              = KL,
                ELBO            = ELBO,
@@ -305,7 +311,7 @@ init_susiF_obj <- function(L, G_prior, Y,X )
 #'
 #' @title Access susiF mixture proportion of effect l
 #'
-#' @param susiF.obj a susisf object defined by \code{\link{init_susiF_obj}} function
+#' @param susiF.obj a susiF object defined by \code{\link{init_susiF_obj}} function
 #'
 #' @param l integer larger or equal to 1. Corresponds to the effect to be accessed
 #'
@@ -345,7 +351,7 @@ get_pi.susiF <- function(susiF.obj, l, ...)
 
 #' @title Access susiF log Bayes factors of effect l
 #'
-#' @param susiF.obj a susisf object defined by \code{\link{init_susiF_obj}} function
+#' @param susiF.obj a susiF object defined by \code{\link{init_susiF_obj}} function
 #'
 #' @param l integer larger or equal to 1. Corresponds to the effect to be accessed
 #'
@@ -386,7 +392,7 @@ get_lBF.susiF <- function(susiF.obj, l, ...)
 #'
 #'@title Access susiF internal prior
 #'
-#' @param susiF.obj a susisf object defined by \code{\link{init_susiF_obj}} function
+#' @param susiF.obj a susiF object defined by \code{\link{init_susiF_obj}} function
 #'
 #' @return G_prior object
 #'
@@ -524,7 +530,7 @@ get_post_F2.susiF <- function(susiF.obj, l,...)
 
 #' @title Update alpha  susiF mixture proportion of effect l
 #'
-#' @param susiF.obj a susisf object defined by \code{\link{init_susiF_obj}} function
+#' @param susiF.obj a susiF object defined by \code{\link{init_susiF_obj}} function
 #'
 #' @param l integer larger or equal to 1. Corresponds to the effect to be accessed
 #'
@@ -570,11 +576,12 @@ get_alpha.susiF <-  function(susiF.obj, l, ...  )
 #'
 #' @param filter.cs logical, if TRUE filter the credible set (removing low purity cs and cs with estimated prior equal to 0)
 #'
+#' @param lfsr_curve Maximum local false sign rate of the wavelet coefficients used to reconstruct lfsr_curves (see output)
 #' @return susiF object
 #'
 #' @export
 #'
-out_prep <- function(susiF.obj,Y, X, indx_lst, filter.cs, ...)
+out_prep <- function(susiF.obj,Y, X, indx_lst, filter.cs, lfsr_curve, ...)
   UseMethod("out_prep")
 
 #' @rdname out_prep
@@ -586,7 +593,7 @@ out_prep <- function(susiF.obj,Y, X, indx_lst, filter.cs, ...)
 #' @export
 #'
 
-out_prep.susiF <- function(susiF.obj,Y, X, indx_lst,filter.cs, ...)
+out_prep.susiF <- function(susiF.obj,Y, X, indx_lst, filter.cs, lfsr_curve, ...)
 {
   susiF.obj <-  update_cal_pip(susiF.obj)
   susiF.obj <-  update_cal_cs(susiF.obj)
@@ -596,6 +603,8 @@ out_prep.susiF <- function(susiF.obj,Y, X, indx_lst,filter.cs, ...)
     susiF.obj <- check_cs(susiF.obj)
   }
   susiF.obj <-  update_cal_indf(susiF.obj, Y, X, indx_lst)
+  susiF.obj <-  update_cal_lfsr_func(susiF.obj, lfsr_curve, indx_lst)
+
   return(susiF.obj)
 }
 
@@ -647,7 +656,7 @@ update_pi.susiF <- function( susiF.obj, l, tpi, ...)
 
 #' @title Update alpha   susiF mixture proportion of effect l
 #'
-#' @param susiF.obj a susisf object defined by \code{\link{init_susiF_obj}} function
+#' @param susiF.obj a susiF object defined by \code{\link{init_susiF_obj}} function
 #'
 #' @param l integer larger or equal to 1. Corresponds to the effect to be accessed
 #'
@@ -679,7 +688,7 @@ update_alpha.susiF <-  function(susiF.obj, l, alpha, ... )
 
 #'@title Update  susiF object using the output of EM_pi
 #'
-#' @param susiF.obj a susisf object defined by \code{\link{init_susiF_obj}} function
+#' @param susiF.obj a susiF object defined by \code{\link{init_susiF_obj}} function
 #'
 #' @param l integer larger or equal to 1. Corresponds to the effect to be accessed
 #'
@@ -727,14 +736,16 @@ update_susiF_obj.susiF <- function(susiF.obj, l, EM_pi, Bhat, Shat, indx_lst, ..
 
   new_alpha <- cal_zeta(  EM_pi$lBF)
   susiF.obj <- update_alpha(susiF.obj, l, new_alpha)
-  susiF.obj <- update_lBF(susiF.obj, l, EM_pi$lBF)
+  susiF.obj <- update_lBF  (susiF.obj, l, EM_pi$lBF)
+  susiF.obj <- update_lfsr (susiF.obj, l, Bhat, Shat, alpha=new_alpha, indx_lst= indx_lst )
+
   return(susiF.obj)
 }
 
 
 #'@title Update susiF log Bayes factor
 #'
-#'@param susiF.obj a susisf object defined by \code{\link{init_susiF_obj}} function
+#'@param susiF.obj a susiF object defined by \code{\link{init_susiF_obj}} function
 #'@param l effect to update
 #'@param lBF vector of length p, containning the updated log Bayes factors
 #'@return susiF object
@@ -766,10 +777,46 @@ update_lBF.susiF <- function    (susiF.obj,l, lBF, ...)
 
 
 
+#'@title Update susiF local False Sign Rate
+#'
+#'@param susiF.obj a susiF object defined by \code{\link{init_susiF_obj}} function
+#'
+#'@param l effect to update
+#'
+#' @param Bhat  matrix pxJ regression coefficient, Bhat[j,t] corresponds to regression coefficient of Y[,t] on X[,j]
+#'
+#' @param Shat matrix pxJ standard error, Shat[j,t] corresponds to standard error of the regression coefficient of Y[,t] on X[,j]
+#'
+#'@param alpha  vector of length p, containing the updated log Bayes factors
+#'
+#'@return susiF object
+#'@export
+
+update_lfsr  <- function    (susiF.obj, l, Bhat, Shat, alpha, indx_lst,...)
+  UseMethod("update_lfsr")
+
+#' @rdname update_lfsr
+#'
+#' @method update_lfsr susiF
+#'
+#' @export update_lfsr.susiF
+#'
+#' @export
+#'
+
+update_lfsr.susiF <- function(susiF.obj, l, Bhat, Shat, alpha, indx_lst,...)
+{
+  clfsr_wc <-  cal_clfsr(get_G_prior(susiF.obj),  Bhat,Shat,indx_lst )
+  susiF.obj$lfsr_wc[[l]] <- cal_lfsr (clfsr_wc,alpha)
+  return(susiF.obj)
+}
+
+
+
 
 #'@title Update susiF log Bayes factor
 #'
-#'@param susiF.obj a susisf object defined by \code{\link{init_susiF_obj}} function
+#'@param susiF.obj a susiF object defined by \code{\link{init_susiF_obj}} function
 #'@param  ELBO new ELBO value
 #'@param lBF vector of length p, containning the updated log Bayes factors
 #'@return susiF object
@@ -796,7 +843,7 @@ update_ELBO.susiF <- function    (susiF.obj,ELBO, ...)
 
 #'@title Update susiF by computing PiP
 #'
-#'@param susiF.obj a susisf object defined by \code{\link{init_susiF_obj}} function
+#'@param susiF.obj a susiF object defined by \code{\link{init_susiF_obj}} function
 #'@return susiF object
 #'@export
 
@@ -830,7 +877,7 @@ update_cal_pip.susiF <- function (susiF.obj, ...)
 
 #'@title Update susiF by computing credible sets
 #'
-#' @param susiF.obj a susisf object defined by \code{\link{init_susiF_obj}} function
+#' @param susiF.obj a susiF object defined by \code{\link{init_susiF_obj}} function
 #'
 #' @param cov_lev numeric between 0 and 1, corresponding to the expected level of coverage of the cs if not specified set to 0.95
 #'
@@ -996,6 +1043,70 @@ update_cal_fit_func.susiF <- function(susiF.obj, indx_lst, ...)
   }
   return(susiF.obj)
 }
+
+
+#' @title Update susiF by computing posterior curves using wavelet coefficient with a low lfsr
+#'
+#' @param susiF.obj a susiF object defined by \code{\link{init_susiF_obj}} function
+#'
+#' @param lfsr_curve Maximum local false sign rate of the wavelet coefficients used to reconstruct lfsr_curves (see output)
+#'
+#' @param indx_lst list generated by gen_wavelet_indx for the given level of resolution
+#'
+#' @return susiF object
+#'
+#' @export
+update_cal_lfsr_func  <- function(susiF.obj, lfsr_curve,  indx_lst, ...)
+  UseMethod("update_cal_lfsr_func")
+
+#' @rdname update_cal_lfsr_func
+#'
+#' @method update_cal_lfsr_func susiF
+#'
+#' @export update_cal_lfsr_func.susiF
+#'
+#' @importFrom wavethresh wr
+#'
+#' @importFrom wavethresh wd
+#'
+#' @export
+#'
+
+update_cal_lfsr_func.susiF <- function(susiF.obj, lfsr_curve, indx_lst, ...)
+{
+
+  if(sum( is.na(unlist(susiF.obj$alpha))))
+  {
+    stop("Error: some alpha value not updated, please update alpha value first")
+  }
+  temp <- wd(rep(0, susiF.obj$n_wac))
+
+  if(class(get_G_prior(susiF.obj))=="mixture_normal_per_scale" )
+  {
+    for ( l in 1:susiF.obj$L)
+    {
+      wc_to_select <- ifelse(susiF.obj$lfsr_wc[[l]] < lfsr_curve,1,0)
+      t_wc <- susiF.obj$fitted_wc[[l]]%*% diag(wc_to_select)
+      temp$D                     <- (susiF.obj$alpha[[l]])%*%t_wc[,-indx_lst[[length(indx_lst)]]]
+      temp$C[length(temp$C)]     <- (susiF.obj$alpha[[l]])%*%t_wc[,indx_lst[[length(indx_lst)]]]
+      susiF.obj$lfsr_func[[l]] <- wr(temp)
+    }
+  }
+  if(class(get_G_prior(susiF.obj))=="mixture_normal" )
+  {
+    for ( l in 1:susiF.obj$L)
+    {
+      wc_to_select <- ifelse(susiF.obj$lfsr_wc[[l]] < lfsr_curve,1,0)
+      t_wc <- susiF.obj$fitted_wc[[l]]%*% diag(wc_to_select)
+      temp$D                     <- (susiF.obj$alpha[[l]])%*%t_wc[,-dim(susiF.obj$fitted_wc[[l]])[2]]
+      temp$C[length(temp$C)]     <- (susiF.obj$alpha[[l]])%*%t_wc[,dim(susiF.obj$fitted_wc[[l]])[2]]
+      susiF.obj$lfsr_func[[l]] <- wr(temp)
+    }
+  }
+  return(susiF.obj)
+}
+
+
 
 #' @title Update residual variance
 #'

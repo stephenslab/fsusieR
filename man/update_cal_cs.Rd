@@ -14,7 +14,7 @@ update_cal_cs(susiF.obj, cov_lev = 0.95, ...)
 \method{update_cal_cs}{susiF_ss}(susiF_ss.obj, cov_lev = 0.95)
 }
 \arguments{
-\item{susiF.obj}{a susisf object defined by \code{\link{init_susiF_obj}} function}
+\item{susiF.obj}{a susiF object defined by \code{\link{init_susiF_obj}} function}
 
 \item{cov_lev}{numeric between 0 and 1, corresponding to the expected level of coverage of the cs if not specified set to 0.95}
 }

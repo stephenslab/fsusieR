@@ -14,7 +14,7 @@ update_ELBO(susiF.obj, ELBO, ...)
 \method{update_ELBO}{susiF_ss}(susiF_ss.obj, ELBO, ...)
 }
 \arguments{
-\item{susiF.obj}{a susisf object defined by \code{\link{init_susiF_obj}} function}
+\item{susiF.obj}{a susiF object defined by \code{\link{init_susiF_obj}} function}
 
 \item{ELBO}{new ELBO value}
 

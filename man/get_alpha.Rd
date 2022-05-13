@@ -14,7 +14,7 @@ get_alpha(susiF.obj, l, ...)
 \method{get_alpha}{susiF_ss}(susiF_ss.obj, l, ...)
 }
 \arguments{
-\item{susiF.obj}{a susisf object defined by \code{\link{init_susiF_obj}} function}
+\item{susiF.obj}{a susiF object defined by \code{\link{init_susiF_obj}} function}
 
 \item{l}{integer larger or equal to 1. Corresponds to the effect to be accessed}
 
