@@ -122,6 +122,10 @@ check_cs <- function(susiF.obj, min.purity=0.5)
     {
       return(susiF.obj)
     }else{
+      if(length(dummy.cs)==susiF.obj$L) #avoid returning empty results
+      {
+        dummy.cs <- dummy.cs[-length(dummy.cs)]
+      }
       susiF.obj <- discard_cs( susiF.obj,cs=dummy.cs)
       return(susiF.obj)
     }
@@ -160,6 +164,10 @@ check_cs <- function(susiF.obj, min.purity=0.5)
     {
       return(susiF.obj)
     }else{
+      if(length(dummy.cs)==susiF.obj$L) #avoid returning empty results
+      {
+        dummy.cs <- dummy.cs[-length(dummy.cs)]
+      }
       susiF.obj <- discard_cs( susiF.obj,cs=dummy.cs)
       return(susiF.obj)
     }
