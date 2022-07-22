@@ -1,6 +1,6 @@
 #' @title Simulate data under the mixture normal prior
 #'
-#' @description Add description here.
+#' @description Simulate data under the mixture normal prior.
 #'
 #' @param lev_res numerical corresponds to the resolution of the simulated function (idealy between 3 and 10)
 #'
@@ -55,9 +55,9 @@ simu_IBSS_ash_vanilla <- function( lev_res=7, length_grid= 10, pi0= 0.85)
 }
 
 
-#' @title Simulate data under the mixture normal prior
+#' @title Simulate data under the mixture normal per scale prior
 #'
-#' @description Add description here.
+#' @description Simulate data under the mixture normal per scale prior.
 #'
 #' @param lev_res numerical corresponds to the resolution of the simulated function (idealy between 3 and 10)
 #'
