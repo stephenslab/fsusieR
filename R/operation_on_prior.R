@@ -367,9 +367,9 @@ update_prior.mixture_normal_per_scale <- function(G_prior, tpi, ...)
 
 #' @title Update ash object mixture proportion
 #'
-#' @description Add description here.
+#' @description  Update ash object mixture proportion
 #'
-#' @param G_prior a ash object
+#' @param G a ash object
 #'
 #' @param tpi a vector of proportion
 #'

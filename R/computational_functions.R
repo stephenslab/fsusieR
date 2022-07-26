@@ -2,9 +2,9 @@
 #'
 #'
 #'
-#' @title EM algorithm to find Empirical Bayes prior
+#' @title EM algorithm to select mixture weight in a  Empirical Bayes way
 #'
-#' @description Add description here.
+#' @description Select the mixture wieght by maximizing the marginal likelihood
 #'
 #' @param G_prior mixture normal prior  or mixture  normal per scale
 #'
@@ -97,7 +97,7 @@ cal_Bhat_Shat.default  <- function(Y, X, v1)
   Bhat  <- list()
   Shat  <- list()
 
-  for ( l in 1:dim(Y)[2])
+  for ( l in 1:dim(Y)[2])# TODO gain some speed here
   {
     out <-  do.call( cbind,lapply( 1:dim(X)[2], function(j) fit_lm(l= l,j=j, Y=Y,X=X, v1=v1  ) ) )
     Bhat[[l]]  <- out[1,]
@@ -113,7 +113,7 @@ cal_Bhat_Shat.default  <- function(Y, X, v1)
 
 #' @title Regress column l of Y on column j of X
 #'
-#' @description Add description here.
+#' @description Regress column l of Y on column j of X
 #'
 #' @param Y  functional phenotype, matrix of size N by size J. The underlying algorithm uses wavelets that assume that J is of the form J^2. If J is not a power of 2, susiF internally remaps the data into a grid of length 2^J
 #'
@@ -121,7 +121,7 @@ cal_Bhat_Shat.default  <- function(Y, X, v1)
 #'
 #' @param v1 vector of 1 of length n
 #'
-#' @return vector of 2 containing the regression coefficient and standard
+#' @return vector of 2 containing the regression coefficient and standard error
 #'
 #' @importFrom stats var
 #'
@@ -169,7 +169,7 @@ fit_ash_level <- function (Bhat, Shat, s, indx_lst)
 
 #' @title Compute Log-Bayes Factor
 #'
-#' @description Add description here.
+#' @description Compute Log-Bayes Factor
 #'
 #' @param G_prior Mixture normal prior.
 #'
@@ -185,7 +185,7 @@ fit_ash_level <- function (Bhat, Shat, s, indx_lst)
 #'   for the given level of resolution, used only with class
 #'   \dQuote{mixture_normal_per_scale}
 #'
-#' @return The log-Bayes factor.
+#' @return  The log-Bayes factor for each covariate.
 #'
 #' @export
 #'
@@ -549,7 +549,7 @@ cal_lfsr  <- function (clfsr_wc, alpha){
 
 #'@title Compute likelihood matrix for mixsqp
 #'
-#' @description Add description here.
+#' @description Compute likelihood matrix for mixsqp
 #'
 #' @param G_prior mixture normal prior
 #'
@@ -645,9 +645,9 @@ cal_L_mixsq_s_per_scale <- function(G_prior,s, Bhat, Shat ,indx_lst)
 
 #' @title Compute M step in the weighted ash problem for different prior
 #'
-#' @description Add description here.
+#' @description Compute M step in the weighted ash problem for different prior
 #'
-#' @param L output of L_mixsqp function
+#' @param L output of \code{\link{L_mixsqp}} function
 #'
 #' @param zeta assignment probabilities for each covariate
 #'
@@ -702,7 +702,7 @@ m_step.lik_mixture_normal <- function (L, zeta, indx_lst, ...)
 #'
 m_step.lik_mixture_normal_per_scale <- function(L, zeta, indx_lst, ...)
 {
-  #setting the weight to fit the wieghted ash problem
+  #setting the weight to fit the weighted ash problem
 
 
   out <- lapply(1:length(indx_lst) ,
@@ -715,7 +715,7 @@ m_step.lik_mixture_normal_per_scale <- function(L, zeta, indx_lst, ...)
 
 #'@title Subroutine to compute M step in the weighted ash problem for normal mixture prior per scale at a given scale s
 #'
-#' @description Add description here.
+#' @description  Subroutine to compute M step in the weighted ash
 #'
 #' @param L output of the L_mixsqp.mixture_normal_per_scale function
 #'
