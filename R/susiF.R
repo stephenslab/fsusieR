@@ -182,7 +182,7 @@ susiF <- function(Y, X, L = 2,
 
     inter_pol.obj <- interpol_mat(Y, pos)
     Y             <- inter_pol.obj$Y
-    bp            <-  inter_pol.obj$bp
+    bp            <- inter_pol.obj$bp
     outing_grid   <- inter_pol.obj$grid
     if(verbose)
     {

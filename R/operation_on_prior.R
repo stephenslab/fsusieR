@@ -120,7 +120,7 @@ init_prior.suff_stat <- function(data, prior,  indx_lst )
 
 #' @title Get mixture proportion for mixture normal prior
 #'
-#' @description Add description here.
+#' @description Get mixture proportion for mixture normal prior
 #'
 #' @param G_prior mixture normal prior
 #'

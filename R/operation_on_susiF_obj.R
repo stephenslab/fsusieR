@@ -244,7 +244,7 @@ estimate_residual_variance.susiF <- function(susiF.obj,Y,X, ... )
 #' @param X Matrix of covariates
 #'
 #' @export
-#' @return A list with elements
+#' @return A list with the following elements
 #' \item{fitted_wc}{ list of length L, each element contains the fitted wavelet coefficients of effect l}
 #' \item{fitted_wc2}{list of length L, each element contains the variance of the fitted wavelet coefficients of effect l}
 #' \item{alpha_hist}{ history of the fitted alpha value}
@@ -255,7 +255,10 @@ estimate_residual_variance.susiF <- function(susiF.obj,Y,X, ... )
 #' \item{cs}{credible set}
 #' \item{pip}{Posterior inclusion probabilites}
 #' \item{G_prior}{a G_prior of the same class as the input G_prior, used for internal calculation}
-#'
+#' \item{lBF}{ log Bayes factor for the different effect}
+#' \item{KL}{ the KL divergence for the different effect}
+#' \item{ELBO}{ The evidence lower bound}
+#' \item{lfsr_wc}{Local fasle sign rate of the fitted wavelet coefficients}
 init_susiF_obj <- function(L, G_prior, Y,X )
 {
 
