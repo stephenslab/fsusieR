@@ -28,8 +28,8 @@ for the given level of resolution, used only with class
 \dQuote{mixture_normal_per_scale}}
 }
 \value{
-The log-Bayes factor.
+The log-Bayes factor for each covariate.
 }
 \description{
-Add description here.
+Compute Log-Bayes Factor
 }

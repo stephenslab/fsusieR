@@ -13,7 +13,7 @@ m_step(L, zeta, indx_lst, ...)
 \method{m_step}{lik_mixture_normal_per_scale}(L, zeta, indx_lst, ...)
 }
 \arguments{
-\item{L}{output of L_mixsqp function}
+\item{L}{output of \code{\link{L_mixsqp}} function}
 
 \item{zeta}{assignment probabilities for each covariate}
 
@@ -23,5 +23,5 @@ m_step(L, zeta, indx_lst, ...)
 a vector of proportion (class pi_mixture_normal)
 }
 \description{
-Add description here.
+Compute M step in the weighted ash problem for different prior
 }

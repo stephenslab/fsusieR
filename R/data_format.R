@@ -125,16 +125,37 @@ Bhat_recov <- function(Bhat)
 #'@export
 Shat_recov <- function(Shat, W1)
 {
-  t_Shat <- matrix(NA, ncol = ncol(Shat),nrow=nrow(Shat))
-  for ( i  in 1:nrow(t_Shat))
-  {
-    tt <-  sqrt(apply(  (rep(1, ncol(Shat)-1 )%o%  Shat[i,] ^2)  * (W1[-1,]^2),1,sum))
-    ttC <-  sqrt(sum(  (    Shat[i,] ^2)  *  t(W1[  ,1])^2 ))
+  t_Shat<-  t(apply(Shat,1,function(x)  Shatwc_recov_vec(x,W1)  ))
 
-
-    t_Shat[i,] <- c(shifter(tt,-1),ttC)
-  }
   return(t_Shat)
 }
 
+
+
+
+
+
+#' @title Transform a vector of raw regression coefficient standard error to wavelet regression coefficients standard error
+#'
+#' @param sd_vec matrix of standard error (must be of power of two)
+#'
+#' @param W1 matrix associated with a wavelet transform
+#'
+#' @return Matrix of standard error of the wavelet regression coefficient  using wavelet transform from W1
+#'@export
+
+
+Shatwc_recov_vec <- function(sd_vec,W1)
+{
+
+
+  var_wc <-  c()
+  for ( i in 1:length(sd_vec))
+  {
+    var_wc  <- c(  var_wc ,sum((W1[,i]^2)*diag(sd_vec^2)))
+  }
+  tt <- sqrt(var_wc)
+  out<- c(shifter(tt[-1],-1),tt[1])
+  return(out )
+}
 

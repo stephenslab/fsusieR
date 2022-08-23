@@ -196,7 +196,7 @@ susiF <- function(Y, X, L = 2,
 
   ### Definition of some static parameters ---
   indx_lst <-  gen_wavelet_indx(log2(length( outing_grid)))
-  v1       <- rep(1, dim(X)[1])### used in fit_lm to add a column of 1 in the design matrix
+  v1       <-  rep(1, dim(X)[1])### used in fit_lm to add a column of 1 in the design matrix
   Y_f      <-  cbind( W$D,W$C)
   # Wavelet transform of the inputs
 
@@ -214,10 +214,10 @@ susiF <- function(Y, X, L = 2,
 
   if(susiF.obj$L==1)
   {
-    tt <- cal_Bhat_Shat(update_Y,X,v1)
+    tt   <- cal_Bhat_Shat(update_Y,X,v1)
     Bhat <- tt$Bhat
     Shat <- tt$Shat #UPDATE. could be nicer
-    tpi <-  get_pi(susiF.obj,1)
+    tpi  <- get_pi(susiF.obj,1)
     G_prior <- update_prior(G_prior, tpi= tpi ) #allow EM to start close to previous solution (to double check)
 
     EM_out  <- EM_pi(G_prior  = G_prior,
@@ -309,7 +309,7 @@ susiF <- function(Y, X, L = 2,
   susiF.obj <- out_prep(susiF.obj  = susiF.obj,
                         Y          = Y,
                         X          = X,
-                        indx_lst   =indx_lst,
+                        indx_lst   = indx_lst,
                         filter.cs  = filter.cs,
                         lfsr_curve = lfsr_curve
                         )

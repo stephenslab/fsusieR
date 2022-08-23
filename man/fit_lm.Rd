@@ -14,8 +14,8 @@ fit_lm(l, j, Y, X, v1)
 \item{v1}{vector of 1 of length n}
 }
 \value{
-vector of 2 containing the regression coefficient and standard
+vector of 2 containing the regression coefficient and standard error
 }
 \description{
-Add description here.
+Regress column l of Y on column j of X
 }

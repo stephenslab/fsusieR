@@ -7,13 +7,13 @@
 update_ash_pi(G, tpi)
 }
 \arguments{
-\item{tpi}{a vector of proportion}
+\item{G}{a ash object}
 
-\item{G_prior}{a ash object}
+\item{tpi}{a vector of proportion}
 }
 \value{
 an ash object with updated mixture proportion
 }
 \description{
-Add description here.
+Update ash object mixture proportion
 }

@@ -19,5 +19,5 @@ get_pi_G_prior(G_prior, ...)
 vector of mixture proportion
 }
 \description{
-Add description here.
+Get mixture proportion for mixture normal prior
 }

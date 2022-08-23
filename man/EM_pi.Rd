@@ -2,7 +2,7 @@
 % Please edit documentation in R/computational_functions.R
 \name{EM_pi}
 \alias{EM_pi}
-\title{EM algorithm to find Empirical Bayes prior}
+\title{EM algorithm to select mixture weight in a  Empirical Bayes way}
 \usage{
 EM_pi(G_prior, Bhat, Shat, indx_lst, max_step = 100, espsilon = 1e-04)
 }
@@ -24,5 +24,5 @@ EM_pi(G_prior, Bhat, Shat, indx_lst, max_step = 100, espsilon = 1e-04)
 \item{lBF}{ log Bayes Factor}
 }
 \description{
-Add description here.
+Select the mixture wieght by maximizing the marginal likelihood
 }

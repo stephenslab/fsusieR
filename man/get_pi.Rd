@@ -25,7 +25,7 @@ get_pi(susiF.obj, l, ...)
 \item{l}{integer larger or equal to 1. Corresponds to the effect to be accessed}
 }
 \value{
-a vector of of proportion
+a vector of  proportion
 }
 \description{
 Access susiF mixture proportion of effect l

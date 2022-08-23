@@ -94,20 +94,16 @@ cal_Bhat_Shat <- function(Y, X, v1,...)
 #'
 cal_Bhat_Shat.default  <- function(Y, X, v1)
 {
-  Bhat  <- list()
-  Shat  <- list()
+  out <- t(mapply( function(j,l) fit_lm(l= l, j=j, Y=Y ,X=X,v1=v1),
+                   l=rep(1:dim(Y)[2],each= ncol(X)),
+                   j=rep(1:dim(X)[2], ncol(Y))))
 
-  for ( l in 1:dim(Y)[2])# TODO gain some speed here
-  {
-    out <-  do.call( cbind,lapply( 1:dim(X)[2], function(j) fit_lm(l= l,j=j, Y=Y,X=X, v1=v1  ) ) )
-    Bhat[[l]]  <- out[1,]
-    Shat[[l]] <- out[2,]
-  }
+  Bhat   <-  matrix(  out[,1], nrow=ncol(X))
+  Shat   <-  matrix(  out[,2], nrow=ncol(X))
 
-  Bhat <- (do.call(cbind, Bhat))
-  Shat <- (do.call(cbind, Shat))
   out  <- list( Bhat = Bhat,
                 Shat = Shat)
+
   return(out)
 }
 
@@ -163,7 +159,7 @@ fit_ash_level <- function (Bhat, Shat, s, indx_lst)
 {
   out <- ash(as.vector(Bhat[,indx_lst[[s]]]),
              as.vector(Shat[,indx_lst[[s]]]),
-             mixcompdist = "normal")
+             mixcompdist = "normal" )
   return(out)
 }
 

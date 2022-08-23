@@ -25,5 +25,5 @@ L_mixsq(G_prior, Bhat, Shat, indx_lst, ...)
 See L argument mixsqp package mixsqp function
 }
 \description{
-Add description here.
+Compute likelihood matrix for mixsqp
 }

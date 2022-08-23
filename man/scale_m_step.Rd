@@ -19,5 +19,5 @@ scale_m_step(L, s, zeta, indx_lst)
 a vector of proportion for the scale s
 }
 \description{
-Add description here.
+Subroutine to compute M step in the weighted ash
 }
