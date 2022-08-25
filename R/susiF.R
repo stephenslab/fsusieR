@@ -43,7 +43,8 @@
 #' @param lfsr_curve Maximum local false sign rate of the wavelet coefficients used to reconstruct lfsr_curves (set at 0.05 by default; see output)
 #'
 #' @param filter.cs logical, if TRUE filter the credible set (removing low purity cs and cs with estimated prior equal to 0)
-#'
+#' @param  cal_wc_lsfr logical, if TURE compute the local false sign rate for each wavelet coefficient (currently poorly optimized and take a lot of extra time)
+#'. Set as FALSE by default
 #' @examples
 #'
 #'library(ashr)
@@ -152,8 +153,8 @@ susiF <- function(Y, X, L = 2,
                   cov_lev = 0.95,
                   min.purity=0.5,
                   lfsr_curve = 0.05,
-                  filter.cs =TRUE
-
+                  filter.cs =TRUE,
+                  cal_wc_lsfr=FALSE
 )
 {
     if( prior %!in% c("normal", "mixture_normal", "mixture_normal_per_scale"))
@@ -262,12 +263,13 @@ susiF <- function(Y, X, L = 2,
                          indx_lst =  indx_lst
         )
 
-        susiF.obj <-  update_susiF_obj(susiF.obj = susiF.obj ,
-                                       l         = l,
-                                       EM_pi     = EM_out,
-                                       Bhat      = Bhat,
-                                       Shat      = Shat,
-                                       indx_lst  = indx_lst
+        susiF.obj <-  update_susiF_obj(susiF.obj   = susiF.obj ,
+                                       l           = l,
+                                       EM_pi       = EM_out,
+                                       Bhat        = Bhat,
+                                       Shat        = Shat,
+                                       indx_lst    = indx_lst,
+                                       cal_wc_lsfr = cal_wc_lsfr
         )
 
         update_Y  <-  cal_partial_resid(

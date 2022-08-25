@@ -1,6 +1,6 @@
 #' @title Simulate data under the mixture normal prior
 #'
-#' @description Simulate data under the mixture normal prior.
+#' @description Add description here.
 #'
 #' @param lev_res numerical corresponds to the resolution of the simulated function (idealy between 3 and 10)
 #'
@@ -55,9 +55,9 @@ simu_IBSS_ash_vanilla <- function( lev_res=7, length_grid= 10, pi0= 0.85)
 }
 
 
-#' @title Simulate data under the mixture normal per scale prior
+#' @title Simulate data under the mixture normal prior
 #'
-#' @description Simulate data under the mixture normal per scale prior.
+#' @description Add description here.
 #'
 #' @param lev_res numerical corresponds to the resolution of the simulated function (idealy between 3 and 10)
 #'
@@ -298,7 +298,7 @@ simu_test_function <- function(N=50, P=10,lev_res=7, rsnr=2,is.plot=TRUE, pos1 =
                col= c("black", "red","green", "blue"),
                lty = rep(1,4)
         )
-    }
+      }
 
     }else{
       plot( noisy.data[1,],
@@ -334,22 +334,22 @@ simu_test_function <- function(N=50, P=10,lev_res=7, rsnr=2,is.plot=TRUE, pos1 =
       )
     }
   }
-        if(!missing(pos2))
-          {
-           out <- list( G=G,
-                       noisy.data = noisy.data,
-                       pos1       = pos1,
-                       pos2       = pos2,
-                       f0         = f0,
-                       f1         = f1,
-                       f2         = f2)
-        }else{
-          out <- list( G=G,
-                       noisy.data = noisy.data,
-                       pos1       = pos1,
-                       f0         = f0,
-                       f1         = f1 )
-          }
+  if(!missing(pos2))
+  {
+    out <- list( G=G,
+                 noisy.data = noisy.data,
+                 pos1       = pos1,
+                 pos2       = pos2,
+                 f0         = f0,
+                 f1         = f1,
+                 f2         = f2)
+  }else{
+    out <- list( G=G,
+                 noisy.data = noisy.data,
+                 pos1       = pos1,
+                 f0         = f0,
+                 f1         = f1 )
+  }
   return(out)
 }
 
