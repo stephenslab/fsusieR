@@ -387,6 +387,9 @@ susiF_obj <-  update_susiF_obj(susiF_obj, 1, outEM, Bhat, Shat, indx_lst )
 susiF_obj <-  out_prep(susiF_obj,Y, X=X, indx_lst=indx_lst,filter.cs = FALSE,lfsr_curve = 0.05)
 
 plot( unlist(susiF_obj$fitted_func), type="l", col="green")
+lines( susiF_obj$cred_band [[1]][1,])
+lines( susiF_obj$cred_band [[1]][2,])
+
 lines(f1$sim_func, col="red")
 
 
@@ -427,11 +430,4 @@ test_that("SusiF performance should be",
           }
 )
 
-
-test_that("Coef 510, 511 should have very low lfsr",
-          {
-            expect_equal(susiF_obj$lfsr_wc[[1]][510],0, tol= 1e-4)
-            expect_equal(susiF_obj$lfsr_wc[[1]][511],0, tol= 1e-4)
-          }
-)
 

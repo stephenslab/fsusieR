@@ -393,9 +393,4 @@ test_that("SusiF performance should be",
 )
 
 
-test_that("Coef 510, 511 should have very low lfsr",
-          {
-            expect_equal(susiF_obj$lfsr_wc[[1]][510],0, tol= 1e-4)
-            expect_equal(susiF_obj$lfsr_wc[[1]][511],0, tol= 1e-4)
-          }
-)
+

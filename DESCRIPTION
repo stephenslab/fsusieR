@@ -11,12 +11,14 @@ BugReports: https://github.com/stephenslab/susiF.alpha
 Description: Implementation of the Sum of Single Functions ("FSuSi") method.
 Depends:
   R (>= 3.1.0),
-  wavethresh (>= 4.6.8)
+  wavethresh (>= 4.6.8),
+  ashr (>= 2.2-47),
+  mixsqp (>= 0.3-43)
 Imports:
   graphics,
   stats,
-  ashr (>= 2.2-47),
-  mixsqp (>= 0.3-43)
+  ggplot2,
+  gridExtra
 License: GPL (>=3)
 LazyData: true
 LazyDataCompression: xz

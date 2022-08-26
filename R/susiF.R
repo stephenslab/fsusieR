@@ -39,12 +39,7 @@
 #' expected level of coverage of the cs if not specified set to 0.95
 #'
 #' @param min.purity minimum purity for estimated credible sets
-#'
-#' @param lfsr_curve Maximum local false sign rate of the wavelet coefficients used to reconstruct lfsr_curves (set at 0.05 by default; see output)
-#'
 #' @param filter.cs logical, if TRUE filter the credible set (removing low purity cs and cs with estimated prior equal to 0)
-#' @param  cal_wc_lsfr logical, if TURE compute the local false sign rate for each wavelet coefficient (currently poorly optimized and take a lot of extra time)
-#'. Set as FALSE by default
 #' @examples
 #'
 #'library(ashr)
@@ -153,8 +148,7 @@ susiF <- function(Y, X, L = 2,
                   cov_lev = 0.95,
                   min.purity=0.5,
                   lfsr_curve = 0.05,
-                  filter.cs =TRUE,
-                  cal_wc_lsfr=FALSE
+                  filter.cs =TRUE
 )
 {
     if( prior %!in% c("normal", "mixture_normal", "mixture_normal_per_scale"))
@@ -213,7 +207,7 @@ susiF <- function(Y, X, L = 2,
   check <- 1
   h     <- 0
 
-  if(susiF.obj$L==1)
+  if( L==1)
   {
     tt   <- cal_Bhat_Shat(update_Y,X,v1)
     Bhat <- tt$Bhat
@@ -247,7 +241,7 @@ susiF <- function(Y, X, L = 2,
   }else{
     while(check >tol & (h/L) <maxit)
     {
-      for( l in 1:susiF.obj$L)
+      for( l in 1:L)
       {
 
         h <- h+1
@@ -268,8 +262,7 @@ susiF <- function(Y, X, L = 2,
                                        EM_pi       = EM_out,
                                        Bhat        = Bhat,
                                        Shat        = Shat,
-                                       indx_lst    = indx_lst,
-                                       cal_wc_lsfr = cal_wc_lsfr
+                                       indx_lst    = indx_lst
         )
 
         update_Y  <-  cal_partial_resid(
@@ -312,8 +305,7 @@ susiF <- function(Y, X, L = 2,
                         Y          = Y,
                         X          = X,
                         indx_lst   = indx_lst,
-                        filter.cs  = filter.cs,
-                        lfsr_curve = lfsr_curve
+                        filter.cs  = filter.cs
                         )
   return(susiF.obj)
 }
