@@ -26,7 +26,7 @@ for ( i in 1:N)
 }
 noisy.data <- do.call(rbind, noisy.data)
 
-  L =10
+  L =2
 pos = NULL
 prior = "mixture_normal_per_scale"
 verbose = TRUE

@@ -1257,11 +1257,38 @@ update_KL.susiF <- function(susiF.obj, Y, X, D, C , indx_lst, ...)
 #'
 #' @param susiF.obj output of the susiF function
 #'
+#' @param cred.band logical if set as true plot credible bands. Set as TRUE by default
+#' @param effect numerical if specified plot on effect in particular
+#'
 #' @export
 #'
 
-plot_susiF <- function(susiF.obj, ...)
+plot_susiF <- function(susiF.obj, cred.band=TRUE , effect   ,...)
+
 {
+  #check if required package are isntall if not isntall them
+
+  list.of.packages <- c("ggplot2", "gridExtra")
+  new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
+  if(length(new.packages)) install.packages(new.packages)
+
+  color = c(
+    "black",
+    "dodgerblue2",
+    "green4",
+    "#6A3D9A", # purple
+    "#FF7F00", # orange
+    "gold1",
+    "skyblue2", "#FB9A99", # lt pink
+    "palegreen2",
+    "#CAB2D6", # lt purple
+    "#FDBF6F", # lt orange
+    "gray70", "khaki2",
+    "maroon", "orchid1", "deeppink1", "blue1", "steelblue4",
+    "darkturquoise", "green1", "yellow4", "yellow3",
+    "darkorange4", "brown"
+  )
+
   L     <- susiF.obj$L
   n_wac <- susiF.obj$n_wac
 
@@ -1270,20 +1297,22 @@ plot_susiF <- function(susiF.obj, ...)
   col_y <-  rep( 0, length(y))
 
 
-  for ( l in 1:L)
-  {
-    col_y[ which (1:length(y)%in% susiF.obj$cs[[l]])] <- l
-  }
-  df <-  data.frame( y=y,
-                     CS= as.factor(col_y)
-                     )
-  P1 <- ggplot(df,aes(y=y, x= 1:length(y), col= CS))+
-         geom_point()+
-         theme(axis.ticks.x = element_blank(),
-                axis.text.x = element_blank()
-               )+
-    xlab( "covariate index")+
-    ylab("Posterior Inclusion Probability (PIP)")
+  if(missing(effect)){
+    for ( l in 1:L)
+    {
+      col_y[ which (1:length(y)%in% susiF.obj$cs[[l]])] <- l
+    }
+    df <-  data.frame( y=y,
+                       CS= as.factor(col_y)
+    )
+    P1 <- ggplot2::ggplot(df,aes(y=y, x= 1:length(y), col= CS))+
+      geom_point(size =2)+
+      theme(axis.ticks.x = element_blank(),
+            axis.text.x = element_blank()
+      )+
+      scale_color_manual("Credible set", values =color)+
+      xlab( "covariate index")+
+      ylab("Posterior Inclusion Probability (PIP)")
 
 
 
@@ -1291,32 +1320,139 @@ plot_susiF <- function(susiF.obj, ...)
     fun_plot <- do.call( c ,
                          susiF.obj$fitted_func
     )
-    cred_band <- data.frame(t(do.call( cbind,
-                                     susiF.obj$cred_band
-                                    )
+    fun_plot <- c(rep(0,n_wac), fun_plot)#add origin
+
+    if(cred.band){
+      cred_band <- data.frame(t(do.call( cbind,
+                                         susiF.obj$cred_band
+                                        )
+                                )
                               )
-                            )
-   x    <-  rep ( 1:susiF.obj$n_wac,
-                         susiF.obj$L
-                 )
 
-    CS  <- rep( 1:L,
-               each = n_wac
-              )
-    df <- data.frame(fun_plot = fun_plot,
-                     CS       = as.factor(CS),
-                     x        = x,
-                     upr      = cred_band$up,
-                     lwr      = cred_band$low
-                     )
-    P2 <- ggplot(df, aes(y=fun_plot, x= x ,col=CS))+
-      geom_line(size=2)+
-      geom_ribbon(aes(ymin=lwr,ymax=upr, col=CS),alpha=0.3)+
-      xlab( "postion")+
-      ylab("Estimated effect")
+      cred_band <- rbind( data.frame(up = rep(0, n_wac),
+                                     low = rep(0,n_wac)
+      ),
+      cred_band)
+
+      x    <-  rep ( 1:susiF.obj$n_wac,
+                     (susiF.obj$L+1)
+      )
+
+      CS  <- rep( 0:L,
+                  each = n_wac
+      )
+      df <- data.frame(fun_plot = fun_plot,
+                       CS       = as.factor(CS),
+                       x        = x,
+                       upr      = cred_band$up,
+                       lwr      = cred_band$low
+      )
+      P2 <- ggplot2::ggplot(df, aes(y=fun_plot, x= x ,col=CS))+
+        geom_line(size=2)+
+        geom_ribbon(aes(ymin=lwr,ymax=upr, fill=CS,col=CS),alpha=0.3)+
+        scale_color_manual("Credible set", values =color)+
+        scale_fill_manual ("Credible set", values =color)+
+        xlab( "postion")+
+        ylab("Estimated effect")
 
 
-  out <- grid.arrange(P1,P2,ncol=2)
+      out <- gridExtra::grid.arrange(P1,P2,ncol=2)
+    }else{
+
+
+      x    <-  rep ( 1:susiF.obj$n_wac,
+                     (susiF.obj$L+1)
+      )
+
+      CS  <- rep( 0:L,
+                  each = n_wac
+      )
+      df <- data.frame(fun_plot = fun_plot,
+                       CS       = as.factor(CS),
+                       x        = x
+      )
+      P2 <- ggplot2::ggplot(df, aes(y=fun_plot, x= x ,col=CS))+
+        geom_line(size=2)+
+        scale_color_manual("Credible set", values =color)+
+        xlab( "postion")+
+        ylab("Estimated effect")
+
+
+      out <- gridExtra::grid.arrange(P1,P2,ncol=2)
+    }
+
+  }else{
+    if(effect >L){
+      stop( paste("the specified effect should be lower or equal to ", L))
+    }
+    fun_plot <-  susiF.obj$fitted_func[[effect]]
+
+    fun_plot <- c(rep(0,n_wac), fun_plot)#add origin
+
+    if(cred.band){
+      cred_band <- data.frame(t ( susiF.obj$cred_band[[effect]]
+                                 )
+                               )
+
+      cred_band <- rbind( data.frame(up = rep(0, n_wac),
+                                     low = rep(0,n_wac)
+                                    ),
+                          cred_band
+                        )
+
+      x    <-  rep ( 1:susiF.obj$n_wac,
+                     (1+1)
+      )
+
+      CS  <- rep( c(0,effect),
+                  each = n_wac
+      )
+      df <- data.frame(fun_plot = fun_plot,
+                       CS       = as.factor(CS),
+                       x        = x,
+                       upr      = cred_band$up,
+                       lwr      = cred_band$low
+      )
+      P2 <- ggplot2::ggplot(df, aes(y=fun_plot, x= x ,col=CS))+
+        geom_line(size=2)+
+        geom_ribbon(aes(ymin=lwr,ymax=upr, fill=CS,col=CS),alpha=0.3)+
+        scale_color_manual("Credible set", values =color)+
+        scale_fill_manual ("Credible set", values =color)+
+        xlab( "postion")+
+        ylab("Estimated effect")
+
+
+      out <-P2
+    }else{
+
+
+      x    <-  rep ( 1:susiF.obj$n_wac,
+                     (1+1)
+      )
+
+      CS  <- rep( c(0,effect),
+                  each = n_wac
+      )
+      df <- data.frame(fun_plot = fun_plot,
+                       CS       = as.factor(CS),
+                       x        = x
+
+      )
+      P2 <- ggplot2::ggplot(df, aes(y=fun_plot, x= x ,col=CS))+
+        geom_line(size=2)+
+
+        scale_color_manual("Credible set", values =color)+
+
+        xlab( "postion")+
+        ylab("Estimated effect")
+
+
+      out <-P2
+    }
+
+  }
+
+
   out
   return( out)
 }

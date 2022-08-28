@@ -159,7 +159,8 @@ fit_ash_level <- function (Bhat, Shat, s, indx_lst)
 {
   out <- ash(as.vector(Bhat[,indx_lst[[s]]]),
              as.vector(Shat[,indx_lst[[s]]]),
-             mixcompdist = "normal" )
+             mixcompdist = "normal" ,
+             outputlevel=0)
   return(out)
 }
 
