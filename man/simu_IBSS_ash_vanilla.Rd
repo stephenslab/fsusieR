@@ -14,7 +14,7 @@ simu_IBSS_ash_vanilla(lev_res = 7, length_grid = 10, pi0 = 0.85)
 \item{piO}{vector numerical , contain a digit  between 0 and 1, which corresponds to the null proportion ( non assocatied wavelet coefficients)}
 }
 \description{
-Simulate data under the mixture normal prior.
+Add description here.
 }
 \examples{
 

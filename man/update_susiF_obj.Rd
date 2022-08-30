@@ -9,7 +9,16 @@
 \usage{
 update_susiF_obj(susiF.obj, l, EM_pi, Bhat, Shat, indx_lst, ...)
 
-\method{update_susiF_obj}{susiF}(susiF.obj, l, EM_pi, Bhat, Shat, indx_lst, ...)
+\method{update_susiF_obj}{susiF}(
+  susiF.obj,
+  l,
+  EM_pi,
+  Bhat,
+  Shat,
+  indx_lst,
+  cal_wc_lsfr = FALSE,
+  ...
+)
 
 \method{update_susiF_obj}{susiF_ss}(susiF_ss.obj, l, EM_pi, Bhat, Shat, indx_lst, ...)
 }

@@ -25,5 +25,5 @@ post_mat_sd(G_prior, Bhat, Shat, ...)
 pxJ matrix of posterior standard deviation
 }
 \description{
-Add description here.
+Compute posterior standard deviation under mixture normal prior
 }

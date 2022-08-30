@@ -19,5 +19,5 @@
 an object of the class "normal", "mixture_normal" or "mixture_normal_per_scale"
 }
 \description{
-generate list of object corresponding to the parameters of the prior set for analysis
+generate list of object corresponding to the parameters of the prior
 }

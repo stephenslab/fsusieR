@@ -57,8 +57,6 @@ expected level of coverage of the cs if not specified set to 0.95}
 
 \item{min.purity}{minimum purity for estimated credible sets}
 
-\item{lfsr_curve}{Maximum local false sign rate of the wavelet coefficients used to reconstruct lfsr_curves (set at 0.05 by default; see output)}
-
 \item{filter.cs}{logical, if TRUE filter the credible set (removing low purity cs and cs with estimated prior equal to 0)}
 }
 \description{
@@ -69,28 +67,40 @@ tbd
 }
 \examples{
 
+library(susiF.alpha)
 library(ashr)
 set.seed(1)
 #Example using curves simulated under the Mixture normal per scale prior
-rsnr <- 0.2 #wished root signal noise ratio
-N <- 100 #Number of individuals
-P <- 10 # Number of covariates
-pos1 <- 1#Position of the causal covariate
-lev_res <- 7
-temp_func <-  simu_IBSS_per_level(lev_res )
-f1 <-  temp_func$sim_func
-plot( f1, type ="l")
+rsnr <- 0.2 #expected root signal noise ratio
+N <- 100    #Number of individuals
+P <- 10     #Number of covariates
+pos1 <- 1   #Position of the causal covariate for effect 1
+pos2 <- 5   #Position of the causal covariate for effect 1
+lev_res <- 7#length of the molecular phenotype (2^lev_res)
+f1 <-  simu_IBSS_per_level(lev_res )$sim_func#first effect
+f2 <- simu_IBSS_per_level(lev_res )$sim_func #second effect
+
+plot( f1, type ="l", ylab="effect", col="blue")
+abline(a=0,b=0)
+lines(f2, type="l", col="green")
+
+legend(x=100,
+      y=3,
+      lty = rep(1,3),
+      legend= c("effect 1", "effect 2" ),
+      col=c("black","blue","yellow"))
 G = matrix(sample(c(0, 1,2), size=N*P, replace=TRUE), nrow=N, ncol=P) #Genotype
 beta0       <- 0
 beta1       <- 1
-
+beta2       <- 1
 noisy.data  <- list()
 
 for ( i in 1:N)
 {
  f1_obs <- f1
+ f2_obs <- f2
  noise <- rnorm(length(f1), sd=  (1/  rsnr ) * var(f1))
- noisy.data [[i]] <-   beta1*G[i,pos1]*f1_obs +  noise
+ noisy.data [[i]] <-   beta1*G[i,pos1]*f1_obs + beta2*G[i,pos2]*f2_obs + noise
 
 }
 noisy.data <- do.call(rbind, noisy.data)
@@ -111,53 +121,40 @@ legend(x=0.3,
       legend= c("0", "1","2"),
       col=c("black","blue","yellow"))
 
+
+
 Y <- noisy.data
 X <- G
-out <- susiF(Y,X,L=1, prior="mixture_normal")
-temp_func$emp_pi0
-plot( f1, type="l", main="fitted curves for different prior", xlab="")
-lines(unlist(out$fitted_func),col='red' )
-out <- susiF(Y,X,L=1, prior="mixture_normal_per_scale")
-lines(unlist(out$fitted_func),col='blue' )
-legend(x= 60,
+#Running fSuSiE
+
+out <- susiF(Y,X,L=2 , prior = 'mixture_normal_per_scale')
+#the easiest way to vizualize the result is to use the plot_susiF function
+
+plot_susiF(out)
+
+#You can also acces the information directly in the out of susiF. as follow
+par(mfrow=c(1,2))
+
+plot( f1, type="l", main="Estimated effect 1", xlab="")
+lines(unlist(out$fitted_func[[1]]),col='blue' )
+abline(a=0,b=0)
+legend(x= 35,
       y=3,
-      lty= rep(1,3),
-      legend = c("Objective", "Mixture of Normals","Mixture of Normals per scale"),
-      col=c("black","red","blue")
-      )
+      lty= rep(1,2),
+      legend = c("effect 1"," fSuSiE est "),
+      col=c("black","blue" )
+)
+plot( f2, type="l", main="Estimated effect 2", xlab="")
+lines(unlist(out$fitted_func[[2]]),col='green' )
+abline(a=0,b=0)
+legend(x= 20,
+      y=-1.5,
+      lty= rep(1,2),
+      legend = c("effect 2"," fSuSiE est "),
+      col=c("black","green" )
+)
 
-
-set.seed(3)
-#Example using curves simulated under the Mixture normal per scale prior
-library(ashr)
-sim  <- simu_test_function(N=100,rsnr=0.2,  lev_res= 8,is.plot = TRUE)
-Y <- sim$noisy.data
-X <- sim$G
-out <- susiF(Y,X,L=1, prior="mixture_normal")
-plot( sim$f1, type="l",main="fitted curves for different prior", xlab="")
-lines(unlist(out$fitted_func),col='red' )
-
-out <- susiF(Y,X,L=1, prior="mixture_normal_per_scale")
-lines(unlist(out$fitted_func),col='blue' )
-
-legend(x= 1,
-      y=-8,
-      lty= rep(1,3),
-      legend= c("Objective", "Mixture of Normals","Mixture of Normals per scale"),
-       col=c("black","red","blue"))
-
-
-
-set.seed(2)
-#Problematic exemple where per scale prior do not shrink enough
-#Example using curves simulated under the Mixture normal per scale prior
-sim  <- simu_test_function(N=100,rsnr=0.2,  lev_res= 8,is.plot = TRUE)
-Y <- sim$noisy.data
-X <- sim$G
-out <- susiF(Y,X,L=1, prior="mixture_normal")
-plot( sim$f1, type="l")
-lines(unlist(out$fitted_func),col='red' )
-out <- susiF(Y,X,L=1, prior="mixture_normal_per_scale")
-lines(unlist(out$fitted_func),col='blue' )
+par(mfrow=c(1,1))
+plot_susiF(out)
 
 }
