@@ -40,6 +40,8 @@
 #'
 #' @param min.purity minimum purity for estimated credible sets
 #' @param filter.cs logical, if TRUE filter the credible set (removing low purity cs and cs with estimated prior equal to 0)
+#' @param init_pi0_w starting value of weight on null compoenent in mixsqp (between 0 and 1)
+#'
 #' @examples
 #'
 #'library(susiF.alpha)
@@ -145,8 +147,8 @@ susiF <- function(Y, X, L = 2,
                   tol = 1e-3,
                   cov_lev = 0.95,
                   min.purity=0.5,
-                  lfsr_curve = 0.05,
-                  filter.cs =TRUE
+                  filter.cs =TRUE,
+                  init_pi0_w = 1
 )
 {
     if( prior %!in% c("normal", "mixture_normal", "mixture_normal_per_scale"))
@@ -213,10 +215,11 @@ susiF <- function(Y, X, L = 2,
     tpi  <- get_pi(susiF.obj,1)
     G_prior <- update_prior(G_prior, tpi= tpi ) #allow EM to start close to previous solution (to double check)
 
-    EM_out  <- EM_pi(G_prior  = G_prior,
-                     Bhat     = Bhat,
-                     Shat     = Shat,
-                     indx_lst = indx_lst
+    EM_out  <- EM_pi(G_prior    = G_prior,
+                     Bhat       = Bhat,
+                     Shat       = Shat,
+                     indx_lst   = indx_lst,
+                     init_pi0_w =init_pi0_w
     )
 
     susiF.obj <-  update_susiF_obj(susiF.obj = susiF.obj ,
@@ -249,10 +252,11 @@ susiF <- function(Y, X, L = 2,
         tpi <-  get_pi(susiF.obj,l)
         G_prior <- update_prior(G_prior, tpi= tpi ) #allow EM to start close to previous solution (to double check)
 
-        EM_out  <- EM_pi(G_prior  = G_prior,
-                         Bhat     =  Bhat,
-                         Shat     =  Shat,
-                         indx_lst =  indx_lst
+        EM_out  <- EM_pi(G_prior    =  G_prior,
+                         Bhat       =  Bhat,
+                         Shat       =  Shat,
+                         indx_lst   =  indx_lst,
+                         init_pi0_w =  init_pi0_w
         )
 
         susiF.obj <-  update_susiF_obj(susiF.obj   = susiF.obj ,

@@ -273,8 +273,6 @@ init_susiF_obj <- function(L, G_prior, Y,X )
   pip             <-  rep(0, dim(X)[2])
   est_pi          <-  list()
   est_sd          <-  list()
-  lfsr_wc         <-  list()
-  lfsr_func       <-  list()
   L               <-  L
   G_prior         <-  G_prior
   N               <- dim(Y)[1]
@@ -293,15 +291,13 @@ init_susiF_obj <- function(L, G_prior, Y,X )
     est_pi [[l]]          <-  get_pi_G_prior(G_prior)
     est_sd [[l]]          <-  get_sd_G_prior(G_prior)
     lBF[[l]]              <-  rep(NA, ncol(X))
-    lfsr_wc[[l]]          <-  rep(1, ncol(Y))
-    lfsr_func[[l]]        <-  rep(1, ncol(Y))
     cred_band[[l]]        <- matrix(0, ncol = dim(Y)[2], nrow = 2)
   }
   obj <- list( fitted_wc       = fitted_wc,
                fitted_wc2      = fitted_wc2,
-               lfsr_wc         = lfsr_wc,
                lBF             = lBF,
                KL              = KL,
+               cred_band       = cred_band,
                ELBO            = ELBO,
                ind_fitted_func = ind_fitted_func,
                G_prior         = G_prior,
@@ -702,7 +698,9 @@ update_alpha.susiF <-  function(susiF.obj, l, alpha, ... )
   return( susiF.obj)
 }
 
-#'@title Update  susiF object using the output of EM_pi
+#' @title Update  susiF object using the output of EM_pi
+#'
+#' @description Update  susiF object using the output of EM_pi
 #'
 #' @param susiF.obj a susiF object defined by \code{\link{init_susiF_obj}} function
 #'
@@ -1271,7 +1269,7 @@ plot_susiF <- function(susiF.obj, cred.band=TRUE , effect   ,...)
   list.of.packages <- c("ggplot2", "gridExtra")
   new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
   if(length(new.packages)) install.packages(new.packages)
-
+  require(ggplot2)
   color = c(
     "black",
     "dodgerblue2",
@@ -1347,7 +1345,7 @@ plot_susiF <- function(susiF.obj, cred.band=TRUE , effect   ,...)
                        upr      = cred_band$up,
                        lwr      = cred_band$low
       )
-      P2 <- ggplot2::ggplot(df, aes(y=fun_plot, x= x ,col=CS))+
+      P2 <- ggplot(df, aes(y=fun_plot, x= x ,col=CS))+
         geom_line(size=2)+
         geom_ribbon(aes(ymin=lwr,ymax=upr, fill=CS,col=CS),alpha=0.3)+
         scale_color_manual("Credible set", values =color)+
@@ -1371,7 +1369,7 @@ plot_susiF <- function(susiF.obj, cred.band=TRUE , effect   ,...)
                        CS       = as.factor(CS),
                        x        = x
       )
-      P2 <- ggplot2::ggplot(df, aes(y=fun_plot, x= x ,col=CS))+
+      P2 <- ggplot(df, aes(y=fun_plot, x= x ,col=CS))+
         geom_line(size=2)+
         scale_color_manual("Credible set", values =color)+
         xlab( "postion")+
@@ -1413,7 +1411,7 @@ plot_susiF <- function(susiF.obj, cred.band=TRUE , effect   ,...)
                        upr      = cred_band$up,
                        lwr      = cred_band$low
       )
-      P2 <- ggplot2::ggplot(df, aes(y=fun_plot, x= x ,col=CS))+
+      P2 <- ggplot(df, aes(y=fun_plot, x= x ,col=CS))+
         geom_line(size=2)+
         geom_ribbon(aes(ymin=lwr,ymax=upr, fill=CS,col=CS),alpha=0.3)+
         scale_color_manual("Credible set", values =color)+
@@ -1438,7 +1436,7 @@ plot_susiF <- function(susiF.obj, cred.band=TRUE , effect   ,...)
                        x        = x
 
       )
-      P2 <- ggplot2::ggplot(df, aes(y=fun_plot, x= x ,col=CS))+
+      P2 <- ggplot(df, aes(y=fun_plot, x= x ,col=CS))+
         geom_line(size=2)+
 
         scale_color_manual("Credible set", values =color)+
