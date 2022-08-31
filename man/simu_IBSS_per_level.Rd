@@ -2,7 +2,7 @@
 % Please edit documentation in R/Simulations_functions.R
 \name{simu_IBSS_per_level}
 \alias{simu_IBSS_per_level}
-\title{Simulate data under the mixture normal per scale prior}
+\title{Simulate data under the mixture normal prior}
 \usage{
 simu_IBSS_per_level(
   lev_res = 7,
@@ -24,7 +24,7 @@ simu_IBSS_per_level(
 \item{piO}{vector numerical , contain a digit  between 0 and 1, which corresponds to the null proportion ( non assocatied wavelet coefficients)}
 }
 \description{
-Simulate data under the mixture normal per scale prior.
+Add description here.
 }
 \examples{
 out <- simu_IBSS_per_level(lev_res=9, alpha=1, prop_decay = 0.5)
