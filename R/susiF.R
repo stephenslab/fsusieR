@@ -9,7 +9,7 @@
 #'   form J^2. If J not a power of 2, susif internally remaps the data
 #'   into grid of length 2^J
 #'
-#' @param X matrix of size n by p in
+#' @param X matrix of size n by p contains the covariates
 #'
 #' @param L the number of effect to fit (if not specified set to =2)
 #'
@@ -279,6 +279,8 @@ susiF <- function(Y, X, L = 2,
 
       }#end for l in 1:L
 
+      sigma2    <- estimate_residual_variance(susiF.obj,Y=Y_f,X)
+      susiF.obj <- update_residual_variance(susiF.obj, sigma2 = sigma2 )
 
        susiF.obj <- update_ELBO(susiF.obj,
                                  get_objective( susiF.obj = susiF.obj,
@@ -290,12 +292,10 @@ susiF <- function(Y, X, L = 2,
                                                 )
                                           )
 
-      sigma2    <- estimate_residual_variance(susiF.obj,Y=Y_f,X)
-      susiF.obj <- update_residual_variance(susiF.obj, sigma2 = sigma2 )
 
       if(length(susiF.obj$ELBO)>1 )#update parameter convergence,
       {
-        check <- diff(susiF.obj$ELBO)[(length( susiF.obj$ELBO )-1)]
+        check <- abs(diff(susiF.obj$ELBO)[(length( susiF.obj$ELBO )-1)])
 
       }
     }#end while

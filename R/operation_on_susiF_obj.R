@@ -831,7 +831,6 @@ update_lfsr.susiF <- function(susiF.obj, l, Bhat, Shat, alpha, indx_lst,...)
 #'
 #'@param susiF.obj a susiF object defined by \code{\link{init_susiF_obj}} function
 #'@param  ELBO new ELBO value
-#'@param lBF vector of length p, containning the updated log Bayes factors
 #'@return susiF object
 #'@export
 

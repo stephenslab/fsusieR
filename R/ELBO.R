@@ -161,7 +161,7 @@ loglik_SFR_post <- function    (susiF.obj, l,  ...)
 loglik_SFR_post.susiF <- function(susiF.obj, l,Y,X)
 {
   n <- nrow(Y)
-  t <- nrow(Y)
+  t <- ncol(Y)
   EF  <- get_post_F(susiF.obj,l)
   EF2 <- get_post_F2(susiF.obj,l)
   s2  <- susiF.obj$sigma2

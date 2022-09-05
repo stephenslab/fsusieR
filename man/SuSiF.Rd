@@ -16,8 +16,8 @@ susiF(
   tol = 0.001,
   cov_lev = 0.95,
   min.purity = 0.5,
-  lfsr_curve = 0.05,
-  filter.cs = TRUE
+  filter.cs = TRUE,
+  init_pi0_w = 1
 )
 }
 \arguments{
@@ -26,7 +26,7 @@ underlying algorithm uses wavelet which assume that J is of the
 form J^2. If J not a power of 2, susif internally remaps the data
 into grid of length 2^J}
 
-\item{X}{matrix of size n by p in}
+\item{X}{matrix of size n by p contains the covariates}
 
 \item{L}{the number of effect to fit (if not specified set to =2)}
 
@@ -58,6 +58,8 @@ expected level of coverage of the cs if not specified set to 0.95}
 \item{min.purity}{minimum purity for estimated credible sets}
 
 \item{filter.cs}{logical, if TRUE filter the credible set (removing low purity cs and cs with estimated prior equal to 0)}
+
+\item{init_pi0_w}{starting value of weight on null compoenent in mixsqp (between 0 and 1)}
 }
 \description{
 Implementation of the SuSiF method

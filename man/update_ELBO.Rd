@@ -17,8 +17,6 @@ update_ELBO(susiF.obj, ELBO, ...)
 \item{susiF.obj}{a susiF object defined by \code{\link{init_susiF_obj}} function}
 
 \item{ELBO}{new ELBO value}
-
-\item{lBF}{vector of length p, containning the updated log Bayes factors}
 }
 \value{
 susiF object
