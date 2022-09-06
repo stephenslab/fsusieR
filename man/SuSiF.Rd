@@ -17,7 +17,8 @@ susiF(
   cov_lev = 0.95,
   min.purity = 0.5,
   filter.cs = TRUE,
-  init_pi0_w = 1
+  init_pi0_w = 1,
+  control_mixsqp = list(eps = 1e-06, numiter.em = 40, verbose = FALSE)
 )
 }
 \arguments{
@@ -60,6 +61,8 @@ expected level of coverage of the cs if not specified set to 0.95}
 \item{filter.cs}{logical, if TRUE filter the credible set (removing low purity cs and cs with estimated prior equal to 0)}
 
 \item{init_pi0_w}{starting value of weight on null compoenent in mixsqp (between 0 and 1)}
+
+\item{control_mixsqp}{list of parameter for mixsqp function see\link{\code{mixsqp}}}
 }
 \description{
 Implementation of the SuSiF method

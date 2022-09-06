@@ -430,7 +430,7 @@ get_ER2.susiF = function (  susiF.obj,Y, X) {
   postF <- get_post_F(susiF.obj )# J by N matrix
   #Xr_L = t(X%*% postF)
   postF2 <- get_post_F2(susiF.obj ) # Posterior second moment.
-  return(sum((Y - X%*%postF )^2)  -sum(postF)^2 + sum(postF2))
+  return(sum((Y - X%*%postF )^2)  -sum(postF)^2 + sum( postF2))
 }
 
 
@@ -1240,9 +1240,9 @@ update_KL <- function(susiF.obj,   X, D, C , indx_lst, ...)
 #' @export
 #'
 
-update_KL.susiF <- function(susiF.obj, Y, X, D, C , indx_lst, ...)
+update_KL.susiF <- function(susiF.obj,  X, D, C , indx_lst, ...)
 {
-  susiF.obj$KL <-  do.call(c,lapply(1:susiF.obj$L,FUN=function(l) cal_KL_l(susiF.obj, l, Y, X, D, C , indx_lst )))
+  susiF.obj$KL <-  do.call(c,lapply(1:susiF.obj$L,FUN=function(l) cal_KL_l(susiF.obj, l,   X, D, C , indx_lst )))
   return( susiF.obj)
 }
 

@@ -8,7 +8,7 @@
 \usage{
 cal_KL_l(susiF.obj, l, Y, X, D, C, indx_lst, ...)
 
-\method{cal_KL_l}{susiF}(susiF.obj, l, Y, X, D, C, indx_lst, ...)
+\method{cal_KL_l}{susiF}(susiF.obj, l, X, D, C, indx_lst, ...)
 
 \method{cal_KL_l}{susiF_ss}(susiF_ss.obj, l, data, ...)
 }

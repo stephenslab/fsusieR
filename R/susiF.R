@@ -41,6 +41,7 @@
 #' @param min.purity minimum purity for estimated credible sets
 #' @param filter.cs logical, if TRUE filter the credible set (removing low purity cs and cs with estimated prior equal to 0)
 #' @param init_pi0_w starting value of weight on null compoenent in mixsqp (between 0 and 1)
+#' @param control_mixsqp list of parameter for mixsqp function see\link{\code{mixsqp}}
 #'
 #' @examples
 #'
@@ -148,7 +149,12 @@ susiF <- function(Y, X, L = 2,
                   cov_lev = 0.95,
                   min.purity=0.5,
                   filter.cs =TRUE,
-                  init_pi0_w = 1
+                  init_pi0_w = 1,
+                  control_mixsqp =  list(
+                                        eps = 1e-6,
+                                        numiter.em = 40,
+                                        verbose = FALSE
+                                        )
 )
 {
     if( prior %!in% c("normal", "mixture_normal", "mixture_normal_per_scale"))
@@ -215,11 +221,12 @@ susiF <- function(Y, X, L = 2,
     tpi  <- get_pi(susiF.obj,1)
     G_prior <- update_prior(G_prior, tpi= tpi ) #allow EM to start close to previous solution (to double check)
 
-    EM_out  <- EM_pi(G_prior    = G_prior,
-                     Bhat       = Bhat,
-                     Shat       = Shat,
-                     indx_lst   = indx_lst,
-                     init_pi0_w =init_pi0_w
+    EM_out  <- EM_pi(G_prior       = G_prior,
+                     Bhat          = Bhat,
+                     Shat          = Shat,
+                     indx_lst      = indx_lst,
+                     init_pi0_w    = init_pi0_w,
+                     control_mixsqp = control_mixsqp
     )
 
     susiF.obj <-  update_susiF_obj(susiF.obj = susiF.obj ,
@@ -252,11 +259,12 @@ susiF <- function(Y, X, L = 2,
         tpi <-  get_pi(susiF.obj,l)
         G_prior <- update_prior(G_prior, tpi= tpi ) #allow EM to start close to previous solution (to double check)
 
-        EM_out  <- EM_pi(G_prior    =  G_prior,
-                         Bhat       =  Bhat,
-                         Shat       =  Shat,
-                         indx_lst   =  indx_lst,
-                         init_pi0_w =  init_pi0_w
+        EM_out  <- EM_pi(G_prior       = G_prior,
+                         Bhat          = Bhat,
+                         Shat          = Shat,
+                         indx_lst      = indx_lst,
+                         init_pi0_w    = init_pi0_w,
+                         control_mixsqp = control_mixsqp
         )
 
         susiF.obj <-  update_susiF_obj(susiF.obj   = susiF.obj ,
@@ -278,10 +286,12 @@ susiF <- function(Y, X, L = 2,
 
 
       }#end for l in 1:L
-
       sigma2    <- estimate_residual_variance(susiF.obj,Y=Y_f,X)
       susiF.obj <- update_residual_variance(susiF.obj, sigma2 = sigma2 )
-
+      susiF.obj <- update_KL(susiF.obj,
+                             X,
+                             D= W$D,
+                             C= W$C , indx_lst)
        susiF.obj <- update_ELBO(susiF.obj,
                                  get_objective( susiF.obj = susiF.obj,
                                                 Y         = Y_f,
@@ -291,6 +301,7 @@ susiF <- function(Y, X, L = 2,
                                                 indx_lst  = indx_lst
                                                 )
                                           )
+
 
 
       if(length(susiF.obj$ELBO)>1 )#update parameter convergence,
