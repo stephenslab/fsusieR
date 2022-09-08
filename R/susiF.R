@@ -169,7 +169,6 @@ susiF <- function(Y, X, L = 2,
     pos <- 1:dim(Y)[2]
   }
 
-  control_mixsqp=control_mixsqp
   #reshaping of the data
   if ( !(length(pos)==dim(Y)[2])) #miss matching positions and number of observations
   {
@@ -287,6 +286,7 @@ susiF <- function(Y, X, L = 2,
 
       }#end for l in 1:L
       sigma2    <- estimate_residual_variance(susiF.obj,Y=Y_f,X)
+      sigma2
       susiF.obj <- update_residual_variance(susiF.obj, sigma2 = sigma2 )
       susiF.obj <- update_KL(susiF.obj,
                              X,

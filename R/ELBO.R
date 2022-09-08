@@ -42,7 +42,7 @@ cal_KL_l.susiF <- function(susiF.obj, l, X, D, C , indx_lst, ...)
   EF_l <- get_post_F(susiF.obj,l)
   R_l <- cal_partial_resid(
                            susiF.obj = susiF.obj,
-                           l         =  l,
+                           l         =  (l-1),
                            X         =  X,
                            D         =  D,
                            C         =  C,

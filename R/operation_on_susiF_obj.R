@@ -430,7 +430,7 @@ get_ER2.susiF = function (  susiF.obj,Y, X) {
   postF <- get_post_F(susiF.obj )# J by N matrix
   #Xr_L = t(X%*% postF)
   postF2 <- get_post_F2(susiF.obj ) # Posterior second moment.
-  return(sum((Y - X%*%postF )^2)  -sum(postF)^2 + sum( postF2))
+  return(sum((Y - X%*%postF )^2)  -sum(postF^2) + sum( postF2))
 }
 
 
@@ -527,9 +527,9 @@ get_post_F2.susiF <- function(susiF.obj, l,...)
 {
   if(missing(l))
   {
-    out <-  Reduce("+",lapply(1:susiF.obj$L, FUN=function(l) susiF.obj$alpha[[l]] *(susiF.obj$sigma2+ susiF.obj$fitted_wc2[[l]])))
+    out <-  Reduce("+",lapply(1:susiF.obj$L, FUN=function(l) susiF.obj$alpha[[l]] *(susiF.obj$fitted_wc2[[l]]+ susiF.obj$fitted_wc [[l]]^2)))
   }else{
-    out <-   susiF.obj$alpha[[l]] *(susiF.obj$sigma2+ susiF.obj$fitted_wc2[[l]])
+    out <-   susiF.obj$alpha[[l]] *( susiF.obj$fitted_wc2[[l]]+ susiF.obj$fitted_wc[[l]]^2)
   }
 
   return(out)
@@ -1263,7 +1263,7 @@ update_KL.susiF <- function(susiF.obj,  X, D, C , indx_lst, ...)
 plot_susiF <- function(susiF.obj, cred.band=TRUE , effect   ,...)
 
 {
-  #check if required package are isntall if not isntall them
+  #check if required package are install if not install them
 
   list.of.packages <- c("ggplot2", "gridExtra")
   new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
