@@ -51,7 +51,7 @@ cal_KL_l.susiF <- function(susiF.obj, l, X, D, C , indx_lst, ...)
 
 
 
-  out <-   - loglik_SFR(susiF.obj, l,R_l,X,indx_lst)+ loglik_SFR_post(susiF.obj, l,R_l,X)
+  out <-    -loglik_SFR(susiF.obj, l,R_l,X,indx_lst)+ loglik_SFR_post(susiF.obj, l,R_l,X)
   return(out)
 }
 
@@ -84,7 +84,7 @@ cal_KL_l.susiF_ss <- function(susiF_ss.obj, l, data , ...)
                                                      )
 
 
-  out <-  lBF_model + loglik_SFR_post(susiF_ss.obj, l,data = data_partial_residual )
+  out <- - lBF_model + loglik_SFR_post(susiF_ss.obj, l,data = data_partial_residual )
   return(out)
 }
 
@@ -140,7 +140,7 @@ loglik_SFR.susiF <- function(susiF.obj, l,Y ,X,indx_lst )
   weighted_sum_w = sum(w_weighted)
 
   lBF_model = maxlBF + log(weighted_sum_w)
-  loglik <- lBF_model + sum(dnorm(Y,0,sqrt(susiF.obj$sigma2),log = TRUE))
+  loglik <- lBF_model   + sum(dnorm(Y,0,sqrt(susiF.obj$sigma2),log = TRUE))
 
   return(loglik)
 }
@@ -180,7 +180,7 @@ loglik_SFR_post.susiF <- function(susiF.obj, l,Y,X)
   EF  <- get_post_F(susiF.obj,l)
   EF2 <- get_post_F2(susiF.obj,l)
   s2  <- susiF.obj$sigma2
-  return(-0.5*n*t*log(2*pi*s2) - 0.5/s2*(sum(Y*Y)- 2*sum(Y*X%*%EF)+ sum(attr(EF2,"d") * EF2)))
+  return(-0.5*n*t*log(2*pi*s2) -0.5/s2*(sum(Y*Y)- 2*sum(Y*X%*%EF)+ sum(attr(EF2,"d") * EF2)))
 }
 
 

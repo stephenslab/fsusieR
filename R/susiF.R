@@ -145,14 +145,14 @@ susiF <- function(Y, X, L = 2,
                   verbose = TRUE,
                   plot_out = TRUE,
                   maxit = 100,
-                  tol = 1,
+                  tol = 10^-2,
                   cov_lev = 0.95,
                   min.purity=0.5,
                   filter.cs =TRUE,
-                  init_pi0_w = 1,
+                  init_pi0_w = 0.51,
                   control_mixsqp =  list(
-                                        eps = 1e-3,
-                                        numiter.em = 40,
+                                        eps = 1e-2,
+                                        numiter.em = 100,
                                         verbose = FALSE
                                         )
 )
@@ -265,7 +265,8 @@ susiF <- function(Y, X, L = 2,
                          init_pi0_w    = init_pi0_w,
                          control_mixsqp = control_mixsqp
         )
-
+        #print(h)
+        #print(EM_out$lBF)
         susiF.obj <-  update_susiF_obj(susiF.obj   = susiF.obj ,
                                        l           = l,
                                        EM_pi       = EM_out,
@@ -286,29 +287,32 @@ susiF <- function(Y, X, L = 2,
 
       }#end for l in 1:L
 
-      sigma2    <- estimate_residual_variance(susiF.obj,Y=Y_f,X)
-      susiF.obj <- update_residual_variance(susiF.obj, sigma2 = sigma2 )
       susiF.obj <- update_KL(susiF.obj,
                              X,
                              D= W$D,
                              C= W$C , indx_lst)
-     # print(susiF.obj$KL)
-       susiF.obj <- update_ELBO(susiF.obj,
+
+      if( h>3){
+        susiF.obj <- update_ELBO(susiF.obj,
                                  get_objective( susiF.obj = susiF.obj,
                                                 Y         = Y_f,
                                                 X         = X,
                                                 D         = W$D,
                                                 C         = W$C,
                                                 indx_lst  = indx_lst
-                                                )
-                                          )
+                                 )
+        )
 
+        sigma2    <- estimate_residual_variance(susiF.obj,Y=Y_f,X)
+        susiF.obj <- update_residual_variance(susiF.obj, sigma2 = sigma2 )
 
-      if(length(susiF.obj$ELBO)>1 )#update parameter convergence,
-      {
-        check <- abs(diff(susiF.obj$ELBO)[(length( susiF.obj$ELBO )-1)])
+        if(length(susiF.obj$ELBO)>1    )#update parameter convergence,
+        {
+          check <- abs(diff(susiF.obj$ELBO)[(length( susiF.obj$ELBO )-1)])
 
+        }
       }
+
     }#end while
   }
 
