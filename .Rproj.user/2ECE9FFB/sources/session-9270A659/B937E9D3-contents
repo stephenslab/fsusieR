@@ -202,8 +202,10 @@ susiF <- function(Y, X, L = 2,
 
   ### Definition of some static parameters ---
   indx_lst <-  gen_wavelet_indx(log2(length( outing_grid)))
-  v1       <-  rep(1, dim(X)[1])### used in fit_lm to add a column of 1 in the design matrix
+
   Y_f      <-  cbind( W$D,W$C)
+
+  v1       =  rep(1, dim(X)[1])### used in fit_lm to add a column of 1 in the design matrix
   # Wavelet transform of the inputs
 
 
