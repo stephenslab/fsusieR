@@ -141,7 +141,7 @@
 #'
 susiF <- function(Y, X, L = 2,
                   pos = NULL,
-                  prior = "mixture_normal_per_scale",
+                  prior = "mixture_normal",
                   verbose = TRUE,
                   plot_out = TRUE,
                   maxit = 100,
@@ -275,6 +275,7 @@ susiF <- function(Y, X, L = 2,
                                        indx_lst    = indx_lst
         )
 
+
         update_Y  <-  cal_partial_resid(
           susiF.obj = susiF.obj,
           l         = l,
@@ -283,7 +284,6 @@ susiF <- function(Y, X, L = 2,
           C         = W$C,
           indx_lst  = indx_lst
         )
-
 
       }#end for l in 1:L
 
