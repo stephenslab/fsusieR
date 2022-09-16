@@ -680,7 +680,7 @@ m_step <- function(L, zeta, indx_lst,init_pi0_w,control_mixsqp, ...)
 #'
 #' @export
 #'
-m_step.lik_mixture_normal <- function (L, zeta, indx_lst,init_pi0_w ,control_mixsq, ...)
+m_step.lik_mixture_normal <- function (L, zeta, indx_lst,init_pi0_w ,control_mixsqp, ...)
 {
   w <- rep(zeta,sum(lengths(indx_lst))) # setting the weight to fit the weighted ash problem
   tlength <- ncol(L) - 1
