@@ -9,16 +9,16 @@ susiF(
   X,
   L = 2,
   pos = NULL,
-  prior = "mixture_normal_per_scale",
+  prior = "mixture_normal",
   verbose = TRUE,
   plot_out = TRUE,
   maxit = 100,
-  tol = 0.001,
+  tol = 10^-2,
   cov_lev = 0.95,
   min.purity = 0.5,
   filter.cs = TRUE,
-  init_pi0_w = 1,
-  control_mixsqp = list(eps = 1e-06, numiter.em = 40, verbose = FALSE)
+  init_pi0_w = 0.51,
+  control_mixsqp = list(eps = 0.01, numiter.em = 100, verbose = FALSE)
 )
 }
 \arguments{
