@@ -213,7 +213,8 @@ susiF <- function(Y, X, L = 2,
   ### Definition of some dynamic parameters ---
 
   update_Y    <-  cbind( W$D,W$C) #Using a column like phenotype, temporary matrix that will be regularly updated
-  G_prior     <-  init_prior(update_Y,X,prior,v1 , indx_lst  )
+  G_prior     <-  init_prior(update_Y,X,prior,v1=rep(1, dim(X)[1])
+                             , indx_lst  )
   susiF.obj   <-  init_susiF_obj(L=L, G_prior, Y,X)
 
   # numerical value to check breaking condition of while
@@ -222,7 +223,7 @@ susiF <- function(Y, X, L = 2,
 
   if( L==1)
   {
-    tt   <- cal_Bhat_Shat(update_Y,X,v1 )
+    tt   <- cal_Bhat_Shat(update_Y,X,v1=rep(1, dim(X)[1]) )
     Bhat <- tt$Bhat
     Shat <- tt$Shat #UPDATE. could be nicer
     tpi  <- get_pi(susiF.obj,1)
@@ -260,7 +261,7 @@ susiF <- function(Y, X, L = 2,
       {
 
         h <- h+1
-        tt <- cal_Bhat_Shat(update_Y,X,v1 )
+        tt <- cal_Bhat_Shat(update_Y,X,v1=rep(1, dim(X)[1])  )
         Bhat <- tt$Bhat
         Shat <- tt$Shat #UPDATE. could be nicer
         tpi <-  get_pi(susiF.obj,l)
