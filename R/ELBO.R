@@ -117,22 +117,7 @@ loglik_SFR <- function    (susiF.obj, l,  ...)
 
 loglik_SFR.susiF <- function(susiF.obj, l,Y ,X,indx_lst )
 {
-  tt   <- cal_Bhat_Shat(Y,X,v1)
-  Bhat <- tt$Bhat
-  Shat <- tt$Shat #UPDATE. could be nicer
-  G_prior <- get_G_prior(susiF.obj)
-  G_prior <- update_prior(G_prior, tpi=get_pi(susiF.obj,l ), #allow EM to start close to previous solution (to double check)
-                                indx_lst=indx_lst)
-
-  EM_out  <- EM_pi(G_prior       = G_prior,
-                   Bhat          = Bhat,
-                   Shat          = Shat,
-                   indx_lst      = indx_lst,
-                   init_pi0_w    = init_pi0_w,
-                   control_mixsqp = control_mixsqp
-  )
-
-  lBF <- EM_out$lBF
+  lBF           <- get_lBF(susiF.obj,l)
   prior_weights <- rep(1/ncol(X),ncol(X))
   maxlBF <- max(lBF)
   w = exp( lBF- maxlBF)

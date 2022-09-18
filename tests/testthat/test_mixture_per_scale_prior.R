@@ -36,6 +36,9 @@ tt <-  cal_Bhat_Shat(Y_f,X,v1)
 indx_lst <- gen_wavelet_indx(9)
 Bhat <- tt$Bhat
 Shat <- tt$Shat
+init_pi0_w=1
+control_mixsqp =  list(verbose=FALSE)
+
 ### Test validity normal mixture per scale -----
 G_prior <- init_prior(Y=Y_f,
                       X=X,
@@ -117,7 +120,7 @@ test_that("Class of the standard deviations  is", {
 
 
 
-L <- L_mixsq(G_prior, Bhat, Shat, indx_lst)
+L <- L_mixsq(G_prior, Bhat, Shat, indx_lst )
 
 
 test_that("The likelihood computed by L_mixsq  should be of class", {
@@ -137,18 +140,24 @@ test_that("The highest assignation should be equal to", {
   )
 })
 
-tpi <- m_step(L, zeta , indx_lst)
+tpi <- m_step(L, zeta , indx_lst,
+              init_pi0_w    = init_pi0_w,
+              control_mixsqp = control_mixsqp)
 class(tpi)
 
 test_that("The output of the m_step function should of the class", {
-  tpi <- m_step(L, zeta , indx_lst)
+  tpi <- m_step(L, zeta , indx_lst,
+                init_pi0_w    = init_pi0_w,
+                control_mixsqp = control_mixsqp)
 
   expect_equal( class(tpi)[1],"pi_mixture_normal_per_scale"
   )
 })
 
 test_that("The output of the m_step for the pi_0 should equal", {
-  tpi <- m_step(L, zeta , indx_lst)
+  tpi <- m_step(L, zeta , indx_lst,
+                init_pi0_w    = init_pi0_w,
+                control_mixsqp = control_mixsqp)
   expect_equal( get_pi0(tpi = tpi), c(0,0.5, rep(1, 8)),
                 tolerance = 0.01) #allow 1% error in the proportion estimation
 })
@@ -162,10 +171,12 @@ test_that("Updated mixture proportion should be equal to provided input",
             )
           }
 )
-outEM <-  EM_pi(G_prior,Bhat,Shat, indx_lst)
+outEM <-  EM_pi(G_prior,Bhat,Shat, indx_lst, control_mixsqp = control_mixsqp)
 test_that("The outputs of the EM_pi function should be  ",
           {
-            outEM <-  EM_pi(G_prior,Bhat,Shat, indx_lst)
+            outEM <-  EM_pi(G_prior,Bhat,Shat, indx_lst,
+                            init_pi0_w    = init_pi0_w,
+                            control_mixsqp = control_mixsqp)
             expect_equal(class(outEM$tpi_k)[1] ,"pi_mixture_normal_per_scale")
             expect_equal(class(outEM$lBF)[1] ,"numeric")
             expect_equal(length(outEM$lBF)[1] ,dim(Bhat)[1])
@@ -176,7 +187,9 @@ test_that("The outputs of the EM_pi function should be  ",
 
 test_that("The mixture proportion of the updated susiF object should be equal to   ",
           {
-            outEM <-  EM_pi(G_prior,Bhat,Shat, indx_lst)
+            outEM <-  EM_pi(G_prior,Bhat,Shat, indx_lst,
+                            init_pi0_w    = init_pi0_w,
+                            control_mixsqp = control_mixsqp)
             susiF_obj <- update_pi( susiF_obj, 1,  outEM$tpi_k)
 
             expect_equal( get_pi (susiF_obj , 1),outEM$tpi_k )
@@ -186,7 +199,9 @@ test_that("The mixture proportion of the updated susiF object should be equal to
 
 test_that("The alpha value of  the update susiF object should be equal to   ",
           {
-            outEM <-  EM_pi(G_prior,Bhat,Shat, indx_lst)
+            outEM <-  EM_pi(G_prior,Bhat,Shat, indx_lst,
+                            init_pi0_w    = init_pi0_w,
+                            control_mixsqp = control_mixsqp)
             new_alpha <- cal_zeta(outEM$lBF)
             susiF_obj <- update_alpha(susiF_obj, 1, new_alpha)
             expect_equal( get_alpha (susiF_obj , 1), new_alpha )
@@ -195,7 +210,9 @@ test_that("The alpha value of  the update susiF object should be equal to   ",
 
 test_that("The update susiF object should have its argument equal to    ",
           {
-            outEM <-  EM_pi(G_prior,Bhat,Shat, indx_lst)
+            outEM <-  EM_pi(G_prior,Bhat,Shat, indx_lst,
+                            init_pi0_w    = init_pi0_w,
+                            control_mixsqp = control_mixsqp)
             G_prior <- update_prior(G_prior,
                                     tpi= outEM$tpi_k )
 
@@ -211,7 +228,9 @@ test_that("The update susiF object should have its argument equal to    ",
 
 test_that("The partial residual should be    ",
           {
-            outEM <-  EM_pi(G_prior,Bhat,Shat, indx_lst)
+            outEM <-  EM_pi(G_prior,Bhat,Shat, indx_lst,
+                            init_pi0_w    = init_pi0_w,
+                            control_mixsqp = control_mixsqp)
             G_prior <- update_prior(G_prior,
                                     tpi= outEM$tpi_k )
 
@@ -241,7 +260,9 @@ test_that("The partial residual should be    ",
 
 test_that("The output update should be equal to    ",
           {
-            outEM <-  EM_pi(G_prior,Bhat,Shat, indx_lst)
+            outEM <-  EM_pi(G_prior,Bhat,Shat, indx_lst,
+                            init_pi0_w    = init_pi0_w,
+                            control_mixsqp = control_mixsqp)
             G_prior <- update_prior(G_prior,
                                     tpi= outEM$tpi_k )
 
@@ -301,7 +322,9 @@ test_that("The output update should be equal to    ",
 
 test_that("The precision of the fitted curves should be   ",
           {
-            outEM <-  EM_pi(G_prior,Bhat,Shat, indx_lst)
+            outEM <-  EM_pi(G_prior,Bhat,Shat, indx_lst,
+                            init_pi0_w    = init_pi0_w,
+                            control_mixsqp = control_mixsqp)
             G_prior <- update_prior(G_prior,
                                     tpi= outEM$tpi_k )
 
@@ -312,7 +335,9 @@ test_that("The precision of the fitted curves should be   ",
           }
 )
 
-outEM <-  EM_pi(G_prior,Bhat,Shat, indx_lst)
+outEM <-  EM_pi(G_prior,Bhat,Shat, indx_lst,
+                init_pi0_w    = init_pi0_w,
+                control_mixsqp = control_mixsqp)
 G_prior <- update_prior(G_prior,
                         tpi= outEM$tpi_k )
 
@@ -341,7 +366,9 @@ test_that("SusiF performance should be",
 
 test_that("The expected sum of square should be below and residual variance should be ",
           {
-            outEM <-  EM_pi(G_prior,Bhat,Shat, indx_lst)
+            outEM <-  EM_pi(G_prior,Bhat,Shat, indx_lst,
+                            init_pi0_w    = init_pi0_w,
+                            control_mixsqp = control_mixsqp)
             G_prior <- update_prior(G_prior,
                                     tpi= outEM$tpi_k )
 
@@ -357,7 +384,9 @@ test_that("The expected sum of square should be below and residual variance shou
 
 test_that("The KL of effect one ",
           {
-            outEM <-  EM_pi(G_prior,Bhat,Shat, indx_lst)
+            outEM <-  EM_pi(G_prior,Bhat,Shat, indx_lst,
+                            init_pi0_w    = init_pi0_w,
+                            control_mixsqp = control_mixsqp)
             G_prior <- update_prior(G_prior,
                                     tpi= outEM$tpi_k )
 

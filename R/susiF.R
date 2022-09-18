@@ -2,7 +2,8 @@
 #'
 #' @description Implementation of the SuSiF method
 #'
-#' @details tbd
+#' @details Implementation of the SuSiF method
+#'
 #'
 #' @param Y functional phenotype, matrix of size N by size J. The
 #'   underlying algorithm uses wavelet which assume that J is of the
@@ -149,25 +150,16 @@ susiF <- function(Y, X, L = 2,
                   cov_lev = 0.95,
                   min.purity=0.5,
                   filter.cs =TRUE,
-                  init_pi0_w,
-                  control_mixsqp
+                  init_pi0_w= 0.999,
+                  control_mixsqp =  list(verbose=FALSE)
 )
 {
   if( prior %!in% c("normal", "mixture_normal", "mixture_normal_per_scale"))
   {
     stop("Error: provide valid prior input")
   }
-  if(missing(control_mixsqp)){
-    control_mixsqp =  list(
-      eps = 1e-2,
-      numiter.em = 100,
-      verbose = FALSE
-    )
-  }
-  if(missing(init_pi0_w))
-  {
-    init_pi0_w = 0.9
-  }
+
+
   ## Input error messages
 
   if (is.null(pos))
@@ -205,7 +197,7 @@ susiF <- function(Y, X, L = 2,
 
   Y_f      <-  cbind( W$D,W$C)
 
-  v1       =  rep(1, dim(X)[1])### used in fit_lm to add a column of 1 in the design matrix
+  v1       <-  rep(1, dim(X)[1])### used in fit_lm to add a column of 1 in the design matrix
   # Wavelet transform of the inputs
 
 

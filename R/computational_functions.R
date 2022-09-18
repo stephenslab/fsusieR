@@ -81,6 +81,8 @@ EM_pi <- function(G_prior,Bhat, Shat, indx_lst,
 #'
 #' @param X matrix of size n by p in
 #'
+#' @param v1 vector of ones of length n
+#'
 #' @return list of two
 #'
 #' \item{Bhat}{ matrix pxJ regression coefficient, Bhat[j,t] corresponds to regression coefficient of Y[,t] on X[,j] }
@@ -134,8 +136,15 @@ cal_Bhat_Shat.default  <- function(Y, X ,v1 )
 #'
 fit_lm <- function( l,j,Y,X,v1)  ## Speed Gain
 {
+  if(missing(v1)){
+    v1 <- rep(1, ncol(Y))
+  }
 
-  out <- fast_lm(cbind(v1,X[,j]),Y[,l])
+  out <- fast_lm(cbind(
+                        rep(1,
+                           length(X[,j])),
+                      X[,j]),
+                 Y[,l])
   return(c(out$be[2,1],
            sqrt(
              var(out$residuals)/sum(
@@ -688,7 +697,7 @@ m_step.lik_mixture_normal <- function (L, zeta, indx_lst,init_pi0_w ,control_mix
   mixsqp_out <- mixsqp(L,
                        w,
                        log = TRUE,
-                       x0 = c(init_pi0_w ,rep(1e-1,tlength)), # put starting point close to sparse solution
+                       x0 = c(init_pi0_w ,rep(1e-15,tlength)), # put starting point close to sparse solution
                        control = control_mixsqp
                        )
   out <- mixsqp_out$x
@@ -738,13 +747,13 @@ m_step.lik_mixture_normal_per_scale <- function(L, zeta, indx_lst,init_pi0_w=1,c
 #' @importFrom mixsqp mixsqp
 #'
 #' @export
-scale_m_step <- function(L,s,zeta, indx_lst,init_pi0_w=0.5,  control_mixsqp)
+scale_m_step <- function(L,s,zeta, indx_lst,init_pi0_w=0.5,  control_mixsqp,...)
 {
   w <- rep(zeta,length(indx_lst[[s]] ))
   tlength <- dim(L[[s]])[2]-1
   mixsqp_out <- mixsqp( L[[s]] ,
                         w,
-                        x0 = c(init_pi0_w, rep(1e-1,  tlength )),
+                        x0 = c(init_pi0_w, rep(1e-15,  tlength )),
                         log=TRUE ,
                         control = control_mixsqp
                       )
