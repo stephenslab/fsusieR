@@ -16,7 +16,8 @@ Depends:
   mixsqp (>= 0.3-43)
 Imports:
   graphics,
-  stats,
+  stats
+Suggests:
   ggplot2,
   gridExtra
 License: GPL (>=3)
