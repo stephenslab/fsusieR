@@ -79,13 +79,14 @@ cal_partial_resid.susiF  <- function( susiF.obj, l, X, D, C,  indx_lst, ... )
 #'
 #' @param susiF.obj a susif object defined by \code{\link{init_susiF_obj}} function
 #' @param min.purity minimal purity within a CS
+#' @param X matrix of covariate
 #'
 #' @return a susif.obj without "dummy" credible s
 #'
 #' @export
 #'
 #'
-check_cs <- function(susiF.obj, min.purity=0.5,...)
+check_cs <- function(susiF.obj, min.purity=0.5,X,...)
   UseMethod("check_cs")
 
 
@@ -99,7 +100,7 @@ check_cs <- function(susiF.obj, min.purity=0.5,...)
 #' @export
 #'
 
-check_cs.susiF <- function(susiF.obj, min.purity=0.5)
+check_cs.susiF <- function(susiF.obj, min.purity=0.5,X)
 {
   dummy.cs<- c()
 
@@ -643,7 +644,7 @@ out_prep.susiF <- function(susiF.obj,Y, X, indx_lst, filter.cs, lfsr_curve, ...)
   susiF.obj <-  update_cal_credible_band(susiF.obj, indx_lst)
   if(filter.cs)
   {
-    susiF.obj <- check_cs(susiF.obj)
+    susiF.obj <- check_cs(susiF.obj,min.purity=0.5,X=X)
   }
   susiF.obj <-  update_cal_indf(susiF.obj, Y, X, indx_lst)
 
