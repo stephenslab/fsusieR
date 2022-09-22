@@ -74,18 +74,32 @@ cal_partial_resid.susiF  <- function( susiF.obj, l, X, D, C,  indx_lst, ... )
   return(update_Y)
 }
 
-
-
-
+#'
 #' @title Check purity credible sets
 #'
 #' @param susiF.obj a susif object defined by \code{\link{init_susiF_obj}} function
+#' @param min.purity minimal purity within a CS
 #'
-#' @return a susif.obj without "dummy" credible sets
+#' @return a susif.obj without "dummy" credible s
 #'
 #' @export
+#'
+#'
+check_cs <- function(susiF.obj, min.purity=0.5,...)
+  UseMethod("check_cs")
 
-check_cs <- function(susiF.obj, min.purity=0.5)
+
+
+#' @rdname check_cs
+#'
+#' @method check_cs susiF
+#'
+#' @export check_cs.susiF
+#'
+#' @export
+#'
+
+check_cs.susiF <- function(susiF.obj, min.purity=0.5)
 {
   dummy.cs<- c()
 
@@ -187,7 +201,23 @@ check_cs <- function(susiF.obj, min.purity=0.5)
 #'
 #' @export
 
-discard_cs <- function(susiF.obj, cs)
+
+
+discard_cs <- function(susiF.obj, cs,...)
+  UseMethod("discard_cs")
+
+
+
+#' @rdname discard_cs
+#'
+#' @method discard_cs susiF
+#'
+#' @export discard_cs.susiF
+#'
+#' @export
+#'
+
+discard_cs.susiF <- function(susiF.obj, cs)
 {
 
   susiF.obj$alpha       <-  susiF.obj$alpha[ -cs]
