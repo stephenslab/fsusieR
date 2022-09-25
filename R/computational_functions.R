@@ -225,8 +225,12 @@ log_BF.mixture_normal <- function (G_prior, Bhat, Shat, ...) {
     sd_k <- m$fitted_g$sd
 
     # Speed Gain: could potential skip the one that are exactly zero.
+    # Speed Gain: could potential skip the one that are exactly zero.
     for (k in 1:length(m$fitted_g$pi))
+    {
       tt <- tt + pi_k[k] * dnorm(Bhat[t,],sd = sqrt(sd_k[k]^2 + Shat[t,]^2))
+    }
+    ifelse(tt==Inf,max(10000, 100*max(tt[-which(tt==Inf)])),tt)
     out <- sum(log(tt) - dnorm(Bhat[t,],sd = Shat[t,],log = TRUE))
     return(out)
   }
