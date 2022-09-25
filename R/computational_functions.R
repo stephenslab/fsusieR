@@ -701,7 +701,7 @@ m_step.lik_mixture_normal <- function (L, zeta, indx_lst,init_pi0_w ,control_mix
   mixsqp_out <- mixsqp(L,
                        w,
                        log = TRUE,
-                       x0 = c(init_pi0_w ,rep(1e-12,tlength)), # put starting point close to sparse solution
+                       x0 = c(init_pi0_w ,rep(1e-7,tlength)), # put starting point close to sparse solution
                        control = control_mixsqp
                        )
   out <- mixsqp_out$x
@@ -757,7 +757,7 @@ scale_m_step <- function(L,s,zeta, indx_lst,init_pi0_w=0.5,  control_mixsqp,...)
   tlength <- dim(L[[s]])[2]-1
   mixsqp_out <- mixsqp( L[[s]] ,
                         w,
-                        x0 = c(init_pi0_w, rep(1e-12,  tlength )),
+                        x0 = c(init_pi0_w, rep(1e-7,  tlength )),
                         log=TRUE ,
                         control = control_mixsqp
                       )
