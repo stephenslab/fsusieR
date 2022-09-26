@@ -107,10 +107,10 @@ cal_Bhat_Shat <- function(Y, X,v1, lowc_wc, ...)
 #'
 #' @export
 #'
-cal_Bhat_Shat.default  <- function(Y, X ,v1 , lowc_wc=NULL  )
+cal_Bhat_Shat.default  <- function(Y, X ,v1 , lowc_wc  )
 {
 
-  out <- t(mapply( function(j,l) fit_lm(l= l, j=j, Y=Y ,X=X,v1=v1, lowc_wc=lowc_wc  ),
+  out <- t(mapply( function(j,l) fit_lm(l= l, j=j, Y=Y ,X=X,v1=v1, lowc_wc=low_wc  ),
                    l=rep(1:dim(Y)[2],each= ncol(X)),
                    j=rep(1:dim(X)[2], ncol(Y))))
 
@@ -150,7 +150,7 @@ fit_lm <- function( l,j,Y,X,v1, lowc_wc =NULL )  ## Speed Gain
 
   if( !is.null(lowc_wc)){
 
-    if (l %in%lowc_wc){
+    if (j %in%lowc_wc){
       return(c(0,
                1
                )

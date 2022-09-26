@@ -32,7 +32,7 @@ update_D <- W
 Y_f <- cbind( W$D,W$C) #Using a column like phenotype
 update_Y <-Y_f
 v1 <- rep(1, dim(X)[2])
-tt <-  cal_Bhat_Shat(Y_f,X,v1)
+tt <-  cal_Bhat_Shat(Y_f,X,v1,lowc_wc = NULL)
 indx_lst <- gen_wavelet_indx(9)
 Bhat <- tt$Bhat
 Shat <- tt$Shat
@@ -450,5 +450,18 @@ test_that("SusiF performance should be",
           }
 )
 
+
+test_that("Removing one wc coeef should lead to the followin results",
+          {
+
+            tt1 <- cal_Bhat_Shat (update_Y,X,v1 , lowc_wc=NULL  )
+            tt2 <- cal_Bhat_Shat (update_Y,X,v1 , lowc_wc=1:10  )
+            expect_equal(c(tt1$Bhat[,-c(1:10)] ),c(tt2$Bhat[,-c(1:10)]))
+            expect_equal(c(tt1$Shat[,-c(1:10)] ),c(tt2$Shat[,-c(1:10)]))
+            expect_equal(c(tt2$Bhat[, c(1:10)] ),rep(0, length(c(tt2$Bhat[, c(1:10)] ))))
+            expect_equal(c(tt2$Shat[, c(1:10)] ),rep(1, length(c(tt2$Shat[, c(1:10)] ))))
+
+          }
+)
 
 
