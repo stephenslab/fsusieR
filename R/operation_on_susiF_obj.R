@@ -780,7 +780,7 @@ update_susiF_obj.susiF <- function(susiF.obj, l, EM_pi, Bhat, Shat, indx_lst, lo
 
   if( !is.null(lowc_wc)){
     susiF.obj$fitted_wc[[l]][,lowc_wc] <- 0
-    susiF.obj$fitted_wc2[[l]]          <- 1
+    susiF.obj$fitted_wc2[[l]][,lowc_wc]      <- 1
   }
 
 
