@@ -1,0 +1,60 @@
+test_const_neffect <- function(n_effect, n, lev_res, prior, init_pi0_w ){
+  if(missing(prior))
+  {
+    prior <- "mixture_normal_per_scale"
+  }
+  P <- 100
+  beta <- rep( 1, n_effect)
+  pos <- sample(1:P, size=n_effect, replace=FALSE)
+  G = matrix(sample(c(0, 1,2), size=n*P, replace=TRUE), nrow=n, ncol=P) #Genotype
+  f_list <- list()
+  for( i in 1:n_effect)
+  {
+    f_list [[i]] <- simu_IBSS_per_level(lev_res )$sim_func  
+  }
+  noisy.data  <- list()
+  
+  for ( i in 1:n)
+  {
+    
+    noise <- rnorm(length(f_list[[1]]), sd= 2)
+    noisy.data [[i]] <-noise +  Reduce("+",
+                                       lapply (1:n_effect,
+                                               function(k) beta[k]*G[i,pos[k]]*f_list[[k]] )
+    )
+    
+    
+    
+    
+  }
+  noisy.data <- do.call(rbind, noisy.data)
+  
+  
+  
+  Y <- noisy.data
+  X <- G 
+  #Running fSuSiE
+   
+   out <- susiF(Y,X,L=(n_effect +10),prior=prior, init_pi0_w=init_pi0_w  )
+  n_cs <- length(out$cs)
+  if( length(which( pos%in% do.call(c, out$cs )))==0){
+    prop_good_sel <- 0
+  }else{
+    prop_good_sel <- length(which( pos%in% do.call(c, out$cs )))/n_effect
+  }
+  
+  out <- c(  prop_good_sel , n_cs,n_effect, n, lev_res,prior,init_pi0_w)
+  names(out) <- c('prop_good_sel' , 
+                          'n_cs',
+                          'n_effect',
+                          'n', 
+                          'lev_res','prior','init_pi0_w')
+  return( out)
+}
+
+set.seed(1)
+test_const_neffect (n_effect=4, n=500, lev_res=5 ,init_pi0_w=1, prior="mixture_normal")
+
+test_const_neffect (n_effect=1, n=50 , lev_res=7 ,init_pi0_w=0, prior="mixture_normal")
+1    50       7 mixture_normal          0
+

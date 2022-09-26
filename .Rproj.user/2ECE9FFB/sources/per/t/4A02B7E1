@@ -3,7 +3,7 @@
     "path": "D:/Document/Serieux/Travail/Package/susiF.alpha/NAMESPACE",
     "project_path": "NAMESPACE",
     "type": "r_namespace",
-    "hash": "0",
+    "hash": "3180543600",
     "contents": "",
     "dirty": false,
     "created": 1664211403350.0,
@@ -19,6 +19,6 @@
     "collab_server": "",
     "source_window": "",
     "last_content_update": 1664184957,
-    "read_only": false,
+    "read_only": true,
     "read_only_alternatives": []
 }

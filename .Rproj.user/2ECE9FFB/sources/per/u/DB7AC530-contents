@@ -1,0 +1,51 @@
+library(testthat)
+library(ashr)
+library(wavethresh)
+library(mixsqp)
+set.seed(2)
+f1 <- simu_IBSS_per_level(lev_res=9, alpha=1, prop_decay =1.5)
+lowc_wc=NULL
+plot(f1$sim_func, type="l", ylab="y")
+N=500
+P=10
+set.seed(23)
+G = matrix(sample(c(0, 1,2), size=N*P, replace=T), nrow=N, ncol=P) #Genotype
+beta0       <- 0
+beta1       <- 1
+pos1 <- 5
+noisy.data  <- list()
+
+rsnr=10
+for ( i in 1:N)
+{
+  f1_obs <- f1$sim_func
+  noisy.data [[i]] <-   beta1*G[i,pos1]*f1_obs +  rnorm(length(f1$sim_func), sd=  (1/  rsnr ) *sd(f1$sim_func))
+  
+}
+noisy.data <- do.call(rbind, noisy.data)
+
+
+Y <- noisy.data
+X <- G
+W <- DWT2(Y)
+update_D <- W
+Y_f <- cbind( W$D,W$C) #Using a column like phenotype
+update_Y <-Y_f
+v1 <- rep(1, dim(X)[2])
+
+library(microbenchmark)
+microbenchmark(
+  unfiltered =cal_Bhat_Shat (update_Y,X,v1 , lowc_wc=NULL  ),
+  filtered = cal_Bhat_Shat (update_Y,X,v1,lowc_wc =1:120 )
+)
+
+tt1 <- cal_Bhat_Shat (update_Y,X,v1 , lowc_wc=NULL  )
+tt2 <- cal_Bhat_Shat (update_Y,X,v1 , lowc_wc=1:10  )
+c(tt1$Bhat[,-c(1:10)] )==c(tt2$Bhat[,-c(1:10)])
+
+
+
+ tt2$Bhat[, c(1:10)]
+ 
+ tt2$Bhat
+ 

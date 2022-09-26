@@ -1,0 +1,44 @@
+lowc_wc <- indx_lst[[7]]
+library(susiF.alpha)
+library(ashr)
+set.seed(1)
+#Example using curves simulated under the Mixture normal per scale prior
+rsnr <- 0.2 #expected root signal noise ratio
+N <- 200    #Number of individuals
+P <- 20     #Number of covariates
+pos1 <- 1   #Position of the causal covariate for effect 1
+pos2 <- 5   #Position of the causal covariate for effect 1
+lev_res <- 7#length of the molecular phenotype (2^lev_res)
+f1 <-  simu_IBSS_per_level(lev_res )$sim_func#first effect
+f2 <- simu_IBSS_per_level(lev_res )$sim_func #second effect
+ 
+G = matrix(sample(c(0, 1,2), size=N*P, replace=TRUE), nrow=N, ncol=P) #Genotype
+beta0       <- 0
+beta1       <- 1
+beta2       <- 1
+noisy.data  <- list()
+
+for ( i in 1:N)
+{
+  f1_obs <- f1
+  f2_obs <- f2
+  noise <- rnorm(length(f1), sd=10)
+  noisy.data [[i]] <-   beta1*G[i,pos1]*f1_obs + beta2*G[i,pos2]*f2_obs + noise
+  
+}
+noisy.data <- do.call(rbind, noisy.data)
+
+ 
+
+
+Y <- noisy.data
+X <- G
+#Running fSuSiE
+
+out <- susiF(Y,X,L=5 , prior = 'mixture_normal_per_scale', init_pi0_w = 0.99)
+#the easiest way to vizualize the result is to use the plot_susiF function
+
+plot_susiF(out)
+plot( out$ELBO)
+diff(out$ELBO)
+out$cs
