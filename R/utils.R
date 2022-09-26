@@ -1,8 +1,9 @@
 
 
 which_lowcount <- function( Y_f, thresh_lowcount ){
-  tt <- apply( abs(Y_f),2,mean)
-  if(length(tt==0))
+  tt <- which( apply( abs(Y_f),2,mean) <thresh_lowcount )
+
+  if(length(tt)==0)
   {
     return(NULL)
   }else{
