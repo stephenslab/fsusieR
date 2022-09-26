@@ -85,6 +85,9 @@ EM_pi <- function(G_prior,Bhat, Shat, indx_lst,
 #'
 #' @param v1 vector of ones of length n
 #'
+#' @param lowc_wc wavelet coefficient with low count to be discarded
+#'
+#'
 #' @return list of two
 #'
 #' \item{Bhat}{ matrix pxJ regression coefficient, Bhat[j,t] corresponds to regression coefficient of Y[,t] on X[,j] }
@@ -92,7 +95,7 @@ EM_pi <- function(G_prior,Bhat, Shat, indx_lst,
 #' \item{Shat}{ matrix pxJ standard error, Shat[j,t] corresponds to standard error of the regression coefficient of Y[,t] on X[,j] }
 #'
 #' @export
-cal_Bhat_Shat <- function(Y, X,v1, ...)
+cal_Bhat_Shat <- function(Y, X,v1, lowc_wc, ...)
   UseMethod("cal_Bhat_Shat")
 
 
@@ -104,10 +107,10 @@ cal_Bhat_Shat <- function(Y, X,v1, ...)
 #'
 #' @export
 #'
-cal_Bhat_Shat.default  <- function(Y, X ,v1 )
+cal_Bhat_Shat.default  <- function(Y, X ,v1 , lowc_wc=NULL  )
 {
 
-  out <- t(mapply( function(j,l) fit_lm(l= l, j=j, Y=Y ,X=X,v1=v1),
+  out <- t(mapply( function(j,l) fit_lm(l= l, j=j, Y=Y ,X=X,v1=v1, lowc_wc=lowc_wc  ),
                    l=rep(1:dim(Y)[2],each= ncol(X)),
                    j=rep(1:dim(X)[2], ncol(Y))))
 
@@ -130,30 +133,61 @@ cal_Bhat_Shat.default  <- function(Y, X ,v1 )
 #'
 #' @param v1 vector of 1 of length n
 #'
+#' @param lowc_wc wavelet coefficient with low count to be discarded
+#'
+#'
 #' @return vector of 2 containing the regression coefficient and standard error
 #'
 #' @importFrom stats var
 #'
 #' @export
 #'
-fit_lm <- function( l,j,Y,X,v1)  ## Speed Gain
+fit_lm <- function( l,j,Y,X,v1, lowc_wc =NULL )  ## Speed Gain
 {
   if(missing(v1)){
     v1 <- rep(1, ncol(Y))
   }
 
-  out <- fast_lm(cbind(
-                        rep(1,
-                           length(X[,j])),
-                      X[,j]),
-                 Y[,l])
-  return(c(out$be[2,1],
-           sqrt(
-             var(out$residuals)/sum(
-               (X[,j]-mean(X[,j]))^2)
-           )
-  )
-  )
+  if( !is.null(lowc_wc)){
+
+    if (j %in%lowc_wc){
+      return(c(0,
+               1
+               )
+            )
+
+    }else{
+      out <- fast_lm(cbind(
+        rep(1,
+            length(X[,j])),
+        X[,j]),
+        Y[,l])
+      return(c(out$be[2,1],
+               sqrt(
+                 var(out$residuals)/sum(
+                   (X[,j]-mean(X[,j]))^2)
+               )
+          )
+      )
+    }
+
+  }else{
+    out <- fast_lm(cbind(
+      rep(1,
+          length(X[,j])),
+      X[,j]),
+      Y[,l])
+    return(c(out$be[2,1],
+             sqrt(
+               var(out$residuals)/sum(
+                 (X[,j]-mean(X[,j]))^2)
+                )
+            )
+          )
+  }
+
+
+
 
 }
 

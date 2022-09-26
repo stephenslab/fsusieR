@@ -43,7 +43,7 @@ init_prior.default <- function(Y,X, prior,v1 , indx_lst,lowc_wc )
   if( prior == "mixture_normal")
   {
 
-    temp <- cal_Bhat_Shat(Y, X ,v1 )   ## Speed Gain would be good to call directly cal_Bhat_Shat in the ash function
+    temp <- cal_Bhat_Shat(Y, X ,v1,lowc_wc )   ## Speed Gain would be good to call directly cal_Bhat_Shat in the ash function
 
     G_prior <- list()
     if( !is.null(lowc_wc)){
@@ -58,7 +58,7 @@ init_prior.default <- function(Y,X, prior,v1 , indx_lst,lowc_wc )
   if( prior == "mixture_normal_per_scale")
   {
 
-    temp <- cal_Bhat_Shat(Y, X, v1  )   ## Speed Gain would be good to call directly cal_Bhat_Shat in the ash function
+    temp <- cal_Bhat_Shat(Y, X, v1 ,lowc_wc )   ## Speed Gain would be good to call directly cal_Bhat_Shat in the ash function
     G_prior  <-  lapply(1: (log2(dim(Y)[2])+1) ,
                         FUN= function(s) fit_ash_level(  Bhat=temp$Bhat, temp$Shat,s=s, indx_lst, lowc_wc ) )
     #first log2(Y_f)+1 element of G_prior   are ash prior fitted per level coefficient on var 1

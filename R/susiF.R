@@ -224,7 +224,7 @@ susiF <- function(Y, X, L = 2,
 
   if( L==1)
   {
-    tt   <- cal_Bhat_Shat(update_Y,X,v1 )
+    tt   <- cal_Bhat_Shat(update_Y,X,v1 , lowc_wc  )
     Bhat <- tt$Bhat
     Shat <- tt$Shat #UPDATE. could be nicer
     tpi  <- get_pi(susiF.obj,1)
@@ -265,7 +265,7 @@ susiF <- function(Y, X, L = 2,
       {
 
         h <- h+1
-        tt <- cal_Bhat_Shat(update_Y,X,v1 )
+        tt <- cal_Bhat_Shat(update_Y,X,v1, lowc_wc  )
         Bhat <- tt$Bhat
         Shat <- tt$Shat #UPDATE. could be nicer
         tpi <-  get_pi(susiF.obj,l)
@@ -307,7 +307,7 @@ susiF <- function(Y, X, L = 2,
                              D= W$D,
                              C= W$C , indx_lst)
 
-      if( h>3){
+      if( h>1){
         susiF.obj <- update_ELBO(susiF.obj,
                                  get_objective( susiF.obj = susiF.obj,
                                                 Y         = Y_f,
