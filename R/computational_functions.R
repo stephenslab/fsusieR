@@ -677,6 +677,11 @@ L_mixsq.mixture_normal <- function(G_prior,Bhat, Shat, indx_lst, ...)
       log=TRUE
     ) -log(sdmat )
   )
+#dealing in case of due to small sd due to small sample size
+  L     <-  apply(L, 2, function(x){
+                                       x[which(is.na(x))] <- median(x, na.rm=T)
+                                      return(x)
+                                      })
 
   class(L) <- "lik_mixture_normal"
   return(L)
@@ -725,6 +730,11 @@ cal_L_mixsq_s_per_scale <- function(G_prior,s, Bhat, Shat ,indx_lst)
   m <-  (G_prior[[s]])
   sdmat <-sqrt(outer(c(Shat[,indx_lst[[s]]]^2),get_sd_G_prior(G_prior)[[s]]^2,"+"))
   L = (dnorm(outer(c(Bhat[,indx_lst[[s]]]),m$fitted_g$mean,FUN="-")/sdmat,log=TRUE) -log(sdmat ))
+  #dealing in case of due to small sd due to small sample size
+  L     <-  apply(L, 2, function(x){
+    x[which(is.na(x))] <- median(x, na.rm=T)
+    return(x)
+  })
   return(L)
 }
 
