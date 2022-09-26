@@ -755,7 +755,7 @@ update_susiF_obj  <- function(susiF.obj, l, EM_pi, Bhat, Shat, indx_lst, ...)
 #' @export
 #'
 
-update_susiF_obj.susiF <- function(susiF.obj, l, EM_pi, Bhat, Shat, indx_lst,cal_wc_lsfr=FALSE, ...)
+update_susiF_obj.susiF <- function(susiF.obj, l, EM_pi, Bhat, Shat, indx_lst, lowc_wc=NULL, cal_wc_lsfr=FALSE, ...)
 {
 
   if( l > length(susiF.obj$est_pi))
@@ -777,6 +777,12 @@ update_susiF_obj.susiF <- function(susiF.obj, l, EM_pi, Bhat, Shat, indx_lst,cal
 
   susiF.obj$fitted_wc[[l]]   <- post_mat_mean(get_G_prior(susiF.obj) , Bhat, Shat,indx_lst= indx_lst )
   susiF.obj$fitted_wc2[[l]]  <- post_mat_sd  (get_G_prior(susiF.obj) , Bhat, Shat, indx_lst= indx_lst)^2
+
+  if( !is.null(lowc_wc)){
+    susiF.obj$fitted_wc[[l]][,lowc_wc] <- 0
+    susiF.obj$fitted_wc2[[l]]          <- 1
+  }
+
 
   new_alpha <- cal_zeta(  EM_pi$lBF)
   susiF.obj <- update_alpha(susiF.obj, l, new_alpha)

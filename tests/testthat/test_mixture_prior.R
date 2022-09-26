@@ -5,7 +5,7 @@ library(mixsqp)
 library(susiF.alpha)
 set.seed(2)
 f1 <- simu_IBSS_per_level(lev_res=9, alpha=1, prop_decay =1.5)
-
+lowc_wc=NULL
 plot(f1$sim_func, type="l", ylab="y")
 N=100
 P=10
@@ -40,9 +40,10 @@ G_prior<- init_prior(Y=Y_f,
                      X=X,
                      prior="mixture_normal",
                      v1=v1,
-                     indx_lst = indx_lst)
+                     indx_lst = indx_lst,
+                     lowc_wc=NULL)
 
-lBF <- log_BF (G_prior, Bhat, Shat , indx_lst)
+lBF <- log_BF (G_prior, Bhat, Shat , indx_lst,lowc_wc=NULL)
 lBF
 tt <-  cal_Bhat_Shat(Y_f,X,v1)
 Bhat <- tt$Bhat
@@ -57,7 +58,8 @@ test_that("Class of the prior is", {
                X=X,
                prior="mixture_normal_per_scale",
                v1=v1,
-               indx_lst = indx_lst)
+               indx_lst = indx_lst
+               ,lowc_wc=NULL)
                     ),
               "mixture_normal_per_scale"
                )
@@ -70,7 +72,8 @@ G_prior<- init_prior(Y=Y_f,
                 X=X,
                 prior="mixture_normal",
                 v1=v1,
-                indx_lst = indx_lst)
+                indx_lst = indx_lst,
+                lowc_wc=NULL)
 
 
 plot( Bhat,post_mat_mean(G_prior,Bhat,Shat))
@@ -94,15 +97,17 @@ test_that("Updated mixture proportion should be equal to provided input",
           }
 )
 
-EM_pi(G_prior,Bhat,Shat, indx_lst,
+EM_pi(G_prior,Bhat,Shat, indx_lst=indx_lst,
       init_pi0_w    = init_pi0_w,
-      control_mixsqp = control_mixsqp)
+      control_mixsqp = control_mixsqp,
+      lowc_wc=lowc_wc)
 
 
 
 test_that("Max lBF should be in postion",
           {
-            lBF <- log_BF (G_prior, Bhat, Shat , indx_lst)
+            lBF <- log_BF (G_prior, Bhat, Shat , indx_lst,
+                           lowc_wc=NULL)
             expect_equal(which.max(lBF),
                          pos1
             )
@@ -150,7 +155,8 @@ test_that("Class of the prior is", {
                X=X,
                prior="mixture_normal",
                v1=v1,
-               indx_lst = indx_lst)
+               indx_lst = indx_lst,
+               lowc_wc=NULL)
   ),
   "mixture_normal"
   )
@@ -224,17 +230,20 @@ test_that("Updated mixture proportion should be equal to provided input",
 )
 EM_pi(G_prior,Bhat,Shat, indx_lst,
       init_pi0_w    = init_pi0_w,
-      control_mixsqp = control_mixsqp)
+      control_mixsqp = control_mixsqp,
+      lowc_wc=NULL)
 
 
 outEM <-  EM_pi(G_prior,Bhat,Shat, indx_lst,
                 init_pi0_w    = init_pi0_w,
-                control_mixsqp = control_mixsqp)
+                control_mixsqp = control_mixsqp,
+                lowc_wc=NULL)
 test_that("The outputs of the EM_pi function should be  ",
           {
             outEM <-  EM_pi(G_prior,Bhat,Shat, indx_lst,
                             init_pi0_w    = init_pi0_w,
-                            control_mixsqp = control_mixsqp)
+                            control_mixsqp = control_mixsqp,
+                            lowc_wc=NULL)
             expect_equal(class(outEM$tpi_k) ,"pi_mixture_normal")
             expect_equal(class(outEM$lBF) ,"numeric")
             expect_equal(length(outEM$lBF) ,dim(Bhat)[1])
@@ -249,7 +258,8 @@ test_that("The alpha value of  the update susiF object should be equal to   ",
           {
             outEM <-  EM_pi(G_prior,Bhat,Shat, indx_lst,
                             init_pi0_w    = init_pi0_w,
-                            control_mixsqp = control_mixsqp)
+                            control_mixsqp = control_mixsqp,
+                            lowc_wc=NULL)
             new_alpha <- cal_zeta(outEM$lBF)
             susiF_obj <- update_alpha.susiF(susiF_obj, 1, new_alpha)
             expect_equal( get_alpha (susiF_obj , 1), new_alpha )
@@ -260,7 +270,8 @@ test_that("The mixture proportion of the update susiF object shoudl be equal to 
           {
             outEM <-  EM_pi(G_prior,Bhat,Shat, indx_lst,
                             init_pi0_w    = init_pi0_w,
-                            control_mixsqp = control_mixsqp)
+                            control_mixsqp = control_mixsqp,
+                            lowc_wc=NULL)
             susiF_obj <- update_pi( susiF_obj, 1,  outEM$tpi_k)
 
             expect_equal( get_pi (susiF_obj , 1),outEM$tpi_k )
@@ -272,7 +283,8 @@ test_that("The alpha value of  the update susiF object should be equal to   ",
           {
             outEM <-  EM_pi(G_prior,Bhat,Shat, indx_lst,
                             init_pi0_w    = init_pi0_w,
-                            control_mixsqp = control_mixsqp)
+                            control_mixsqp = control_mixsqp,
+                            lowc_wc=NULL)
             new_alpha <- cal_zeta(outEM$lBF)
             susiF_obj <- update_alpha.susiF(susiF_obj, 1, new_alpha)
             expect_equal( get_alpha (susiF_obj , 1), new_alpha )
@@ -287,7 +299,8 @@ test_that("The update susiF object should have its argument equal to    ",
           {
             outEM <-  EM_pi(G_prior,Bhat,Shat, indx_lst,
                             init_pi0_w    = init_pi0_w,
-                            control_mixsqp = control_mixsqp)
+                            control_mixsqp = control_mixsqp,
+                            lowc_wc=NULL)
             G_prior <- update_prior(G_prior,
                                     tpi= outEM$tpi_k )
 
@@ -307,7 +320,8 @@ test_that("The partial residual should be    ",
           {
             outEM <-  EM_pi(G_prior,Bhat,Shat, indx_lst,
                             init_pi0_w    = init_pi0_w,
-                            control_mixsqp = control_mixsqp)
+                            control_mixsqp = control_mixsqp,
+                            lowc_wc=NULL)
             G_prior <- update_prior(G_prior,
                                     tpi= outEM$tpi_k )
 
@@ -338,7 +352,8 @@ test_that("The output update should be equal to    ",
           {
             outEM <-  EM_pi(G_prior,Bhat,Shat, indx_lst,
                             init_pi0_w    = init_pi0_w,
-                            control_mixsqp = control_mixsqp)
+                            control_mixsqp = control_mixsqp,
+                            lowc_wc=NULL)
             G_prior <- update_prior(G_prior,
                                     tpi= outEM$tpi_k )
 
@@ -400,7 +415,8 @@ test_that("The precision of the fitted curves should be   ",
           {
             outEM <-  EM_pi(G_prior,Bhat,Shat, indx_lst,
                             init_pi0_w    = init_pi0_w,
-                            control_mixsqp = control_mixsqp)
+                            control_mixsqp = control_mixsqp,
+                            lowc_wc=NULL)
             G_prior <- update_prior(G_prior,
                                     tpi= outEM$tpi_k )
 
@@ -412,11 +428,13 @@ test_that("The precision of the fitted curves should be   ",
 
 outEM <-  EM_pi(G_prior,Bhat,Shat, indx_lst,
                 init_pi0_w    = init_pi0_w,
-                control_mixsqp = control_mixsqp)
+                control_mixsqp = control_mixsqp,
+                lowc_wc=NULL)
 G_prior <- update_prior(G_prior,
                         tpi= outEM$tpi_k )
 
-susiF_obj <-  update_susiF_obj(susiF_obj, 1, outEM, Bhat, Shat, indx_lst )
+susiF_obj <-  update_susiF_obj(susiF_obj, 1, outEM, Bhat, Shat, indx_lst ,
+                               lowc_wc=NULL)
 susiF_obj <-  out_prep(susiF_obj,Y, X=X, indx_lst=indx_lst,filter.cs = FALSE,lfsr_curve = 0.05)
 
 plot( unlist(susiF_obj$fitted_func), type="l", col="green")

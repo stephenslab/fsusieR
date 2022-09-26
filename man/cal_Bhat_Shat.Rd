@@ -17,6 +17,8 @@ cal_Bhat_Shat(Y, X, v1, ...)
 \item{Y}{functional phenotype, matrix of size N by size J. The underlying algorithm uses wavelet which assume that J is of the form J^2. If J not a power of 2, susif internally remaps the data into grid of length 2^J}
 
 \item{X}{matrix of size n by p in}
+
+\item{v1}{vector of ones of length n}
 }
 \value{
 list of two

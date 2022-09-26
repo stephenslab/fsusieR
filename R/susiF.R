@@ -142,7 +142,7 @@
 #'
 susiF <- function(Y, X, L = 2,
                   pos = NULL,
-                  prior = "mixture_normal",
+                  prior = "mixture_normal_per_scale",
                   verbose = TRUE,
                   plot_out = TRUE,
                   maxit = 100,
@@ -151,8 +151,8 @@ susiF <- function(Y, X, L = 2,
                   min.purity=0.5,
                   filter.cs =TRUE,
                   init_pi0_w= 0.999,
-                  control_mixsqp =  list(verbose=FALSE)
-)
+                  control_mixsqp =  list(verbose=FALSE),
+                  thresh_lowcount)
 {
   if( prior %!in% c("normal", "mixture_normal", "mixture_normal_per_scale"))
   {
@@ -172,6 +172,7 @@ susiF <- function(Y, X, L = 2,
   {
     stop("Error: number of position provided different from the number of column of Y")
   }
+
   original_Y <-Y
 
 
@@ -197,6 +198,15 @@ susiF <- function(Y, X, L = 2,
 
   Y_f      <-  cbind( W$D,W$C)
 
+
+  if(!missing(thresh_lowcount)){
+     lowc_wc <-   which_lowcount(Y_f,thresh_lowcount)
+     if(length(lowc_wc)> (ncol(Y_f )-3)){
+       stop("almost all the wavelet coefficients are null, consider using univariate fine mapping")
+     }
+  }else{
+    lowc_wc <- NULL
+  }
   v1       <-  rep(1, dim(X)[1])### used in fit_lm to add a column of 1 in the design matrix
   # Wavelet transform of the inputs
 
@@ -205,7 +215,7 @@ susiF <- function(Y, X, L = 2,
   ### Definition of some dynamic parameters ---
 
   update_Y    <-  cbind( W$D,W$C) #Using a column like phenotype, temporary matrix that will be regularly updated
-  G_prior     <-  init_prior(update_Y,X,prior,v1, indx_lst  )
+  G_prior     <-  init_prior(update_Y,X,prior,v1, indx_lst, lowc_wc  )
   susiF.obj   <-  init_susiF_obj(L=L, G_prior, Y,X)
 
   # numerical value to check breaking condition of while
@@ -220,12 +230,14 @@ susiF <- function(Y, X, L = 2,
     tpi  <- get_pi(susiF.obj,1)
     G_prior <- update_prior(G_prior, tpi= tpi ) #allow EM to start close to previous solution (to double check)
 
-    EM_out  <- EM_pi(G_prior       = G_prior,
-                     Bhat          = Bhat,
-                     Shat          = Shat,
-                     indx_lst      = indx_lst,
-                     init_pi0_w    = init_pi0_w,
-                     control_mixsqp = control_mixsqp
+    EM_out  <- EM_pi(G_prior        = G_prior,
+                     Bhat           = Bhat,
+                     Shat           = Shat,
+                     indx_lst       = indx_lst,
+                     init_pi0_w     = init_pi0_w,
+                     control_mixsqp = control_mixsqp,
+                     lowc_wc        = lowc_wc
+
                      )
 
     susiF.obj <-  update_susiF_obj(susiF.obj = susiF.obj ,
@@ -233,7 +245,8 @@ susiF <- function(Y, X, L = 2,
                                    EM_pi     = EM_out,
                                    Bhat      = Bhat,
                                    Shat      = Shat,
-                                   indx_lst  = indx_lst
+                                   indx_lst  = indx_lst,
+                                   lowc_wc   = lowc_wc
     )
     susiF.obj <- update_ELBO(susiF.obj,
                              get_objective( susiF.obj = susiF.obj,
@@ -258,12 +271,13 @@ susiF <- function(Y, X, L = 2,
         tpi <-  get_pi(susiF.obj,l)
         G_prior <- update_prior(G_prior, tpi= tpi ) #allow EM to start close to previous solution (to double check)
 
-        EM_out  <- EM_pi(G_prior       = G_prior,
-                         Bhat          = Bhat,
-                         Shat          = Shat,
-                         indx_lst      = indx_lst,
-                         init_pi0_w    = init_pi0_w,
-                         control_mixsqp = control_mixsqp
+        EM_out  <- EM_pi(G_prior        = G_prior,
+                         Bhat           = Bhat,
+                         Shat           = Shat,
+                         indx_lst       = indx_lst,
+                         init_pi0_w     = init_pi0_w,
+                         control_mixsqp = control_mixsqp,
+                         lowc_wc        = lowc_wc
         )
         #print(h)
         #print(EM_out$lBF)
@@ -272,7 +286,8 @@ susiF <- function(Y, X, L = 2,
                                        EM_pi       = EM_out,
                                        Bhat        = Bhat,
                                        Shat        = Shat,
-                                       indx_lst    = indx_lst
+                                       indx_lst    = indx_lst,
+                                       lowc_wc     = lowc_wc
         )
 
 

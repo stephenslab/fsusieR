@@ -9,7 +9,7 @@ susiF(
   X,
   L = 2,
   pos = NULL,
-  prior = "mixture_normal",
+  prior = "mixture_normal_per_scale",
   verbose = TRUE,
   plot_out = TRUE,
   maxit = 100,
@@ -17,8 +17,9 @@ susiF(
   cov_lev = 0.95,
   min.purity = 0.5,
   filter.cs = TRUE,
-  init_pi0_w = 0.51,
-  control_mixsqp = list(eps = 0.01, numiter.em = 100, verbose = FALSE)
+  init_pi0_w = 0.999,
+  control_mixsqp = list(verbose = FALSE),
+  thresh_lowcount
 )
 }
 \arguments{
@@ -68,7 +69,7 @@ expected level of coverage of the cs if not specified set to 0.95}
 Implementation of the SuSiF method
 }
 \details{
-tbd
+Implementation of the SuSiF method
 }
 \examples{
 

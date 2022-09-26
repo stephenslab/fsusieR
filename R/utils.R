@@ -1,4 +1,15 @@
 
+
+which_lowcount <- function( Y_f, thresh_lowcount ){
+  tt <- apply( abs(Y_f),2,mean)
+  if(length(tt==0))
+  {
+    return(NULL)
+  }else{
+    return(tt)
+  }
+}
+
 #testing if x is a wholenumber
 #'
 is.wholenumber <- function (x, tol = .Machine$double.eps^0.5)

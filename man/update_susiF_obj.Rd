@@ -16,6 +16,7 @@ update_susiF_obj(susiF.obj, l, EM_pi, Bhat, Shat, indx_lst, ...)
   Bhat,
   Shat,
   indx_lst,
+  lowc_wc = NULL,
   cal_wc_lsfr = FALSE,
   ...
 )
