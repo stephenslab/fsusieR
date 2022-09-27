@@ -86,7 +86,7 @@ update_residual_variance.susiF <- function(susiF.obj,sigma2)
 }
 
 
-
+L=6
 Y <- noisy.data
 X <- G
 
@@ -96,6 +96,7 @@ X <- G
      stop("Error: provide valid prior input")
    }
 
+
    ## Input error messages
 
    if (is.null(pos))
@@ -103,12 +104,12 @@ X <- G
      pos <- 1:dim(Y)[2]
    }
 
-
    #reshaping of the data
    if ( !(length(pos)==dim(Y)[2])) #miss matching positions and number of observations
    {
      stop("Error: number of position provided different from the number of column of Y")
    }
+
    original_Y <-Y
 
 
@@ -131,8 +132,12 @@ X <- G
 
    ### Definition of some static parameters ---
    indx_lst <-  gen_wavelet_indx(log2(length( outing_grid)))
-   v1       <-  rep(1, dim(X)[1])### used in fit_lm to add a column of 1 in the design matrix
+
    Y_f      <-  cbind( W$D,W$C)
+
+
+   lowc_wc <- NULL
+   v1       <-  rep(1, dim(X)[1])### used in fit_lm to add a column of 1 in the design matrix
    # Wavelet transform of the inputs
 
 
@@ -140,25 +145,29 @@ X <- G
    ### Definition of some dynamic parameters ---
 
    update_Y    <-  cbind( W$D,W$C) #Using a column like phenotype, temporary matrix that will be regularly updated
-   G_prior     <-  init_prior(update_Y,X,prior,v1 , indx_lst  )
+   G_prior     <-  init_prior(update_Y,X,prior,v1, indx_lst, lowc_wc  )
    susiF.obj   <-  init_susiF_obj(L=L, G_prior, Y,X)
 
    # numerical value to check breaking condition of while
    check <- 1
    h     <- 0
 
-   if(susiF.obj$L==1)
+   if( L==1)
    {
-     tt   <- cal_Bhat_Shat(update_Y,X,v1)
+     tt   <- cal_Bhat_Shat(update_Y,X,v1 , lowc_wc =lowc_wc )
      Bhat <- tt$Bhat
      Shat <- tt$Shat #UPDATE. could be nicer
      tpi  <- get_pi(susiF.obj,1)
      G_prior <- update_prior(G_prior, tpi= tpi ) #allow EM to start close to previous solution (to double check)
 
-     EM_out  <- EM_pi(G_prior  = G_prior,
-                      Bhat     = Bhat,
-                      Shat     = Shat,
-                      indx_lst = indx_lst
+     EM_out  <- EM_pi(G_prior        = G_prior,
+                      Bhat           = Bhat,
+                      Shat           = Shat,
+                      indx_lst       = indx_lst,
+                      init_pi0_w     = init_pi0_w,
+                      control_mixsqp = control_mixsqp,
+                      lowc_wc        = lowc_wc
+
      )
 
      susiF.obj <-  update_susiF_obj(susiF.obj = susiF.obj ,
@@ -166,7 +175,8 @@ X <- G
                                     EM_pi     = EM_out,
                                     Bhat      = Bhat,
                                     Shat      = Shat,
-                                    indx_lst  = indx_lst
+                                    indx_lst  = indx_lst,
+                                    lowc_wc   = lowc_wc
      )
      susiF.obj <- update_ELBO(susiF.obj,
                               get_objective( susiF.obj = susiF.obj,
@@ -181,29 +191,35 @@ X <- G
    }else{
      while(check >tol & (h/L) <maxit)
      {
-       for( l in 1:susiF.obj$L)
+       for( l in 1:L)
        {
 
          h <- h+1
-         tt <- cal_Bhat_Shat(update_Y,X,v1)
+         tt <- cal_Bhat_Shat(update_Y,X,v1, lowc_wc =lowc_wc )
          Bhat <- tt$Bhat
          Shat <- tt$Shat #UPDATE. could be nicer
          tpi <-  get_pi(susiF.obj,l)
          G_prior <- update_prior(G_prior, tpi= tpi ) #allow EM to start close to previous solution (to double check)
 
-         EM_out  <- EM_pi(G_prior  = G_prior,
-                          Bhat     =  Bhat,
-                          Shat     =  Shat,
-                          indx_lst =  indx_lst
+         EM_out  <- EM_pi(G_prior        = G_prior,
+                          Bhat           = Bhat,
+                          Shat           = Shat,
+                          indx_lst       = indx_lst,
+                          init_pi0_w     = init_pi0_w,
+                          control_mixsqp = control_mixsqp,
+                          lowc_wc        = lowc_wc
+         )
+         #print(h)
+         #print(EM_out$lBF)
+         susiF.obj <-  update_susiF_obj(susiF.obj   = susiF.obj ,
+                                        l           = l,
+                                        EM_pi       = EM_out,
+                                        Bhat        = Bhat,
+                                        Shat        = Shat,
+                                        indx_lst    = indx_lst,
+                                        lowc_wc     = lowc_wc
          )
 
-         susiF.obj <-  update_susiF_obj(susiF.obj = susiF.obj ,
-                                        l         = l,
-                                        EM_pi     = EM_out,
-                                        Bhat      = Bhat,
-                                        Shat      = Shat,
-                                        indx_lst  = indx_lst
-         )
 
          update_Y  <-  cal_partial_resid(
            susiF.obj = susiF.obj,
@@ -214,28 +230,34 @@ X <- G
            indx_lst  = indx_lst
          )
 
-
        }#end for l in 1:L
 
+       susiF.obj <- update_KL(susiF.obj,
+                              X,
+                              D= W$D,
+                              C= W$C , indx_lst)
 
-       susiF.obj <- update_ELBO(susiF.obj,
-                                get_objective( susiF.obj = susiF.obj,
-                                               Y         = Y_f,
-                                               X         = X,
-                                               D         = W$D,
-                                               C         = W$C,
-                                               indx_lst  = indx_lst
-                                )
-       )
+       if( h>1){
+         susiF.obj <- update_ELBO(susiF.obj,
+                                  get_objective( susiF.obj = susiF.obj,
+                                                 Y         = Y_f,
+                                                 X         = X,
+                                                 D         = W$D,
+                                                 C         = W$C,
+                                                 indx_lst  = indx_lst
+                                  )
+         )
 
-       sigma2    <- estimate_residual_variance(susiF.obj,Y=Y_f,X)
-       susiF.obj <- update_residual_variance(susiF.obj, sigma2 = sigma2 )
+         sigma2    <- estimate_residual_variance(susiF.obj,Y=Y_f,X)
+         susiF.obj <- update_residual_variance(susiF.obj, sigma2 = sigma2 )
 
-       if(length(susiF.obj$ELBO)>1 )#update parameter convergence,
-       {
-         check <- diff(susiF.obj$ELBO)[(length( susiF.obj$ELBO )-1)]
+         if(length(susiF.obj$ELBO)>1    )#update parameter convergence,
+         {
+           check <- abs(diff(susiF.obj$ELBO)[(length( susiF.obj$ELBO )-1)])
 
+         }
        }
+
      }#end while
    }
 
@@ -245,7 +267,6 @@ X <- G
                          Y          = Y,
                          X          = X,
                          indx_lst   = indx_lst,
-                         filter.cs  = filter.cs,
-                         lfsr_curve = lfsr_curve
+                         filter.cs  = filter.cs
    )
  })

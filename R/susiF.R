@@ -152,7 +152,8 @@ susiF <- function(Y, X, L = 2,
                   filter.cs =TRUE,
                   init_pi0_w= 0.999,
                   control_mixsqp =  list(verbose=FALSE),
-                  thresh_lowcount)
+                  thresh_lowcount,
+                  cal_obj=FALSE)
 {
   if( prior %!in% c("normal", "mixture_normal", "mixture_normal_per_scale"))
   {
@@ -302,31 +303,49 @@ susiF <- function(Y, X, L = 2,
 
       }#end for l in 1:L
 
-      susiF.obj <- update_KL(susiF.obj,
-                             X,
-                             D= W$D,
-                             C= W$C , indx_lst)
 
-      if( h>1){
-        susiF.obj <- update_ELBO(susiF.obj,
-                                 get_objective( susiF.obj = susiF.obj,
-                                                Y         = Y_f,
-                                                X         = X,
-                                                D         = W$D,
-                                                C         = W$C,
-                                                indx_lst  = indx_lst
-                                 )
-        )
+      if( cal_obj){
+        susiF.obj <- update_KL(susiF.obj,
+                               X,
+                               D= W$D,
+                               C= W$C , indx_lst)
+
+               if( h>1){
+                         susiF.obj <- update_ELBO(susiF.obj,
+                                      get_objective( susiF.obj = susiF.obj,
+                                                  Y         = Y_f,
+                                                  X         = X,
+                                                  D         = W$D,
+                                                  C         = W$C,
+                                                  indx_lst  = indx_lst
+                                                )
+                                             )
+
+                     }
+                      if(length(susiF.obj$ELBO)>1    )#update parameter convergence,
+                       {
+                                  check <- abs(diff(susiF.obj$ELBO)[(length( susiF.obj$ELBO )-1)])
+
+                      }
+      }
+        else{
+        if(ceiling(h/L)>2)#update parameter convergence, no ELBO for the moment
+        {
+          check <-0
+          for( tt in 0:(susiF.obj$L-1))
+          {
+            check <-  check + var( susiF.obj$alpha_hist[[h-tt]] -susiF.obj$alpha_hist [[h-L-tt]])
+          }
+          check <- check/nrow(X)
+          print(check)
+        }
+      }
 
         sigma2    <- estimate_residual_variance(susiF.obj,Y=Y_f,X)
         susiF.obj <- update_residual_variance(susiF.obj, sigma2 = sigma2 )
 
-        if(length(susiF.obj$ELBO)>1    )#update parameter convergence,
-        {
-          check <- abs(diff(susiF.obj$ELBO)[(length( susiF.obj$ELBO )-1)])
 
-        }
-      }
+
 
     }#end while
   }
