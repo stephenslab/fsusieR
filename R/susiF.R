@@ -44,7 +44,8 @@
 #' @param init_pi0_w starting value of weight on null compoenent in mixsqp (between 0 and 1)
 #' @param control_mixsqp list of parameter for mixsqp function see\link{\code{mixsqp}}
 #' @param  cal_obj logical if set as true compute ELBO for convergence monitoring
-#' @param quantile_trans logical if set as true perform normal quantile transform on wavelet coefficients (usefull in small sample size)
+#' @param quantile_trans logical if set as true perform normal quantile transform on wavelet coefficients
+#' (usefull in small sample size)
 #'
 #' @examples
 #'
@@ -145,7 +146,7 @@
 susiF <- function(Y, X, L = 2,
                   pos = NULL,
                   prior = "mixture_normal_per_scale",
-                  verbose = TRUE,
+                  verbose = FALSE,
                   plot_out = TRUE,
                   maxit = 100,
                   tol = 10^-2,
@@ -153,10 +154,11 @@ susiF <- function(Y, X, L = 2,
                   min.purity=0.5,
                   filter.cs =TRUE,
                   init_pi0_w= 0.999,
-                  control_mixsqp =  list(verbose=FALSE),
+                  control_mixsqp =  list(verbose=FALSE,eps = 1e-6,numiter.em = 4),
                   thresh_lowcount,
                   cal_obj=FALSE,
-                  quantile_trans=FALSE)
+                  quantile_trans=FALSE
+                  )
 {
   if( prior %!in% c("normal", "mixture_normal", "mixture_normal_per_scale"))
   {
@@ -196,21 +198,14 @@ susiF <- function(Y, X, L = 2,
     outing_grid <- 1:dim(Y)[2]
   }
   W <- DWT2(Y)
+  Y_f      <-  cbind( W$D,W$C)
 
-  if(quantile_trans)
-  {
-    W$C <- Quantile_transform(W$C )
-
-    W$D <- apply( W$D,2,  Quantile_transform )
-
+  if(verbose){
+    print("Starting initialization ")
   }
-
 
   ### Definition of some static parameters ---
   indx_lst <-  gen_wavelet_indx(log2(length( outing_grid)))
-
-  Y_f      <-  cbind( W$D,W$C)
-
 
   if(!missing(thresh_lowcount)){
      lowc_wc <-   which_lowcount(Y_f,thresh_lowcount)
@@ -220,6 +215,15 @@ susiF <- function(Y, X, L = 2,
   }else{
     lowc_wc <- NULL
   }
+
+  if(quantile_trans)# important to do it after testing for lowcount
+  {
+    W$C <- Quantile_transform(W$C )
+
+    W$D <- apply( W$D,2,  Quantile_transform )
+    Y_f      <-  cbind( W$D,W$C)
+  }
+
   v1       <-  rep(1, dim(X)[1])### used in fit_lm to add a column of 1 in the design matrix
   # Wavelet transform of the inputs
 
@@ -234,6 +238,10 @@ susiF <- function(Y, X, L = 2,
   # numerical value to check breaking condition of while
   check <- 1
   h     <- 0
+
+  if(verbose){
+    print("Initialization done")
+  }
 
   if( L==1)
   {
@@ -276,7 +284,9 @@ susiF <- function(Y, X, L = 2,
     {
       for( l in 1:L)
       {
-
+        if(verbose){
+          print(paste("Fitting effect ", l,", iter" , ceiling(h/L)))
+        }
         h <- h+1
         tt <- cal_Bhat_Shat(update_Y,X,v1, lowc_wc =lowc_wc )
         Bhat <- tt$Bhat
