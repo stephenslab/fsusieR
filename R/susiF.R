@@ -45,6 +45,9 @@
 #' @param control_mixsqp list of parameter for mixsqp function see\link{\code{mixsqp}}
 #' @param  cal_obj logical if set as true compute ELBO for convergence monitoring
 #' @param quantile_trans logical if set as true perform normal quantile transform on wavelet coefficients
+#'
+#'
+#'  @param nullweight numeric value for penalizing likelihood at point mass 0 (should be between 0 and 1)
 #' (usefull in small sample size)
 #'
 #' @examples
@@ -154,6 +157,7 @@ susiF <- function(Y, X, L = 2,
                   min.purity=0.5,
                   filter.cs =TRUE,
                   init_pi0_w= 0.999,
+                  nullweight = 0.1,
                   control_mixsqp =  list(verbose=FALSE,eps = 1e-6,numiter.em = 4),
                   thresh_lowcount,
                   cal_obj=FALSE,
@@ -257,7 +261,8 @@ susiF <- function(Y, X, L = 2,
                      indx_lst       = indx_lst,
                      init_pi0_w     = init_pi0_w,
                      control_mixsqp = control_mixsqp,
-                     lowc_wc        = lowc_wc
+                     lowc_wc        = lowc_wc,
+                     nullweight     = nullweight
 
                      )
 
@@ -300,7 +305,8 @@ susiF <- function(Y, X, L = 2,
                          indx_lst       = indx_lst,
                          init_pi0_w     = init_pi0_w,
                          control_mixsqp = control_mixsqp,
-                         lowc_wc        = lowc_wc
+                         lowc_wc        = lowc_wc,
+                         nullweight     = nullweight
         )
         #print(h)
         #print(EM_out$lBF)

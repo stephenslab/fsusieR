@@ -24,6 +24,8 @@
 #'
 #' @param espsilon numeric, tolerance EM algorithm
 #'
+#'  @param nullweight numeric value for penalizing likelihood at point mass 0 (should be between 0 and 1)
+#' (usefull in small sample size)
 #' @return
 #'\item{tpi_k}{ fitted mixture proportion}
 #'\item{lBF}{ log Bayes Factor}
@@ -35,7 +37,8 @@ EM_pi <- function(G_prior,Bhat, Shat, indx_lst,
                   espsilon = 0.0001,
                   init_pi0_w =1,
                   control_mixsqp,
-                  lowc_wc){
+                  lowc_wc,
+                  nullweight){
 
   #static parameters
   Lmat  <-  L_mixsq(G_prior, Bhat, Shat, indx_lst)
@@ -60,8 +63,9 @@ EM_pi <- function(G_prior,Bhat, Shat, indx_lst,
 
     # M step ----
     tpi_k   <- m_step(Lmat,zeta,indx_lst,
-                      init_pi0_w    = init_pi0_w,
-                      control_mixsqp = control_mixsqp  )
+                      init_pi0_w     = init_pi0_w,
+                      control_mixsqp = control_mixsqp,
+                      nullweight     = nullweight)
     G_prior <- update_prior(G_prior,tpi_k)
 
     lBF <-  log_BF(G_prior,Bhat,Shat, indx_lst=indx_lst, lowc_wc=lowc_wc)
@@ -804,10 +808,16 @@ m_step <- function(L, zeta, indx_lst,init_pi0_w,control_mixsqp, ...)
 #'
 #' @export
 #'
-m_step.lik_mixture_normal <- function (L, zeta, indx_lst,init_pi0_w ,control_mixsqp, ...)
+m_step.lik_mixture_normal <- function (L, zeta, indx_lst,init_pi0_w ,control_mixsqp, nullweight,  ...)
 {
-  w <- rep(zeta,sum(lengths(indx_lst))) # setting the weight to fit the weighted ash problem
+  w <- c(nullweight,
+         rep(zeta,sum(lengths(indx_lst))) # setting the weight to fit the weighted ash problem
+         )
+
+  L <- rbind(c(0, rep( -100,(ncol(L)-1)  )),
+             L)
   tlength <- ncol(L) - 1
+
   mixsqp_out <- mixsqp(L,
                        w,
                        log = TRUE,
@@ -827,7 +837,7 @@ m_step.lik_mixture_normal <- function (L, zeta, indx_lst,init_pi0_w ,control_mix
 #'
 #' @export
 #'
-m_step.lik_mixture_normal_per_scale <- function(L, zeta, indx_lst,init_pi0_w=1,control_mixsqp,...)
+m_step.lik_mixture_normal_per_scale <- function(L, zeta, indx_lst,init_pi0_w=1,control_mixsqp, nullweight,...)
 {
   #setting the weight to fit the weighted ash problem
 
@@ -835,7 +845,8 @@ m_step.lik_mixture_normal_per_scale <- function(L, zeta, indx_lst,init_pi0_w=1,c
   out <- lapply(1:length(indx_lst) ,
                                     function(s) scale_m_step(L,s,zeta,indx_lst,
                                                              init_pi0_w=init_pi0_w,
-                                                             control_mixsqp = control_mixsqp)
+                                                             control_mixsqp = control_mixsqp,
+                                                             nullweight     =  nullweight )
                 )
   class( out ) <-  c("pi_mixture_normal_per_scale" )
   return(out)
@@ -861,11 +872,22 @@ m_step.lik_mixture_normal_per_scale <- function(L, zeta, indx_lst,init_pi0_w=1,c
 #' @importFrom mixsqp mixsqp
 #'
 #' @export
-scale_m_step <- function(L,s,zeta, indx_lst,init_pi0_w=0.5,  control_mixsqp,...)
+scale_m_step <- function(L,s,zeta, indx_lst,init_pi0_w=0.5,  control_mixsqp, nullweight,...)
 {
-  w <- rep(zeta,length(indx_lst[[s]] ))
-  tlength <- dim(L[[s]])[2]-1
-  mixsqp_out <- mixsqp( L[[s]] ,
+  tL <- L[[s]]
+  w <-  c(nullweight,
+          rep(zeta,length(indx_lst[[s]] ))
+          )
+
+
+
+
+
+  tL <- rbind(c(0, rep( -100,(ncol(tL)-1)  )),
+              tL)
+  tlength <- dim(tL)[2]-1
+
+  mixsqp_out <- mixsqp( tL ,
                         w,
                         x0 = c(init_pi0_w, rep(1e-12,  tlength )),
                         log=TRUE ,
