@@ -285,7 +285,7 @@ susiF <- function(Y, X, L = 2,
       for( l in 1:L)
       {
         if(verbose){
-          print(paste("Fitting effect ", l,", iter" , ceiling(h/L)))
+          print(paste("Fitting effect ", l,", iter" , (ceiling(h/L)+1)))
         }
         h <- h+1
         tt <- cal_Bhat_Shat(update_Y,X,v1, lowc_wc =lowc_wc )
