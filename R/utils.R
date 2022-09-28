@@ -46,3 +46,12 @@ shifter <- function(x, n = 1) {
 # [1] 10  1  2  3  4  5  6  7  8  9
 #shifter(c(1:10), n=2)
 # [1]  9 10  1  2  3  4  5  6  7  8
+
+
+Quantile_transform  <- function(x)
+{
+
+  x.rank = rank(x, ties.method="random")
+  #x.rank = rank(x, ties.method="average")
+  return(qqnorm(x.rank,plot.it = F)$x)
+}

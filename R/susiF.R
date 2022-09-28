@@ -43,6 +43,8 @@
 #' @param filter.cs logical, if TRUE filter the credible set (removing low purity cs and cs with estimated prior equal to 0)
 #' @param init_pi0_w starting value of weight on null compoenent in mixsqp (between 0 and 1)
 #' @param control_mixsqp list of parameter for mixsqp function see\link{\code{mixsqp}}
+#' @param  cal_obj logical if set as true compute ELBO for convergence monitoring
+#' @param quantile_trans logical if set as true perform normal quantile transform on wavelet coefficients (usefull in small sample size)
 #'
 #' @examples
 #'
@@ -153,7 +155,8 @@ susiF <- function(Y, X, L = 2,
                   init_pi0_w= 0.999,
                   control_mixsqp =  list(verbose=FALSE),
                   thresh_lowcount,
-                  cal_obj=FALSE)
+                  cal_obj=FALSE,
+                  quantile_trans=FALSE)
 {
   if( prior %!in% c("normal", "mixture_normal", "mixture_normal_per_scale"))
   {
@@ -193,6 +196,15 @@ susiF <- function(Y, X, L = 2,
     outing_grid <- 1:dim(Y)[2]
   }
   W <- DWT2(Y)
+
+  if(quantile_trans)
+  {
+    W$C <- Quantile_transform(W$C )
+
+    W$D <- apply( W$D,2,  Quantile_transform )
+
+  }
+
 
   ### Definition of some static parameters ---
   indx_lst <-  gen_wavelet_indx(log2(length( outing_grid)))
@@ -337,7 +349,7 @@ susiF <- function(Y, X, L = 2,
             check <-  check + var( susiF.obj$alpha_hist[[h-tt]] -susiF.obj$alpha_hist [[h-L-tt]])
           }
           check <- check/nrow(X)
-          print(check)
+          #print(check)
         }
       }
 

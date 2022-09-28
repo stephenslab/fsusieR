@@ -47,9 +47,13 @@ init_prior.default <- function(Y,X, prior,v1 , indx_lst,lowc_wc )
 
     G_prior <- list()
     if( !is.null(lowc_wc)){
-      G_prior[[1]]  <-  ash(c(temp$Bhat[,-lowc_wc]), c(temp$Shat[,-lowc_wc]),mixcompdist ="normal")
+      G_prior[[1]]  <-  ash(c(temp$Bhat[,-lowc_wc]), c(temp$Shat[,-lowc_wc]),
+                            mixcompdist ="normal",
+                            outputlevel=0)
     }else {
-      G_prior[[1]]  <-  ash(c(temp$Bhat ), c(temp$Shat ),mixcompdist ="normal")
+      G_prior[[1]]  <-  ash(c(temp$Bhat ), c(temp$Shat ),
+                            mixcompdist ="normal",
+                            outputlevel=0)
     }
 
     attr(G_prior, "class")  <- "mixture_normal"
@@ -59,8 +63,18 @@ init_prior.default <- function(Y,X, prior,v1 , indx_lst,lowc_wc )
   {
 
     temp <- cal_Bhat_Shat(Y, X, v1 ,lowc_wc )   ## Speed Gain would be good to call directly cal_Bhat_Shat in the ash function
-    G_prior  <-  lapply(1: (log2(dim(Y)[2])+1) ,
-                        FUN= function(s) fit_ash_level(  Bhat=temp$Bhat, temp$Shat,s=s, indx_lst, lowc_wc ) )
+
+    if( !is.null(lowc_wc)){
+      t_ash <-   ash(c(temp$Bhat[,-lowc_wc]), c(temp$Shat[,-lowc_wc]),
+                     mixcompdist ="normal",
+                     outputlevel=0)
+    }else {
+      t_ash <-  ash(c(temp$Bhat ), c(temp$Shat ),
+                    mixcompdist ="normal",
+                    outputlevel=0)
+    }
+
+    G_prior  <- rep(list(t_ash),(log2(dim(Y)[2])+1))
     #first log2(Y_f)+1 element of G_prior   are ash prior fitted per level coefficient on var 1
     # element in  (log2(Y_f)+2):  2*( log2(Y_f)+1)   of G_prior   are ash prior fitted per level coefficient on var 2
 
