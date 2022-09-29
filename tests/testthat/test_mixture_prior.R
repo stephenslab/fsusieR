@@ -78,11 +78,11 @@ G_prior<- init_prior(Y=Y_f,
                 lowc_wc=NULL)
 
 
-plot( Bhat,post_mat_mean(G_prior,Bhat,Shat))
+plot( Bhat,post_mat_mean(G_prior,Bhat,Shat,indx_lst,lowc_wc))
 
 
 
-plot( Shat,  (post_mat_sd(G_prior,Bhat,Shat, indx_lst) ))
+plot( Shat,  (post_mat_sd(G_prior,Bhat,Shat, indx_lst,lowc_wc) ))
 get_pi_G_prior(G_prior)
 get_sd_G_prior(G_prior)
 L <- L_mixsq(G_prior, Bhat, Shat)
@@ -165,8 +165,8 @@ test_that("Class of the prior is", {
   "mixture_normal"
   )
 })
-plot( Bhat,  post_mat_mean(G_prior,Bhat,Shat, indx_lst) )
-plot( Shat,  (post_mat_sd(G_prior,Bhat,Shat, indx_lst) ))
+plot( Bhat,  post_mat_mean(G_prior,Bhat,Shat, indx_lst,lowc_wc) )
+plot( Shat,  (post_mat_sd(G_prior,Bhat,Shat, indx_lst,lowc_wc) ))
 test_that("Class of the prior is", {
 
   expect_equal(class(get_pi_G_prior(G_prior))
@@ -327,8 +327,8 @@ test_that("The update susiF object should have its argument equal to    ",
 
             susiF_obj <- update_susiF_obj(susiF_obj, 1, outEM, Bhat, Shat, indx_lst )
 
-            expect_equal( susiF_obj$fitted_wc[[1]],post_mat_mean( G_prior , Bhat, Shat, indx_lst ))
-            expect_equal( susiF_obj$fitted_wc2[[1]],post_mat_sd  ( G_prior , Bhat, Shat , indx_lst)^2)
+            expect_equal( susiF_obj$fitted_wc[[1]],post_mat_mean( G_prior , Bhat, Shat, indx_lst ,lowc_wc))
+            expect_equal( susiF_obj$fitted_wc2[[1]],post_mat_sd  ( G_prior , Bhat, Shat , indx_lst,lowc_wc)^2)
             expect_equal( get_alpha (susiF_obj , 1), cal_zeta(outEM$lBF))
             expect_equal( get_G_prior(susiF_obj) ,G_prior)
 

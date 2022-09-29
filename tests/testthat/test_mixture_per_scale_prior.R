@@ -1,7 +1,8 @@
-  library(testthat)
+library(testthat)
 library(ashr)
 library(wavethresh)
 library(mixsqp)
+library(susiF.alpha)
 set.seed(2)
 f1 <- simu_IBSS_per_level(lev_res=9, alpha=1, prop_decay =1.5)
 lowc_wc=NULL
@@ -107,8 +108,8 @@ test_that("Class of the prior is", {
   "mixture_normal_per_scale"
   )
 })
-plot( Bhat,  post_mat_mean(G_prior,Bhat,Shat, indx_lst) )
-plot( Shat,  (post_mat_sd(G_prior,Bhat,Shat, indx_lst) ))
+plot( Bhat,  post_mat_mean(G_prior,Bhat,Shat, indx_lst,lowc_wc) )
+plot( Shat,  (post_mat_sd(G_prior,Bhat,Shat, indx_lst,lowc_wc) ))
 test_that("Class of the proportions  is", {
 
   expect_equal(class(get_pi_G_prior(G_prior))[1]
@@ -242,8 +243,8 @@ test_that("The update susiF object should have its argument equal to    ",
 
             susiF_obj <- update_susiF_obj(susiF_obj, 1, outEM, Bhat, Shat, indx_lst )
 
-            expect_equal( susiF_obj$fitted_wc[[1]],post_mat_mean( G_prior , Bhat, Shat, indx_lst ))
-            expect_equal( susiF_obj$fitted_wc2[[1]],post_mat_sd  ( G_prior , Bhat, Shat , indx_lst)^2)
+            expect_equal( susiF_obj$fitted_wc[[1]],post_mat_mean( G_prior , Bhat, Shat, indx_lst ,lowc_wc))
+            expect_equal( susiF_obj$fitted_wc2[[1]],post_mat_sd  ( G_prior , Bhat, Shat , indx_lst,lowc_wc)^2)
             expect_equal( get_alpha (susiF_obj , 1), cal_zeta(outEM$lBF))
             expect_equal( get_G_prior(susiF_obj) ,G_prior)
             expect_equal(   susiF_obj$lBF[[1]]  , outEM$lBF )
@@ -478,6 +479,8 @@ test_that("Removing one wc coeef should lead to the followin results",
 
           }
 )
+
+
 out <- susiF(Y,X,L=2, prior="mixture_normal_per_scale", cal_obj = TRUE)
 out <- susiF(Y,X,L=2, prior="mixture_normal_per_scale", cal_obj = TRUE,quantile_trans = TRUE)
 

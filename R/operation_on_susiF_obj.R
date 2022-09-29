@@ -316,7 +316,7 @@ init_susiF_obj <- function(L, G_prior, Y,X )
   for ( l in 1:L )
   {
     fitted_wc[[l]]        <-  matrix(0, nrow = dim(X)[2], ncol=dim(Y)[2]  )
-    fitted_wc2[[l]]       <-  matrix(0, nrow = dim(X)[2], ncol=dim(Y)[2]  )
+    fitted_wc2[[l]]       <-  matrix(1, nrow = dim(X)[2], ncol=dim(Y)[2]  )
     alpha [[l]]           <-  rep(0, dim(X)[2])
     cs[[l]]               <-  list()
     est_pi [[l]]          <-  get_pi_G_prior(G_prior)
@@ -775,13 +775,31 @@ update_susiF_obj.susiF <- function(susiF.obj, l, EM_pi, Bhat, Shat, indx_lst, lo
                                    tpi =  EM_pi$tpi_k)
   susiF.obj$G_prior <-   update_prior(get_G_prior(susiF.obj) , EM_pi$tpi_k  )
 
-  susiF.obj$fitted_wc[[l]]   <- post_mat_mean(get_G_prior(susiF.obj) , Bhat, Shat,indx_lst= indx_lst )
-  susiF.obj$fitted_wc2[[l]]  <- post_mat_sd  (get_G_prior(susiF.obj) , Bhat, Shat, indx_lst= indx_lst)^2
+  if(!is.null(lowc_wc)){
+    susiF.obj$fitted_wc[[l]][,-lowc_wc]   <- post_mat_mean(get_G_prior(susiF.obj) ,
+                                                Bhat,
+                                                Shat,
+                                                indx_lst = indx_lst,
+                                                lowc_wc  = lowc_wc)
+    susiF.obj$fitted_wc2[[l]][,-lowc_wc]  <- post_mat_sd  (get_G_prior(susiF.obj) ,
+                                                Bhat,
+                                                Shat,
+                                                indx_lst = indx_lst,
+                                                lowc_wc  = lowc_wc)^2
 
-  if( !is.null(lowc_wc)){
-    susiF.obj$fitted_wc[[l]][,lowc_wc] <- 0
-    susiF.obj$fitted_wc2[[l]][,lowc_wc]      <- 1
+  }else{
+    susiF.obj$fitted_wc[[l]]   <- post_mat_mean(get_G_prior(susiF.obj) ,
+                                                Bhat,
+                                                Shat,
+                                                indx_lst = indx_lst,
+                                                lowc_wc  = lowc_wc)
+    susiF.obj$fitted_wc2[[l]]  <- post_mat_sd  (get_G_prior(susiF.obj) ,
+                                                Bhat,
+                                                Shat,
+                                                indx_lst = indx_lst,
+                                                lowc_wc  = lowc_wc)^2
   }
+
 
 
   new_alpha <- cal_zeta(  EM_pi$lBF)

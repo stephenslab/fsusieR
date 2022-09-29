@@ -152,11 +152,11 @@ susiF <- function(Y, X, L = 2,
                   verbose = FALSE,
                   plot_out = TRUE,
                   maxit = 100,
-                  tol = 10^-2,
+                  tol = 10^-3,
                   cov_lev = 0.95,
                   min.purity=0.5,
                   filter.cs =TRUE,
-                  init_pi0_w= 0.999,
+                  init_pi0_w= 1,
                   nullweight ,
                   control_mixsqp =  list(verbose=FALSE,eps = 1e-6,numiter.em = 4),
                   thresh_lowcount,
@@ -164,6 +164,7 @@ susiF <- function(Y, X, L = 2,
                   quantile_trans=FALSE
                   )
 {
+  pt <- proc.time()
   if( prior %!in% c("normal", "mixture_normal", "mixture_normal_per_scale"))
   {
     stop("Error: provide valid prior input")
@@ -217,7 +218,7 @@ susiF <- function(Y, X, L = 2,
   if(!missing(thresh_lowcount)){
      lowc_wc <-   which_lowcount(Y_f,thresh_lowcount)
      if(verbose){
-       print( paste("Discarding ", lowc_wc, "wavelet coefficients out of ", ncol(Y_f)))
+       print( paste("Discarding ", length(lowc_wc), "wavelet coefficients out of ", ncol(Y_f)))
      }
      if(length(lowc_wc)> (ncol(Y_f )-3)){
        stop("almost all the wavelet coefficients are null, consider using univariate fine mapping")
@@ -291,12 +292,13 @@ susiF <- function(Y, X, L = 2,
     )
 
   }else{
-    while(check >tol & (h/L) <maxit)
+    iter <- 1
+    while(check >tol & iter <maxit)
     {
       for( l in 1:L)
       {
         if(verbose){
-          print(paste("Fitting effect ", l,", iter" , (ceiling(h/L)+1)))
+          print(paste("Fitting effect ", l,", iter" ,  iter ))
         }
         h <- h+1
         tt <- cal_Bhat_Shat(update_Y,X,v1, lowc_wc =lowc_wc )
@@ -363,18 +365,18 @@ susiF <- function(Y, X, L = 2,
                       }
       }
         else{
-        if(ceiling(h/L)>2)#update parameter convergence, no ELBO for the moment
+        if( iter >1)#update parameter convergence, no ELBO for the moment
         {
           check <-0
           for( tt in 0:(susiF.obj$L-1))
           {
-            check <-  check + var( susiF.obj$alpha_hist[[h-tt]] -susiF.obj$alpha_hist [[h-L-tt]])
+            check <-  check + var( susiF.obj$alpha_hist[[h-tt]] -susiF.obj$alpha_hist [[h-susiF.obj$L-tt]])
           }
           check <- check/nrow(X)
           #print(check)
         }
       }
-
+      iter <- iter+1
         sigma2    <- estimate_residual_variance(susiF.obj,Y=Y_f,X)
         susiF.obj <- update_residual_variance(susiF.obj, sigma2 = sigma2 )
 
@@ -392,5 +394,6 @@ susiF <- function(Y, X, L = 2,
                         indx_lst   = indx_lst,
                         filter.cs  = filter.cs
                         )
+  susiF.obj$runtime <- proc.time()-pt
   return(susiF.obj)
 }

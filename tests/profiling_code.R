@@ -1,32 +1,42 @@
-library(profvis)
+library(testthat)
 library(ashr)
+library(wavethresh)
+library(mixsqp)
 library(susiF.alpha)
-set.seed(1)
-#Example using curves simulated under the Mixture normal per scale prior
-rsnr <- 0.2 #wished root signal noise ratio
-N <- 100 #Number of individuals
-P <- 10 # Number of covariates
-pos1 <- 1#Position of the causal covariate
-lev_res <- 7
-temp_func <-  simu_IBSS_per_level(lev_res )
-f1 <-  temp_func$sim_func
-plot( f1, type ="l")
-G = matrix(sample(c(0, 1,2), size=N*P, replace=TRUE), nrow=N, ncol=P) #Genotype
+set.seed(2)
+f1 <- simu_IBSS_per_level(lev_res=9, alpha=1, prop_decay =1.5)
+lowc_wc=NULL
+plot(f1$sim_func, type="l", ylab="y")
+N=500
+P=10
+nullweight = 10/N
+set.seed(23)
+G = matrix(sample(c(0, 1,2), size=N*P, replace=T), nrow=N, ncol=P) #Genotype
 beta0       <- 0
 beta1       <- 1
-
+pos1 <- 5
 noisy.data  <- list()
 
+rsnr=10
 for ( i in 1:N)
 {
-  f1_obs <- f1
-  noise <- rnorm(length(f1), sd=  (1/  rsnr ) * var(f1))
-  noisy.data [[i]] <-   beta1*G[i,pos1]*f1_obs +  noise
+  f1_obs <- f1$sim_func
+  noisy.data [[i]] <-   beta1*G[i,pos1]*f1_obs +  rnorm(length(f1$sim_func), sd=  (1/  rsnr ) *sd(f1$sim_func))
 
 }
 noisy.data <- do.call(rbind, noisy.data)
 
-  L =2
+
+Y <- noisy.data
+X <- G
+
+beta0       <- 0
+beta1       <- 1
+
+
+
+L=6
+
 pos = NULL
 prior = "mixture_normal_per_scale"
 verbose = TRUE
@@ -37,7 +47,8 @@ cov_lev = 0.95
 min.purity=0.5
 lfsr_curve = 0.05
 filter.cs =TRUE
-
+thresh_lowcount <-0.001
+cal_obj=FALSE
 #testing if x is a wholenumber
 #'
 is.wholenumber <- function (x, tol = .Machine$double.eps^0.5)
@@ -85,10 +96,18 @@ update_residual_variance.susiF <- function(susiF.obj,sigma2)
   return(susiF.obj)
 }
 
+which_lowcount <- function( Y_f, thresh_lowcount ){
+  tt <- which( apply( abs(Y_f),2,median) <thresh_lowcount )
 
-L=6
-Y <- noisy.data
-X <- G
+  if(length(tt)==0)
+  {
+    return(NULL)
+  }else{
+    return(tt)
+  }
+}
+
+
 
  profvis({
    if( prior %!in% c("normal", "mixture_normal", "mixture_normal_per_scale"))
@@ -96,13 +115,13 @@ X <- G
      stop("Error: provide valid prior input")
    }
 
+     nullweight <- 10/nrow(X)
+
 
    ## Input error messages
 
-   if (is.null(pos))
-   {
      pos <- 1:dim(Y)[2]
-   }
+
 
    #reshaping of the data
    if ( !(length(pos)==dim(Y)[2])) #miss matching positions and number of observations
@@ -129,14 +148,31 @@ X <- G
      outing_grid <- 1:dim(Y)[2]
    }
    W <- DWT2(Y)
+   Y_f      <-  cbind( W$D,W$C)
+
+   if(verbose){
+     print("Starting initialization ")
+   }
 
    ### Definition of some static parameters ---
    indx_lst <-  gen_wavelet_indx(log2(length( outing_grid)))
 
-   Y_f      <-  cbind( W$D,W$C)
+     lowc_wc <-   which_lowcount(Y_f,thresh_lowcount)
+     if(verbose){
+       print( paste("Discarding ", length(lowc_wc), "wavelet coefficients out of ", ncol(Y_f)))
+     }
+     if(length(lowc_wc)> (ncol(Y_f )-3)){
+       stop("almost all the wavelet coefficients are null, consider using univariate fine mapping")
+     }
 
+   if(quantile_trans)# important to do it after testing for lowcount
+   {
+     W$C <- Quantile_transform(W$C )
 
-   lowc_wc <- NULL
+     W$D <- apply( W$D,2,  Quantile_transform )
+     Y_f      <-  cbind( W$D,W$C)
+   }
+
    v1       <-  rep(1, dim(X)[1])### used in fit_lm to add a column of 1 in the design matrix
    # Wavelet transform of the inputs
 
@@ -152,6 +188,10 @@ X <- G
    check <- 1
    h     <- 0
 
+   if(verbose){
+     print("Initialization done")
+   }
+
    if( L==1)
    {
      tt   <- cal_Bhat_Shat(update_Y,X,v1 , lowc_wc =lowc_wc )
@@ -166,7 +206,8 @@ X <- G
                       indx_lst       = indx_lst,
                       init_pi0_w     = init_pi0_w,
                       control_mixsqp = control_mixsqp,
-                      lowc_wc        = lowc_wc
+                      lowc_wc        = lowc_wc,
+                      nullweight     = nullweight
 
      )
 
@@ -193,7 +234,9 @@ X <- G
      {
        for( l in 1:L)
        {
-
+         if(verbose){
+           print(paste("Fitting effect ", l,", iter" , (ceiling(h/L)+1)))
+         }
          h <- h+1
          tt <- cal_Bhat_Shat(update_Y,X,v1, lowc_wc =lowc_wc )
          Bhat <- tt$Bhat
@@ -207,7 +250,8 @@ X <- G
                           indx_lst       = indx_lst,
                           init_pi0_w     = init_pi0_w,
                           control_mixsqp = control_mixsqp,
-                          lowc_wc        = lowc_wc
+                          lowc_wc        = lowc_wc,
+                          nullweight     = nullweight
          )
          #print(h)
          #print(EM_out$lBF)
@@ -232,31 +276,49 @@ X <- G
 
        }#end for l in 1:L
 
-       susiF.obj <- update_KL(susiF.obj,
-                              X,
-                              D= W$D,
-                              C= W$C , indx_lst)
 
-       if( h>1){
-         susiF.obj <- update_ELBO(susiF.obj,
-                                  get_objective( susiF.obj = susiF.obj,
-                                                 Y         = Y_f,
-                                                 X         = X,
-                                                 D         = W$D,
-                                                 C         = W$C,
-                                                 indx_lst  = indx_lst
-                                  )
-         )
+       if( cal_obj){
+         susiF.obj <- update_KL(susiF.obj,
+                                X,
+                                D= W$D,
+                                C= W$C , indx_lst)
 
-         sigma2    <- estimate_residual_variance(susiF.obj,Y=Y_f,X)
-         susiF.obj <- update_residual_variance(susiF.obj, sigma2 = sigma2 )
+         if( h>1){
+           susiF.obj <- update_ELBO(susiF.obj,
+                                    get_objective( susiF.obj = susiF.obj,
+                                                   Y         = Y_f,
+                                                   X         = X,
+                                                   D         = W$D,
+                                                   C         = W$C,
+                                                   indx_lst  = indx_lst
+                                    )
+           )
 
+         }
          if(length(susiF.obj$ELBO)>1    )#update parameter convergence,
          {
            check <- abs(diff(susiF.obj$ELBO)[(length( susiF.obj$ELBO )-1)])
 
          }
        }
+       else{
+         if(ceiling(h/L)>1)#update parameter convergence, no ELBO for the moment
+         {
+           check <-0
+           for( tt in 0:(susiF.obj$L-1))
+           {
+             check <-  check + var( susiF.obj$alpha_hist[[h-tt]] -susiF.obj$alpha_hist [[h-L-tt]])
+           }
+           check <- check/nrow(X)
+           #print(check)
+         }
+       }
+
+       sigma2    <- estimate_residual_variance(susiF.obj,Y=Y_f,X)
+       susiF.obj <- update_residual_variance(susiF.obj, sigma2 = sigma2 )
+
+
+
 
      }#end while
    }
