@@ -1,0 +1,17 @@
+
+library(ashr)
+beta = c(rep(0,100),rnorm(100))
+sebetahat = abs(rnorm(200,0,1))
+betahat = rnorm(200,beta,sebetahat)
+beta.ash1 = ash(betahat, sebetahat,gridmult = 0, mixcompdist = "normal")
+beta.ash2 = ash(betahat, sebetahat,gridmult = sqrt(2), mixcompdist = "normal")
+beta.ash3 = ash(betahat, sebetahat,gridmult = sqrt(3), mixcompdist = "normal")
+beta.ash4 = ash(betahat, sebetahat,gridmult = sqrt(4), mixcompdist = "normal")
+
+beta.ash1$fitted_g$sd
+beta.ash2$fitted_g$sd
+beta.ash3$fitted_g$sd
+beta.ash4$fitted_g$sd
+names(beta.ash)
+
+autoselec

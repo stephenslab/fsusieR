@@ -3,7 +3,7 @@
     "path": null,
     "project_path": null,
     "type": "r_source",
-    "hash": "2142032418",
+    "hash": "4246618840",
     "contents": "",
     "dirty": true,
     "created": 1663518690294.0,
@@ -13,7 +13,7 @@
         "tempName": "Untitled1",
         "source_window_id": "",
         "Source": "Source",
-        "cursorPosition": "56,0",
+        "cursorPosition": "0,0",
         "scrollLine": "0"
     },
     "folds": "",
@@ -21,7 +21,7 @@
     "encoding": "",
     "collab_server": "",
     "source_window": "",
-    "last_content_update": 1663524348628,
+    "last_content_update": 1664366073429,
     "read_only": false,
     "read_only_alternatives": []
 }

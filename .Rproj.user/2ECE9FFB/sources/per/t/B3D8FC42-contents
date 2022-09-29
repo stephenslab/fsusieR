@@ -8,7 +8,7 @@ lowc_wc=NULL
 plot(f1$sim_func, type="l", ylab="y")
 N=500
 P=10
-nullweight = 10/N
+nullweight = 0.1
 set.seed(23)
 G = matrix(sample(c(0, 1,2), size=N*P, replace=T), nrow=N, ncol=P) #Genotype
 beta0       <- 0
@@ -168,7 +168,7 @@ test_that("The output of the m_step for the pi_0 should equal", {
                 control_mixsqp = control_mixsqp,
                 nullweight = nullweight)
   expect_equal( get_pi0(tpi = tpi), c(0,0.5, rep(1, 8)),
-                tolerance = 0.02) #allow 1% error in the proportion estimation
+                tolerance = 0.01) #allow 1% error in the proportion estimation
 })
 
 

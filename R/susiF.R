@@ -157,7 +157,7 @@ susiF <- function(Y, X, L = 2,
                   min.purity=0.5,
                   filter.cs =TRUE,
                   init_pi0_w= 0.999,
-                  nullweight = 0.1,
+                  nullweight ,
                   control_mixsqp =  list(verbose=FALSE,eps = 1e-6,numiter.em = 4),
                   thresh_lowcount,
                   cal_obj=FALSE,
@@ -168,7 +168,10 @@ susiF <- function(Y, X, L = 2,
   {
     stop("Error: provide valid prior input")
   }
-
+  if(missing(nullweight))
+  {
+    nullweight <- 10/nrow(X)
+  }
 
   ## Input error messages
 
@@ -213,6 +216,9 @@ susiF <- function(Y, X, L = 2,
 
   if(!missing(thresh_lowcount)){
      lowc_wc <-   which_lowcount(Y_f,thresh_lowcount)
+     if(verbose){
+       print( paste("Discarding ", lowc_wc, "wavelet coefficients out of ", ncol(Y_f)))
+     }
      if(length(lowc_wc)> (ncol(Y_f )-3)){
        stop("almost all the wavelet coefficients are null, consider using univariate fine mapping")
      }

@@ -1,60 +1,92 @@
-test_const_neffect <- function(n_effect, n, lev_res, prior, init_pi0_w ){
-  if(missing(prior))
-  {
-    prior <- "mixture_normal_per_scale"
-  }
-  P <- 100
-  beta <- rep( 1, n_effect)
-  pos <- sample(1:P, size=n_effect, replace=FALSE)
-  G = matrix(sample(c(0, 1,2), size=n*P, replace=TRUE), nrow=n, ncol=P) #Genotype
-  f_list <- list()
-  for( i in 1:n_effect)
-  {
-    f_list [[i]] <- simu_IBSS_per_level(lev_res )$sim_func  
-  }
-  noisy.data  <- list()
-  
-  for ( i in 1:n)
-  {
-    
-    noise <- rnorm(length(f_list[[1]]), sd= 2)
-    noisy.data [[i]] <-noise +  Reduce("+",
-                                       lapply (1:n_effect,
-                                               function(k) beta[k]*G[i,pos[k]]*f_list[[k]] )
-    )
-    
-    
-    
-    
-  }
-  noisy.data <- do.call(rbind, noisy.data)
-  
-  
-  
-  Y <- noisy.data
-  X <- G 
-  #Running fSuSiE
-   
-   out <- susiF(Y,X,L=(n_effect +10),prior=prior, init_pi0_w=init_pi0_w  )
-  n_cs <- length(out$cs)
-  if( length(which( pos%in% do.call(c, out$cs )))==0){
-    prop_good_sel <- 0
-  }else{
-    prop_good_sel <- length(which( pos%in% do.call(c, out$cs )))/n_effect
-  }
-  
-  out <- c(  prop_good_sel , n_cs,n_effect, n, lev_res,prior,init_pi0_w)
-  names(out) <- c('prop_good_sel' , 
-                          'n_cs',
-                          'n_effect',
-                          'n', 
-                          'lev_res','prior','init_pi0_w')
-  return( out)
+library(susiF.alpha)
+library(ashr)
+ 
+#Example using curves simulated under the Mixture normal per scale prior
+rsnr <- 0.2 #expected root signal noise ratio
+N <- 300   #Number of individuals
+P <- 10     #Number of covariates
+pos1 <- 1   #Position of the causal covariate for effect 1
+pos2 <- 5   #Position of the causal covariate for effect 1
+lev_res <- 9#length of the molecular phenotype (2^lev_res)
+f1 <-  simu_IBSS_per_level(lev_res )$sim_func#first effect
+f2 <- simu_IBSS_per_level(lev_res )$sim_func #second effect
+
+plot( f1, type ="l", ylab="effect", col="blue")
+abline(a=0,b=0)
+lines(f2, type="l", col="green")
+
+legend(x=100,
+       y=3,
+       lty = rep(1,3),
+       legend= c("effect 1", "effect 2" ),
+       col=c("black","blue","yellow"))
+G = matrix(sample(c(0, 1,2), size=N*P, replace=TRUE), nrow=N, ncol=P) #Genotype
+beta0       <- 0
+beta1       <- 1
+beta2       <- 1
+noisy.data  <- list()
+
+for ( i in 1:N)
+{
+  f1_obs <- f1
+  f2_obs <- f2
+  noise <- rnorm(length(f1), sd=  (1/  rsnr ) * var(f1))
+  noisy.data [[i]] <-   beta1*G[i,pos1]*f1_obs + beta2*G[i,pos2]*f2_obs + noise
+
 }
+noisy.data <- do.call(rbind, noisy.data)
 
-set.seed(1)
-test_const_neffect (n_effect=4, n=500, lev_res=5 ,init_pi0_w=1, prior="mixture_normal")
 
-test_const_neffect (n_effect=1, n=50 , lev_res=7 ,init_pi0_w=0, prior="mixture_normal")
-1    50       7 mixture_normal          0
 
+
+plot( noisy.data[1,], type = "l", col=(G[1, pos1]*3+1),
+      main="Observed curves \n colored by the causal effect", ylim= c(-40,40), xlab="")
+for ( i in 2:N)
+{
+  lines( noisy.data[i,], type = "l", col=(G[i, pos1]*3+1))
+
+}
+legend(x=0.3,
+       y=-10,
+       lty = rep(1,3),
+       legend= c("0", "1","2"),
+       col=c("black","blue","yellow"))
+
+
+
+Y <- noisy.data
+X <- G
+#Running fSuSiE
+
+out <- susiF(Y,X,L=20 , prior = 'mixture_normal', cal_obj =TRUE , quantile_trans = TRUE)
+#the easiest way to vizualize the result is to use the plot_susiF function
+out$cs
+plot(out$ELBO)
+diff(out$ELBO)
+plot_susiF(out)
+
+diff(out$ELBO)
+#You can also acces the information directly in the out of susiF. as follow
+par(mfrow=c(1,2))
+
+plot( f1, type="l", main="Estimated effect 1", xlab="")
+lines(unlist(out$fitted_func[[1]]),col='blue' )
+abline(a=0,b=0)
+legend(x= 35,
+       y=3,
+       lty= rep(1,2),
+       legend = c("effect 1"," fSuSiE est "),
+       col=c("black","blue" )
+)
+plot( f2, type="l", main="Estimated effect 2", xlab="")
+lines(unlist(out$fitted_func[[2]]),col='green' )
+abline(a=0,b=0)
+legend(x= 20,
+       y=-1.5,
+       lty= rep(1,2),
+       legend = c("effect 2"," fSuSiE est "),
+       col=c("black","green" )
+)
+
+par(mfrow=c(1,1))
+plot_susiF(out)
