@@ -190,7 +190,7 @@ susiF <- function(Y, X, L = 2,
   original_Y <-Y
 
 
-  if(!is.wholenumber(log2(dim(Y)[2])) | !(sum( duplicated(diff( pos)))== (length(pos) -2)) ) #check wether dim(Y) not equal to 2^J or if the data are unevenly spaced
+  if(!is.wholenumber(log2(dim(Y)[2])) | !(sum( duplicated(diff( pos)))== (length(pos) -2)) ) #check whether dim(Y) not equal to 2^J or if the data are unevenly spaced
   {
 
     inter_pol.obj <- interpol_mat(Y, pos)

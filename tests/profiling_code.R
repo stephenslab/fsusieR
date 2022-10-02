@@ -108,7 +108,7 @@ which_lowcount <- function( Y_f, thresh_lowcount ){
 }
 
 
-
+library(profvis)
  profvis({
    if( prior %!in% c("normal", "mixture_normal", "mixture_normal_per_scale"))
    {
