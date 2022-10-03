@@ -109,6 +109,13 @@ which_lowcount <- function( Y_f, thresh_lowcount ){
 
 
 library(profvis)
+
+profvis({
+  tt <- cal_Bhat_Shat( Y,X,v1, lowc_wc =lowc_wc )
+  tt <- cal_Bhat_Shat( Y,X,v1, lowc_wc =lowc_wc )
+  tt <- cal_Bhat_Shat( Y,X,v1, lowc_wc =lowc_wc )
+})
+
  profvis({
    if( prior %!in% c("normal", "mixture_normal", "mixture_normal_per_scale"))
    {

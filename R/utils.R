@@ -25,10 +25,12 @@ is.wholenumber <- function (x, tol = .Machine$double.eps^0.5)
 fast_lm <- function(x,y)
 {
   be <- solve(crossprod(x),crossprod(x,y))
-  resid <-  y - x %*% be
-  out <- list(be = be,
-              residuals = resid)
-  return(out)
+  #resid <-  y - x %*% be
+  #out <- list(be = be,
+  #            residuals = resid)
+
+  #return(out)
+  return(be)
 }
 
 
@@ -54,4 +56,9 @@ Quantile_transform  <- function(x)
   x.rank = rank(x, ties.method="random")
   #x.rank = rank(x, ties.method="average")
   return(qqnorm(x.rank,plot.it = F)$x)
+}
+
+fast_var <- function (x)
+{
+  .Call(stats:::C_cov, x, x, 5, FALSE)
 }

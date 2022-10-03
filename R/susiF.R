@@ -171,7 +171,7 @@ susiF <- function(Y, X, L = 2,
   }
   if(missing(nullweight))
   {
-    nullweight <- 10/nrow(X)
+    nullweight <- 10/sqrt(nrow(X))
   }
 
   ## Input error messages

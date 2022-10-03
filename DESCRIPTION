@@ -1,7 +1,7 @@
 Encoding: UTF-8
 Type: Package
 Package: susiF.alpha
-Version: 0.1.166
+Version: 0.1.167
 Date: 2022-02-16
 Title: Sum of Single Functions
 Authors@R: person("William R. P.","Denault",role = c("aut","cre"),
@@ -25,3 +25,4 @@ LazyData: true
 LazyDataCompression: xz
 NeedsCompilation: no
 RoxygenNote: 7.2.1
+ByteCompile: yes
