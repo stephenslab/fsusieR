@@ -1,0 +1,16 @@
+library(Matrix)
+data(KNex, package = "Matrix")
+y <- KNex$y
+ mm <- as(KNex$mm, "matrix") # full traditional matrix
+dim(mm)
+library(microbenchmark)
+
+ 
+microbenchmark(
+  v1 =crossprod(mm),
+  v2 = t(mm)%*%mm 
+)
+
+
+m <- Matrix(nrow = 3, ncol = 6, data = 0, sparse = TRUE)
+m <- as(m, "dgTMatrix")

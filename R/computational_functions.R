@@ -148,9 +148,6 @@ cal_Bhat_Shat.default  <- function(Y, X ,v1 , lowc_wc=NULL  )
 #'
 fit_lm <- function( l,j,Y,X,v1, lowc_wc =NULL )  ## Speed Gain
 {
-  if(missing(v1)){
-    v1 <- rep(1, ncol(Y))
-  }
 
   if( !is.null(lowc_wc)){
 
@@ -161,13 +158,9 @@ fit_lm <- function( l,j,Y,X,v1, lowc_wc =NULL )  ## Speed Gain
             )
 
     }else{
-      t_mat <- cbind(
-                    rep(1,
-                       length(X[,j])
-                         ),
-                    X[,j])
-
-
+      t_mat <- cbind(v1,
+                     X[,j]
+      )
       out <- fast_lm(t_mat ,
                      Y[,l]
                      )
@@ -181,13 +174,9 @@ fit_lm <- function( l,j,Y,X,v1, lowc_wc =NULL )  ## Speed Gain
     }
 
   }else{
-    t_mat <- cbind(
-      rep(1,
-          length(X[,j])
-      ),
-      X[,j])
-
-
+    t_mat <- cbind(v1,
+                    X[,j]
+                   )
     out <- fast_lm(t_mat ,
                    Y[,l]
     )
