@@ -481,7 +481,7 @@ post_mat_mean.mixture_normal_per_scale <- function( G_prior,Bhat,Shat, indx_lst,
         return(postmean(get_fitted_g(m),data))
       }
 
-      temp <- c()
+      temp <- c()#discard level of resolution with complelty zero coefficients
       for (s in 1:length(indx_lst))
       {
 
@@ -495,7 +495,9 @@ post_mat_mean.mixture_normal_per_scale <- function( G_prior,Bhat,Shat, indx_lst,
       }
       # temp
       t_indx <-  c((length(indx_lst)  -1): 1,length(indx_lst)   )
-      t_indx <- t_indx[- which(t_indx %in% temp)]
+      if(length(temp)>0){#check if at least one level has to be discarded
+        t_indx <- t_indx[- which(t_indx %in% temp)]
+      }
       return(unlist(lapply(t_indx , #important to maintain the ordering of the wavethresh package !!!!
                            t_m_post )))
     }
@@ -621,7 +623,7 @@ post_mat_sd.mixture_normal_per_scale <-  function( G_prior ,Bhat,Shat, indx_lst,
         return(postsd(get_fitted_g(m),data))
       }
 
-      temp <- c()
+      temp <- c()#discard level of resolution with complelty zero coefficients
       for (s in 1:length(indx_lst))
       {
 
@@ -635,7 +637,9 @@ post_mat_sd.mixture_normal_per_scale <-  function( G_prior ,Bhat,Shat, indx_lst,
       }
       # temp
       t_indx <-  c((length(indx_lst)  -1): 1,length(indx_lst)   )
-      t_indx <- t_indx[- which(t_indx %in% temp)]
+      if(length(temp)>0){#check if at least one level has to be discarded
+        t_indx <- t_indx[- which(t_indx %in% temp)]
+      }
       return(unlist(lapply(t_indx , #important to maintain the ordering of the wavethresh package !!!!
                            t_sd_post )))
     }
