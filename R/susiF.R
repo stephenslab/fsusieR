@@ -12,7 +12,7 @@
 #'
 #' @param X matrix of size n by p contains the covariates
 #'
-#' @param L the number of effect to fit (if not specified set to =2)
+#' @param L upper bound on the number of effect to fit (if not specified set to =2)
 #'
 #' @param pos vector of length J, corresponding to position/time pf
 #' the observed column in Y, if missing suppose that the observation
@@ -45,10 +45,13 @@
 #' @param control_mixsqp list of parameter for mixsqp function see\link{\code{mixsqp}}
 #' @param  cal_obj logical if set as true compute ELBO for convergence monitoring
 #' @param quantile_trans logical if set as true perform normal quantile transform on wavelet coefficients
+#' @param L_start number of effect initialized at the start of the algorithm
 #'
 #'
 #'  @param nullweight numeric value for penalizing likelihood at point mass 0 (should be between 0 and 1)
 #' (usefull in small sample size)
+#' @param greedy logical, if true allow greedy search for extra effect (up to L specify by the user). Set as true by default
+#' @param backfit logical, if true allow discarding effect via backfitting. Set as true by default
 #'
 #' @examples
 #'
@@ -161,7 +164,10 @@ susiF <- function(Y, X, L = 2,
                   control_mixsqp =  list(verbose=FALSE,eps = 1e-6,numiter.em = 4),
                   thresh_lowcount,
                   cal_obj=FALSE,
-                  quantile_trans=FALSE
+                  L_start = 3,
+                  quantile_trans=FALSE,
+                  greedy =TRUE,
+                  backfit =TRUE
                   )
 {
   pt <- proc.time()
@@ -209,7 +215,7 @@ susiF <- function(Y, X, L = 2,
   Y_f      <-  cbind( W$D,W$C)
 
   if(verbose){
-    print("Starting initialization ")
+    print("Starting initialization")
   }
 # centering covariate
    X <- colScale(X)
@@ -247,7 +253,13 @@ susiF <- function(Y, X, L = 2,
 
   update_Y    <-  cbind( W$D,W$C) #Using a column like phenotype, temporary matrix that will be regularly updated
   G_prior     <-  init_prior(update_Y,X,prior,v1, indx_lst, lowc_wc  )
-  susiF.obj   <-  init_susiF_obj(L=L, G_prior, Y,X)
+  susiF.obj   <-  init_susiF_obj(L_max=L,
+                                 G_prior=G_prior,
+                                 Y=Y,
+                                 X=X,
+                                 L_start=L_start,
+                                 greedy=greedy,
+                                 backfit=backfit)
 
   # numerical value to check breaking condition of while
   check <- 1
@@ -257,7 +269,7 @@ susiF <- function(Y, X, L = 2,
     print("Initialization done")
   }
 
-  if( L==1)
+  if( susiF.obj$L_max==1)
   {
     tt   <- cal_Bhat_Shat(update_Y,X,v1 , lowc_wc =lowc_wc )
     Bhat <- tt$Bhat
@@ -298,7 +310,7 @@ susiF <- function(Y, X, L = 2,
     iter <- 1
     while(check >tol & iter <maxit)
     {
-      for( l in 1:L)
+      for( l in 1:susiF.obj$L)
       {
         if(verbose){
           print(paste("Fitting effect ", l,", iter" ,  iter ))
@@ -344,51 +356,32 @@ susiF <- function(Y, X, L = 2,
       }#end for l in 1:L
 
 
-      if( cal_obj){
-        susiF.obj <- update_KL(susiF.obj,
-                               X,
-                               D= W$D,
-                               C= W$C , indx_lst)
+     susiF.obj <- greedy_backfit (susiF.obj,
+                                  verbose = verbose,
+                                  cov_lev = cov_lev,
+                                  X       = X,
+                                  min.purity= min.purity
+                                  )
+     susiF.obj <- test_stop_cond(susiF.obj = susiF.obj,
+                                  check    = check,
+                                 cal_obj   = cal_obj,
+                                 Y         = Y_f,
+                                 X         = X,
+                                 D         = W$D,
+                                 C         = W$C,
+                                indx_lst  = indx_lst)
+     #print(susiF.obj$ELBO)
+     check <- susiF.obj$check
 
-               if( h>1){
-                         susiF.obj <- update_ELBO(susiF.obj,
-                                      get_objective( susiF.obj = susiF.obj,
-                                                  Y         = Y_f,
-                                                  X         = X,
-                                                  D         = W$D,
-                                                  C         = W$C,
-                                                  indx_lst  = indx_lst
-                                                )
-                                             )
-
-                     }
-                      if(length(susiF.obj$ELBO)>1    )#update parameter convergence,
-                       {
-                                  check <- abs(diff(susiF.obj$ELBO)[(length( susiF.obj$ELBO )-1)])
-
-                      }
-      }
-        else{
-        if( iter >1)#update parameter convergence, no ELBO for the moment
-        {
-          check <-0
-          for( tt in 0:(susiF.obj$L-1))
-          {
-            check <-  check + var( susiF.obj$alpha_hist[[h-tt]] -susiF.obj$alpha_hist [[h-susiF.obj$L-tt]])
-          }
-          check <- check/nrow(X)
-          #print(check)
-        }
-      }
-      iter <- iter+1
-        sigma2    <- estimate_residual_variance(susiF.obj,Y=Y_f,X)
-        susiF.obj <- update_residual_variance(susiF.obj, sigma2 = sigma2 )
+    iter <- iter+1
+    sigma2    <- estimate_residual_variance(susiF.obj,Y=Y_f,X)
+    susiF.obj <- update_residual_variance(susiF.obj, sigma2 = sigma2 )
 
 
 
 
     }#end while
-  }
+  }#end else in if(L==1)
 
 
   #preparing output

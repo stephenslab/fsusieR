@@ -16,7 +16,8 @@ beta0       <- 0
 beta1       <- 1
 pos1 <- 5
 noisy.data  <- list()
-
+greedy=TRUE
+backfit=TRUE
 rsnr=10
 for ( i in 1:N)
 {
@@ -61,10 +62,26 @@ test_that("Max lBF should be in postion",
             )
           }
 )
-susiF_obj <- init_susiF_obj(L=2, G_prior,Y,X)
+susiF_obj <- init_susiF_obj(L_max =2,
+                            G_prior,
+                            Y,
+                            X,
+                            L_start   =2,
+                            greedy = greedy,
+                            backfit=backfit
+                            )
+
+susiF_obj$G_prior
 test_that("susiF object pi are expected to be equal to ",
           {
-            susiF_obj <- init_susiF_obj(L=2, G_prior,Y,X)
+            susiF_obj <- init_susiF_obj(L_max =2,
+                                        G_prior,
+                                        Y,
+                                        X,
+                                        L_start   =2,
+                                        greedy = greedy,
+                                        backfit=backfit
+            )
 
             expect_equal(get_pi(susiF_obj,1), get_pi_G_prior(G_prior)
             )
@@ -73,12 +90,27 @@ test_that("susiF object pi are expected to be equal to ",
           }
 )
 
-susiF_obj <- init_susiF_obj(L=1, G_prior,Y,X)
+susiF_obj <- init_susiF_obj(L_max =1,
+                            G_prior,
+                            Y,
+                            X,
+                            L_start   =4,
+                            greedy = greedy,
+                            backfit=backfit
+)
 
 
 test_that("susiF object pi are expected to be equal to ",
           {
-            susiF_obj <- init_susiF_obj(L=1, G_prior,Y,X)
+            susiF_obj <- init_susiF_obj(L_max =1,
+                                        G_prior,
+                                        Y,
+                                        X,
+                                        L_start   =1,
+                                        greedy = greedy,
+                                        backfit=backfit
+            )
+
 
             expect_equal(get_pi(susiF_obj,1), get_pi_G_prior(G_prior)
             )
@@ -86,9 +118,32 @@ test_that("susiF object pi are expected to be equal to ",
 )
 
 
+test_that("correct expansion of susiF object",
+{
+  susiF.obj   <-  init_susiF_obj(L_max=10, G_prior, Y,X, L_start=3,
+                                 greedy = greedy,
+                                 backfit=backfit)
+  expect_equal(susiF.obj$L_max, 10  )
+  expect_equal(susiF.obj$L, 3  )
+  susiF.obj <- expand_susiF_obj(susiF.obj,L_extra=7)
+  expect_equal(susiF.obj$L_max, 10  )
+  expect_equal(susiF.obj$L,length(susiF.obj$fitted_wc))
+  expect_equal(susiF.obj$L,length(susiF.obj$alpha))
+  expect_equal(susiF.obj$L,length(susiF.obj$fitted_wc2))
+  expect_equal(susiF.obj$L,length(susiF.obj$G_prior))
+  expect_equal(susiF.obj$L,length(susiF.obj$cs))
+  expect_equal(susiF.obj$L,length(susiF.obj$est_pi))
+  expect_equal(susiF.obj$L,length(susiF.obj$est_sd))
+  expect_equal(susiF.obj$L,length(susiF.obj$lBF))
+  expect_equal(susiF.obj$L,length(susiF.obj$cred_band))
+
+}
+)
 test_that("susiF internal prior to be equal to ",
           {
-            susiF_obj <- init_susiF_obj(L=2, G_prior,Y,X)
+            susiF_obj <- init_susiF_obj(L_max=2, G_prior, Y,X, L_start=2,
+                                        greedy = greedy,
+                                        backfit=backfit)
 
             expect_equal(get_G_prior (susiF_obj ),  G_prior)
 
@@ -169,7 +224,7 @@ test_that("The output of the m_step for the pi_0 should equal", {
                 init_pi0_w    = init_pi0_w,
                 control_mixsqp = control_mixsqp,
                 nullweight = nullweight)
-  expect_equal( get_pi0(tpi = tpi), c(0,0.5, rep(1, 8)),
+  expect_gt( get_pi0(tpi = tpi), c(0,0.5, rep(1, 8)),
                 tolerance = 0.02) #allow 1% error in the proportion estimation
 })
 
@@ -389,7 +444,7 @@ test_that("SusiF performance should be",
             sim  <- simu_test_function(rsnr=1,pos2= 2 ,is.plot = FALSE)
             Y <- sim$noisy.data
             X <- sim$G
-            out <- susiF(Y,X,L=2, prior="mixture_normal_per_scale", verbose = TRUE ,nullweight = 0, init_pi0_w = 1 )
+            out <- susiF(Y,X,L=2, prior="mixture_normal_per_scale", verbose =FALSE ,nullweight = 0, init_pi0_w = 1 )
             expect_equal(  Reduce("+", out$alpha) , c(1, 1,rep(0,8)) , tol=1e-5)
             expect_equal( max(  sum( abs(unlist(out$fitted_func[[1]]) -sim$f1)),
                                 sum( abs(unlist(out$fitted_func[[1]]) -sim$f2))
@@ -403,11 +458,7 @@ test_that("SusiF performance should be",
           }
 )
 
-sim  <- simu_test_function(rsnr=2,pos2= 2 ,is.plot = FALSE)
-Y <- sim$noisy.data
-X <- sim$G
-out <- susiF(Y,X,L=2, prior="mixture_normal_per_scale", nullweight = 0)
-out$alpha
+
 
 
 test_that("Removing one wc coeef should lead to the followin results",
@@ -424,8 +475,8 @@ test_that("Removing one wc coeef should lead to the followin results",
 )
 
 
-out <- susiF(Y,X,L=2, prior="mixture_normal_per_scale", cal_obj = TRUE)
-out <- susiF(Y,X,L=2, prior="mixture_normal_per_scale", cal_obj = TRUE,quantile_trans = TRUE)
+#out <- susiF(Y,X,L=2, prior="mixture_normal_per_scale", cal_obj = TRUE)
+#out <- susiF(Y,X,L=2, prior="mixture_normal_per_scale", cal_obj = TRUE,quantile_trans = TRUE)
 
 out <- susiF(Y,X,L=2, prior="mixture_normal_per_scale", cal_obj = FALSE,quantile_trans = TRUE)
-plot( out$ELBO)
+

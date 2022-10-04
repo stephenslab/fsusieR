@@ -102,6 +102,139 @@ check_cs <- function(susiF.obj, min.purity=0.5,X,...)
 
 check_cs.susiF <- function(susiF.obj, min.purity=0.5,X)
 {
+  dummy.cs <- which_dummy_cs(susiF.obj, min.purity=min.purity,X)
+
+    if( length(dummy.cs)==0)
+    {
+      return(susiF.obj)
+    }else{
+      if(length(dummy.cs)==susiF.obj$L) #avoid returning empty results
+      {
+        dummy.cs <- dummy.cs[-length(dummy.cs)]
+      }
+      susiF.obj <- discard_cs( susiF.obj,cs=dummy.cs, out_prep= TRUE)
+      return(susiF.obj)
+    }
+
+
+}
+
+
+#'
+#' @title Check tolerance for stopping criterion
+#'
+#' @export
+#'
+#'
+test_stop_cond <- function(susiF.obj, check, cal_obj, Y, X, D, C, indx_lst  ,...)
+  UseMethod("test_stop_cond")
+
+
+
+#' @rdname test_stop_cond
+#'
+#' @method test_stop_cond susiF
+#'
+#' @export test_stop_cond.susiF
+#'
+#' @export
+#'
+
+
+test_stop_cond.susiF<- function(susiF.obj, check, cal_obj, Y, X, D, C, indx_lst)
+{
+  if(!(susiF.obj$greedy_backfit_update)) #if not just updated check for stopping while loop
+  {
+    if( cal_obj){
+      susiF.obj <- update_KL(susiF.obj,
+                             X,
+                             D= W$D,
+                             C= W$C , indx_lst)
+
+        susiF.obj <- update_ELBO(susiF.obj,
+                                 get_objective( susiF.obj = susiF.obj,
+                                                Y         = Y_f,
+                                                X         = X,
+                                                D         = W$D,
+                                                C         = W$C,
+                                                indx_lst  = indx_lst
+                                                )
+                                  )
+
+      if(length(susiF.obj$ELBO)>1    )#update parameter convergence,
+      {
+        check <- abs(diff(susiF.obj$ELBO)[(length( susiF.obj$ELBO )-1)])
+        susiF.obj$check <- check
+        return(susiF.obj)
+      }else{
+        susiF.obj$check <- check
+        return(susiF.obj)
+      }
+    }
+    else{
+      len <- length( susiF.obj$alpha_hist)
+      if( len>1)#update parameter convergence, no ELBO for the moment
+      {
+        check <-0
+
+        T1 <- do.call( rbind, susiF.obj$alpha_hist[[len ]])
+        T2 <- do.call( rbind, susiF.obj$alpha_hist[[(len-1) ]])
+        if(susiF.obj$L==1){
+
+          T2 <- T2[1,]
+
+        }else{
+          if(!(nrow(T2)==nrow(T1))){
+            T2 <- T2[1:susiF.obj$L,]
+          }
+        }
+
+        check <- sum(abs(T1-T2))/nrow(X)
+        susiF.obj$check <- check
+        return(susiF.obj)
+        #print(check)
+      }else{
+        susiF.obj$check <- check
+        return(susiF.obj)
+      }
+    }
+  }else{
+    susiF.obj$check <- check
+    return(susiF.obj)
+  }
+
+}
+
+
+
+
+#'
+#' @title Return which credible sets are  dummy
+#'
+#' @param susiF.obj a susif object defined by \code{\link{init_susiF_obj}} function
+#' @param min.purity minimal purity within a CS
+#' @param X matrix of covariate
+#'
+#' @return a list of index correspodning the the dummy effect
+#'
+#' @export
+#'
+#'
+which_dummy_cs <- function(susiF.obj, min.purity=0.5,X,...)
+  UseMethod("which_dummy_cs")
+
+
+
+#' @rdname which_dummy_cs
+#'
+#' @method check_cs susiF
+#'
+#' @export which_dummy_cs.susiF
+#'
+#' @export
+#'
+
+which_dummy_cs.susiF <- function(susiF.obj, min.purity=0.5,X){
   dummy.cs<- c()
 
 
@@ -135,14 +268,14 @@ check_cs.susiF <- function(susiF.obj, min.purity=0.5,X)
     }
     if( length(dummy.cs)==0)
     {
-      return(susiF.obj)
+      return(dummy.cs)
     }else{
       if(length(dummy.cs)==susiF.obj$L) #avoid returning empty results
       {
         dummy.cs <- dummy.cs[-length(dummy.cs)]
       }
-      susiF.obj <- discard_cs( susiF.obj,cs=dummy.cs)
-      return(susiF.obj)
+
+      return(dummy.cs)
     }
   }
 
@@ -175,21 +308,9 @@ check_cs.susiF <- function(susiF.obj, min.purity=0.5,X)
       }
 
     }
-    if( length(dummy.cs)==0)
-    {
-      return(susiF.obj)
-    }else{
-      if(length(dummy.cs)==susiF.obj$L) #avoid returning empty results
-      {
-        dummy.cs <- dummy.cs[-length(dummy.cs)]
-      }
-      susiF.obj <- discard_cs( susiF.obj,cs=dummy.cs)
-      return(susiF.obj)
-    }
   }
-
+    return(dummy.cs)
 }
-
 
 
 #' @title Discard credible sets
@@ -198,13 +319,15 @@ check_cs.susiF <- function(susiF.obj, min.purity=0.5,X)
 #'
 #' @param cs vector of integer containing the credible sets to discard
 #'
+#' @param out_prep logical, if set to true perform cleaning for final output
+#'
 #' @return a susif.obj without "dummy" credible sets
 #'
 #' @export
 
 
 
-discard_cs <- function(susiF.obj, cs,...)
+discard_cs <- function(susiF.obj, cs,out_prep,...)
   UseMethod("discard_cs")
 
 
@@ -218,7 +341,7 @@ discard_cs <- function(susiF.obj, cs,...)
 #' @export
 #'
 
-discard_cs.susiF <- function(susiF.obj, cs)
+discard_cs.susiF <- function(susiF.obj, cs, out_prep=FALSE)
 {
 
   susiF.obj$alpha       <-  susiF.obj$alpha[ -cs]
@@ -226,10 +349,18 @@ discard_cs.susiF <- function(susiF.obj, cs)
   susiF.obj$fitted_wc   <-  susiF.obj$fitted_wc[ -cs]
   susiF.obj$fitted_wc2  <-  susiF.obj$fitted_wc2[ -cs]
   susiF.obj$cs          <-  susiF.obj$cs[ -cs]
-  susiF.obj$fitted_func <-  susiF.obj$fitted_func[ -cs]
+  if(out_prep){
+    susiF.obj$fitted_func <-  susiF.obj$fitted_func[ -cs]
+  }else{
+    susiF.obj$greedy_backfit_update <- TRUE
+    susiF.obj$KL                    <- susiF.obj$KL[ -cs]
+    susiF.obj$ELBO                  <- c()
+  }
+
   susiF.obj$est_sd      <-  susiF.obj$est_sd[ -cs]
   susiF.obj$est_pi      <-  susiF.obj$est_pi[ -cs]
-  susiF.obj$lfsr_wc     <-  susiF.obj$lfsr_wc [ -cs]
+  susiF.obj$cred_band   <-  susiF.obj$cred_band[ -cs]
+  #susiF.obj$lfsr_wc     <-  susiF.obj$lfsr_wc [ -cs]
   susiF.obj$L           <-  susiF.obj$L -length(cs)
   return(susiF.obj)
 }
@@ -265,7 +396,7 @@ estimate_residual_variance.susiF <- function(susiF.obj,Y,X, ... )
 
 #' @title Initialize a susiF object using regression coefficients
 #'
-#' @param L number of non zero coefficients An L-vector containing the indices of the
+#' @param L_max upper bound on the number of non zero coefficients An L-vector containing the indices of the
 #'   nonzero coefficients.
 #'
 #' @param G_prior prior object defined by init_prior function
@@ -273,6 +404,8 @@ estimate_residual_variance.susiF <- function(susiF.obj,Y,X, ... )
 #' @param Y Matrix of outcomes
 #'
 #' @param X Matrix of covariates
+#'
+#' @param L_start number of effect to start with
 #'
 #' @export
 #' @return A list with the following elements
@@ -290,8 +423,9 @@ estimate_residual_variance.susiF <- function(susiF.obj,Y,X, ... )
 #' \item{KL}{ the KL divergence for the different effect}
 #' \item{ELBO}{ The evidence lower bound}
 #' \item{lfsr_wc}{Local fasle sign rate of the fitted wavelet coefficients}
-init_susiF_obj <- function(L, G_prior, Y,X )
+init_susiF_obj <- function(L_max, G_prior, Y,X,L_start,greedy,backfit )
 {
+
 
 
   fitted_wc       <-  list()
@@ -304,7 +438,8 @@ init_susiF_obj <- function(L, G_prior, Y,X )
   pip             <-  rep(0, dim(X)[2])
   est_pi          <-  list()
   est_sd          <-  list()
-  L               <-  L
+  L_max           <-  L_max
+  L               <-  ifelse( L_start<(L_max+1), L_start,L_max)
   G_prior         <-  G_prior
   N               <- dim(Y)[1]
   n_wac           <- dim(Y)[2]
@@ -315,6 +450,10 @@ init_susiF_obj <- function(L, G_prior, Y,X )
   ELBO            <- c()
   mean_X          <- attr(X, "scaled:center")
   csd_X           <- attr(X, "scaled:scale")
+  n_expand        <- 0 #number of greedy expansion
+  greedy          <- greedy
+  backfit         <- backfit
+  greedy_backfit_update <- FALSE
   for ( l in 1:L )
   {
     fitted_wc[[l]]        <-  matrix(0, nrow = dim(X)[2], ncol=dim(Y)[2]  )
@@ -324,7 +463,7 @@ init_susiF_obj <- function(L, G_prior, Y,X )
     est_pi [[l]]          <-  get_pi_G_prior(G_prior)
     est_sd [[l]]          <-  get_sd_G_prior(G_prior)
     lBF[[l]]              <-  rep(NA, ncol(X))
-    cred_band[[l]]        <- matrix(0, ncol = dim(Y)[2], nrow = 2)
+    cred_band[[l]]        <-  matrix(0, ncol = dim(Y)[2], nrow = 2)
   }
   obj <- list( fitted_wc       = fitted_wc,
                fitted_wc2      = fitted_wc2,
@@ -345,10 +484,57 @@ init_susiF_obj <- function(L, G_prior, Y,X )
                est_pi          = est_pi,
                est_sd          = est_sd,
                L               = L,
-               csd_X           = csd_X)
+               L_max           = L_max,
+               csd_X           = csd_X,
+               n_expand        = n_expand,
+               greedy          = greedy,
+               backfit         = backfit,
+               greedy_backfit_update=greedy_backfit_update)
 
   class(obj) <- "susiF"
   return(obj)
+}
+
+
+
+#' @title Expand susiF.obj by adding L_extra effect
+#'
+#' @param susiF.obj a susiF.obj
+#'
+#' @param L_extra numeric a number of effect to add
+#'
+#' @return a susiF.obj a L_extra effect. Note the the number of effect of the susiF.obj cannot exceed the number the user upper bound
+expand_susiF_obj <- function(susiF.obj,L_extra)
+{
+  L_extra <- ifelse ( max(susiF.obj$L_max - susiF.obj$L+L_extra,0 ) >0,#check if we are adding more effect that maximum specified by user
+                      L_extra,
+                      abs(susiF.obj$L_max - susiF.obj$L+L_extra)
+                      )
+  if( L_extra==0){
+    return(susiF.obj)
+  }else{
+    L_old <- susiF.obj$L
+    L_new <- susiF.obj$L+L_extra
+    susiF.obj$L <- ifelse(L_new<(susiF.obj$P+1),L_new,P)
+
+    for ( l in (L_old+1):susiF.obj$L )
+    {
+      susiF.obj$fitted_wc[[l]]        <-  0*susiF.obj$fitted_wc[[1]]
+      susiF.obj$fitted_wc2[[l]]       <-  0*susiF.obj$fitted_wc2[[1]] +1
+      susiF.obj$alpha [[l]]           <-  rep(0, length(susiF.obj$alpha [[1]]))
+      susiF.obj$cs[[l]]               <-  list()
+      susiF.obj$est_pi [[l]]          <-  susiF.obj$est_pi[[1]]
+      susiF.obj$est_sd [[l]]          <-  susiF.obj$est_pi[[1]]
+      susiF.obj$lBF[[l]]              <-  rep(NA, length( susiF.obj$lBF[[1]]))
+      susiF.obj$cred_band[[l]]        <- matrix(0, ncol = ncol(susiF.obj$cred_band[[1]] ), nrow = 2)
+      susiF.obj$KL                    <- rep(NA,susiF.obj$L)
+      susiF.obj$ELBO                  <- c()
+    }
+    susiF.obj$n_expand <- susiF.obj$n_expand+1
+    susiF.obj$greedy_backfit_update <- TRUE
+    return(susiF.obj)
+  }
+
 }
 
 #'
@@ -604,6 +790,81 @@ get_alpha.susiF <-  function(susiF.obj, l, ...  )
   return( out)
 }
 
+#' @title Update  susiF via greedy search or backfit
+#'
+#' @param susiF.obj a susiF object defined by \code{\link{init_susiF_obj}} function
+#'
+#' @return susiF object
+#'
+#' @export
+#'
+#'
+greedy_backfit  <-  function(susiF.obj, verbose,cov_lev,X,min.purity, ...  )
+  UseMethod("greedy_backfit")
+
+#' @rdname greedy_backfit
+#'
+#' @method greedy_backfit susiF
+#'
+#' @export greedy_backfit.susiF
+#'
+#' @export
+#'
+
+greedy_backfit.susiF <-  function(susiF.obj,verbose,cov_lev,X,min.purity, ...  )
+{
+
+
+  susiF.obj <- update_alpha_hist(susiF.obj)
+  if(!(susiF.obj$greedy)&!(susiF.obj$backfit))
+  {
+    return(susiF.obj)
+  }
+  susiF.obj <- update_cal_cs(susiF.obj,
+                             cov_lev=cov_lev)
+
+  dummy.cs <-  which_dummy_cs(susiF.obj,
+                              min.purity = min.purity,
+                              X=X)
+
+  ##Conditions for stopping greedy search
+  if( (length(dummy.cs)>0)  |(susiF.obj$L==susiF.obj$L_max))
+  {
+    susiF.obj$greedy <- FALSE
+
+  }
+
+  if( length(dummy.cs)==0& !( susiF.obj$greedy))
+  {
+    susiF.obj$backfit <- FALSE
+  }
+
+  if(!(susiF.obj$greedy )&!(susiF.obj$backfit ) ){
+    if(verbose){
+     print( "Greedy search and backfitting done")
+    }
+    susiF.obj$greedy_backfit_update <- FALSE
+
+    return(susiF.obj)
+  }
+  if(susiF.obj$greedy & (length(dummy.cs)==0)){
+    print( paste( "Adding ", 7, " extra effects"))
+    susiF.obj <- expand_susiF_obj(susiF.obj,L_extra = 7)
+    return(susiF.obj)
+  }
+  if(susiF.obj$backfit & (length(dummy.cs)>0)){
+    print( paste( "Discarding ", length(dummy.cs), " effects"))
+    susiF.obj <- discard_cs(susiF.obj,
+                            cs= dummy.cs,
+                            out_prep= FALSE
+                            )
+
+    return(susiF.obj)
+  }
+}
+
+
+
 
 
 
@@ -728,9 +989,37 @@ update_alpha  <-  function(susiF.obj, l, alpha, ... )
 update_alpha.susiF <-  function(susiF.obj, l, alpha, ... )
 {
   susiF.obj$alpha[[l]] <- alpha
-  susiF.obj$alpha_hist[[ (length(susiF.obj$alpha_hist)+1)  ]] <- alpha
+   return( susiF.obj)
+}
+
+#' @title Update alpha_hist   susiF object
+#'
+#' @param susiF.obj a susiF object defined by \code{\link{init_susiF_obj}} function
+#'
+#' @return susiF object
+#'
+#' @export
+#'
+
+update_alpha_hist  <-  function(susiF.obj, ... )
+  UseMethod("update_alpha_hist")
+
+
+#' @rdname update_alpha
+#'
+#' @method update_alpha_hist susiF
+#'
+#' @export update_alpha_hist.susiF
+#'
+#' @export
+#'
+update_alpha_hist.susiF <-  function(susiF.obj , ... )
+{
+
+  susiF.obj$alpha_hist[[ (length(susiF.obj$alpha_hist)+1)  ]] <- susiF.obj$alpha
   return( susiF.obj)
 }
+
 
 #' @title Update  susiF object using the output of EM_pi
 #'
@@ -1100,7 +1389,7 @@ update_cal_fit_func.susiF <- function(susiF.obj, indx_lst, ...)
       temp$D                     <- (susiF.obj$alpha[[l]])%*%sweep( susiF.obj$fitted_wc[[l]][,-indx_lst[[length(indx_lst)]]],
                                                                     1,
                                                                     1/(susiF.obj$csd_X ), "*")
-      temp$C[length(temp$C)]     <- (susiF.obj$csd_X *susiF.obj$alpha[[l]])%*% (susiF.obj$fitted_wc[[l]][,indx_lst[[length(indx_lst)]]]*( 1/(susiF.obj$csd_X )))
+      temp$C[length(temp$C)]     <- (susiF.obj$alpha[[l]])%*% (susiF.obj$fitted_wc[[l]][,indx_lst[[length(indx_lst)]]]*( 1/(susiF.obj$csd_X )))
       susiF.obj$fitted_func[[l]] <- wr(temp)
     }
   }
@@ -1108,10 +1397,10 @@ update_cal_fit_func.susiF <- function(susiF.obj, indx_lst, ...)
   {
      for ( l in 1:susiF.obj$L)
     {
-      temp$D                     <- (susiF.obj$csd_X *susiF.obj$alpha[[l]])%*%sweep(susiF.obj$fitted_wc[[l]][,-dim(susiF.obj$fitted_wc[[l]])[2]],
+      temp$D                     <- (susiF.obj$alpha[[l]])%*%sweep(susiF.obj$fitted_wc[[l]][,-dim(susiF.obj$fitted_wc[[l]])[2]],
                                                                                     1,
                                                                                     1/(susiF.obj$csd_X ), "*")
-      temp$C[length(temp$C)]     <- (susiF.obj$csd_X *susiF.obj$alpha[[l]])%*% (susiF.obj$fitted_wc[[l]][,dim(susiF.obj$fitted_wc[[l]])[2]]*( 1/(susiF.obj$csd_X )) )
+      temp$C[length(temp$C)]     <- (susiF.obj$alpha[[l]])%*% (susiF.obj$fitted_wc[[l]][,dim(susiF.obj$fitted_wc[[l]])[2]]*( 1/(susiF.obj$csd_X )) )
       susiF.obj$fitted_func[[l]] <- wr(temp)
     }
   }
