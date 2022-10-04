@@ -166,7 +166,7 @@ fit_lm <- function( l,j,Y,X,v1, lowc_wc =NULL )  ## Speed Gain
                      )
       return(c(out[2] ,
                sqrt(
-                    fast_var(Y[,l] - t_mat %*%  out )
+                    fast_var(Y[,l] - t_mat %*%  out )/(nrow(X)-1)
                )
           )
       )
@@ -181,7 +181,7 @@ fit_lm <- function( l,j,Y,X,v1, lowc_wc =NULL )  ## Speed Gain
     )
     return(c(out[2] ,
              sqrt(
-               fast_var(Y[,l] - t_mat %*%  out )
+               fast_var(Y[,l] - t_mat %*%  out )/(nrow(X)-1)
              )
     )
     )
@@ -371,7 +371,7 @@ log_BF.mixture_normal_per_scale <- function (G_prior, Bhat, Shat, indx_lst, lowc
     }
 
     # NOTE: Maybe replace unlist(lapply(...)) with sapply(...).
-    return(sum(unlist(lapply(1:log2(ncol(Bhat)), # Important to maintain the ordering of the wavethresh package !!!!
+    return(sum(unlist(lapply(1:(log2(ncol(Bhat))+1), # Important to maintain the ordering of the wavethresh package !!!!
                              t_s_post))))
   }
 

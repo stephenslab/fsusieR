@@ -1111,7 +1111,7 @@ update_cal_fit_func.susiF <- function(susiF.obj, indx_lst, ...)
       temp$D                     <- (susiF.obj$csd_X *susiF.obj$alpha[[l]])%*%sweep(susiF.obj$fitted_wc[[l]][,-dim(susiF.obj$fitted_wc[[l]])[2]],
                                                                                     1,
                                                                                     1/(susiF.obj$csd_X ), "*")
-      temp$C[length(temp$C)]     <- (susiF.obj$csd_X *susiF.obj$alpha[[l]])%*% (susiF.obj$fitted_wc[[l]][,dim(susiF.obj$fitted_wc[[l]])[2]]( 1/(susiF.obj$csd_X )) )
+      temp$C[length(temp$C)]     <- (susiF.obj$csd_X *susiF.obj$alpha[[l]])%*% (susiF.obj$fitted_wc[[l]][,dim(susiF.obj$fitted_wc[[l]])[2]]*( 1/(susiF.obj$csd_X )) )
       susiF.obj$fitted_func[[l]] <- wr(temp)
     }
   }

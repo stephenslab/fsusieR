@@ -320,7 +320,7 @@ susiF_obj <-  update_susiF_obj(susiF_obj, 1, outEM, Bhat, Shat, indx_lst ,
 
 susiF_obj <-  out_prep(susiF_obj,Y, X=X, indx_lst=indx_lst,filter.cs = FALSE)
 
-plot( (unlist(susiF_obj$fitted_func)*(susiF_obj$csd_X[5] )), type="l", col="green")
+plot( (unlist(susiF_obj$fitted_func)), type="l", col="green")
 lines(f1$sim_func, col="red")
 
 
@@ -386,10 +386,10 @@ test_that("The KL of effect one ",
 test_that("SusiF performance should be",
           {
             set.seed(1)
-            sim  <- simu_test_function(rsnr=2,pos2= 2 ,is.plot = FALSE)
+            sim  <- simu_test_function(rsnr=1,pos2= 2 ,is.plot = FALSE)
             Y <- sim$noisy.data
             X <- sim$G
-            out <- susiF(Y,X,L=2, prior="mixture_normal_per_scale")
+            out <- susiF(Y,X,L=2, prior="mixture_normal_per_scale", verbose = TRUE ,nullweight = 0, init_pi0_w = 1 )
             expect_equal(  Reduce("+", out$alpha) , c(1, 1,rep(0,8)) , tol=1e-5)
             expect_equal( max(  sum( abs(unlist(out$fitted_func[[1]]) -sim$f1)),
                                 sum( abs(unlist(out$fitted_func[[1]]) -sim$f2))
@@ -402,6 +402,12 @@ test_that("SusiF performance should be",
 
           }
 )
+
+sim  <- simu_test_function(rsnr=2,pos2= 2 ,is.plot = FALSE)
+Y <- sim$noisy.data
+X <- sim$G
+out <- susiF(Y,X,L=2, prior="mixture_normal_per_scale", nullweight = 0)
+out$alpha
 
 
 test_that("Removing one wc coeef should lead to the followin results",
@@ -422,3 +428,4 @@ out <- susiF(Y,X,L=2, prior="mixture_normal_per_scale", cal_obj = TRUE)
 out <- susiF(Y,X,L=2, prior="mixture_normal_per_scale", cal_obj = TRUE,quantile_trans = TRUE)
 
 out <- susiF(Y,X,L=2, prior="mixture_normal_per_scale", cal_obj = FALSE,quantile_trans = TRUE)
+plot( out$ELBO)

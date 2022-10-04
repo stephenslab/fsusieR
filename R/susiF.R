@@ -171,7 +171,7 @@ susiF <- function(Y, X, L = 2,
   }
   if(missing(nullweight))
   {
-    nullweight <- 10/sqrt(nrow(X))
+    nullweight <- 10/(sqrt(nrow(X)))
   }
 
   ## Input error messages
@@ -319,6 +319,7 @@ susiF <- function(Y, X, L = 2,
                          lowc_wc        = lowc_wc,
                          nullweight     = nullweight
         )
+
         #print(h)
         #print(EM_out$lBF)
         susiF.obj <-  update_susiF_obj(susiF.obj   = susiF.obj ,
