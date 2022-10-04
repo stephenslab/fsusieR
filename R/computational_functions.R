@@ -166,8 +166,7 @@ fit_lm <- function( l,j,Y,X,v1, lowc_wc =NULL )  ## Speed Gain
                      )
       return(c(out[2] ,
                sqrt(
-                    fast_var(Y[,l] - t_mat %*%  out )/sum(
-                      (X[,j]-mean(X[,j]))^2)
+                    fast_var(Y[,l] - t_mat %*%  out )
                )
           )
       )
@@ -182,8 +181,7 @@ fit_lm <- function( l,j,Y,X,v1, lowc_wc =NULL )  ## Speed Gain
     )
     return(c(out[2] ,
              sqrt(
-               fast_var(Y[,l] - t_mat %*%  out )/sum(
-                 (X[,j]-mean(X[,j]))^2)
+               fast_var(Y[,l] - t_mat %*%  out )
              )
     )
     )

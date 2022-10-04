@@ -28,6 +28,7 @@ noisy.data <- do.call(rbind, noisy.data)
 
 Y <- noisy.data
 X <- G
+X <- colScale(X)
 W <- DWT2(Y)
 update_D <- W
 Y_f <- cbind( W$D,W$C) #Using a column like phenotype

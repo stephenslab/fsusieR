@@ -313,6 +313,8 @@ init_susiF_obj <- function(L, G_prior, Y,X )
   lBF             <- list()
   KL              <- rep(NA,L)
   ELBO            <- c()
+  mean_X          <- attr(X, "scaled:center")
+  csd_X           <- attr(X, "scaled:scale")
   for ( l in 1:L )
   {
     fitted_wc[[l]]        <-  matrix(0, nrow = dim(X)[2], ncol=dim(Y)[2]  )
@@ -342,7 +344,8 @@ init_susiF_obj <- function(L, G_prior, Y,X )
                pip             = pip,
                est_pi          = est_pi,
                est_sd          = est_sd,
-               L               = L)
+               L               = L,
+               csd_X           = csd_X)
 
   class(obj) <- "susiF"
   return(obj)
@@ -743,7 +746,7 @@ update_alpha.susiF <-  function(susiF.obj, l, alpha, ... )
 #'
 #' @export
 
-update_susiF_obj  <- function(susiF.obj, l, EM_pi, Bhat, Shat, indx_lst, ...)
+update_susiF_obj  <- function(susiF.obj, l, EM_pi, Bhat, Shat, indx_lst, lowc_wc=NULL, cal_wc_lsfr=FALSE, ...)
       UseMethod("update_susiF_obj")
 
 #' @rdname update_susiF_obj
@@ -1025,8 +1028,8 @@ update_cal_indf.susiF <- function(susiF.obj, Y, X, indx_lst, ...)
       for ( l in 1:susiF.obj$L)
       {
         #add wavelet coefficient
-        temp$D                         <-    (susiF.obj$alpha[[l]] *X[i,])%*%susiF.obj$fitted_wc[[l]][,-indx_lst[[length(indx_lst)]]]
-        temp$C[length(temp$C)]         <-    (susiF.obj$alpha[[l]] *X[i,])%*%susiF.obj$fitted_wc[[l]][,indx_lst[[length(indx_lst)]]]
+        temp$D                         <-    ( susiF.obj$alpha[[l]] *sweep(X, MARGIN=2, 1/(attr(X, "scaled:scale") ), '*')[i,])%*%susiF.obj$fitted_wc[[l]][,-indx_lst[[length(indx_lst)]]]
+        temp$C[length(temp$C)]         <-    ( susiF.obj$alpha[[l]] *sweep(X, MARGIN=2, 1/(attr(X, "scaled:scale") ), '*')[i,])%*%susiF.obj$fitted_wc[[l]][,indx_lst[[length(indx_lst)]]]
         #transform back
         susiF.obj$ind_fitted_func[i,]  <-  susiF.obj$ind_fitted_func[i,]+wr(temp)
       }
@@ -1040,8 +1043,8 @@ update_cal_indf.susiF <- function(susiF.obj, Y, X, indx_lst, ...)
       for ( l in 1:susiF.obj$L)
       {
         #add wavelet coefficient
-        temp$D                         <-    (susiF.obj$alpha[[l]] *X[i,])%*%susiF.obj$fitted_wc[[l]][,-dim(susiF.obj$fitted_wc[[l]])[2]]
-        temp$C[length(temp$C)]         <-    (susiF.obj$alpha[[l]] *X[i,]) %*%susiF.obj$fitted_wc[[l]][,dim(susiF.obj$fitted_wc[[l]])[2]]
+        temp$D                         <-    (susiF.obj$alpha[[l]] *sweep(X, MARGIN=2, attr(X, "scaled:scale"), '*')[i,])%*%susiF.obj$fitted_wc[[l]][,-dim(susiF.obj$fitted_wc[[l]])[2]]
+        temp$C[length(temp$C)]         <-    (susiF.obj$alpha[[l]] *sweep(X, MARGIN=2, attr(X, "scaled:scale"), '*')[i,]) %*%susiF.obj$fitted_wc[[l]][,dim(susiF.obj$fitted_wc[[l]])[2]]
         #transform back
         susiF.obj$ind_fitted_func[i,]  <-  susiF.obj$ind_fitted_func[i,]+wr(temp)
       }
@@ -1094,8 +1097,10 @@ update_cal_fit_func.susiF <- function(susiF.obj, indx_lst, ...)
   {
       for ( l in 1:susiF.obj$L)
     {
-      temp$D                     <- (susiF.obj$alpha[[l]])%*%susiF.obj$fitted_wc[[l]][,-indx_lst[[length(indx_lst)]]]
-      temp$C[length(temp$C)]     <- (susiF.obj$alpha[[l]])%*%susiF.obj$fitted_wc[[l]][,indx_lst[[length(indx_lst)]]]
+      temp$D                     <- (susiF.obj$alpha[[l]])%*%sweep( susiF.obj$fitted_wc[[l]][,-indx_lst[[length(indx_lst)]]],
+                                                                    1,
+                                                                    1/(susiF.obj$csd_X ), "*")
+      temp$C[length(temp$C)]     <- (susiF.obj$csd_X *susiF.obj$alpha[[l]])%*% (susiF.obj$fitted_wc[[l]][,indx_lst[[length(indx_lst)]]]*( 1/(susiF.obj$csd_X )))
       susiF.obj$fitted_func[[l]] <- wr(temp)
     }
   }
@@ -1103,8 +1108,10 @@ update_cal_fit_func.susiF <- function(susiF.obj, indx_lst, ...)
   {
      for ( l in 1:susiF.obj$L)
     {
-      temp$D                     <- (susiF.obj$alpha[[l]])%*%susiF.obj$fitted_wc[[l]][,-dim(susiF.obj$fitted_wc[[l]])[2]]
-      temp$C[length(temp$C)]     <- (susiF.obj$alpha[[l]])%*%susiF.obj$fitted_wc[[l]][,dim(susiF.obj$fitted_wc[[l]])[2]]
+      temp$D                     <- (susiF.obj$csd_X *susiF.obj$alpha[[l]])%*%sweep(susiF.obj$fitted_wc[[l]][,-dim(susiF.obj$fitted_wc[[l]])[2]],
+                                                                                    1,
+                                                                                    1/(susiF.obj$csd_X ), "*")
+      temp$C[length(temp$C)]     <- (susiF.obj$csd_X *susiF.obj$alpha[[l]])%*% (susiF.obj$fitted_wc[[l]][,dim(susiF.obj$fitted_wc[[l]])[2]]( 1/(susiF.obj$csd_X )) )
       susiF.obj$fitted_func[[l]] <- wr(temp)
     }
   }

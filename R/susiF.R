@@ -211,7 +211,10 @@ susiF <- function(Y, X, L = 2,
   if(verbose){
     print("Starting initialization ")
   }
+# centering covariate
+   X <- colScale(X)
 
+  #X <- matrix(X)
   ### Definition of some static parameters ---
   indx_lst <-  gen_wavelet_indx(log2(length( outing_grid)))
 
