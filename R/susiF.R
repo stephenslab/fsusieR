@@ -193,7 +193,6 @@ susiF <- function(Y, X, L = 2,
     stop("Error: number of position provided different from the number of column of Y")
   }
 
-  original_Y <-Y
 
 
   if(!is.wholenumber(log2(dim(Y)[2])) | !(sum( duplicated(diff( pos)))== (length(pos) -2)) ) #check whether dim(Y) not equal to 2^J or if the data are unevenly spaced
@@ -211,14 +210,17 @@ susiF <- function(Y, X, L = 2,
 
     outing_grid <- 1:dim(Y)[2]
   }
+  # centering and scaling covariate
+  X <- colScale(X)
+  # centering input
+  Y <- colScale(Y, scale=FALSE)
   W <- DWT2(Y)
   Y_f      <-  cbind( W$D,W$C)
 
   if(verbose){
     print("Starting initialization")
   }
-# centering covariate
-   X <- colScale(X)
+
 
   #X <- matrix(X)
   ### Definition of some static parameters ---
@@ -371,8 +373,7 @@ susiF <- function(Y, X, L = 2,
                                  C         = W$C,
                                 indx_lst  = indx_lst)
      #print(susiF.obj$ELBO)
-     check <- susiF.obj$check
-
+    check <- susiF.obj$check
     iter <- iter+1
     sigma2    <- estimate_residual_variance(susiF.obj,Y=Y_f,X)
     susiF.obj <- update_residual_variance(susiF.obj, sigma2 = sigma2 )

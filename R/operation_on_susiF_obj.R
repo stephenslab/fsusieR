@@ -423,6 +423,8 @@ estimate_residual_variance.susiF <- function(susiF.obj,Y,X, ... )
 #' \item{KL}{ the KL divergence for the different effect}
 #' \item{ELBO}{ The evidence lower bound}
 #' \item{lfsr_wc}{Local fasle sign rate of the fitted wavelet coefficients}
+#' @export
+
 init_susiF_obj <- function(L_max, G_prior, Y,X,L_start,greedy,backfit )
 {
 
@@ -1302,6 +1304,7 @@ update_cal_indf <- function(susiF.obj, Y, X, indx_lst, ...)
 
 update_cal_indf.susiF <- function(susiF.obj, Y, X, indx_lst, ...)
 {
+  mean_Y          <- attr(Y, "scaled:center")
   if(sum( is.na(unlist(susiF.obj$alpha))))
   {
     stop("Error: some alpha value not updated, please update alpha value first")
@@ -1313,7 +1316,7 @@ update_cal_indf.susiF <- function(susiF.obj, Y, X, indx_lst, ...)
   {
     for ( i in 1:susiF.obj$N)
     {
-      susiF.obj$ind_fitted_func[i,]  <- rep(0,susiF.obj$n_wac)#fitted_baseline future implementation
+      susiF.obj$ind_fitted_func[i,]  <- mean_Y#fitted_baseline future implementation
       for ( l in 1:susiF.obj$L)
       {
         #add wavelet coefficient
@@ -1328,7 +1331,7 @@ update_cal_indf.susiF <- function(susiF.obj, Y, X, indx_lst, ...)
   {
     for ( i in 1:susiF.obj$N)
     {
-      susiF.obj$ind_fitted_func[i,]  <- rep(0,susiF.obj$n_wac)#fitted_baseline
+      susiF.obj$ind_fitted_func[i,]  <- mean_Y#fitted_baseline
       for ( l in 1:susiF.obj$L)
       {
         #add wavelet coefficient

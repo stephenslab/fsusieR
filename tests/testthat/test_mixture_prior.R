@@ -15,6 +15,8 @@ G = matrix(sample(c(0, 1,2), size=N*P, replace=T), nrow=N, ncol=P) #Genotype
 beta0       <- 0
 beta1       <- 1
 pos1 <- 5
+greedy=TRUE
+backfit=TRUE
 noisy.data  <- list()
 rsnr=1
 for ( i in 1:N)
@@ -28,6 +30,7 @@ noisy.data <- do.call(rbind, noisy.data)
 
 Y <- noisy.data
 X <- G
+Y <- colScale(Y, scale=FALSE)
 X <- colScale(X)
 W <- DWT2(Y)
 update_D <- W
@@ -120,11 +123,26 @@ test_that("Max lBF should be in postion",
 )
 
 
-susiF_obj <- init_susiF_obj(L=1, G_prior,Y,X)
+susiF_obj <- init_susiF_obj(L_max =1,
+                            G_prior,
+                            Y,
+                            X,
+                            L_start   =1,
+                            greedy = greedy,
+                            backfit=backfit
+)
+
 susiF_obj$csd_X
 test_that("Susif object pi are expected to be equal to ",
           {
-            susiF_obj <- init_susiF_obj(L=2, G_prior,Y,X)
+            susiF_obj <- init_susiF_obj(L_max =2,
+                                        G_prior,
+                                        Y,
+                                        X,
+                                        L_start   =2,
+                                        greedy = greedy,
+                                        backfit=backfit
+            )
 
             expect_equal(get_pi(susiF_obj,1), get_pi_G_prior(G_prior)
             )
@@ -136,7 +154,14 @@ test_that("Susif object pi are expected to be equal to ",
 
 test_that("Susif object pi are expected to be equal to ",
           {
-            susiF_obj <- init_susiF_obj(L=1, G_prior,Y,X)
+            susiF_obj <- init_susiF_obj(L_max =1,
+                                        G_prior,
+                                        Y,
+                                        X,
+                                        L_start   =1,
+                                        greedy = greedy,
+                                        backfit=backfit
+            )
 
             expect_equal(get_pi(susiF_obj,1), get_pi_G_prior(G_prior)
             )
@@ -146,7 +171,14 @@ test_that("Susif object pi are expected to be equal to ",
 
 test_that("Susif internal prior to be equal to ",
           {
-            susiF_obj <- init_susiF_obj(L=1, G_prior,Y,X)
+            susiF_obj <- init_susiF_obj(L_max =1,
+                                        G_prior,
+                                        Y,
+                                        X,
+                                        L_start   =1,
+                                        greedy = greedy,
+                                        backfit=backfit
+            )
 
             expect_equal(get_G_prior (susiF_obj ),  G_prior)
 
@@ -313,7 +345,14 @@ test_that("The alpha value of  the update susiF object should be equal to   ",
 )
 
 
-susiF_obj <- init_susiF_obj(L=1, G_prior,Y,X)
+susiF_obj <- init_susiF_obj(L_max =1,
+                            G_prior,
+                            Y,
+                            X,
+                            L_start   =1,
+                            greedy = greedy,
+                            backfit=backfit
+)
 
 
 test_that("The update susiF object should have its argument equal to    ",
@@ -370,7 +409,14 @@ test_that("The partial residual should be    ",
 )
 
 
-susiF_obj <- init_susiF_obj(L=1, G_prior,Y,X)
+susiF_obj <- init_susiF_obj(L_max =1,
+                            G_prior,
+                            Y,
+                            X,
+                            L_start   =1,
+                            greedy = greedy,
+                            backfit=backfit
+)
 
 
 test_that("The precision of the fitted curves should be   ",
@@ -399,9 +445,9 @@ G_prior <- update_prior(G_prior,
 
 susiF_obj <-  update_susiF_obj(susiF_obj, 1, outEM, Bhat, Shat, indx_lst ,
                                lowc_wc=NULL)
-susiF_obj <-  out_prep(susiF_obj,Y, X=X, indx_lst=indx_lst,filter.cs = FALSE,lfsr_curve = 0.05)
+susiF_obj <-  out_prep(susiF_obj,Y, X=X, indx_lst=indx_lst,filter.cs = FALSE )
 
-plot( unlist(susiF_obj$fitted_func), type="l", col="green")
+plot( unlist(susiF_obj$fitted_func) , type="l", col="green")
 lines( susiF_obj$cred_band [[1]][1,])
 lines( susiF_obj$cred_band [[1]][2,])
 
@@ -428,7 +474,7 @@ test_that("SusiF performance should be",
 test_that("SusiF performance should be",
           {
             set.seed(1)
-            sim  <- simu_test_function(rsnr=2,pos2= 2 ,is.plot = FALSE)
+            sim  <- simu_test_function(N=500,rsnr=2,pos2= 2 ,is.plot = FALSE)
             Y <- sim$noisy.data
             X <- sim$G
             out <- susiF(Y,X,L=2, prior="mixture_normal")

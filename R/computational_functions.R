@@ -158,30 +158,25 @@ fit_lm <- function( l,j,Y,X,v1, lowc_wc =NULL )  ## Speed Gain
             )
 
     }else{
-      t_mat <- cbind(v1,
-                     X[,j]
-      )
-      out <- fast_lm(t_mat ,
+
+      out <- fast_lm(X[,j] ,
                      Y[,l]
                      )
-      return(c(out[2] ,
+      return(c(out[1] ,
                sqrt(
-                    fast_var(Y[,l] - t_mat %*%  out )/(nrow(X)-1)
+                    fast_var(Y[,l] - X[,j]*out[1] )/(nrow(X)-1)
                )
           )
       )
     }
 
   }else{
-    t_mat <- cbind(v1,
-                    X[,j]
-                   )
-    out <- fast_lm(t_mat ,
+    out <- fast_lm(X[,j] ,
                    Y[,l]
-    )
-    return(c(out[2] ,
+                   )
+    return(c(out[1] ,
              sqrt(
-               fast_var(Y[,l] - t_mat %*%  out )/(nrow(X)-1)
+               fast_var(Y[,l] - X[,j]*out[1] )/(nrow(X)-1)
              )
     )
     )

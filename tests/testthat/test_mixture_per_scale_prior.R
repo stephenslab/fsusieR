@@ -30,6 +30,7 @@ noisy.data <- do.call(rbind, noisy.data)
 
 Y <- noisy.data
 X <- G
+Y <- colScale(Y, scale=FALSE)
 X <- colScale(X)
 W <- DWT2(Y)
 update_D <- W
