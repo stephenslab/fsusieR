@@ -81,7 +81,9 @@ init_prior.default <- function(Y,X, prior,v1 , indx_lst,lowc_wc )
     attr(G_prior, "class") <- "mixture_normal_per_scale"
   }
 
-  return(G_prior)
+  return(list(G_prior=G_prior,
+              tt=temp)
+         )
 
 }
 

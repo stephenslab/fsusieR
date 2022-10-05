@@ -50,7 +50,7 @@ G_prior <- init_prior(Y=Y_f,
                       prior="mixture_normal_per_scale",
                       v1=v1,
                       indx_lst = indx_lst,
-                      lowc_wc=NULL)
+                      lowc_wc=NULL)$G_prior
 
 lBF <- log_BF (G_prior, tt$Bhat, tt$Shat , indx_lst,
                lowc_wc=NULL)
@@ -159,7 +159,7 @@ test_that("Class of the prior is", {
                prior="mixture_normal_per_scale",
                v1=v1,
                indx_lst = indx_lst,
-               lowc_wc=NULL)
+               lowc_wc=NULL)$G_prior
 
   )[1],
   "mixture_normal_per_scale"
@@ -445,7 +445,7 @@ test_that("SusiF performance should be",
             sim  <- simu_test_function(rsnr=1,pos2= 2 ,is.plot = FALSE)
             Y <- sim$noisy.data
             X <- sim$G
-            out <- susiF(Y,X,L=2, prior="mixture_normal_per_scale", verbose =FALSE ,nullweight = 0, init_pi0_w = 1 )
+            out <- susiF(Y,X,L=2, prior="mixture_normal_per_scale" ,nullweight = 0, init_pi0_w = 1 )
             expect_equal(  Reduce("+", out$alpha) , c(1, 1,rep(0,8)) , tol=1e-5)
             expect_equal( max(  sum( abs(unlist(out$fitted_func[[1]]) -sim$f1)),
                                 sum( abs(unlist(out$fitted_func[[1]]) -sim$f2))

@@ -24,13 +24,11 @@ is.wholenumber <- function (x, tol = .Machine$double.eps^0.5)
 #'
 fast_lm <- function(x,y)
 {
-  be <- solve(crossprod(x),crossprod(x,y))
-  #resid <-  y - x %*% be
-  #out <- list(be = be,
-  #            residuals = resid)
 
-  #return(out)
-  return(be)
+    be <- solve(crossprod(x),crossprod(x,y))
+    sd <-  sqrt(fast_var(y - x %*% be)/(length(x)-1))
+
+    return(c(be,sd))
 }
 
 
@@ -108,4 +106,13 @@ colScale = function(x,
     }
   }
   return(x)
+}
+
+
+gen_EM_out <- function(tpi_k , lBF){
+
+  out <- list(tpi_k = tpi_k,lBF = lBF)
+  class(out) <- c("EM_pi","list")
+  return(out)
+
 }

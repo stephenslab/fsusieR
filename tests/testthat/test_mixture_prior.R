@@ -46,7 +46,7 @@ G_prior<- init_prior(Y=Y_f,
                      prior="mixture_normal",
                      v1=v1,
                      indx_lst = indx_lst,
-                     lowc_wc=NULL)
+                     lowc_wc=NULL)$G_prior
 
 lBF <- log_BF (G_prior, Bhat, Shat , indx_lst,lowc_wc=NULL)
 lBF
@@ -62,12 +62,12 @@ test_that("Class of the prior is", {
   expect_equal(class(
     init_prior(Y=Y_f,
                X=X,
-               prior="mixture_normal_per_scale",
+               prior="mixture_normal",
                v1=v1,
                indx_lst = indx_lst,
                 lowc_wc=NULL)
-                    ),
-              "mixture_normal_per_scale"
+                    $G_prior),
+              "mixture_normal"
                )
 })
 
@@ -79,7 +79,7 @@ G_prior<- init_prior(Y=Y_f,
                 prior="mixture_normal",
                 v1=v1,
                 indx_lst = indx_lst,
-                lowc_wc=NULL)
+                lowc_wc=NULL)$G_prior
 
 
 plot( Bhat,post_mat_mean(G_prior,Bhat,Shat,indx_lst,lowc_wc))
@@ -193,7 +193,7 @@ test_that("Class of the prior is", {
                prior="mixture_normal",
                v1=v1,
                indx_lst = indx_lst,
-               lowc_wc=NULL)
+               lowc_wc=NULL)$G_prior
   ),
   "mixture_normal"
   )

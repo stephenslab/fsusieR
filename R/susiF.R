@@ -19,14 +19,14 @@
 #' are evenly spaced
 #'
 #' @param prior specify the prior used in susif. Three choice are
-#' available "normal", "mixture_normal", "mixture_normal_per_scale"
+#' available "mixture_normal_per_scale", "mixture_normal". Default "mixture_normal_per_scale",
+#' if this susiF is too slow consider using  "mixture_normal" (up to 40% faster), but this may results in
+#' oversmoothing the estimated curves
 #'
 #' @param verbose If \code{verbose = TRUE}, the algorithm's progress,
 #' and a summary of the optimization settings, are printed to the
 #' console.
 #'
-#' @param plot_out If \code{plot_out = TRUE}, the algorithm's progress,
-#' and a summary of the optimization settings, are ploted.
 #'
 #' @param tol A small, non-negative number specifying the convergence
 #' tolerance for the IBSS fitting procedure. The fitting procedure
@@ -46,12 +46,10 @@
 #' @param  cal_obj logical if set as true compute ELBO for convergence monitoring
 #' @param quantile_trans logical if set as true perform normal quantile transform on wavelet coefficients
 #' @param L_start number of effect initialized at the start of the algorithm
-#'
-#'
-#'  @param nullweight numeric value for penalizing likelihood at point mass 0 (should be between 0 and 1)
+#' @param nullweight numeric value for penalizing likelihood at point mass 0 (should be between 0 and 1)
 #' (usefull in small sample size)
-#' @param greedy logical, if true allow greedy search for extra effect (up to L specify by the user). Set as true by default
-#' @param backfit logical, if true allow discarding effect via backfitting. Set as true by default
+#' @param greedy logical, if true allow greedy search for extra effect (up to L specify by the user). Set as TRUE by default
+#' @param backfit logical, if true allow discarding effect via backfitting. Set as true by default as TRUE. We advise to keep it as TRUE
 #'
 #' @examples
 #'
@@ -152,8 +150,7 @@
 susiF <- function(Y, X, L = 2,
                   pos = NULL,
                   prior = "mixture_normal_per_scale",
-                  verbose = FALSE,
-                  plot_out = TRUE,
+                  verbose = TRUE,
                   maxit = 100,
                   tol = 10^-3,
                   cov_lev = 0.95,
@@ -170,6 +167,9 @@ susiF <- function(Y, X, L = 2,
                   backfit =TRUE
                   )
 {
+
+
+  ####Cleaning input -----
   pt <- proc.time()
   if( prior %!in% c("normal", "mixture_normal", "mixture_normal_per_scale"))
   {
@@ -251,10 +251,14 @@ susiF <- function(Y, X, L = 2,
 
 
   update_D <- W
-  ### Definition of some dynamic parameters ---
+  ### Definition of some dynamic parameters ------
 
-  update_Y    <-  cbind( W$D,W$C) #Using a column like phenotype, temporary matrix that will be regularly updated
-  G_prior     <-  init_prior(update_Y,X,prior,v1, indx_lst, lowc_wc  )
+  update_Y    <- cbind( W$D,W$C) #Using a column like phenotype, temporary matrix that will be regularly updated
+  temp        <- init_prior(update_Y,X,prior,v1, indx_lst, lowc_wc  )
+  G_prior     <- temp$G_prior
+  tt          <- temp$tt
+  init        <- TRUE
+  #Recycled for the first step of the while loop
   susiF.obj   <-  init_susiF_obj(L_max=L,
                                  G_prior=G_prior,
                                  Y=Y,
@@ -265,8 +269,8 @@ susiF <- function(Y, X, L = 2,
 
   # numerical value to check breaking condition of while
   check <- 1
-  h     <- 0
 
+  ####Start while -----
   if(verbose){
     print("Initialization done")
   }
@@ -317,30 +321,43 @@ susiF <- function(Y, X, L = 2,
         if(verbose){
           print(paste("Fitting effect ", l,", iter" ,  iter ))
         }
-        h <- h+1
-        tt <- cal_Bhat_Shat(update_Y,X,v1, lowc_wc =lowc_wc )
-        Bhat <- tt$Bhat
-        Shat <- tt$Shat #UPDATE. could be nicer
-        tpi <-  get_pi(susiF.obj,l)
-        G_prior <- update_prior(G_prior, tpi= tpi ) #allow EM to start close to previous solution (to double check)
 
-        EM_out  <- EM_pi(G_prior        = G_prior,
-                         Bhat           = Bhat,
-                         Shat           = Shat,
-                         indx_lst       = indx_lst,
-                         init_pi0_w     = init_pi0_w,
-                         control_mixsqp = control_mixsqp,
-                         lowc_wc        = lowc_wc,
-                         nullweight     = nullweight
-        )
+        if(init){#recycle operation used to fit the prior
+
+            EM_out <- gen_EM_out (tpi_k= get_pi_G_prior(G_prior),
+                                   lBF  = log_BF  (G_prior,
+                                                   Bhat=tt$Bhat,
+                                                   Shat=tt$Shat,
+                                                   lowc_wc=lowc_wc,
+                                                   indx_lst = indx_lst
+                                                   )
+                                  )
+            init <- FALSE
+        }else{
+          tt <- cal_Bhat_Shat(update_Y,X,v1, lowc_wc =lowc_wc )
+
+          tpi <-  get_pi(susiF.obj,l)
+          G_prior <- update_prior(G_prior, tpi= tpi ) #allow EM to start close to previous solution (to double check)
+
+          EM_out  <- EM_pi(G_prior        = G_prior,
+                           Bhat           = tt$Bhat,
+                           Shat           = tt$Shat,
+                           indx_lst       = indx_lst,
+                           init_pi0_w     = init_pi0_w,
+                           control_mixsqp = control_mixsqp,
+                           lowc_wc        = lowc_wc,
+                           nullweight     = nullweight
+          )
+        }
+
 
         #print(h)
         #print(EM_out$lBF)
         susiF.obj <-  update_susiF_obj(susiF.obj   = susiF.obj ,
                                        l           = l,
                                        EM_pi       = EM_out,
-                                       Bhat        = Bhat,
-                                       Shat        = Shat,
+                                       Bhat        = tt$Bhat,
+                                       Shat        = tt$Shat,
                                        indx_lst    = indx_lst,
                                        lowc_wc     = lowc_wc
         )
@@ -357,7 +374,7 @@ susiF <- function(Y, X, L = 2,
 
       }#end for l in 1:L
 
-
+      ####Check greedy/backfit and stopping condition -----
      susiF.obj <- greedy_backfit (susiF.obj,
                                   verbose = verbose,
                                   cov_lev = cov_lev,
@@ -374,7 +391,7 @@ susiF <- function(Y, X, L = 2,
                                 indx_lst  = indx_lst)
      #print(susiF.obj$ELBO)
     check <- susiF.obj$check
-    iter <- iter+1
+
     sigma2    <- estimate_residual_variance(susiF.obj,Y=Y_f,X)
     susiF.obj <- update_residual_variance(susiF.obj, sigma2 = sigma2 )
 

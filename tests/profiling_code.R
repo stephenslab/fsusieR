@@ -8,7 +8,7 @@ f1 <- simu_IBSS_per_level(lev_res=9, alpha=1, prop_decay =1.5)
 lowc_wc=NULL
 plot(f1$sim_func, type="l", ylab="y")
 N=500
-P=10
+P=50
 nullweight = 10/N
 set.seed(23)
 G = matrix(sample(c(0, 1,2), size=N*P, replace=T), nrow=N, ncol=P) #Genotype
@@ -16,7 +16,8 @@ beta0       <- 0
 beta1       <- 1
 pos1 <- 5
 noisy.data  <- list()
-
+greedy=TRUE
+backfit=TRUE
 rsnr=10
 for ( i in 1:N)
 {
@@ -38,7 +39,7 @@ beta1       <- 1
 L=6
 
 pos = NULL
-prior = "mixture_normal_per_scale"
+prior =  "mixture_normal_per_scale"
 verbose = TRUE
 plot_out = TRUE
 maxit = 100
@@ -49,6 +50,8 @@ lfsr_curve = 0.05
 filter.cs =TRUE
 thresh_lowcount <-0.001
 cal_obj=FALSE
+quantile_trans=FALSE
+L_start=3
 #testing if x is a wholenumber
 #'
 is.wholenumber <- function (x, tol = .Machine$double.eps^0.5)
@@ -109,26 +112,22 @@ which_lowcount <- function( Y_f, thresh_lowcount ){
 
 
 library(profvis)
-
-profvis({
-  tt <- cal_Bhat_Shat( Y,X,v1, lowc_wc =lowc_wc )
-  tt <- cal_Bhat_Shat( Y,X,v1, lowc_wc =lowc_wc )
-  tt <- cal_Bhat_Shat( Y,X,v1, lowc_wc =lowc_wc )
-})
-
  profvis({
    if( prior %!in% c("normal", "mixture_normal", "mixture_normal_per_scale"))
    {
      stop("Error: provide valid prior input")
    }
-
-     nullweight <- 10/nrow(X)
-
+   if(missing(nullweight))
+   {
+     nullweight <- 10/(sqrt(nrow(X)))
+   }
 
    ## Input error messages
 
+   if (is.null(pos))
+   {
      pos <- 1:dim(Y)[2]
-
+   }
 
    #reshaping of the data
    if ( !(length(pos)==dim(Y)[2])) #miss matching positions and number of observations
@@ -136,10 +135,9 @@ profvis({
      stop("Error: number of position provided different from the number of column of Y")
    }
 
-   original_Y <-Y
 
 
-   if(!is.wholenumber(log2(dim(Y)[2])) | !(sum( duplicated(diff( pos)))== (length(pos) -2)) ) #check wether dim(Y) not equal to 2^J or if the data are unevenly spaced
+   if(!is.wholenumber(log2(dim(Y)[2])) | !(sum( duplicated(diff( pos)))== (length(pos) -2)) ) #check whether dim(Y) not equal to 2^J or if the data are unevenly spaced
    {
 
      inter_pol.obj <- interpol_mat(Y, pos)
@@ -154,16 +152,23 @@ profvis({
 
      outing_grid <- 1:dim(Y)[2]
    }
+   # centering and scaling covariate
+   X <- colScale(X)
+   # centering input
+   Y <- colScale(Y, scale=FALSE)
    W <- DWT2(Y)
    Y_f      <-  cbind( W$D,W$C)
 
    if(verbose){
-     print("Starting initialization ")
+     print("Starting initialization")
    }
 
+
+   #X <- matrix(X)
    ### Definition of some static parameters ---
    indx_lst <-  gen_wavelet_indx(log2(length( outing_grid)))
 
+   if(!missing(thresh_lowcount)){
      lowc_wc <-   which_lowcount(Y_f,thresh_lowcount)
      if(verbose){
        print( paste("Discarding ", length(lowc_wc), "wavelet coefficients out of ", ncol(Y_f)))
@@ -171,6 +176,9 @@ profvis({
      if(length(lowc_wc)> (ncol(Y_f )-3)){
        stop("almost all the wavelet coefficients are null, consider using univariate fine mapping")
      }
+   }else{
+     lowc_wc <- NULL
+   }
 
    if(quantile_trans)# important to do it after testing for lowcount
    {
@@ -189,7 +197,13 @@ profvis({
 
    update_Y    <-  cbind( W$D,W$C) #Using a column like phenotype, temporary matrix that will be regularly updated
    G_prior     <-  init_prior(update_Y,X,prior,v1, indx_lst, lowc_wc  )
-   susiF.obj   <-  init_susiF_obj(L=L, G_prior, Y,X)
+   susiF.obj   <-  init_susiF_obj(L_max=L,
+                                  G_prior=G_prior,
+                                  Y=Y,
+                                  X=X,
+                                  L_start=L_start,
+                                  greedy=greedy,
+                                  backfit=backfit)
 
    # numerical value to check breaking condition of while
    check <- 1
@@ -199,7 +213,7 @@ profvis({
      print("Initialization done")
    }
 
-   if( L==1)
+   if( susiF.obj$L_max==1)
    {
      tt   <- cal_Bhat_Shat(update_Y,X,v1 , lowc_wc =lowc_wc )
      Bhat <- tt$Bhat
@@ -237,12 +251,13 @@ profvis({
      )
 
    }else{
-     while(check >tol & (h/L) <maxit)
+     iter <- 1
+     while(check >tol & iter <maxit)
      {
-       for( l in 1:L)
+       for( l in 1:susiF.obj$L)
        {
          if(verbose){
-           print(paste("Fitting effect ", l,", iter" , (ceiling(h/L)+1)))
+           print(paste("Fitting effect ", l,", iter" ,  iter ))
          }
          h <- h+1
          tt <- cal_Bhat_Shat(update_Y,X,v1, lowc_wc =lowc_wc )
@@ -260,6 +275,7 @@ profvis({
                           lowc_wc        = lowc_wc,
                           nullweight     = nullweight
          )
+
          #print(h)
          #print(EM_out$lBF)
          susiF.obj <-  update_susiF_obj(susiF.obj   = susiF.obj ,
@@ -284,43 +300,23 @@ profvis({
        }#end for l in 1:L
 
 
-       if( cal_obj){
-         susiF.obj <- update_KL(susiF.obj,
-                                X,
-                                D= W$D,
-                                C= W$C , indx_lst)
-
-         if( h>1){
-           susiF.obj <- update_ELBO(susiF.obj,
-                                    get_objective( susiF.obj = susiF.obj,
-                                                   Y         = Y_f,
-                                                   X         = X,
-                                                   D         = W$D,
-                                                   C         = W$C,
-                                                   indx_lst  = indx_lst
-                                    )
-           )
-
-         }
-         if(length(susiF.obj$ELBO)>1    )#update parameter convergence,
-         {
-           check <- abs(diff(susiF.obj$ELBO)[(length( susiF.obj$ELBO )-1)])
-
-         }
-       }
-       else{
-         if(ceiling(h/L)>1)#update parameter convergence, no ELBO for the moment
-         {
-           check <-0
-           for( tt in 0:(susiF.obj$L-1))
-           {
-             check <-  check + var( susiF.obj$alpha_hist[[h-tt]] -susiF.obj$alpha_hist [[h-L-tt]])
-           }
-           check <- check/nrow(X)
-           #print(check)
-         }
-       }
-
+       susiF.obj <- greedy_backfit (susiF.obj,
+                                    verbose = verbose,
+                                    cov_lev = cov_lev,
+                                    X       = X,
+                                    min.purity= min.purity
+       )
+       susiF.obj <- test_stop_cond(susiF.obj = susiF.obj,
+                                   check    = check,
+                                   cal_obj   = cal_obj,
+                                   Y         = Y_f,
+                                   X         = X,
+                                   D         = W$D,
+                                   C         = W$C,
+                                   indx_lst  = indx_lst)
+       #print(susiF.obj$ELBO)
+       check <- susiF.obj$check
+       iter <- iter+1
        sigma2    <- estimate_residual_variance(susiF.obj,Y=Y_f,X)
        susiF.obj <- update_residual_variance(susiF.obj, sigma2 = sigma2 )
 
@@ -328,7 +324,8 @@ profvis({
 
 
      }#end while
-   }
+   }#end else in if(L==1)
+
 
 
    #preparing output
