@@ -4,7 +4,16 @@
 \alias{scale_m_step}
 \title{Subroutine to compute M step in the weighted ash problem for normal mixture prior per scale at a given scale s}
 \usage{
-scale_m_step(L, s, zeta, indx_lst, init_pi0_w = 0.5, control_mixsqp, ...)
+scale_m_step(
+  L,
+  s,
+  zeta,
+  indx_lst,
+  init_pi0_w = 0.5,
+  control_mixsqp,
+  nullweight,
+  ...
+)
 }
 \arguments{
 \item{L}{output of the L_mixsqp.mixture_normal_per_scale function}

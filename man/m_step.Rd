@@ -8,9 +8,9 @@
 \usage{
 m_step(L, zeta, indx_lst, init_pi0_w, control_mixsqp, ...)
 
-\method{m_step}{lik_mixture_normal}(L, zeta, indx_lst, init_pi0_w, control_mixsqp, ...)
+\method{m_step}{lik_mixture_normal}(L, zeta, indx_lst, init_pi0_w, control_mixsqp, nullweight, ...)
 
-\method{m_step}{lik_mixture_normal_per_scale}(L, zeta, indx_lst, init_pi0_w = 1, control_mixsqp, ...)
+\method{m_step}{lik_mixture_normal_per_scale}(L, zeta, indx_lst, init_pi0_w = 1, control_mixsqp, nullweight, ...)
 }
 \arguments{
 \item{L}{output of \code{\link{L_mixsqp}} function}

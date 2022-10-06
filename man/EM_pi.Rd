@@ -13,7 +13,8 @@ EM_pi(
   espsilon = 1e-04,
   init_pi0_w = 1,
   control_mixsqp,
-  lowc_wc
+  lowc_wc,
+  nullweight
 )
 }
 \arguments{
@@ -25,7 +26,10 @@ EM_pi(
 
 \item{max_step}{numeric, maximum number of EM iteration}
 
-\item{espsilon}{numeric, tolerance EM algorithm}
+\item{espsilon}{numeric, tolerance EM algorithm
+
+ @param nullweight numeric value for penalizing likelihood at point mass 0 (should be between 0 and 1)
+(usefull in small sample size)}
 
 \item{init_pi0_w}{starting value of weight on null compoenent in mixsqp}
 

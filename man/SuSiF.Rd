@@ -11,15 +11,20 @@ susiF(
   pos = NULL,
   prior = "mixture_normal_per_scale",
   verbose = TRUE,
-  plot_out = TRUE,
   maxit = 100,
-  tol = 10^-2,
+  tol = 10^-3,
   cov_lev = 0.95,
   min.purity = 0.5,
   filter.cs = TRUE,
-  init_pi0_w = 0.999,
-  control_mixsqp = list(verbose = FALSE),
-  thresh_lowcount
+  init_pi0_w = 1,
+  nullweight,
+  control_mixsqp = list(verbose = FALSE, eps = 1e-06, numiter.em = 4),
+  thresh_lowcount,
+  cal_obj = FALSE,
+  L_start = 3,
+  quantile_trans = FALSE,
+  greedy = TRUE,
+  backfit = TRUE
 )
 }
 \arguments{
@@ -30,21 +35,20 @@ into grid of length 2^J}
 
 \item{X}{matrix of size n by p contains the covariates}
 
-\item{L}{the number of effect to fit (if not specified set to =2)}
+\item{L}{upper bound on the number of effect to fit (if not specified set to =2)}
 
 \item{pos}{vector of length J, corresponding to position/time pf
 the observed column in Y, if missing suppose that the observation
 are evenly spaced}
 
 \item{prior}{specify the prior used in susif. Three choice are
-available "normal", "mixture_normal", "mixture_normal_per_scale"}
+available "mixture_normal_per_scale", "mixture_normal". Default "mixture_normal_per_scale",
+if this susiF is too slow consider using  "mixture_normal" (up to 40% faster), but this may results in
+oversmoothing the estimated curves}
 
 \item{verbose}{If \code{verbose = TRUE}, the algorithm's progress,
 and a summary of the optimization settings, are printed to the
 console.}
-
-\item{plot_out}{If \code{plot_out = TRUE}, the algorithm's progress,
-and a summary of the optimization settings, are ploted.}
 
 \item{maxit}{Maximum number of IBSS iterations to perform.}
 
@@ -63,7 +67,20 @@ expected level of coverage of the cs if not specified set to 0.95}
 
 \item{init_pi0_w}{starting value of weight on null compoenent in mixsqp (between 0 and 1)}
 
+\item{nullweight}{numeric value for penalizing likelihood at point mass 0 (should be between 0 and 1)
+(usefull in small sample size)}
+
 \item{control_mixsqp}{list of parameter for mixsqp function see\link{\code{mixsqp}}}
+
+\item{cal_obj}{logical if set as true compute ELBO for convergence monitoring}
+
+\item{L_start}{number of effect initialized at the start of the algorithm}
+
+\item{quantile_trans}{logical if set as true perform normal quantile transform on wavelet coefficients}
+
+\item{greedy}{logical, if true allow greedy search for extra effect (up to L specify by the user). Set as TRUE by default}
+
+\item{backfit}{logical, if true allow discarding effect via backfitting. Set as true by default as TRUE. We advise to keep it as TRUE}
 }
 \description{
 Implementation of the SuSiF method

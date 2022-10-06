@@ -6,11 +6,11 @@
 \alias{L_mixsq.mixture_normal_per_scale}
 \title{Compute likelihood matrix for mixsqp}
 \usage{
-L_mixsq(G_prior, Bhat, Shat, indx_lst, ...)
+L_mixsq(G_prior, Bhat, Shat, indx_lst, nullweight, ...)
 
 \method{L_mixsq}{mixture_normal}(G_prior, Bhat, Shat, indx_lst, ...)
 
-\method{L_mixsq}{mixture_normal_per_scale}(G_prior, Bhat, Shat, indx_lst)
+\method{L_mixsq}{mixture_normal_per_scale}(G_prior, Bhat, Shat, indx_lst, nullweight)
 }
 \arguments{
 \item{G_prior}{mixture normal prior}

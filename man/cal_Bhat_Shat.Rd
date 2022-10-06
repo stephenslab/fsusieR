@@ -7,9 +7,9 @@
 \alias{cal_Bhat_Shat.susiF_ss}
 \title{Regress Y nxJ on X nxp}
 \usage{
-cal_Bhat_Shat(Y, X, v1, ...)
+cal_Bhat_Shat(Y, X, v1, lowc_wc, ...)
 
-\method{cal_Bhat_Shat}{default}(Y, X, v1)
+\method{cal_Bhat_Shat}{default}(Y, X, v1, lowc_wc = NULL)
 
 \method{cal_Bhat_Shat}{susiF_ss}(susiF_ss.obj, data, partial = TRUE)
 }
@@ -19,6 +19,8 @@ cal_Bhat_Shat(Y, X, v1, ...)
 \item{X}{matrix of size n by p in}
 
 \item{v1}{vector of ones of length n}
+
+\item{lowc_wc}{wavelet coefficient with low count to be discarded}
 }
 \value{
 list of two

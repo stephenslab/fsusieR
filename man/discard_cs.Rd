@@ -5,14 +5,16 @@
 \alias{discard_cs.susiF}
 \title{Discard credible sets}
 \usage{
-discard_cs(susiF.obj, cs, ...)
+discard_cs(susiF.obj, cs, out_prep, ...)
 
-\method{discard_cs}{susiF}(susiF.obj, cs)
+\method{discard_cs}{susiF}(susiF.obj, cs, out_prep = FALSE)
 }
 \arguments{
 \item{susiF.obj}{a susif object defined by \code{\link{init_susiF_obj}} function}
 
 \item{cs}{vector of integer containing the credible sets to discard}
+
+\item{out_prep}{logical, if set to true perform cleaning for final output}
 }
 \value{
 a susif.obj without "dummy" credible sets

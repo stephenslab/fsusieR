@@ -7,7 +7,17 @@
 \alias{update_susiF_obj.susiF_ss}
 \title{Update  susiF object using the output of EM_pi}
 \usage{
-update_susiF_obj(susiF.obj, l, EM_pi, Bhat, Shat, indx_lst, ...)
+update_susiF_obj(
+  susiF.obj,
+  l,
+  EM_pi,
+  Bhat,
+  Shat,
+  indx_lst,
+  lowc_wc = NULL,
+  cal_wc_lsfr = FALSE,
+  ...
+)
 
 \method{update_susiF_obj}{susiF}(
   susiF.obj,

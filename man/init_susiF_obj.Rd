@@ -4,10 +4,10 @@
 \alias{init_susiF_obj}
 \title{Initialize a susiF object using regression coefficients}
 \usage{
-init_susiF_obj(L, G_prior, Y, X)
+init_susiF_obj(L_max, G_prior, Y, X, L_start, greedy, backfit)
 }
 \arguments{
-\item{L}{number of non zero coefficients An L-vector containing the indices of the
+\item{L_max}{upper bound on the number of non zero coefficients An L-vector containing the indices of the
 nonzero coefficients.}
 
 \item{G_prior}{prior object defined by init_prior function}
@@ -15,6 +15,8 @@ nonzero coefficients.}
 \item{Y}{Matrix of outcomes}
 
 \item{X}{Matrix of covariates}
+
+\item{L_start}{number of effect to start with}
 }
 \value{
 A list with the following elements
