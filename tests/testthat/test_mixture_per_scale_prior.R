@@ -225,7 +225,7 @@ test_that("The output of the m_step for the pi_0 should equal", {
                 init_pi0_w    = init_pi0_w,
                 control_mixsqp = control_mixsqp,
                 nullweight = nullweight)
-  expect_gt( get_pi0(tpi = tpi), c(0,0.5, rep(1, 8)),
+  expect_equal( get_pi0(tpi = tpi), c(0,0.5, rep(1, 8)),
                 tolerance = 0.02) #allow 1% error in the proportion estimation
 })
 

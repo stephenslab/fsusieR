@@ -375,11 +375,11 @@ susiF <- function(Y, X, L = 2,
       }#end for l in 1:L
 
       ####Check greedy/backfit and stopping condition -----
-     susiF.obj <- greedy_backfit (susiF.obj,
-                                  verbose = verbose,
-                                  cov_lev = cov_lev,
-                                  X       = X,
-                                  min.purity= min.purity
+      susiF.obj <- greedy_backfit (susiF.obj,
+                                  verbose    = verbose,
+                                  cov_lev    = cov_lev,
+                                  X          = X,
+                                  min.purity = min.purity
                                   )
      susiF.obj <- test_stop_cond(susiF.obj = susiF.obj,
                                   check    = check,
@@ -389,13 +389,14 @@ susiF <- function(Y, X, L = 2,
                                  D         = W$D,
                                  C         = W$C,
                                 indx_lst  = indx_lst)
+     print(susiF.obj$alpha)
      #print(susiF.obj$ELBO)
     check <- susiF.obj$check
 
     sigma2    <- estimate_residual_variance(susiF.obj,Y=Y_f,X)
     susiF.obj <- update_residual_variance(susiF.obj, sigma2 = sigma2 )
 
-
+    iter <- iter +1
 
 
     }#end while

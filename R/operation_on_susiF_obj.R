@@ -120,199 +120,6 @@ check_cs.susiF <- function(susiF.obj, min.purity=0.5,X)
 }
 
 
-#'
-#' @title Check tolerance for stopping criterion
-#'
-#' @export
-#'
-#'
-test_stop_cond <- function(susiF.obj, check, cal_obj, Y, X, D, C, indx_lst  ,...)
-  UseMethod("test_stop_cond")
-
-
-
-#' @rdname test_stop_cond
-#'
-#' @method test_stop_cond susiF
-#'
-#' @export test_stop_cond.susiF
-#'
-#' @export
-#'
-
-
-test_stop_cond.susiF<- function(susiF.obj, check, cal_obj, Y, X, D, C, indx_lst)
-{
-  if(!(susiF.obj$greedy_backfit_update)) #if not just updated check for stopping while loop
-  {
-    if( cal_obj){
-      susiF.obj <- update_KL(susiF.obj,
-                             X,
-                             D= W$D,
-                             C= W$C , indx_lst)
-
-        susiF.obj <- update_ELBO(susiF.obj,
-                                 get_objective( susiF.obj = susiF.obj,
-                                                Y         = Y_f,
-                                                X         = X,
-                                                D         = W$D,
-                                                C         = W$C,
-                                                indx_lst  = indx_lst
-                                                )
-                                  )
-
-      if(length(susiF.obj$ELBO)>1    )#update parameter convergence,
-      {
-        check <- abs(diff(susiF.obj$ELBO)[(length( susiF.obj$ELBO )-1)])
-        susiF.obj$check <- check
-        return(susiF.obj)
-      }else{
-        susiF.obj$check <- check
-        return(susiF.obj)
-      }
-    }
-    else{
-      len <- length( susiF.obj$alpha_hist)
-      if( len>1)#update parameter convergence, no ELBO for the moment
-      {
-        check <-0
-
-        T1 <- do.call( rbind, susiF.obj$alpha_hist[[len ]])
-        T2 <- do.call( rbind, susiF.obj$alpha_hist[[(len-1) ]])
-        if(susiF.obj$L==1){
-
-          T2 <- T2[1,]
-
-        }else{
-          if(!(nrow(T2)==nrow(T1))){
-            T2 <- T2[1:susiF.obj$L,]
-          }
-        }
-
-        check <- sum(abs(T1-T2))/nrow(X)
-        susiF.obj$check <- check
-        return(susiF.obj)
-        #print(check)
-      }else{
-        susiF.obj$check <- check
-        return(susiF.obj)
-      }
-    }
-  }else{
-    susiF.obj$check <- check
-    return(susiF.obj)
-  }
-
-}
-
-
-
-
-#'
-#' @title Return which credible sets are  dummy
-#'
-#' @param susiF.obj a susif object defined by \code{\link{init_susiF_obj}} function
-#' @param min.purity minimal purity within a CS
-#' @param X matrix of covariate
-#'
-#' @return a list of index correspodning the the dummy effect
-#'
-#' @export
-#'
-#'
-which_dummy_cs <- function(susiF.obj, min.purity=0.5,X,...)
-  UseMethod("which_dummy_cs")
-
-
-
-#' @rdname which_dummy_cs
-#'
-#' @method check_cs susiF
-#'
-#' @export which_dummy_cs.susiF
-#'
-#' @export
-#'
-
-which_dummy_cs.susiF <- function(susiF.obj, min.purity=0.5,X){
-  dummy.cs<- c()
-
-
-  if( class(susiF.obj$G_prior)=="mixture_normal")
-  {
-    for (l in 1:susiF.obj$L )
-    {
-
-      if (length(susiF.obj$cs[[l]])==1)
-      {
-
-        if( susiF.obj$est_pi[[l]][1]==1){# check if the estimated prior is exactly 0
-
-          dummy.cs<-  c( dummy.cs,l)
-        }
-
-      }else{
-
-        if( min(cor( X[,susiF.obj$cs[[l]]])) <  min.purity){#check if the purity of cs l is lower that min.purity
-
-          dummy.cs<-  c( dummy.cs,l)
-
-        }else{
-          if(susiF.obj$est_pi[[l]][1]==1){
-            dummy.cs<-  c( dummy.cs,l)
-          }
-
-        }
-      }
-
-    }
-    if( length(dummy.cs)==0)
-    {
-      return(dummy.cs)
-    }else{
-      if(length(dummy.cs)==susiF.obj$L) #avoid returning empty results
-      {
-        dummy.cs <- dummy.cs[-length(dummy.cs)]
-      }
-
-      return(dummy.cs)
-    }
-  }
-
-
-  if(class(susiF.obj$G_prior)=="mixture_normal_per_scale")
-  {
-    for (l in 1:susiF.obj$L )
-    {
-
-      if (length(susiF.obj$cs[[l]])==1)
-      {
-
-        if(  mean(sapply(susiF.obj$est_pi[[l]],"[[",1))==1){# check if the estimated prior is exactly 0
-
-          dummy.cs<-  c( dummy.cs,l)
-        }
-
-      }else{
-
-        if( min(cor( X[,susiF.obj$cs[[l]]])) <  min.purity){#check if the purity of cs l is lower that min.purity
-
-          dummy.cs<-  c( dummy.cs,l)
-
-        }else{
-          if( mean(sapply(susiF.obj$est_pi[[l]],"[[",1))==1){
-            dummy.cs<-  c( dummy.cs,l)
-          }
-
-        }
-      }
-
-    }
-  }
-    return(dummy.cs)
-}
-
-
 #' @title Discard credible sets
 #'
 #' @param susiF.obj a susif object defined by \code{\link{init_susiF_obj}} function
@@ -343,7 +150,12 @@ discard_cs <- function(susiF.obj, cs,out_prep,...)
 
 discard_cs.susiF <- function(susiF.obj, cs, out_prep=FALSE)
 {
-
+    if( length(cs)==susiF.obj$L){
+        cs <- cs[-1]
+        if(length(cs)==0){
+          return(susiF.obj)
+        }
+      }
   susiF.obj$alpha       <-  susiF.obj$alpha[ -cs]
   susiF.obj$lBF         <-  susiF.obj$lBF[ -cs]
   susiF.obj$fitted_wc   <-  susiF.obj$fitted_wc[ -cs]
@@ -365,34 +177,6 @@ discard_cs.susiF <- function(susiF.obj, cs, out_prep=FALSE)
   return(susiF.obj)
 }
 
-
-#' @title Update residual variance
-#'
-#' @param susiF.obj a susiF object defined by \code{\link{init_susiF_obj}} function
-#'
-#' @param Y wavelet transformed  functional phenotype, matrix of size N by size J.
-#'
-#' @param X matrix of size N by p
-#'
-#'
-#' @return estimated residual variance
-#' @export
-estimate_residual_variance <- function(susiF.obj,Y,X, ... )
-  UseMethod("estimate_residual_variance")
-
-
-#' @rdname estimate_residual_variance
-#'
-#' @method estimate_residual_variance susiF
-#'
-#' @export estimate_residual_variance.susiF
-#'
-#' @export
-estimate_residual_variance.susiF <- function(susiF.obj,Y,X, ... )
-{
-  out <-  (1/(prod(dim(Y))))*get_ER2 (susiF.obj,Y, X  )
-  return(out)
-}
 
 #' @title Initialize a susiF object using regression coefficients
 #'
@@ -441,7 +225,7 @@ init_susiF_obj <- function(L_max, G_prior, Y,X,L_start,greedy,backfit )
   est_pi          <-  list()
   est_sd          <-  list()
   L_max           <-  L_max
-  L               <-  ifelse( L_start<(L_max+1), L_start,L_max)
+  L               <-  min(3,L_max)
   G_prior         <-  G_prior
   N               <- dim(Y)[1]
   n_wac           <- dim(Y)[2]
@@ -499,6 +283,34 @@ init_susiF_obj <- function(L_max, G_prior, Y,X,L_start,greedy,backfit )
 
 
 
+#' @title Update residual variance
+#'
+#' @param susiF.obj a susiF object defined by \code{\link{init_susiF_obj}} function
+#'
+#' @param Y wavelet transformed  functional phenotype, matrix of size N by size J.
+#'
+#' @param X matrix of size N by p
+#'
+#'
+#' @return estimated residual variance
+#' @export
+estimate_residual_variance <- function(susiF.obj,Y,X, ... )
+  UseMethod("estimate_residual_variance")
+
+
+#' @rdname estimate_residual_variance
+#'
+#' @method estimate_residual_variance susiF
+#'
+#' @export estimate_residual_variance.susiF
+#'
+#' @export
+estimate_residual_variance.susiF <- function(susiF.obj,Y,X, ... )
+{
+  out <-  (1/(prod(dim(Y))))*get_ER2 (susiF.obj,Y, X  )
+  return(out)
+}
+
 #' @title Expand susiF.obj by adding L_extra effect
 #'
 #' @param susiF.obj a susiF.obj
@@ -506,6 +318,7 @@ init_susiF_obj <- function(L_max, G_prior, Y,X,L_start,greedy,backfit )
 #' @param L_extra numeric a number of effect to add
 #'
 #' @return a susiF.obj a L_extra effect. Note the the number of effect of the susiF.obj cannot exceed the number the user upper bound
+#' @export
 expand_susiF_obj <- function(susiF.obj,L_extra)
 {
   L_extra <- ifelse ( max(susiF.obj$L_max - susiF.obj$L+L_extra,0 ) >0,#check if we are adding more effect that maximum specified by user
@@ -526,7 +339,7 @@ expand_susiF_obj <- function(susiF.obj,L_extra)
       susiF.obj$alpha [[l]]           <-  rep(0, length(susiF.obj$alpha [[1]]))
       susiF.obj$cs[[l]]               <-  list()
       susiF.obj$est_pi [[l]]          <-  susiF.obj$est_pi[[1]]
-      susiF.obj$est_sd [[l]]          <-  susiF.obj$est_pi[[1]]
+      susiF.obj$est_sd [[l]]          <-  susiF.obj$est_sd[[1]]
       susiF.obj$lBF[[l]]              <-  rep(NA, length( susiF.obj$lBF[[1]]))
       susiF.obj$cred_band[[l]]        <- matrix(0, ncol = ncol(susiF.obj$cred_band[[1]] ), nrow = 2)
       susiF.obj$KL                    <- rep(NA,susiF.obj$L)
@@ -829,11 +642,37 @@ greedy_backfit.susiF <-  function(susiF.obj,verbose,cov_lev,X,min.purity, ...  )
                               min.purity = min.purity,
                               X=X)
 
-  ##Conditions for stopping greedy search
-  if( (length(dummy.cs)>0)  |(susiF.obj$L==susiF.obj$L_max))
-  {
-    susiF.obj$greedy <- FALSE
 
+  if(susiF.obj$backfit & (length(dummy.cs)>0)){
+
+    susiF.obj$greedy <- FALSE
+    if(length(dummy.cs)== susiF.obj$L){
+      dummy.cs <- dummy.cs[-1]
+      susiF.obj$backfit <- FALSE
+    }
+    if( length(dummy.cs)==0  )
+    {
+      susiF.obj$backfit <- FALSE
+    }else{
+      print( paste( "Discarding ", length(dummy.cs), " effects"))
+
+      susiF.obj <- discard_cs(susiF.obj,
+                              cs= dummy.cs,
+                              out_prep= FALSE
+      )
+    }
+
+
+    return(susiF.obj)
+  }##Conditions for stopping greedy search
+  if(  (susiF.obj$L>susiF.obj$L_max))
+  {
+
+    susiF.obj$greedy <- FALSE
+    susiF.obj <- discard_cs(susiF.obj,
+                            cs= (susiF.obj$L_max+1):susiF.obj$L,
+                            out_prep= FALSE
+    )
   }
 
   if( length(dummy.cs)==0& !( susiF.obj$greedy))
@@ -850,19 +689,29 @@ greedy_backfit.susiF <-  function(susiF.obj,verbose,cov_lev,X,min.purity, ...  )
     return(susiF.obj)
   }
   if(susiF.obj$greedy & (length(dummy.cs)==0)){
-    print( paste( "Adding ", 7, " extra effects"))
-    susiF.obj <- expand_susiF_obj(susiF.obj,L_extra = 7)
-    return(susiF.obj)
-  }
-  if(susiF.obj$backfit & (length(dummy.cs)>0)){
-    print( paste( "Discarding ", length(dummy.cs), " effects"))
-    susiF.obj <- discard_cs(susiF.obj,
-                            cs= dummy.cs,
-                            out_prep= FALSE
-                            )
 
+    tt <- susiF.obj$L_max -susiF.obj$L
+    temp <- min( ifelse(tt>0,tt,0 ) , 7)
+
+    if(temp==0){
+      if(verbose){
+        print( "Greedy search and backfitting done")
+      }
+      susiF.obj$greedy_backfit_update <- FALSE
+      susiF.obj$backfit <- FALSE
+      susiF.obj$greedy <- FALSE
+      return(susiF.obj)
+    }
+
+
+    if(verbose){
+      print( paste( "Adding ", temp, " extra effects"))
+    }
+
+    susiF.obj <- expand_susiF_obj(susiF.obj,L_extra = temp)
     return(susiF.obj)
   }
+
 }
 
 
@@ -1807,4 +1656,197 @@ plot_susiF <- function(susiF.obj, cred.band=TRUE , effect   ,...)
   out
   return( out)
 }
+
+
+
+
+#'
+#' @title Check tolerance for stopping criterion
+#'
+#' @export
+#'
+#'
+test_stop_cond <- function(susiF.obj, check, cal_obj, Y, X, D, C, indx_lst  ,...)
+  UseMethod("test_stop_cond")
+
+
+
+#' @rdname test_stop_cond
+#'
+#' @method test_stop_cond susiF
+#'
+#' @export test_stop_cond.susiF
+#'
+#' @export
+#'
+
+
+test_stop_cond.susiF<- function(susiF.obj, check, cal_obj, Y, X, D, C, indx_lst)
+{
+
+  if( susiF.obj$L==1)
+  {
+    susiF.obj$check <- 0
+    return(susiF.obj)
+  }
+
+  if(!(susiF.obj$greedy_backfit_update)) #if not just updated check for stopping while loop
+  {
+    if( cal_obj){
+      susiF.obj <- update_KL(susiF.obj,
+                             X,
+                             D= W$D,
+                             C= W$C , indx_lst)
+
+      susiF.obj <- update_ELBO(susiF.obj,
+                               get_objective( susiF.obj = susiF.obj,
+                                              Y         = Y_f,
+                                              X         = X,
+                                              D         = W$D,
+                                              C         = W$C,
+                                              indx_lst  = indx_lst
+                               )
+      )
+
+      if(length(susiF.obj$ELBO)>1    )#update parameter convergence,
+      {
+        check <- abs(diff(susiF.obj$ELBO)[(length( susiF.obj$ELBO )-1)])
+        susiF.obj$check <- check
+        return(susiF.obj)
+      }else{
+        susiF.obj$check <- check
+        return(susiF.obj)
+      }
+    }
+    else{
+      len <- length( susiF.obj$alpha_hist)
+      if( len>1)#update parameter convergence, no ELBO for the moment
+      {
+        check <-0
+
+        T1 <- do.call( rbind, susiF.obj$alpha_hist[[len ]])
+        T2 <- do.call( rbind, susiF.obj$alpha_hist[[(len-1) ]])
+        if(susiF.obj$L==1){
+
+          T2 <- T2[1,]
+
+        }else{
+          if(!(nrow(T2)==nrow(T1))){
+            T2 <- T2[1:susiF.obj$L,]
+          }
+        }
+
+        check <- sum(abs(T1-T2))/nrow(X)
+        susiF.obj$check <- check
+        return(susiF.obj)
+        #print(check)
+      }else{
+        susiF.obj$check <- check
+        return(susiF.obj)
+      }
+    }
+  }else{
+    susiF.obj$check <- check
+    return(susiF.obj)
+  }
+
+}
+
+
+
+
+#'
+#' @title Return which credible sets are  dummy
+#'
+#' @param susiF.obj a susif object defined by \code{\link{init_susiF_obj}} function
+#' @param min.purity minimal purity within a CS
+#' @param X matrix of covariate
+#'
+#' @return a list of index corresponding the the dummy effect
+#'
+#' @export
+#'
+#'
+which_dummy_cs <- function(susiF.obj, min.purity=0.5,X,...)
+  UseMethod("which_dummy_cs")
+
+
+which_dummy_cs.susiF <- function(susiF.obj, min.purity=0.5,X){
+  dummy.cs<- c()
+
+
+  if( class(susiF.obj$G_prior)=="mixture_normal")
+  {
+    for (l in 1:susiF.obj$L )
+    {
+
+      if (length(susiF.obj$cs[[l]])==1)
+      {
+
+        if( susiF.obj$est_pi[[l]][1]==1){# check if the estimated prior is exactly 0
+
+          dummy.cs<-  c( dummy.cs,l)
+        }
+
+      }else{
+
+        if( min(cor( X[,susiF.obj$cs[[l]]])) <  min.purity){#check if the purity of cs l is lower that min.purity
+
+          dummy.cs<-  c( dummy.cs,l)
+
+        }else{
+          if(susiF.obj$est_pi[[l]][1]==1){
+            dummy.cs<-  c( dummy.cs,l)
+          }
+
+        }
+      }
+
+    }
+    if( length(dummy.cs)==0)
+    {
+      return(dummy.cs)
+    }else{
+      if(length(dummy.cs)==susiF.obj$L) #avoid returning empty results
+      {
+        dummy.cs <- dummy.cs[-length(dummy.cs)]
+      }
+
+      return(dummy.cs)
+    }
+  }
+
+
+  if(class(susiF.obj$G_prior)=="mixture_normal_per_scale")
+  {
+    for (l in 1:susiF.obj$L )
+    {
+
+      if (length(susiF.obj$cs[[l]])==1)
+      {
+
+        if(  mean(sapply(susiF.obj$est_pi[[l]],"[[",1))==1){# check if the estimated prior is exactly 0
+
+          dummy.cs<-  c( dummy.cs,l)
+        }
+
+      }else{
+
+        if( min(cor( X[,susiF.obj$cs[[l]]])) <  min.purity){#check if the purity of cs l is lower that min.purity
+
+          dummy.cs<-  c( dummy.cs,l)
+
+        }else{
+          if( mean(sapply(susiF.obj$est_pi[[l]],"[[",1))==1){
+            dummy.cs<-  c( dummy.cs,l)
+          }
+
+        }
+      }
+
+    }
+  }
+  return(dummy.cs)
+}
+
 
