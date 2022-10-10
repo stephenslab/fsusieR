@@ -1771,7 +1771,7 @@ which_dummy_cs <- function(susiF.obj, min.purity=0.5,X,...)
   UseMethod("which_dummy_cs")
 
 
-which_dummy_cs.susiF <- function(susiF.obj, min.purity=0.5,X){
+which_dummy_cs.susiF <- function(susiF.obj, min.purity=0.5,X,...){
   dummy.cs<- c()
 
 
