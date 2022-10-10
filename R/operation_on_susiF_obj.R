@@ -1809,7 +1809,7 @@ which_dummy_cs.susiF <- function(susiF.obj, min.purity=0.5,X,...){
     }else{
       if(length(dummy.cs)==susiF.obj$L) #avoid returning empty results
       {
-        dummy.cs <- dummy.cs[-length(dummy.cs)]
+        dummy.cs <- dummy.cs[-1]
       }
 
       return(dummy.cs)
@@ -1837,7 +1837,7 @@ which_dummy_cs.susiF <- function(susiF.obj, min.purity=0.5,X,...){
           dummy.cs<-  c( dummy.cs,l)
 
         }else{
-          if( mean(sapply(susiF.obj$est_pi[[l]],"[[",1))==1){
+          if(susiF.obj$est_pi[[l]][1]==1){
             dummy.cs<-  c( dummy.cs,l)
           }
 
@@ -1845,8 +1845,19 @@ which_dummy_cs.susiF <- function(susiF.obj, min.purity=0.5,X,...){
       }
 
     }
+    if( length(dummy.cs)==0)
+    {
+      return(dummy.cs)
+    }else{
+      if(length(dummy.cs)==susiF.obj$L) #avoid returning empty results
+      {
+        dummy.cs <- dummy.cs[-1]
+      }
+
+      return(dummy.cs)
+    }
   }
-  return(dummy.cs)
+
 }
 
 
