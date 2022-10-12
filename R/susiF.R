@@ -389,7 +389,7 @@ susiF <- function(Y, X, L = 2,
                                  D         = W$D,
                                  C         = W$C,
                                 indx_lst  = indx_lst)
-     print(susiF.obj$alpha)
+   #  print(susiF.obj$alpha)
      #print(susiF.obj$ELBO)
     check <- susiF.obj$check
 

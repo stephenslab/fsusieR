@@ -1660,6 +1660,33 @@ plot_susiF <- function(susiF.obj, cred.band=TRUE , effect   ,...)
 
 
 
+
+
+#' @title Plot susiF object
+#'
+#' @param susiF.obj output of the susiF function
+#'
+#' @param L maximum number of effect to display
+#' @export
+#'
+
+plot_effect <- function(susiF.obj, L   ,...)
+{
+
+  list.of.packages <- c("ggplot2", "gridExtra")
+  new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
+  if(length(new.packages)) install.packages(new.packages)
+  require(ggplot2)
+
+  tl <- length(susiF.obj$fitted_func[[1]])
+  df <- data.frame (func = do.call(c, sapply(1:L,  function(k) susiF.obj$fitted_func[[k]], simplify=FALSE)),
+                    col = factor( rep( 1:L, each = tl ) ),
+                    x = rep( 1: tl ,L )
+  )
+ out <-  ggplot(df, aes(x=x, y=func, col=col))+
+                geom_line()+
+                facet_wrap(.~col)
+}
 #'
 #' @title Check tolerance for stopping criterion
 #'
@@ -1731,7 +1758,11 @@ test_stop_cond.susiF<- function(susiF.obj, check, cal_obj, Y, X, D, C, indx_lst)
           T2 <- T2[1,]
 
         }else{
-          if(!(nrow(T2)==nrow(T1))){
+          if((nrow(T1)>nrow(T2))){
+            susiF.obj$check <- 1
+            return(susiF.obj)
+          }
+          if( (nrow(T2)>nrow(T1))){
             T2 <- T2[1:susiF.obj$L,]
           }
         }
