@@ -225,7 +225,7 @@ init_susiF_obj <- function(L_max, G_prior, Y,X,L_start,greedy,backfit )
   est_pi          <-  list()
   est_sd          <-  list()
   L_max           <-  L_max
-  L               <-  min(3,L_max)
+  L               <-  L_start
   G_prior         <-  G_prior
   N               <- dim(Y)[1]
   n_wac           <- dim(Y)[2]
