@@ -269,7 +269,12 @@ susiF <- function(Y, X, L = 2,
 
   # numerical value to check breaking condition of while
   check <- 1
-
+  # l=1
+  #init        <- FALSE
+  #susiF.obj$fitted_wc[[1]] <-tt$Bhat
+  #update_D  <-  W$D -    (X*rep(susiF.obj$alpha[[l]], rep.int(dim(X)[1],dim(X)[2]))) %*% (susiF.obj$fitted_wc[[l]][,-indx_lst[[length(indx_lst)]]] )
+  #update_C  <-  W$C -     (X*rep(susiF.obj$alpha[[l]], rep.int(dim(X)[1],dim(X)[2]))) %*% susiF.obj$fitted_wc[[l]][,indx_lst[[length(indx_lst)]]]
+  #update_Y  <- cbind(  update_D, update_C)
   ####Start while -----
   if(verbose){
     print("Initialization done")
@@ -293,8 +298,7 @@ susiF <- function(Y, X, L = 2,
                      nullweight     = nullweight
 
                      )
-
-    susiF.obj <-  update_susiF_obj(susiF.obj = susiF.obj ,
+     susiF.obj <-  update_susiF_obj(susiF.obj = susiF.obj ,
                                    l         = 1,
                                    EM_pi     = EM_out,
                                    Bhat      = Bhat,
@@ -314,7 +318,7 @@ susiF <- function(Y, X, L = 2,
 
   }else{
     iter <- 1
-    while(check >tol & iter <maxit)
+    while( (check >tol & iter <maxit))#|iter <10)
     {
       for( l in 1:susiF.obj$L)
       {
@@ -352,7 +356,7 @@ susiF <- function(Y, X, L = 2,
 
 
         #print(h)
-        #print(EM_out$lBF)
+        # print(EM_out$lBF[1:10])
         susiF.obj <-  update_susiF_obj(susiF.obj   = susiF.obj ,
                                        l           = l,
                                        EM_pi       = EM_out,
@@ -361,17 +365,16 @@ susiF <- function(Y, X, L = 2,
                                        indx_lst    = indx_lst,
                                        lowc_wc     = lowc_wc
         )
-
-
-        update_Y  <-  cal_partial_resid(
-          susiF.obj = susiF.obj,
-          l         = l,
-          X         = X,
-          D         = W$D,
-          C         = W$C,
-          indx_lst  = indx_lst
-        )
-
+         print(susiF.obj$alpha[[l]])
+       update_Y  <-  cal_partial_resid(
+            susiF.obj = susiF.obj,
+            l         =  l  ,
+            X         = X,
+            D         = W$D,
+            C         = W$C,
+            indx_lst  = indx_lst
+          )
+        print(plot(susiF.obj$alpha[[l]]))
       }#end for l in 1:L
 
       ####Check greedy/backfit and stopping condition -----
@@ -381,6 +384,7 @@ susiF <- function(Y, X, L = 2,
                                   X          = X,
                                   min.purity = min.purity
                                   )
+
      susiF.obj <- test_stop_cond(susiF.obj = susiF.obj,
                                   check    = check,
                                  cal_obj   = cal_obj,

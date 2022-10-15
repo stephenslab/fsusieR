@@ -90,7 +90,7 @@ plot( Shat,  (post_mat_sd(G_prior,Bhat,Shat, indx_lst,lowc_wc) ))
 get_pi_G_prior(G_prior)
 get_sd_G_prior(G_prior)
 L <- L_mixsq(G_prior, Bhat, Shat)
-L
+
 zeta <- cal_zeta(lBF)
 tpi <- m_step(L, zeta , indx_lst,init_pi0_w, control_mixsqp ,
               nullweight = nullweight)

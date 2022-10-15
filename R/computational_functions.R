@@ -428,7 +428,7 @@ post_mat_mean.mixture_normal  <- function( G_prior ,Bhat,Shat,indx_lst,lowc_wc, 
 
   out <- lapply(1:(dim(Bhat)[1] ),t_col_post )
 
-  return(t(Reduce("cbind", out)))
+   return(t(Reduce("cbind", out)))
 }
 
 
@@ -812,7 +812,7 @@ L_mixsq.mixture_normal <- function(G_prior,Bhat, Shat, indx_lst,   ...)
                                        x[which(is.na(x))] <- median(x, na.rm=T)
                                       return(x)
                                       })
-  L <- rbind(c(0, rep( -100,(ncol(L)-1)  )),#adding penalty line
+  L <- rbind(c(0, rep(  -1e+09,(ncol(L)-1)  )),#adding penalty line
              L)
   class(L) <- "lik_mixture_normal"
   return(L)
@@ -866,7 +866,7 @@ cal_L_mixsq_s_per_scale <- function(G_prior,s, Bhat, Shat ,indx_lst)
     x[which(is.na(x))] <- median(x, na.rm=T)
     return(x)
   })
-  L <- rbind(c(0, rep( -100,(ncol(L)-1)  )),#adding penalty line
+  L <- rbind(c(0, rep(  -1e+09,(ncol(L)-1)  )),#adding penalty line
              L)
   return(L)
 }

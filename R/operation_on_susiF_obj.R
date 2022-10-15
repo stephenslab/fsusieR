@@ -38,34 +38,83 @@ cal_partial_resid.susiF  <- function( susiF.obj, l, X, D, C,  indx_lst, ... )
 {
   L <- susiF.obj$L
   if (L > 1){
-    id_L <- (1:L)[ - ( (l%%L)+1) ]#Computing residuals R_{l+1} by removing all the effect except effect l+1
+    id_L <- (1:L)[ - ( (l%%L) +1) ]#Computing residuals R_{l+1} by removing all the effect except effect l+1
 
     if(class(get_G_prior(susiF.obj))=="mixture_normal_per_scale" )
     {
-      update_D  <-  D - Reduce("+", lapply  ( id_L, function(l) (X*rep(susiF.obj$alpha[[l]], rep.int(dim(X)[1],dim(X)[2]))) %*% (susiF.obj$fitted_wc[[l]][,-indx_lst[[length(indx_lst)]]])   ) )
-      update_C  <-  C - Reduce("+", lapply  ( id_L, function(l) (X*rep(susiF.obj$alpha[[l]], rep.int(dim(X)[1],dim(X)[2]))) %*% susiF.obj$fitted_wc[[l]][,indx_lst[[length(indx_lst)]]] ) )
+      update_D  <-  D - Reduce("+", lapply  ( id_L, function(l) X%*%sweep(susiF.obj$fitted_wc[[l]][,-indx_lst[[length(indx_lst)]]],
+                                                                          1,
+                                                                          susiF.obj$alpha[[l]],
+                                                                          "*"
+                                                                          )
+                                              )
+                                )
+      update_C  <-  C  - Reduce("+", lapply  ( id_L, function(l) X%*%(susiF.obj$fitted_wc[[l]][,indx_lst[[length(indx_lst)]]]*susiF.obj$alpha[[l]]
+                                                                          )
+                                               )
+                                )
       update_Y  <- cbind(  update_D, update_C)
+
     }
     if(class(get_G_prior(susiF.obj))=="mixture_normal" )
     {
-      id_L <- (1:L)[ - ( (l%%L)+1) ]#Computing residuals R_{l+1} by removing all the effect except effect l+1
-      update_D  <-  D - Reduce("+", lapply  ( id_L, function(l) (X*rep(susiF.obj$alpha[[l]], rep.int(dim(X)[1],dim(X)[2]))) %*% (susiF.obj$fitted_wc[[l]][,-dim(susiF.obj$fitted_wc[[l]])[2]])   ) )
-      update_C  <-  C - Reduce("+", lapply  ( id_L, function(l) (X*rep(susiF.obj$alpha[[l]], rep.int(dim(X)[1],dim(X)[2]))) %*% susiF.obj$fitted_wc[[l]][,dim(susiF.obj$fitted_wc[[l]])[2]] ) )
-      update_Y  <- cbind(  update_D, update_C)
+
+
+
+
+      update_D  <-  D - Reduce("+", lapply  ( id_L, function(l) X%*%sweep(susiF.obj$fitted_wc[[l]][,-dim(susiF.obj$fitted_wc[[l]])[2]],
+                                                                          1,
+                                                                          susiF.obj$alpha[[l]],
+                                                                          "*"
+                                                                          )
+                                              )
+                              )
+      update_C  <-  C  - Reduce("+", lapply  ( id_L, function(l) X%*%(susiF.obj$fitted_wc[[l]][,dim(susiF.obj$fitted_wc[[l]])[2]]*susiF.obj$alpha[[l]]
+
+                                                                          )
+                                              )
+                                )
+
+          update_Y  <- cbind(  update_D, update_C)
     }
   }else{
     id_L <- 1
 
     if(class(get_G_prior(susiF.obj))=="mixture_normal_per_scale" )
     {
-      update_D  <-  D - Reduce("+", lapply  ( id_L, function(l) (X*rep(susiF.obj$alpha[[l]], rep.int(dim(X)[1],dim(X)[2]))) %*% (susiF.obj$fitted_wc[[l]][,-indx_lst[[length(indx_lst)]]])   ) )
-      update_C  <-  C - Reduce("+", lapply  ( id_L, function(l) (X*rep(susiF.obj$alpha[[l]], rep.int(dim(X)[1],dim(X)[2]))) %*% susiF.obj$fitted_wc[[l]][,indx_lst[[length(indx_lst)]]] ) )
+      update_D  <-  D - Reduce("+", lapply  ( id_L, function(l) X%*%sweep(susiF.obj$fitted_wc[[l]][,-indx_lst[[length(indx_lst)]]],
+                                                                          1,
+                                                                          susiF.obj$alpha[[l]],
+                                                                          "*"
+                                                                        )
+                                            )
+                                )
+        update_C  <-  C  - Reduce("+", lapply  ( id_L, function(l) X%*%(susiF.obj$fitted_wc[[l]][,indx_lst[[length(indx_lst)]]]*susiF.obj$alpha[[l]]
+                                                                         )
+                                            )
+                               )
+
       update_Y  <- cbind(  update_D, update_C)
     }
     if(class(get_G_prior(susiF.obj))=="mixture_normal" )
     {
-      update_D  <-  D - Reduce("+", lapply  ( id_L, function(l) (X*rep(susiF.obj$alpha[[l]], rep.int(dim(X)[1],dim(X)[2]))) %*% (susiF.obj$fitted_wc[[l]][,-dim(susiF.obj$fitted_wc[[l]])[2]])   ) )
-      update_C  <-  C - Reduce("+", lapply  ( id_L, function(l) (X*rep(susiF.obj$alpha[[l]], rep.int(dim(X)[1],dim(X)[2]))) %*% susiF.obj$fitted_wc[[l]][,dim(susiF.obj$fitted_wc[[l]])[2]] ) )
+
+
+
+
+      update_D  <-  D - Reduce("+", lapply  ( id_L, function(l) X%*%sweep(susiF.obj$fitted_wc[[l]][,-dim(susiF.obj$fitted_wc[[l]])[2]],
+                                                                          1,
+                                                                          susiF.obj$alpha[[l]],
+                                                                          "*"
+                                                                   )
+                                           )
+                               )
+      update_C  <-  C  - Reduce("+", lapply  ( id_L, function(l) X%*%(susiF.obj$fitted_wc[[l]][,dim(susiF.obj$fitted_wc[[l]])[2]]*susiF.obj$alpha[[l]]
+
+                                               )
+                                        )
+                                )
+
       update_Y  <- cbind(  update_D, update_C)
     }
   }
@@ -244,7 +293,7 @@ init_susiF_obj <- function(L_max, G_prior, Y,X,L_start,greedy,backfit )
   {
     fitted_wc[[l]]        <-  matrix(0, nrow = dim(X)[2], ncol=dim(Y)[2]  )
     fitted_wc2[[l]]       <-  matrix(1, nrow = dim(X)[2], ncol=dim(Y)[2]  )
-    alpha [[l]]           <-  rep(0, dim(X)[2])
+    alpha [[l]]           <-  rep(1/dim(X)[2], dim(X)[2])
     cs[[l]]               <-  list()
     est_pi [[l]]          <-  get_pi_G_prior(G_prior)
     est_sd [[l]]          <-  get_sd_G_prior(G_prior)
@@ -767,51 +816,6 @@ out_prep.susiF <- function(susiF.obj,Y, X, indx_lst, filter.cs, lfsr_curve, ...)
 }
 
 
-#' @title Update mixture proportion of susiF mixture proportions of effect l
-#'
-#' @param susiF.obj a susif object defined by \code{\link{init_susiF_obj}} function
-#'
-#' @param l integer larger or equal to 1. Corresponds to the effect to be accessed
-#'
-#' @param tpi an object of the class "pi_mixture_normal" or "pi_mixture_normal_per_scale"
-#'
-#' @return susiF object
-#'
-#' @export
-
-update_pi <- function( susiF.obj, l, tpi, ...)
-  UseMethod("update_pi")
-
-#' @rdname update_pi
-#'
-#' @method update_pi susiF
-#'
-#' @export update_pi.susiF
-#'
-#' @export
-#'
-update_pi.susiF <- function( susiF.obj, l, tpi, ...)
-{
-
-  if( l > length(susiF.obj$est_pi))
-  {
-    stop("Error trying to access mixture proportion")
-  }
-  if( l < 1)
-  {
-    stop("Error l should be larger ")
-  }
-  if( class(tpi)%!in% c("pi_mixture_normal" , "pi_mixture_normal_per_scale"))
-  {
-    stop("Error tpi should be of one of the follwoing class:\n
-          pi_mixture_normal \n pi_mixture_normal_per_scale")
-  }
-  susiF.obj$est_pi[[l]] <- tpi
-  out <- susiF.obj
-  class(out) <- "susiF"
-  return(out)
-}
-
 #' @title Update alpha   susiF mixture proportion of effect l
 #'
 #' @param susiF.obj a susiF object defined by \code{\link{init_susiF_obj}} function
@@ -953,6 +957,337 @@ update_susiF_obj.susiF <- function(susiF.obj, l, EM_pi, Bhat, Shat, indx_lst, lo
   return(susiF.obj)
 }
 
+#'@title Update susiF by computing PiP
+#'
+#'@param susiF.obj a susiF object defined by \code{\link{init_susiF_obj}} function
+#'@return susiF object
+#'@export
+
+update_cal_pip  <- function (susiF.obj, ...)
+  UseMethod("update_cal_pip")
+
+#' @rdname update_cal_pip
+#'
+#' @method update_cal_pip susiF
+#'
+#' @export update_cal_pip.susiF
+#'
+#' @export
+#'
+
+update_cal_pip.susiF <- function (susiF.obj, ...)
+{
+  if(sum( is.na(unlist(susiF.obj$alpha))))
+  {
+    stop("Error: some alpha value not updated, please update alpha value first")
+  }
+  tpip <- list()
+  for ( l in 1:susiF.obj$L)
+  {
+    tpip[[l]] <- rep(1, lengths(susiF.obj$alpha)[[l]])-susiF.obj$alpha[[l]]
+  }
+  susiF.obj$pip <- 1-  apply( do.call(rbind,tpip),2, prod)
+  return(susiF.obj)
+}
+
+
+#'@title Update susiF by computing credible sets
+#'
+#' @param susiF.obj a susiF object defined by \code{\link{init_susiF_obj}} function
+#'
+#' @param cov_lev numeric between 0 and 1, corresponding to the expected level of coverage of the cs if not specified set to 0.95
+#'
+#' @return susiF object
+#'
+#' @export
+
+update_cal_cs  <- function(susiF.obj, cov_lev=0.95, ...)
+  UseMethod("update_cal_cs")
+
+#' @rdname update_cal_cs
+#'
+#' @method update_cal_cs susiF
+#'
+#' @export update_cal_cs.susiF
+#'
+#' @export
+#'
+
+update_cal_cs.susiF <- function(susiF.obj, cov_lev=0.95)
+{
+  if(sum( is.na(unlist(susiF.obj$alpha))))
+  {
+    stop("Error: some alpha value not updated, please update alpha value first")
+  }
+  for ( l in 1:susiF.obj$L)
+  {
+    temp        <- susiF.obj$alpha[[l]]
+    temp_cumsum <- cumsum( temp[order(temp, decreasing =TRUE)])
+    max_indx_cs <- min(which( temp_cumsum >cov_lev ))
+    susiF.obj$cs[[l]]  <- order(temp, decreasing = TRUE)[1:max_indx_cs ]
+
+  }
+
+  return(susiF.obj)
+}
+
+#'@title Update susiF by computing predicted curves
+#'
+#'@param susiF.obj a susiF object defined by \code{\link{init_susiF_obj}} function
+#'@param Y functional phenotype, matrix of size N by size J. The underlying algorithm uses wavelet which assume that J is of the form J^2. If J not a power of 2, susiF internally remaps the data into grid of length 2^J
+#'@param X matrix of size N by p
+#'#'@param indx_lst list generated by gen_wavelet_indx for the given level of resolution
+#'@return susiF object
+#'@export
+#'
+
+update_cal_indf <- function(susiF.obj, Y, X, indx_lst, ...)
+  UseMethod("update_cal_indf")
+
+#' @rdname update_cal_indf
+#'
+#' @method update_cal_indf susiF
+#'
+#' @export update_cal_indf.susiF
+#'
+#' @importFrom wavethresh wr
+#'
+#' @importFrom wavethresh wd
+#'
+#' @export
+#'
+
+update_cal_indf.susiF <- function(susiF.obj, Y, X, indx_lst, ...)
+{
+  mean_Y          <- attr(Y, "scaled:center")
+  if(sum( is.na(unlist(susiF.obj$alpha))))
+  {
+    stop("Error: some alpha value not updated, please update alpha value first")
+  }
+  temp <- wd(rep(0, susiF.obj$n_wac)) #create dummy wd object
+
+
+  if(class(get_G_prior(susiF.obj))=="mixture_normal_per_scale" )
+  {
+    for ( i in 1:susiF.obj$N)
+    {
+      susiF.obj$ind_fitted_func[i,]  <- mean_Y#fitted_baseline future implementation
+      for ( l in 1:susiF.obj$L)
+      {
+        #add wavelet coefficient
+        temp$D                         <-    ( susiF.obj$alpha[[l]] *sweep(X, MARGIN=2, 1/(attr(X, "scaled:scale") ), '*')[i,])%*%susiF.obj$fitted_wc[[l]][,-indx_lst[[length(indx_lst)]]]
+        temp$C[length(temp$C)]         <-    ( susiF.obj$alpha[[l]] *sweep(X, MARGIN=2, 1/(attr(X, "scaled:scale") ), '*')[i,])%*%susiF.obj$fitted_wc[[l]][,indx_lst[[length(indx_lst)]]]
+        #transform back
+        susiF.obj$ind_fitted_func[i,]  <-  susiF.obj$ind_fitted_func[i,]+wr(temp)
+      }
+    }
+  }
+  if(class(get_G_prior(susiF.obj))=="mixture_normal" )
+  {
+    for ( i in 1:susiF.obj$N)
+    {
+      susiF.obj$ind_fitted_func[i,]  <- mean_Y#fitted_baseline
+      for ( l in 1:susiF.obj$L)
+      {
+        #add wavelet coefficient
+        temp$D                         <-    (susiF.obj$alpha[[l]] *sweep(X, MARGIN=2, attr(X, "scaled:scale"), '*')[i,])%*%susiF.obj$fitted_wc[[l]][,-dim(susiF.obj$fitted_wc[[l]])[2]]
+        temp$C[length(temp$C)]         <-    (susiF.obj$alpha[[l]] *sweep(X, MARGIN=2, attr(X, "scaled:scale"), '*')[i,]) %*%susiF.obj$fitted_wc[[l]][,dim(susiF.obj$fitted_wc[[l]])[2]]
+        #transform back
+        susiF.obj$ind_fitted_func[i,]  <-  susiF.obj$ind_fitted_func[i,]+wr(temp)
+      }
+    }
+  }
+  return( susiF.obj)
+}
+
+
+
+#' @title Update susiF by computing posterior curves
+#'
+#' @param susiF.obj a susiF object defined by \code{\link{init_susiF_obj}} function
+#'
+#' @param Y functional phenotype, matrix of size N by size J. The underlying algorithm uses wavelet which assume that J is of the form J^2. If J not a power of 2, susiF internally remaps the data into grid of length 2^J
+#'
+#' @param X matrix of size N by p
+#'
+#' @param indx_lst list generated by gen_wavelet_indx for the given level of resolution
+#'
+#' @return susiF object
+#'
+#' @export
+update_cal_fit_func  <- function(susiF.obj, indx_lst, ...)
+  UseMethod("update_cal_fit_func")
+
+#' @rdname update_cal_fit_func
+#'
+#' @method update_cal_fit_func susiF
+#'
+#' @export update_cal_fit_func.susiF
+#'
+#' @importFrom wavethresh wr
+#'
+#' @importFrom wavethresh wd
+#'
+#' @export
+#'
+
+update_cal_fit_func.susiF <- function(susiF.obj, indx_lst, ...)
+{
+
+  if(sum( is.na(unlist(susiF.obj$alpha))))
+  {
+    stop("Error: some alpha value not updated, please update alpha value first")
+  }
+  temp <- wd(rep(0, susiF.obj$n_wac))
+
+  if(class(get_G_prior(susiF.obj))=="mixture_normal_per_scale" )
+  {
+    for ( l in 1:susiF.obj$L)
+    {
+      temp$D                     <- (susiF.obj$alpha[[l]])%*%sweep( susiF.obj$fitted_wc[[l]][,-indx_lst[[length(indx_lst)]]],
+                                                                    1,
+                                                                    1/(susiF.obj$csd_X ), "*")
+      temp$C[length(temp$C)]     <- (susiF.obj$alpha[[l]])%*% (susiF.obj$fitted_wc[[l]][,indx_lst[[length(indx_lst)]]]*( 1/(susiF.obj$csd_X )))
+      susiF.obj$fitted_func[[l]] <- wr(temp)
+    }
+  }
+  if(class(get_G_prior(susiF.obj))=="mixture_normal" )
+  {
+    for ( l in 1:susiF.obj$L)
+    {
+      temp$D                     <- (susiF.obj$alpha[[l]])%*%sweep(susiF.obj$fitted_wc[[l]][,-dim(susiF.obj$fitted_wc[[l]])[2]],
+                                                                   1,
+                                                                   1/(susiF.obj$csd_X ), "*")
+      temp$C[length(temp$C)]     <- (susiF.obj$alpha[[l]])%*% (susiF.obj$fitted_wc[[l]][,dim(susiF.obj$fitted_wc[[l]])[2]]*( 1/(susiF.obj$csd_X )) )
+      susiF.obj$fitted_func[[l]] <- wr(temp)
+    }
+  }
+  return(susiF.obj)
+}
+
+
+#' @title Update susiF by computing credible band for posterior curves
+#'
+#' @param susiF.obj a susiF object defined by \code{\link{init_susiF_obj}} function
+#'
+#' @param Y functional phenotype, matrix of size N by size J. The underlying algorithm uses wavelet which assume that J is of the form J^2. If J not a power of 2, susiF internally remaps the data into grid of length 2^J
+#'
+#' @param X matrix of size N by p
+#'
+#' @param indx_lst list generated by gen_wavelet_indx for the given level of resolution
+#'
+#' @return susiF object
+#'
+#' @export
+update_cal_credible_band  <- function(susiF.obj, indx_lst, ...)
+  UseMethod("update_cal_credible_band")
+
+#' @rdname  update_cal_credible_band
+#'
+#' @method  update_cal_credible_band susiF
+#'
+#' @export  update_cal_credible_band.susiF
+#'
+#' @importFrom wavethresh wr
+#'
+#' @importFrom wavethresh wd
+#' @importFrom wavethresh GenW
+#'
+#' @export
+#'
+
+update_cal_credible_band.susiF <- function(susiF.obj, indx_lst, ...)
+{
+
+  if(sum( is.na(unlist(susiF.obj$alpha))))
+  {
+    stop("Error: some alpha value not updated, please update alpha value first")
+  }
+  temp <- wd(rep(0, susiF.obj$n_wac))
+
+
+  for ( l in 1:susiF.obj$L)
+  {
+    Smat <- susiF.obj$fitted_wc2[[l]]
+    W1   <- ((GenW(n=  ncol(Smat )  , filter.number = 10, family = "DaubLeAsymm")))
+    tt   <- diag((W1)%*%diag(c(susiF.obj$alpha[[1]]%*%Smat ))%*% t(W1))
+
+    up                       <-  susiF.obj$fitted_func[[l]]+ 1.96 *sqrt(tt)
+    low                      <-  susiF.obj$fitted_func[[l]]- 1.96 *sqrt(tt)
+    susiF.obj$cred_band[[l]] <- rbind(up, low)
+  }
+
+
+
+  return(susiF.obj)
+}
+
+
+#' @title Update susiF by computing posterior curves using wavelet coefficient with a low lfsr
+#'
+#' @param susiF.obj a susiF object defined by \code{\link{init_susiF_obj}} function
+#'
+#' @param lfsr_curve Maximum local false sign rate of the wavelet coefficients used to reconstruct lfsr_curves (see output)
+#'
+#' @param indx_lst list generated by gen_wavelet_indx for the given level of resolution
+#'
+#' @return susiF object
+#'
+#' @export
+update_cal_lfsr_func  <- function(susiF.obj, lfsr_curve,  indx_lst, ...)
+  UseMethod("update_cal_lfsr_func")
+
+#' @rdname update_cal_lfsr_func
+#'
+#' @method update_cal_lfsr_func susiF
+#'
+#' @export update_cal_lfsr_func.susiF
+#'
+#' @importFrom wavethresh wr
+#'
+#' @importFrom wavethresh wd
+#'
+#' @export
+#'
+
+update_cal_lfsr_func.susiF <- function(susiF.obj, lfsr_curve, indx_lst, ...)
+{
+
+  if(sum( is.na(unlist(susiF.obj$alpha))))
+  {
+    stop("Error: some alpha value not updated, please update alpha value first")
+  }
+  temp <- wd(rep(0, susiF.obj$n_wac))
+
+  if(class(get_G_prior(susiF.obj))=="mixture_normal_per_scale" )
+  {
+    for ( l in 1:susiF.obj$L)
+    {
+      wc_to_select <- ifelse(susiF.obj$lfsr_wc[[l]] < lfsr_curve,1,0)
+      t_wc <- susiF.obj$fitted_wc[[l]]%*% diag(wc_to_select)
+      temp$D                     <- (susiF.obj$alpha[[l]])%*%t_wc[,-indx_lst[[length(indx_lst)]]]
+      temp$C[length(temp$C)]     <- (susiF.obj$alpha[[l]])%*%t_wc[,indx_lst[[length(indx_lst)]]]
+      susiF.obj$lfsr_func[[l]] <- wr(temp)
+    }
+  }
+  if(class(get_G_prior(susiF.obj))=="mixture_normal" )
+  {
+    for ( l in 1:susiF.obj$L)
+    {
+      wc_to_select <- ifelse(susiF.obj$lfsr_wc[[l]] < lfsr_curve,1,0)
+      t_wc <- susiF.obj$fitted_wc[[l]]%*% diag(wc_to_select)
+      temp$D                     <- (susiF.obj$alpha[[l]])%*%t_wc[,-dim(susiF.obj$fitted_wc[[l]])[2]]
+      temp$C[length(temp$C)]     <- (susiF.obj$alpha[[l]])%*%t_wc[,dim(susiF.obj$fitted_wc[[l]])[2]]
+      susiF.obj$lfsr_func[[l]] <- wr(temp)
+    }
+  }
+  return(susiF.obj)
+}
+
+
+
+
+
 
 #'@title Update susiF log Bayes factor
 #'
@@ -1051,370 +1386,6 @@ update_ELBO.susiF <- function    (susiF.obj,ELBO, ...)
   return(susiF.obj)
 }
 
-#'@title Update susiF by computing PiP
-#'
-#'@param susiF.obj a susiF object defined by \code{\link{init_susiF_obj}} function
-#'@return susiF object
-#'@export
-
-update_cal_pip  <- function (susiF.obj, ...)
-  UseMethod("update_cal_pip")
-
-#' @rdname update_cal_pip
-#'
-#' @method update_cal_pip susiF
-#'
-#' @export update_cal_pip.susiF
-#'
-#' @export
-#'
-
-update_cal_pip.susiF <- function (susiF.obj, ...)
-{
-  if(sum( is.na(unlist(susiF.obj$alpha))))
-  {
-    stop("Error: some alpha value not updated, please update alpha value first")
-  }
-  tpip <- list()
-  for ( l in 1:susiF.obj$L)
-  {
-    tpip[[l]] <- rep(1, lengths(susiF.obj$alpha)[[l]])-susiF.obj$alpha[[l]]
-  }
-  susiF.obj$pip <- 1-  apply( do.call(rbind,tpip),2, prod)
-  return(susiF.obj)
-}
-
-
-#'@title Update susiF by computing credible sets
-#'
-#' @param susiF.obj a susiF object defined by \code{\link{init_susiF_obj}} function
-#'
-#' @param cov_lev numeric between 0 and 1, corresponding to the expected level of coverage of the cs if not specified set to 0.95
-#'
-#' @return susiF object
-#'
-#' @export
-
-update_cal_cs  <- function(susiF.obj, cov_lev=0.95, ...)
-      UseMethod("update_cal_cs")
-
-#' @rdname update_cal_cs
-#'
-#' @method update_cal_cs susiF
-#'
-#' @export update_cal_cs.susiF
-#'
-#' @export
-#'
-
-update_cal_cs.susiF <- function(susiF.obj, cov_lev=0.95)
-{
-  if(sum( is.na(unlist(susiF.obj$alpha))))
-  {
-    stop("Error: some alpha value not updated, please update alpha value first")
-  }
-  for ( l in 1:susiF.obj$L)
-  {
-    temp        <- susiF.obj$alpha[[l]]
-    temp_cumsum <- cumsum( temp[order(temp, decreasing =TRUE)])
-    max_indx_cs <- min(which( temp_cumsum >cov_lev ))
-    susiF.obj$cs[[l]]  <- order(temp, decreasing = TRUE)[1:max_indx_cs ]
-
-  }
-
-  return(susiF.obj)
-}
-
-#'@title Update susiF by computing predicted curves
-#'
-#'@param susiF.obj a susiF object defined by \code{\link{init_susiF_obj}} function
-#'@param Y functional phenotype, matrix of size N by size J. The underlying algorithm uses wavelet which assume that J is of the form J^2. If J not a power of 2, susiF internally remaps the data into grid of length 2^J
-#'@param X matrix of size N by p
-#'#'@param indx_lst list generated by gen_wavelet_indx for the given level of resolution
-#'@return susiF object
-#'@export
-#'
-
-update_cal_indf <- function(susiF.obj, Y, X, indx_lst, ...)
-      UseMethod("update_cal_indf")
-
-#' @rdname update_cal_indf
-#'
-#' @method update_cal_indf susiF
-#'
-#' @export update_cal_indf.susiF
-#'
-#' @importFrom wavethresh wr
-#'
-#' @importFrom wavethresh wd
-#'
-#' @export
-#'
-
-update_cal_indf.susiF <- function(susiF.obj, Y, X, indx_lst, ...)
-{
-  mean_Y          <- attr(Y, "scaled:center")
-  if(sum( is.na(unlist(susiF.obj$alpha))))
-  {
-    stop("Error: some alpha value not updated, please update alpha value first")
-  }
-  temp <- wd(rep(0, susiF.obj$n_wac)) #create dummy wd object
-
-
-  if(class(get_G_prior(susiF.obj))=="mixture_normal_per_scale" )
-  {
-    for ( i in 1:susiF.obj$N)
-    {
-      susiF.obj$ind_fitted_func[i,]  <- mean_Y#fitted_baseline future implementation
-      for ( l in 1:susiF.obj$L)
-      {
-        #add wavelet coefficient
-        temp$D                         <-    ( susiF.obj$alpha[[l]] *sweep(X, MARGIN=2, 1/(attr(X, "scaled:scale") ), '*')[i,])%*%susiF.obj$fitted_wc[[l]][,-indx_lst[[length(indx_lst)]]]
-        temp$C[length(temp$C)]         <-    ( susiF.obj$alpha[[l]] *sweep(X, MARGIN=2, 1/(attr(X, "scaled:scale") ), '*')[i,])%*%susiF.obj$fitted_wc[[l]][,indx_lst[[length(indx_lst)]]]
-        #transform back
-        susiF.obj$ind_fitted_func[i,]  <-  susiF.obj$ind_fitted_func[i,]+wr(temp)
-      }
-    }
-  }
-  if(class(get_G_prior(susiF.obj))=="mixture_normal" )
-  {
-    for ( i in 1:susiF.obj$N)
-    {
-      susiF.obj$ind_fitted_func[i,]  <- mean_Y#fitted_baseline
-      for ( l in 1:susiF.obj$L)
-      {
-        #add wavelet coefficient
-        temp$D                         <-    (susiF.obj$alpha[[l]] *sweep(X, MARGIN=2, attr(X, "scaled:scale"), '*')[i,])%*%susiF.obj$fitted_wc[[l]][,-dim(susiF.obj$fitted_wc[[l]])[2]]
-        temp$C[length(temp$C)]         <-    (susiF.obj$alpha[[l]] *sweep(X, MARGIN=2, attr(X, "scaled:scale"), '*')[i,]) %*%susiF.obj$fitted_wc[[l]][,dim(susiF.obj$fitted_wc[[l]])[2]]
-        #transform back
-        susiF.obj$ind_fitted_func[i,]  <-  susiF.obj$ind_fitted_func[i,]+wr(temp)
-      }
-    }
-  }
-  return( susiF.obj)
-}
-
-
-
-#' @title Update susiF by computing posterior curves
-#'
-#' @param susiF.obj a susiF object defined by \code{\link{init_susiF_obj}} function
-#'
-#' @param Y functional phenotype, matrix of size N by size J. The underlying algorithm uses wavelet which assume that J is of the form J^2. If J not a power of 2, susiF internally remaps the data into grid of length 2^J
-#'
-#' @param X matrix of size N by p
-#'
-#' @param indx_lst list generated by gen_wavelet_indx for the given level of resolution
-#'
-#' @return susiF object
-#'
-#' @export
-update_cal_fit_func  <- function(susiF.obj, indx_lst, ...)
-    UseMethod("update_cal_fit_func")
-
-#' @rdname update_cal_fit_func
-#'
-#' @method update_cal_fit_func susiF
-#'
-#' @export update_cal_fit_func.susiF
-#'
-#' @importFrom wavethresh wr
-#'
-#' @importFrom wavethresh wd
-#'
-#' @export
-#'
-
-update_cal_fit_func.susiF <- function(susiF.obj, indx_lst, ...)
-{
-
-  if(sum( is.na(unlist(susiF.obj$alpha))))
-  {
-    stop("Error: some alpha value not updated, please update alpha value first")
-  }
-  temp <- wd(rep(0, susiF.obj$n_wac))
-
-  if(class(get_G_prior(susiF.obj))=="mixture_normal_per_scale" )
-  {
-      for ( l in 1:susiF.obj$L)
-    {
-      temp$D                     <- (susiF.obj$alpha[[l]])%*%sweep( susiF.obj$fitted_wc[[l]][,-indx_lst[[length(indx_lst)]]],
-                                                                    1,
-                                                                    1/(susiF.obj$csd_X ), "*")
-      temp$C[length(temp$C)]     <- (susiF.obj$alpha[[l]])%*% (susiF.obj$fitted_wc[[l]][,indx_lst[[length(indx_lst)]]]*( 1/(susiF.obj$csd_X )))
-      susiF.obj$fitted_func[[l]] <- wr(temp)
-    }
-  }
-  if(class(get_G_prior(susiF.obj))=="mixture_normal" )
-  {
-     for ( l in 1:susiF.obj$L)
-    {
-      temp$D                     <- (susiF.obj$alpha[[l]])%*%sweep(susiF.obj$fitted_wc[[l]][,-dim(susiF.obj$fitted_wc[[l]])[2]],
-                                                                                    1,
-                                                                                    1/(susiF.obj$csd_X ), "*")
-      temp$C[length(temp$C)]     <- (susiF.obj$alpha[[l]])%*% (susiF.obj$fitted_wc[[l]][,dim(susiF.obj$fitted_wc[[l]])[2]]*( 1/(susiF.obj$csd_X )) )
-      susiF.obj$fitted_func[[l]] <- wr(temp)
-    }
-  }
-  return(susiF.obj)
-}
-
-
-#' @title Update susiF by computing credible band for posterior curves
-#'
-#' @param susiF.obj a susiF object defined by \code{\link{init_susiF_obj}} function
-#'
-#' @param Y functional phenotype, matrix of size N by size J. The underlying algorithm uses wavelet which assume that J is of the form J^2. If J not a power of 2, susiF internally remaps the data into grid of length 2^J
-#'
-#' @param X matrix of size N by p
-#'
-#' @param indx_lst list generated by gen_wavelet_indx for the given level of resolution
-#'
-#' @return susiF object
-#'
-#' @export
-update_cal_credible_band  <- function(susiF.obj, indx_lst, ...)
-  UseMethod("update_cal_credible_band")
-
-#' @rdname  update_cal_credible_band
-#'
-#' @method  update_cal_credible_band susiF
-#'
-#' @export  update_cal_credible_band.susiF
-#'
-#' @importFrom wavethresh wr
-#'
-#' @importFrom wavethresh wd
-#' @importFrom wavethresh GenW
-#'
-#' @export
-#'
-
-update_cal_credible_band.susiF <- function(susiF.obj, indx_lst, ...)
-{
-
-  if(sum( is.na(unlist(susiF.obj$alpha))))
-  {
-    stop("Error: some alpha value not updated, please update alpha value first")
-  }
-  temp <- wd(rep(0, susiF.obj$n_wac))
-
-
-    for ( l in 1:susiF.obj$L)
-    {
-      Smat <- susiF.obj$fitted_wc2[[l]]
-      W1   <- ((GenW(n=  ncol(Smat )  , filter.number = 10, family = "DaubLeAsymm")))
-      tt   <- diag((W1)%*%diag(c(susiF.obj$alpha[[1]]%*%Smat ))%*% t(W1))
-
-      up                       <-  susiF.obj$fitted_func[[l]]+ 1.96 *sqrt(tt)
-      low                      <-  susiF.obj$fitted_func[[l]]- 1.96 *sqrt(tt)
-      susiF.obj$cred_band[[l]] <- rbind(up, low)
-    }
-
-
-
-  return(susiF.obj)
-}
-
-
-#' @title Update susiF by computing posterior curves using wavelet coefficient with a low lfsr
-#'
-#' @param susiF.obj a susiF object defined by \code{\link{init_susiF_obj}} function
-#'
-#' @param lfsr_curve Maximum local false sign rate of the wavelet coefficients used to reconstruct lfsr_curves (see output)
-#'
-#' @param indx_lst list generated by gen_wavelet_indx for the given level of resolution
-#'
-#' @return susiF object
-#'
-#' @export
-update_cal_lfsr_func  <- function(susiF.obj, lfsr_curve,  indx_lst, ...)
-  UseMethod("update_cal_lfsr_func")
-
-#' @rdname update_cal_lfsr_func
-#'
-#' @method update_cal_lfsr_func susiF
-#'
-#' @export update_cal_lfsr_func.susiF
-#'
-#' @importFrom wavethresh wr
-#'
-#' @importFrom wavethresh wd
-#'
-#' @export
-#'
-
-update_cal_lfsr_func.susiF <- function(susiF.obj, lfsr_curve, indx_lst, ...)
-{
-
-  if(sum( is.na(unlist(susiF.obj$alpha))))
-  {
-    stop("Error: some alpha value not updated, please update alpha value first")
-  }
-  temp <- wd(rep(0, susiF.obj$n_wac))
-
-  if(class(get_G_prior(susiF.obj))=="mixture_normal_per_scale" )
-  {
-    for ( l in 1:susiF.obj$L)
-    {
-      wc_to_select <- ifelse(susiF.obj$lfsr_wc[[l]] < lfsr_curve,1,0)
-      t_wc <- susiF.obj$fitted_wc[[l]]%*% diag(wc_to_select)
-      temp$D                     <- (susiF.obj$alpha[[l]])%*%t_wc[,-indx_lst[[length(indx_lst)]]]
-      temp$C[length(temp$C)]     <- (susiF.obj$alpha[[l]])%*%t_wc[,indx_lst[[length(indx_lst)]]]
-      susiF.obj$lfsr_func[[l]] <- wr(temp)
-    }
-  }
-  if(class(get_G_prior(susiF.obj))=="mixture_normal" )
-  {
-    for ( l in 1:susiF.obj$L)
-    {
-      wc_to_select <- ifelse(susiF.obj$lfsr_wc[[l]] < lfsr_curve,1,0)
-      t_wc <- susiF.obj$fitted_wc[[l]]%*% diag(wc_to_select)
-      temp$D                     <- (susiF.obj$alpha[[l]])%*%t_wc[,-dim(susiF.obj$fitted_wc[[l]])[2]]
-      temp$C[length(temp$C)]     <- (susiF.obj$alpha[[l]])%*%t_wc[,dim(susiF.obj$fitted_wc[[l]])[2]]
-      susiF.obj$lfsr_func[[l]] <- wr(temp)
-    }
-  }
-  return(susiF.obj)
-}
-
-
-
-#' @title Update residual variance
-#'
-#' @param susiF.obj a susiF object defined by \code{\link{init_susiF_obj}} function
-#'
-#' @param sigma2 estimate residual variance
-#'
-#' @return updated susiF.obj
-#' @export
-
-
-
-
-update_residual_variance  <- function(susiF.obj,sigma2, ...)
-  UseMethod("update_residual_variance")
-
-#' @rdname update_residual_variance
-#'
-#' @method update_residual_variance susiF
-#'
-#' @export update_residual_variance.susiF
-#'
-#' @export
-#'
-
-update_residual_variance.susiF <- function(susiF.obj,sigma2)
-{
-  susiF.obj$sigma2 <- sigma2
-  return(susiF.obj)
-}
-
-
-
-
-
-
 #' @title Compute KL divergence effect l
 #'
 #' @param Y wavelet transformed phenotype
@@ -1447,6 +1418,87 @@ update_KL.susiF <- function(susiF.obj,  X, D, C , indx_lst, ...)
 {
   susiF.obj$KL <-  do.call(c,lapply(1:susiF.obj$L,FUN=function(l) cal_KL_l(susiF.obj, l,   X, D, C , indx_lst )))
   return( susiF.obj)
+}
+
+
+
+
+
+#' @title Update mixture proportion of susiF mixture proportions of effect l
+#'
+#' @param susiF.obj a susif object defined by \code{\link{init_susiF_obj}} function
+#'
+#' @param l integer larger or equal to 1. Corresponds to the effect to be accessed
+#'
+#' @param tpi an object of the class "pi_mixture_normal" or "pi_mixture_normal_per_scale"
+#'
+#' @return susiF object
+#'
+#' @export
+
+update_pi <- function( susiF.obj, l, tpi, ...)
+  UseMethod("update_pi")
+
+#' @rdname update_pi
+#'
+#' @method update_pi susiF
+#'
+#' @export update_pi.susiF
+#'
+#' @export
+#'
+update_pi.susiF <- function( susiF.obj, l, tpi, ...)
+{
+
+  if( l > length(susiF.obj$est_pi))
+  {
+    stop("Error trying to access mixture proportion")
+  }
+  if( l < 1)
+  {
+    stop("Error l should be larger ")
+  }
+  if( class(tpi)%!in% c("pi_mixture_normal" , "pi_mixture_normal_per_scale"))
+  {
+    stop("Error tpi should be of one of the follwoing class:\n
+          pi_mixture_normal \n pi_mixture_normal_per_scale")
+  }
+  susiF.obj$est_pi[[l]] <- tpi
+  out <- susiF.obj
+  class(out) <- "susiF"
+  return(out)
+}
+
+
+
+#' @title Update residual variance
+#'
+#' @param susiF.obj a susiF object defined by \code{\link{init_susiF_obj}} function
+#'
+#' @param sigma2 estimate residual variance
+#'
+#' @return updated susiF.obj
+#' @export
+
+
+
+
+update_residual_variance  <- function(susiF.obj,sigma2, ...)
+  UseMethod("update_residual_variance")
+
+#' @rdname update_residual_variance
+#'
+#' @method update_residual_variance susiF
+#'
+#' @export update_residual_variance.susiF
+#'
+#' @export
+#'
+
+update_residual_variance.susiF <- function(susiF.obj,sigma2)
+{
+  susiF.obj$sigma2 <- sigma2
+  return(susiF.obj)
 }
 
 

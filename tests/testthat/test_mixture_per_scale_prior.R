@@ -356,7 +356,7 @@ test_that("The precision of the fitted curves should be   ",
                                     tpi= outEM$tpi_k )
 
             susiF_obj <- update_susiF_obj(susiF_obj, 1, outEM, Bhat, Shat, indx_lst )
-            expect_equal(  sum( abs(unlist(update_cal_fit_func(susiF_obj, indx_lst)$fitted_func) -f1$sim_func)), 0, tol=0.01)
+            expect_equal(  sum( abs(unlist(update_cal_fit_func(susiF_obj, indx_lst)$fitted_funcfitted_func[[1]]) -f1$sim_func)), 0, tol=0.01)
 
 
           }
@@ -376,7 +376,7 @@ susiF_obj <-  update_susiF_obj(susiF_obj, 1, outEM, Bhat, Shat, indx_lst ,
 
 susiF_obj <-  out_prep(susiF_obj,Y, X=X, indx_lst=indx_lst,filter.cs = FALSE)
 
-plot( (unlist(susiF_obj$fitted_func)), type="l", col="green")
+plot( (unlist(susiF_obj$fitted_func[[1]])), type="l", col="green")
 lines(f1$sim_func, col="red")
 
 
@@ -479,5 +479,5 @@ test_that("Removing one wc coeef should lead to the followin results",
 #out <- susiF(Y,X,L=2, prior="mixture_normal_per_scale", cal_obj = TRUE)
 #out <- susiF(Y,X,L=2, prior="mixture_normal_per_scale", cal_obj = TRUE,quantile_trans = TRUE)
 
-out <- susiF(Y,X,L=2, prior="mixture_normal_per_scale", cal_obj = FALSE,quantile_trans = TRUE)
-
+out <- susiF(Y,X,L=2, prior="mixture_normal_per_scale", cal_obj = FALSE,quantile_trans = TRUE, filter.cs = FALSE)
+out$cs
