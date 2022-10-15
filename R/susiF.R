@@ -365,7 +365,7 @@ susiF <- function(Y, X, L = 2,
                                        indx_lst    = indx_lst,
                                        lowc_wc     = lowc_wc
         )
-         print(susiF.obj$alpha[[l]])
+         #print(susiF.obj$alpha[[l]])
        update_Y  <-  cal_partial_resid(
             susiF.obj = susiF.obj,
             l         =  l  ,
