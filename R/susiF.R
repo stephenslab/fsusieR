@@ -318,7 +318,7 @@ susiF <- function(Y, X, L = 2,
 
   }else{
     iter <- 1
-    while( (check >tol & iter <maxit))#|iter <10)
+    while( (check >tol & iter <maxit))
     {
       for( l in 1:susiF.obj$L)
       {
@@ -374,7 +374,6 @@ susiF <- function(Y, X, L = 2,
             C         = W$C,
             indx_lst  = indx_lst
           )
-        print(plot(susiF.obj$alpha[[l]]))
       }#end for l in 1:L
 
       ####Check greedy/backfit and stopping condition -----
