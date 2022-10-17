@@ -711,17 +711,24 @@ greedy_backfit.susiF <-  function(susiF.obj,verbose,cov_lev,X,min.purity, ...  )
                               out_prep= FALSE
       )
 
-      A <- cal_cor_cs(susiF.obj, G)$cs_cor
-      tl <- which(A>0.99, arr.ind = TRUE)
-      tl <-  tl[- which( tl[,1]==tl[,2]),]
+      if( length(susiF.obj$cs)>1){
+        A <- cal_cor_cs(susiF.obj, G)$cs_cor
+        tl <- which(A>0.99, arr.ind = TRUE)
+        tl <-  tl[- which( tl[,1]==tl[,2]),]
 
-      if ( length(tl )==0){
+        if ( length(tl )==0){
 
-      }else{
-        tl <-  tl[which(tl[,1] < tl[,2]),]
-        susiF.obj <- merge_effect(susiF.obj, tl)
-        print( paste( "Discarding ",(temp_L- susiF.obj$L), " effects"))
+        }else{
+
+          tl <-  tl[which(tl[,1] < tl[,2]),]
+          susiF.obj <- merge_effect(susiF.obj, tl)
+
+        }
       }
+      print( paste( "Discarding ",(temp_L- susiF.obj$L), " effects"))
+
+
+
 
     }
 
@@ -743,22 +750,25 @@ greedy_backfit.susiF <-  function(susiF.obj,verbose,cov_lev,X,min.purity, ...  )
 
 
 
-    A <- cal_cor_cs(susiF.obj, G)$cs_cor
-    tl <- which(A>0.99, arr.ind = TRUE)
-    tl <- tl[- which( tl[,1]==tl[,2]),]
+    if( length(susiF.obj$cs)>1){
+      A <- cal_cor_cs(susiF.obj, G)$cs_cor
+      tl <- which(A>0.99, arr.ind = TRUE)
+      tl <-  tl[- which( tl[,1]==tl[,2]),]
 
-    if ( length(tl )==0){
+      if ( length(tl )==0){
 
-    }else{
-      tl <-  tl[which(tl[,1] < tl[,2]),]
-      susiF.obj <- merge_effect(susiF.obj, tl)
-      print( paste( "Discarding ",(susiF.obj$L_max- susiF.obj$L), " effects"))
+      }else{
+
+        tl <-  tl[which(tl[,1] < tl[,2]),]
+        susiF.obj <- merge_effect(susiF.obj, tl)
+
+      }
     }
-
     if(verbose){
-
+      print( paste( "Discarding ",(susiF.obj$L_max- susiF.obj$L), " effects"))
       print( "Greedy search and backfitting done")
     }
+
   }
 
   if( length(dummy.cs)==0& !( susiF.obj$greedy))
@@ -767,18 +777,24 @@ greedy_backfit.susiF <-  function(susiF.obj,verbose,cov_lev,X,min.purity, ...  )
   }
 
   if(!(susiF.obj$greedy )&!(susiF.obj$backfit ) ){
-    A <- cal_cor_cs(susiF.obj, G)$cs_cor
-    tl <- which(A>0.99, arr.ind = TRUE)
-    tl <-  tl[- which( tl[,1]==tl[,2]),]
 
-    if ( length(tl )==0){
+    if( length(susiF.obj$cs)>1){
+      A <- cal_cor_cs(susiF.obj, G)$cs_cor
+      tl <- which(A>0.99, arr.ind = TRUE)
+      tl <-  tl[- which( tl[,1]==tl[,2]),]
 
-    }else{
-      tl <- tl[which(tl[,1] < tl[,2]),]
-      susiF.obj <- merge_effect (susiF.obj, tl)
-      print( paste( "Discarding ",(susiF.obj$L_max- susiF.obj$L), " effects"))
+      if ( length(tl )==0){
+
+      }else{
+
+        tl <-  tl[which(tl[,1] < tl[,2]),]
+        susiF.obj <- merge_effect(susiF.obj, tl)
+
+      }
     }
+
     if(verbose){
+      print( paste( "Discarding ",(susiF.obj$L_max- susiF.obj$L), " effects"))
      print( "Greedy search and backfitting done")
     }
     susiF.obj$greedy_backfit_update <- FALSE
@@ -791,18 +807,23 @@ greedy_backfit.susiF <-  function(susiF.obj,verbose,cov_lev,X,min.purity, ...  )
     temp <- min( ifelse(tt>0,tt,0 ) , 7)
 
     if(temp==0){
-      A <- cal_cor_cs(susiF.obj, G)$cs_cor
-      tl <- which(A>0.99, arr.ind = TRUE)
-      tl <-  tl[- which( tl[,1]==tl[,2]),]
+      if( length(susiF.obj$cs)>1){
+        A <- cal_cor_cs(susiF.obj, G)$cs_cor
+        tl <- which(A>0.99, arr.ind = TRUE)
+        tl <-  tl[- which( tl[,1]==tl[,2]),]
 
-      if ( length(tl )==0){
+        if ( length(tl )==0){
 
-      }else{
-        tl <-   tl[which(tl[,1] < tl[,2]),]
-        susiF.obj <- merge_effect(susiF.obj, tl)
-        print( paste( "Discarding ",(susiF.obj$L_max- susiF.obj$L), " effects"))
+        }else{
+
+          tl <-  tl[which(tl[,1] < tl[,2]),]
+          susiF.obj <- merge_effect(susiF.obj, tl)
+
+        }
       }
+
       if(verbose){
+        print( paste( "Discarding ",(susiF.obj$L_max- susiF.obj$L), " effects"))
         print( "Greedy search and backfitting done")
       }
       susiF.obj$greedy_backfit_update <- FALSE
@@ -817,17 +838,25 @@ greedy_backfit.susiF <-  function(susiF.obj,verbose,cov_lev,X,min.purity, ...  )
     }
 
 
-    A <- cal_cor_cs(susiF.obj, G)$cs_cor
-    tl <- which(A>0.99, arr.ind = TRUE)
-    tl <-  tl[- which( tl[,1]==tl[,2]),]
 
-    if ( length(tl )==0){
+    if( length(susiF.obj$cs)>1){
+      A <- cal_cor_cs(susiF.obj, G)$cs_cor
+      tl <- which(A>0.99, arr.ind = TRUE)
+      tl <-  tl[- which( tl[,1]==tl[,2]),]
 
-    }else{
-      tl <-   tl[which(tl[,1] < tl[,2]),]
-      susiF.obj <- merge_effect(susiF.obj, tl, discard=FALSE)
+      if ( length(tl )==0){
 
+      }else{
+
+        tl <-  tl[which(tl[,1] < tl[,2]),]
+        susiF.obj <- merge_effect(susiF.obj, tl, discard=FALSE)
+
+      }
     }
+
+
+
+
     susiF.obj <- expand_susiF_obj(susiF.obj,L_extra = temp)
     return(susiF.obj)
   }

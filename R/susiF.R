@@ -180,6 +180,10 @@ susiF <- function(Y, X, L = 2,
     nullweight <- 10#/(sqrt(nrow(X)))
   }
 
+  if(L_start >L)
+  {
+    L_start <- L
+  }
   ## Input error messages
 
   if (is.null(pos))

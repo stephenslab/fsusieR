@@ -33,6 +33,7 @@ str(genotypes)
 library(gplots)
 
   res <- list()
+  load("check_L_accuracy.RData")
   for (o  in (length(res)+1):100) {
        L <- sample(4:10, size=1)
        print(L)
