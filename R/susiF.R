@@ -254,7 +254,14 @@ susiF <- function(Y, X, L = 2,
   ### Definition of some dynamic parameters ------
 
   update_Y    <- cbind( W$D,W$C) #Using a column like phenotype, temporary matrix that will be regularly updated
-  temp        <- init_prior(update_Y,X,prior,v1, indx_lst, lowc_wc  )
+  temp        <- init_prior(Y              = update_Y,
+                            X              = X,
+                            prior          = prior ,
+                            v1             = v1,
+                            indx_lst       = indx_lst,
+                            lowc_wc        = lowc_wc,
+                            control_mixsqp = control_mixsqp,
+                            nullweight     = nullweight )
   G_prior     <- temp$G_prior
   tt          <- temp$tt
   init        <- TRUE
@@ -322,6 +329,17 @@ susiF <- function(Y, X, L = 2,
     {
       for( l in 1:susiF.obj$L)
       {
+
+        #print(susiF.obj$alpha[[l]])
+        update_Y  <-  cal_partial_resid(
+          susiF.obj = susiF.obj,
+          l         =  (l-1)  ,
+          X         = X,
+          D         = W$D,
+          C         = W$C,
+          indx_lst  = indx_lst
+        )
+
         if(verbose){
           print(paste("Fitting effect ", l,", iter" ,  iter ))
         }
@@ -365,15 +383,7 @@ susiF <- function(Y, X, L = 2,
                                        indx_lst    = indx_lst,
                                        lowc_wc     = lowc_wc
         )
-         #print(susiF.obj$alpha[[l]])
-       update_Y  <-  cal_partial_resid(
-            susiF.obj = susiF.obj,
-            l         =  l  ,
-            X         = X,
-            D         = W$D,
-            C         = W$C,
-            indx_lst  = indx_lst
-          )
+
       }#end for l in 1:L
 
       ####Check greedy/backfit and stopping condition -----

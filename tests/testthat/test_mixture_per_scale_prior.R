@@ -3,6 +3,7 @@ library(ashr)
 library(wavethresh)
 library(mixsqp)
 library(susiF.alpha)
+control_mixsqp= list(verbose=FALSE)
 set.seed(2)
 f1 <- simu_IBSS_per_level(lev_res=9, alpha=1, prop_decay =1.5)
 lowc_wc=NULL
@@ -50,7 +51,9 @@ G_prior <- init_prior(Y=Y_f,
                       prior="mixture_normal_per_scale",
                       v1=v1,
                       indx_lst = indx_lst,
-                      lowc_wc=NULL)$G_prior
+                      lowc_wc=NULL,
+                      control_mixsqp = control_mixsqp,
+                      nullweight     = nullweight )$G_prior
 
 lBF <- log_BF (G_prior, tt$Bhat, tt$Shat , indx_lst,
                lowc_wc=NULL)
@@ -159,7 +162,9 @@ test_that("Class of the prior is", {
                prior="mixture_normal_per_scale",
                v1=v1,
                indx_lst = indx_lst,
-               lowc_wc=NULL)$G_prior
+               lowc_wc=NULL,
+               control_mixsqp = control_mixsqp,
+               nullweight     = nullweight )$G_prior
 
   )[1],
   "mixture_normal_per_scale"
@@ -481,3 +486,4 @@ test_that("Removing one wc coeef should lead to the followin results",
 
 out <- susiF(Y,X,L=2, prior="mixture_normal_per_scale", cal_obj = FALSE,quantile_trans = TRUE, filter.cs = FALSE)
 out$cs
+

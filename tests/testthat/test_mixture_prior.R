@@ -18,6 +18,7 @@ pos1 <- 5
 greedy=TRUE
 backfit=TRUE
 noisy.data  <- list()
+control_mixsqp= list(verbose=FALSE)
 rsnr=1
 for ( i in 1:N)
 {
@@ -46,7 +47,9 @@ G_prior<- init_prior(Y=Y_f,
                      prior="mixture_normal",
                      v1=v1,
                      indx_lst = indx_lst,
-                     lowc_wc=NULL)$G_prior
+                     lowc_wc=NULL,
+                     control_mixsqp = control_mixsqp,
+                     nullweight     = nullweight )$G_prior
 
 lBF <- log_BF (G_prior, Bhat, Shat , indx_lst,lowc_wc=NULL)
 lBF
@@ -65,7 +68,9 @@ test_that("Class of the prior is", {
                prior="mixture_normal",
                v1=v1,
                indx_lst = indx_lst,
-                lowc_wc=NULL)
+                lowc_wc=NULL,
+               control_mixsqp = control_mixsqp,
+               nullweight     = nullweight )
                     $G_prior),
               "mixture_normal"
                )
@@ -79,7 +84,9 @@ G_prior<- init_prior(Y=Y_f,
                 prior="mixture_normal",
                 v1=v1,
                 indx_lst = indx_lst,
-                lowc_wc=NULL)$G_prior
+                lowc_wc=NULL,
+                control_mixsqp = control_mixsqp,
+                nullweight     = nullweight )$G_prior
 
 
 plot( Bhat,post_mat_mean(G_prior,Bhat,Shat,indx_lst,lowc_wc))
@@ -193,7 +200,9 @@ test_that("Class of the prior is", {
                prior="mixture_normal",
                v1=v1,
                indx_lst = indx_lst,
-               lowc_wc=NULL)$G_prior
+               lowc_wc=NULL,
+               control_mixsqp = control_mixsqp,
+               nullweight     = nullweight )$G_prior
   ),
   "mixture_normal"
   )

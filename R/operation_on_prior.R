@@ -38,7 +38,7 @@ init_prior <- function(  ...)
 #' @importFrom ashr ash
 #'
 #' @export
-init_prior.default <- function(Y,X, prior,v1 , indx_lst,lowc_wc )
+init_prior.default <- function(Y,X, prior,v1 , indx_lst,lowc_wc,control_mixsqp,nullweight   )
 {
   if( prior == "mixture_normal")
   {
@@ -74,13 +74,22 @@ init_prior.default <- function(Y,X, prior,v1 , indx_lst,lowc_wc )
                     outputlevel=0)
     }
 
-    G_prior  <- rep(list(t_ash),(log2(dim(Y)[2])+1))
+    G_prior  <- rep(list(t_ash),length(indx_lst))
     #first log2(Y_f)+1 element of G_prior   are ash prior fitted per level coefficient on var 1
     # element in  (log2(Y_f)+2):  2*( log2(Y_f)+1)   of G_prior   are ash prior fitted per level coefficient on var 2
 
     attr(G_prior, "class") <- "mixture_normal_per_scale"
   }
 
+
+ tpi_k <-  EM_pi(G_prior,temp$Bhat, temp$Shat, indx_lst,
+                    max_step = 100,
+                    espsilon = 0.0001,
+                    init_pi0_w =1,
+                    control_mixsqp,
+                    lowc_wc,
+                    nullweight)$tpi_k
+ G_prior <- update_prior(G_prior , tpi_k)
   return(list(G_prior=G_prior,
               tt=temp)
          )

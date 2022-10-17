@@ -703,12 +703,26 @@ greedy_backfit.susiF <-  function(susiF.obj,verbose,cov_lev,X,min.purity, ...  )
     {
       susiF.obj$backfit <- FALSE
     }else{
-      print( paste( "Discarding ", length(dummy.cs), " effects"))
+      temp_L <- susiF.obj$L
+
 
       susiF.obj <- discard_cs(susiF.obj,
                               cs= dummy.cs,
                               out_prep= FALSE
       )
+
+      A <- cal_cor_cs(susiF.obj, G)$cs_cor
+      tl <- which(A>0.99, arr.ind = TRUE)
+      tl <-  tl[- which( tl[,1]==tl[,2]),]
+
+      if ( length(tl )==0){
+
+      }else{
+        tl <-  tl[which(tl[,1] < tl[,2]),]
+        susiF.obj <- merge_effect(susiF.obj, tl)
+        print( paste( "Discarding ",(temp_L- susiF.obj$L), " effects"))
+      }
+
     }
 
 
@@ -718,10 +732,33 @@ greedy_backfit.susiF <-  function(susiF.obj,verbose,cov_lev,X,min.purity, ...  )
   {
 
     susiF.obj$greedy <- FALSE
+
+
+
     susiF.obj <- discard_cs(susiF.obj,
                             cs= (susiF.obj$L_max+1):susiF.obj$L,
                             out_prep= FALSE
     )
+
+
+
+
+    A <- cal_cor_cs(susiF.obj, G)$cs_cor
+    tl <- which(A>0.99, arr.ind = TRUE)
+    tl <- tl[- which( tl[,1]==tl[,2]),]
+
+    if ( length(tl )==0){
+
+    }else{
+      tl <-  tl[which(tl[,1] < tl[,2]),]
+      susiF.obj <- merge_effect(susiF.obj, tl)
+      print( paste( "Discarding ",(susiF.obj$L_max- susiF.obj$L), " effects"))
+    }
+
+    if(verbose){
+
+      print( "Greedy search and backfitting done")
+    }
   }
 
   if( length(dummy.cs)==0& !( susiF.obj$greedy))
@@ -730,6 +767,17 @@ greedy_backfit.susiF <-  function(susiF.obj,verbose,cov_lev,X,min.purity, ...  )
   }
 
   if(!(susiF.obj$greedy )&!(susiF.obj$backfit ) ){
+    A <- cal_cor_cs(susiF.obj, G)$cs_cor
+    tl <- which(A>0.99, arr.ind = TRUE)
+    tl <-  tl[- which( tl[,1]==tl[,2]),]
+
+    if ( length(tl )==0){
+
+    }else{
+      tl <- tl[which(tl[,1] < tl[,2]),]
+      susiF.obj <- merge_effect (susiF.obj, tl)
+      print( paste( "Discarding ",(susiF.obj$L_max- susiF.obj$L), " effects"))
+    }
     if(verbose){
      print( "Greedy search and backfitting done")
     }
@@ -743,6 +791,17 @@ greedy_backfit.susiF <-  function(susiF.obj,verbose,cov_lev,X,min.purity, ...  )
     temp <- min( ifelse(tt>0,tt,0 ) , 7)
 
     if(temp==0){
+      A <- cal_cor_cs(susiF.obj, G)$cs_cor
+      tl <- which(A>0.99, arr.ind = TRUE)
+      tl <-  tl[- which( tl[,1]==tl[,2]),]
+
+      if ( length(tl )==0){
+
+      }else{
+        tl <-   tl[which(tl[,1] < tl[,2]),]
+        susiF.obj <- merge_effect(susiF.obj, tl)
+        print( paste( "Discarding ",(susiF.obj$L_max- susiF.obj$L), " effects"))
+      }
       if(verbose){
         print( "Greedy search and backfitting done")
       }
@@ -761,11 +820,69 @@ greedy_backfit.susiF <-  function(susiF.obj,verbose,cov_lev,X,min.purity, ...  )
     return(susiF.obj)
   }
 
+
+
+
+
+
+
 }
 
+#' @title Merging effect function
+#'
+#' @param susiF.obj a susiF object defined by \code{\link{init_susiF_obj}} function
+#'
+#' @param tl see  \code{\link{greedy_backfit}}
+#'
+#'
+#'
+#' @return  a susiF object
+#' @export
+merge_effect <- function( susiF.obj, tl, ...)
+  UseMethod("merge_effect")
+
+#' @rdname merge_effect
+#'
+#' @method merge_effect susiF
+#'
+#' @export merge_effect.susiF
+#'
+#' @export
+#'
+
+merge_effect.susiF <- function( susiF.obj, tl){
 
 
 
+
+  if(is.vector( tl)){
+    print( tl)
+    susiF.obj$fitted_wc[[tl[  2]]] <- 0* susiF.obj$fitted_wc[[tl[ 2]]]
+    susiF.obj$fitted_wc[[tl[  1]]] <- susiF.obj$fitted_wc[[tl[  1]]] +   susiF.obj$fitted_wc[[tl[ 2]]]
+    susiF.obj$fitted_wc2[[tl[ 1]]] <- susiF.obj$fitted_wc2[[tl[  1]]] +   susiF.obj$fitted_wc2[[tl[  2]]]
+    tindx <-  tl[  2]
+  }else{
+    tl <- tl[order(tl[,1], tl[,2], decreasing = TRUE),]
+    print( tl)
+    tindx <- c(0)
+    for ( o in 1:dim(tl)[1]){
+
+      if ( tl[o, 2]%!in%tindx){
+        susiF.obj$fitted_wc[[tl[o, 2]]] <- 0* susiF.obj$fitted_wc[[tl[o, 2]]]
+        susiF.obj$fitted_wc[[tl[o, 1]]] <-susiF.obj$fitted_wc[[tl[o, 1]]] +   susiF.obj$fitted_wc[[tl[o, 2]]]
+        susiF.obj$fitted_wc2[[tl[o, 1]]] <-susiF.obj$fitted_wc2[[tl[o, 1]]] +   susiF.obj$fitted_wc2[[tl[o, 2]]]
+        tindx <- c(tindx, tl[o, 2])
+      }
+
+    }
+
+    tindx <- tindx[-1]
+
+  }
+
+  susiF.obj<-  discard_cs(susiF.obj,cs=tindx, out_prep=FALSE)
+  return( susiF.obj)
+}
 
 
 
@@ -1944,3 +2061,35 @@ which_dummy_cs.susiF <- function(susiF.obj, min.purity=0.5,X,...){
 }
 
 
+#'@export
+cal_cor_cs <- function(susiF.obj,X){
+
+  if(length(susiF.obj$cs)==1)
+  {return(susiF.obj)}else{
+
+    mat_cor <- matrix(NA, ncol = length(susiF.obj$cs),
+                      nrow= length(susiF.obj$cs))
+
+    for ( l in 1:length(susiF.obj$cs)){
+
+      for ( k in 1:length(susiF.obj$cs)){
+
+        temp <- max(do.call( c,
+                             sapply( 1:length(susiF.obj$cs[[l]]),
+                                     function(l1)
+                                       sapply( 1:length(susiF.obj$cs[[k]]),
+                                               function( k1)  cor(X[,c(susiF.obj$cs[[l]][l1],
+                                                                       susiF.obj$cs[[k]][k1])])[2,1],
+                                               simplify=FALSE)
+                             )
+        )
+        )
+        mat_cor[l,k] <-temp
+        mat_cor[k,l] <-temp
+
+      }
+    }
+  }
+  susiF.obj$cs_cor <- mat_cor
+  return(susiF.obj)
+}
