@@ -62,7 +62,7 @@ library(gplots)
        m1$cs
        m1$est_pi
        true_pos[order(true_pos)]
-       m2 <- susiF(Y=Y, X=G,L=20,L_start=20 ,nullweight=10 , maxit=10)
+       m2 <- susiF(Y=Y, X=G,L=20,L_start=4 ,nullweight=10 , maxit=10)
        m2$cs
        out <- c( length(m1$cs), length(which(true_pos%in% do.call(c, m1$cs))),
                  length(m2$cs),
@@ -72,46 +72,3 @@ library(gplots)
        print(res)
        save(res, file="check_L_accuracy.RData")
   }
-
-
-       plot( lf[[4]], type="l")
-         lines( m1$fitted_func[[1]], col="green")
-         lines( m1$fitted_func[[1]]+ m1$fitted_func[[11]], col="blue")
-
-
-
-
-         lines( m2$fitted_func[[1]], col="red")
-         lines( m2$fitted_func[[1]]+ m1$fitted_func[[11]], col="orange")
-
-
-
-         plot( lf[[1]], type="l")
-         lines( m1$fitted_func[[2]], col="green")
-         lines( m1$fitted_func[[2]]+ m1$fitted_func[[8]], col="blue")
-
-
-
-
-         lines( m2$fitted_func[[2]], col="red")
-         lines( m2$fitted_func[[2]]+ m1$fitted_func[[8]], col="orange")
-true_pos[order(true_pos)]
-A <- cal_cor_cs(m1, G)$cs_cor
-tl <- which(A>0.99, arr.ind = TRUE)
-tl <- tl[- which( tl[,1]==tl[,2]),]
-tl <- tl[which(tl[,1] <tl[,2]), ]
-m1$cs[-tl]
-
-B <- cal_cor_cs(m2, G)$cs_cor
-tl <- which(B>0.9, arr.ind = TRUE)
-tl <- tl[- which( tl[,1]==tl[,2]),]
-tl <- tl[which(tl[,1] < tl[,2]),]
-
-tl <- tl[order(tl[,1], tl[,2], decreasing = TRUE),]
-tl
-
-
-m2$cs[-tl]
-tindx <- c(0)
-
-true_pos[order(true_pos)]
