@@ -856,14 +856,14 @@ merge_effect.susiF <- function( susiF.obj, tl){
 
 
   if(is.vector( tl)){
-    print( tl)
+    #print( tl)
     susiF.obj$fitted_wc[[tl[  2]]] <- 0* susiF.obj$fitted_wc[[tl[ 2]]]
     susiF.obj$fitted_wc[[tl[  1]]] <- susiF.obj$fitted_wc[[tl[  1]]] +   susiF.obj$fitted_wc[[tl[ 2]]]
     susiF.obj$fitted_wc2[[tl[ 1]]] <- susiF.obj$fitted_wc2[[tl[  1]]] +   susiF.obj$fitted_wc2[[tl[  2]]]
     tindx <-  tl[  2]
   }else{
     tl <- tl[order(tl[,1], tl[,2], decreasing = TRUE),]
-    print( tl)
+    #print( tl)
     tindx <- c(0)
     for ( o in 1:dim(tl)[1]){
 
