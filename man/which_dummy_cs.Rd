@@ -2,12 +2,9 @@
 % Please edit documentation in R/operation_on_susiF_obj.R
 \name{which_dummy_cs}
 \alias{which_dummy_cs}
-\alias{which_dummy_cs.susiF}
 \title{Return which credible sets are  dummy}
 \usage{
 which_dummy_cs(susiF.obj, min.purity = 0.5, X, ...)
-
-\method{check_cs}{susiF}(susiF.obj, min.purity = 0.5, X)
 }
 \arguments{
 \item{susiF.obj}{a susif object defined by \code{\link{init_susiF_obj}} function}
@@ -17,7 +14,7 @@ which_dummy_cs(susiF.obj, min.purity = 0.5, X, ...)
 \item{X}{matrix of covariate}
 }
 \value{
-a list of index correspodning the the dummy effect
+a list of index corresponding the the dummy effect
 }
 \description{
 Return which credible sets are  dummy

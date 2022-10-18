@@ -419,7 +419,6 @@ susiF <- function(Y, X, L = 2,
     }#end while
   }#end else in if(L==1)
 
-
   #preparing output
   susiF.obj <- out_prep(susiF.obj  = susiF.obj,
                         Y          = Y,

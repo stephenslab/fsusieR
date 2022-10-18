@@ -4,7 +4,7 @@
 \alias{init_prior.default}
 \title{Initialize the prior}
 \usage{
-\method{init_prior}{default}(Y, X, prior, v1, indx_lst, lowc_wc)
+\method{init_prior}{default}(Y, X, prior, v1, indx_lst, lowc_wc, control_mixsqp, nullweight)
 }
 \arguments{
 \item{Y}{functional phenotype, matrix of size N by size J. The underlying algorithm uses wavelet which assume that J is of the form J^2. If J not a power of 2, susif internally remaps the data into grid of length 2^J}

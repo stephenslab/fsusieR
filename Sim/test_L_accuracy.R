@@ -33,8 +33,8 @@ str(genotypes)
 library(gplots)
 
   res <- list()
-  load("check_L_accuracy.RData")
-  for (o  in (length(res)+1):100) {
+  #load("check_L_accuracy.RData")
+  for (o  in (length(res)+1):3) {
        L <- sample(4:10, size=1)
        print(L)
        lf <-  list()
@@ -59,11 +59,11 @@ library(gplots)
          }
        }
 
-       m1 <- susiF(Y=Y, X=G,L=20 ,L_start=4 ,nullweight=10,  prior="mixture_normal", cal_obj =FALSE, tol = 1e-6, maxit=10)
+       m1 <- susiF(Y=Y, X=G,L=20 ,L_start=20 ,nullweight=10,  prior="mixture_normal", cal_obj =FALSE, tol = 1e-6, maxit=10)
        m1$cs
        m1$est_pi
        true_pos[order(true_pos)]
-       m2 <- susiF(Y=Y, X=G,L=20,L_start=4 ,nullweight=10 , maxit=10)
+       m2 <- susiF(Y=Y, X=G,L=20,L_start=20 ,nullweight=10 , maxit=10)
        m2$cs
        out <- c( length(m1$cs), length(which(true_pos%in% do.call(c, m1$cs))),
                  length(m2$cs),

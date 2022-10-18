@@ -725,15 +725,12 @@ greedy_backfit.susiF <-  function(susiF.obj,verbose,cov_lev,X,min.purity, ...  )
 
         }
       }
-      print( paste( "Discarding ",(temp_L- susiF.obj$L), " effects"))
-
-
-
-
+      if(verbose){
+        print( paste( "Discarding ",(temp_L- susiF.obj$L), " effects"))
+      }
     }
-
-
     return(susiF.obj)
+
   }##Conditions for stopping greedy search
   if(  (susiF.obj$L>susiF.obj$L_max))
   {
@@ -797,6 +794,7 @@ greedy_backfit.susiF <-  function(susiF.obj,verbose,cov_lev,X,min.purity, ...  )
       print( paste( "Discarding ",(susiF.obj$L_max- susiF.obj$L), " effects"))
      print( "Greedy search and backfitting done")
     }
+    susiF.obj <- update_alpha_hist(susiF.obj,discard = TRUE)
     susiF.obj$greedy_backfit_update <- FALSE
 
     return(susiF.obj)
@@ -826,6 +824,7 @@ greedy_backfit.susiF <-  function(susiF.obj,verbose,cov_lev,X,min.purity, ...  )
         print( paste( "Discarding ",(susiF.obj$L_max- susiF.obj$L), " effects"))
         print( "Greedy search and backfitting done")
       }
+      susiF.obj <- update_alpha_hist(susiF.obj,discard = TRUE)
       susiF.obj$greedy_backfit_update <- FALSE
       susiF.obj$backfit <- FALSE
       susiF.obj$greedy <- FALSE
@@ -861,13 +860,10 @@ greedy_backfit.susiF <-  function(susiF.obj,verbose,cov_lev,X,min.purity, ...  )
     return(susiF.obj)
   }
 
-
-
-
-
-
-
 }
+
+
+
 
 #' @title Merging effect function
 #'
@@ -963,7 +959,6 @@ out_prep.susiF <- function(susiF.obj,Y, X, indx_lst, filter.cs, lfsr_curve, ...)
 {
 
   susiF.obj <-  update_cal_pip(susiF.obj)
-  susiF.obj <-  update_cal_cs(susiF.obj)
   susiF.obj <-  update_cal_fit_func(susiF.obj, indx_lst)
   susiF.obj <-  update_cal_credible_band(susiF.obj, indx_lst)
   if(filter.cs)
@@ -1011,12 +1006,14 @@ update_alpha.susiF <-  function(susiF.obj, l, alpha, ... )
 #'
 #' @param susiF.obj a susiF object defined by \code{\link{init_susiF_obj}} function
 #'
+#' @param  discard logical set to FALSE by default, if true remove element of history longer than L
+#'
 #' @return susiF object
 #'
 #' @export
 #'
 
-update_alpha_hist  <-  function(susiF.obj, ... )
+update_alpha_hist  <-  function(susiF.obj, discard, ... )
   UseMethod("update_alpha_hist")
 
 
@@ -1028,10 +1025,19 @@ update_alpha_hist  <-  function(susiF.obj, ... )
 #'
 #' @export
 #'
-update_alpha_hist.susiF <-  function(susiF.obj , ... )
+update_alpha_hist.susiF <-  function(susiF.obj , discard=FALSE, ... )
 {
+    if(!discard){
+        susiF.obj$alpha_hist[[ (length(susiF.obj$alpha_hist)+1)  ]] <- susiF.obj$alpha
+    }
+  if(discard){
+    if((length(susiF.obj$alpha_hist[[length(susiF.obj$alpha_hist)]]) >susiF.obj$L)){
 
-  susiF.obj$alpha_hist[[ (length(susiF.obj$alpha_hist)+1)  ]] <- susiF.obj$alpha
+      tt <- susiF.obj$alpha_hist[[ (length(susiF.obj$alpha_hist) ) ]][1:susiF.obj$L]
+      susiF.obj$alpha_hist[[ (length(susiF.obj$alpha_hist))  ]] <- tt
+    }
+  }
+
   return( susiF.obj)
 }
 
@@ -1964,20 +1970,21 @@ test_stop_cond.susiF<- function(susiF.obj, check, cal_obj, Y, X, D, C, indx_lst)
         check <-0
 
         T1 <- do.call( rbind, susiF.obj$alpha_hist[[len ]])
+        T1 <- T1[1:susiF.obj$L,] #might be longer than L because alpha computed before discarding effect
         T2 <- do.call( rbind, susiF.obj$alpha_hist[[(len-1) ]])
+        T2 <- T2[1:susiF.obj$L,]
         if(susiF.obj$L==1){
-
           T2 <- T2[1,]
+        }
 
-        }else{
-          if((nrow(T1)>nrow(T2))){
+        if((nrow(T1)>nrow(T2))){
             susiF.obj$check <- 1
             return(susiF.obj)
-          }
-          if( (nrow(T2)>nrow(T1))){
+        }
+        if( (nrow(T2)>nrow(T1))){
             T2 <- T2[1:susiF.obj$L,]
           }
-        }
+
 
         check <- sum(abs(T1-T2))/nrow(X)
         susiF.obj$check <- check
