@@ -13,6 +13,7 @@ startSimulation( vcf )
 
 
 
+'%!in%' <- function(x,y)!('%in%'(x,y))
 id = c()
 for(i in 1:100) id[i] = SIM$addUnrelatedIndividual()
 
@@ -34,8 +35,8 @@ library(gplots)
 
   res <- list()
   #load("check_L_accuracy.RData")
-  for (o  in (length(res)+1):3) {
-       L <- sample(4:10, size=1)
+  for (o  in (length(res)+1):1000) {
+       L <- sample(1:10, size=1)
        print(L)
        lf <-  list()
        for(l in 1:L){
@@ -59,15 +60,24 @@ library(gplots)
          }
        }
 
-       m1 <- susiF(Y=Y, X=G,L=20 ,L_start=20 ,nullweight=10,  prior="mixture_normal", cal_obj =FALSE, tol = 1e-6, maxit=10)
+       m1 <- susiF(Y=Y, X=G,L=10 ,L_start=11 ,nullweight=10,  prior="mixture_normal", cal_obj =FALSE, tol = 1e-6, maxit=10)
        m1$cs
        m1$est_pi
        true_pos[order(true_pos)]
-       m2 <- susiF(Y=Y, X=G,L=20,L_start=20 ,nullweight=10 , maxit=10)
+       m2 <- susiF(Y=Y, X=G,L=10,L_start=11 ,nullweight=10 , maxit=10)
        m2$cs
-       out <- c( length(m1$cs), length(which(true_pos%in% do.call(c, m1$cs))),
+       out <- c( length(m1$cs), #number of CS
+                 length(which(true_pos%in% do.call(c, m1$cs))), #number of effect found
+                 Reduce("+",sapply(1:length(m1$cs), function(k)
+                                                   ifelse( length(which(true_pos%in%m1$cs[[k]] ))==0, 1,0)
+                                   )
+                        ),#number of CS without any effect
                  length(m2$cs),
                  length(which(true_pos%in% do.call(c, m2$cs))),
+                 Reduce("+",sapply(1:length(m2$cs), function(k)
+                   ifelse( length(which(true_pos%in%m1$cs[[k]] ))==0, 1,0)
+                        )
+                 ),#number of CS without any effect
                  L)
        res[[o]] <- out
        print(res)
