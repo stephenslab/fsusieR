@@ -712,7 +712,7 @@ greedy_backfit.susiF <-  function(susiF.obj,verbose,cov_lev,X,min.purity, ...  )
       )
 
       if( length(susiF.obj$cs)>1){
-        A <- cal_cor_cs(susiF.obj, G)$cs_cor
+        A <- cal_cor_cs(susiF.obj, X)$cs_cor
         tl <- which(A>0.99, arr.ind = TRUE)
         tl <-  tl[- which( tl[,1]==tl[,2]),]
 
@@ -751,7 +751,7 @@ greedy_backfit.susiF <-  function(susiF.obj,verbose,cov_lev,X,min.purity, ...  )
 
 
     if( length(susiF.obj$cs)>1){
-      A <- cal_cor_cs(susiF.obj, G)$cs_cor
+      A <- cal_cor_cs(susiF.obj, X)$cs_cor
       tl <- which(A>0.99, arr.ind = TRUE)
       tl <-  tl[- which( tl[,1]==tl[,2]),]
 
@@ -779,7 +779,7 @@ greedy_backfit.susiF <-  function(susiF.obj,verbose,cov_lev,X,min.purity, ...  )
   if(!(susiF.obj$greedy )&!(susiF.obj$backfit ) ){
 
     if( length(susiF.obj$cs)>1){
-      A <- cal_cor_cs(susiF.obj, G)$cs_cor
+      A <- cal_cor_cs(susiF.obj, X)$cs_cor
       tl <- which(A>0.99, arr.ind = TRUE)
       tl <-  tl[- which( tl[,1]==tl[,2]),]
 
@@ -808,7 +808,7 @@ greedy_backfit.susiF <-  function(susiF.obj,verbose,cov_lev,X,min.purity, ...  )
 
     if(temp==0){
       if( length(susiF.obj$cs)>1){
-        A <- cal_cor_cs(susiF.obj, G)$cs_cor
+        A <- cal_cor_cs(susiF.obj, X)$cs_cor
         tl <- which(A>0.99, arr.ind = TRUE)
         tl <-  tl[- which( tl[,1]==tl[,2]),]
 
@@ -840,7 +840,7 @@ greedy_backfit.susiF <-  function(susiF.obj,verbose,cov_lev,X,min.purity, ...  )
 
 
     if( length(susiF.obj$cs)>1){
-      A <- cal_cor_cs(susiF.obj, G)$cs_cor
+      A <- cal_cor_cs(susiF.obj, X)$cs_cor
       tl <- which(A>0.99, arr.ind = TRUE)
       tl <-  tl[- which( tl[,1]==tl[,2]),]
 
