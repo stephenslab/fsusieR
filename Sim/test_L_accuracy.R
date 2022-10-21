@@ -1,13 +1,12 @@
 library(susiF.alpha)
 library(sim1000G)
-set.seed(1)
-examples_dir = system.file("examples", package = "sim1000G")
+ examples_dir = system.file("examples", package = "sim1000G")
 vcf_file = file.path(examples_dir, "region.vcf.gz")
 
-vcf = readVCF( vcf_file , maxNumberOfVariants = 200 , min_maf = 0.02 , max_maf = NA )
+vcf = readVCF( vcf_file , maxNumberOfVariants = 200000 , min_maf = 0.02 , max_maf = NA )
 
 # downloadGeneticMap( 4 )
-readGeneticMap( chromosome = 4 )
+readGeneticMap( chromosome = 4)
 
 startSimulation( vcf )
 
@@ -27,15 +26,18 @@ for(i in 1:100) id[i] = SIM$addUnrelatedIndividual()
 
 genotypes = SIM$gt1[1:100,] + SIM$gt2[1:100,]
 
+
+caca <- genotypes
 print(dim(genotypes))
 
 str(genotypes)
 
 library(gplots)
 
-  res <- list()
-  #load("check_L_accuracy.RData")
+load("check_L_accuracy.RData")
+#res <- list()
   for (o  in (length(res)+1):1000) {
+
        L <- sample(1:10, size=1)
        print(L)
        lf <-  list()
@@ -44,8 +46,8 @@ library(gplots)
        }
 
 
-       tt <- sample(1:7,1)
-       G <- genotypes#(tt*101):((tt+3)*102)]
+       tt <- sample(0:4,1)
+       G <- genotypes[ ,(1+tt*100):(1+(tt+1)*100)]
 
        if( length(which(apply(G,2,var)==0))>0){
          G <- G[,-which(apply(G,2,var)==0)]
@@ -60,7 +62,7 @@ library(gplots)
          }
        }
 
-       m1 <- susiF(Y=Y, X=G,L=10 ,L_start=11 ,nullweight=10,  prior="mixture_normal", cal_obj =FALSE, tol = 1e-6, maxit=10)
+       m1 <- susiF(Y=Y, X=G,L=10 ,L_start=11 ,nullweight=10,  prior="mixture_normal", cal_obj =FALSE,  maxit=10)
        m1$cs
        m1$est_pi
        true_pos[order(true_pos)]
@@ -75,10 +77,10 @@ library(gplots)
                  length(m2$cs),
                  length(which(true_pos%in% do.call(c, m2$cs))),
                  Reduce("+",sapply(1:length(m2$cs), function(k)
-                   ifelse( length(which(true_pos%in%m1$cs[[k]] ))==0, 1,0)
+                   ifelse( length(which(true_pos%in%m2$cs[[k]] ))==0, 1,0)
                         )
                  ),#number of CS without any effect
-                 L)
+                 L,tt)
        res[[o]] <- out
        print(res)
        save(res, file="check_L_accuracy.RData")

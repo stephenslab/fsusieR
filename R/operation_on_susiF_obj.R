@@ -263,19 +263,19 @@ init_susiF_obj <- function(L_max, G_prior, Y,X,L_start,greedy,backfit )
 
 
 
-  fitted_wc       <-  list()
-  fitted_wc2      <-  list()
-  alpha           <-  list()
-  alpha_hist      <-  list()
-  ind_fitted_func <-  matrix(0, nrow = dim(Y)[1], ncol=dim(Y)[2]  )
-  cs              <-  list()
-  cred_band       <-  list()
-  pip             <-  rep(0, dim(X)[2])
-  est_pi          <-  list()
-  est_sd          <-  list()
-  L_max           <-  L_max
-  L               <-  L_start
-  G_prior         <-  G_prior
+  fitted_wc       <- list()
+  fitted_wc2      <- list()
+  alpha           <- list()
+  alpha_hist      <- list()
+  ind_fitted_func <- matrix(0, nrow = dim(Y)[1], ncol=dim(Y)[2]  )
+  cs              <- list()
+  cred_band       <- list()
+  pip             <- rep(0, dim(X)[2])
+  est_pi          <- list()
+  est_sd          <- list()
+  L_max           <- L_max
+  L               <- L_start
+  G_prior         <- G_prior
   N               <- dim(Y)[1]
   n_wac           <- dim(Y)[2]
   P               <- dim(X)[2]
@@ -943,7 +943,7 @@ merge_effect.susiF <- function( susiF.obj, tl, discard=TRUE){
 #'
 #' @export
 #'
-out_prep <- function(susiF.obj,Y, X, indx_lst, filter.cs, lfsr_curve, ...)
+out_prep <- function(susiF.obj,Y, X, indx_lst, filter.cs, lfsr_curve,outing_grid, ...)
   UseMethod("out_prep")
 
 #' @rdname out_prep
@@ -955,7 +955,7 @@ out_prep <- function(susiF.obj,Y, X, indx_lst, filter.cs, lfsr_curve, ...)
 #' @export
 #'
 
-out_prep.susiF <- function(susiF.obj,Y, X, indx_lst, filter.cs, lfsr_curve, ...)
+out_prep.susiF <- function(susiF.obj,Y, X, indx_lst, filter.cs, lfsr_curve, outing_grid,...)
 {
 
   susiF.obj <-  update_cal_pip(susiF.obj)
@@ -967,6 +967,7 @@ out_prep.susiF <- function(susiF.obj,Y, X, indx_lst, filter.cs, lfsr_curve, ...)
   }
   susiF.obj <-  update_cal_indf(susiF.obj, Y, X, indx_lst)
 
+susiF.obj$outing_grid <- outing_grid
   return(susiF.obj)
 }
 

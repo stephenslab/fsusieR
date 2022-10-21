@@ -4,7 +4,7 @@
 #'
 #' @title EM algorithm to select mixture weight in a  Empirical Bayes way
 #'
-#' @description Select the mixture wieght by maximizing the marginal likelihood
+#' @description Select the mixture weight by maximizing the marginal likelihood
 #'
 #' @param G_prior mixture normal prior  or mixture  normal per scale
 #'

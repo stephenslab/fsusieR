@@ -328,6 +328,7 @@ susiF <- function(Y, X, L = 2,
     )
 
   }else{
+    ##### Start While -----
     iter <- 1
     while( (check >tol & iter <maxit))
     {
@@ -388,7 +389,7 @@ susiF <- function(Y, X, L = 2,
                                        lowc_wc     = lowc_wc
         )
 
-      }#end for l in 1:L
+      }#end for l in 1:L  -----
 
       ####Check greedy/backfit and stopping condition -----
       susiF.obj <- greedy_backfit (susiF.obj,
@@ -424,7 +425,8 @@ susiF <- function(Y, X, L = 2,
                         Y          = Y,
                         X          = X,
                         indx_lst   = indx_lst,
-                        filter.cs  = filter.cs
+                        filter.cs  = filter.cs,
+                        outing_grid=outing_grid
                         )
   susiF.obj$runtime <- proc.time()-pt
   return(susiF.obj)
