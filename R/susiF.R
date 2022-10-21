@@ -205,14 +205,18 @@ susiF <- function(Y, X, L = 2,
     inter_pol.obj <- interpol_mat(Y, pos)
     Y             <- inter_pol.obj$Y
     bp            <- inter_pol.obj$bp
-    outing_grid   <- inter_pol.obj$grid
+
+    start_pos <- min( pos)
+    end_pos <-max(pos)
+    outing_grid   <- start_pos + (end_pos-start_pos)/(length(pos))*inter_pol.obj$grid
     if(verbose)
     {
       message( "Response matrix dimensions not equal to nx 2^J \n or unevenly spaced data \n interpolation procedure used")
     }
   }  else{
-
-    outing_grid <- 1:dim(Y)[2]
+    start_pos <- min( pos)
+    end_pos <-max(pos)
+    outing_grid   <- start_pos + (end_pos-start_pos)/(length(pos))*inter_pol.obj$grid
   }
   # centering and scaling covariate
   X <- colScale(X)
