@@ -1,0 +1,212 @@
+
+
+
+library(microbenchmark)
+
+Y <- matrix(rnorm(100*10000), ncol=10000)
+
+microbenchmark(V1=sapply(1:100, function(k) mean(Y[,k])),
+               V2=lapply(1:100, function(k) mean(Y[,k])),
+               V3=vapply(1:100, function(k) mean(Y[,k]), numeric(1)))
+
+
+
+library(susiF.alpha)
+library(ashr)
+set.seed(1)
+#Example using curves simulated under the Mixture normal per scale prior
+rsnr <- 1 #wished root signal noise ratio
+N <- 100 #Number of individuals
+P <- 10 # Number of covariates
+pos1 <- 1#Position of the causal covariate
+lev_res <- 7
+temp_func <-  simu_IBSS_per_level(lev_res, alpha=2 )
+f1 <-  temp_func$sim_func
+plot( f1, type ="l") 
+f2 <- f1
+f0 <-  c(rep(0,64), rep(0,64))
+f1 <-   exp( (-(1:2^lev_res - 64)^2)/300)
+plot( f2, type="l")
+lines(f1)
+lines(f0)
+set.seed(1)
+set.seed(1)
+rsnr <- 0.2 #wished root signal noise ratio
+N <- 100 #Number of individuals
+P <- 10 # Number of covariates
+pos1 <- 1#Position of the causal covariate
+lev_res <- 7
+temp_func2 <-  simu_IBSS_per_level(lev_res, alpha=0.8 )
+f3 <- c( temp_func2$sim_func)
+
+set.seed(23)
+#Example using curves simulated under the Mixture normal per scale prior
+rsnr <- 0.2 #wished root signal noise ratio
+N <- 100 #Number of individuals
+P <- 10 # Number of covariates
+pos1 <- 1#Position of the causal covariate
+lev_res <- 7
+temp_func <-  simu_IBSS_per_level(lev_res, alpha=1  )
+f4 <- c( temp_func $sim_func)
+plot(f4, type="l")
+
+library(ggplot2)
+
+f2  
+f3  
+
+y <- c(f0,2*f2,f3 ,(f3+2*f2  ))
+x <- rep(1:2^lev_res,4)
+SNP <- factor(c( rep("0,0",2^lev_res),
+                 rep('1,0', 2^lev_res),
+                 rep("0,1", 2^lev_res) ,
+                 rep("1,1", 2^lev_res) ))
+my_df <- data.frame(y, x,Simulation)
+library(ggplot2)
+ggplot(my_df, aes(y=y, x,col=SNP))+
+  geom_line(size=2)+
+  ylab("CpG lvl")+
+  xlab('')+
+  theme_bw()+
+  theme(axis.ticks.x = element_blank(),
+        axis.text.x = element_blank()) 
+
+
+op <- par(mar = rep(0, 4))
+par(mfrow=c(3,1))
+plot(4*f2,type="l",lwd=3, yaxt='n', xaxt='n', ann=FALSE,  axes=F)
+plot(rep(0,124),lwd=3 ,type="l", yaxt='n', xaxt='n', ann=FALSE,  axes=F)
+plot(rep(0,124),lwd=3 ,type="l", yaxt='n', xaxt='n', ann=FALSE,  axes=F)
+
+
+
+par(mfrow=c(3,1))
+
+plot(rep(0,124),lwd=3,type="l", yaxt='n', xaxt='n', ann=FALSE,  axes=F)
+plot(f3,type="l",lwd=3, yaxt='n', xaxt='n', ann=FALSE,  axes=F)
+plot(rep(0,124),lwd=3,type="l", yaxt='n', xaxt='n', ann=FALSE,  axes=F)
+
+
+
+par(mfrow=c(3,1))
+
+plot(rep(0,124),lwd=3,type="l", yaxt='n', xaxt='n', ann=FALSE,  axes=F)
+
+plot(rep(0,124),lwd=3,type="l", yaxt='n', xaxt='n', ann=FALSE,  axes=F)
+plot(f4,lwd=3,type="l", yaxt='n', xaxt='n', ann=FALSE,  axes=F)
+
+par(mfrow=c(1,1))
+
+plot(4*f2,type="l",lwd=3, yaxt='n', xaxt='n', ann=FALSE,  axes=F)
+
+par(mfrow=c(1,1))
+
+plot(f3,type="l",lwd=3, yaxt='n', xaxt='n', ann=FALSE,  axes=F)
+
+
+
+
+
+### Exemple Simulation
+
+
+
+library(susiF.alpha)
+library(ashr)
+set.seed(1)
+#Example using curves simulated under the Mixture normal per scale prior
+rsnr <- 2 #expected root signal noise ratio
+N <- 200    #Number of individuals
+P <- 100    #Number of covariates
+pos1 <- 1   #Position of the causal covariate for effect 1
+
+
+lev_res <- 7#length of the molecular phenotype (2^lev_res)
+f1 <-  simu_IBSS_per_level(lev_res )$sim_func[-c(1:10)]#first effect
+f2 <- simu_IBSS_per_level(lev_res )$sim_func[-c(1:10)] #second effect
+
+plot( y=f1, x= (10*(1:length(f1))) , 
+      type ="l",
+      ylab="effect",
+      col="darkblue",
+      lwd=2, 
+      xlab = "base pair",
+      
+      main="Effect of SNP 1"
+)
+
+G = matrix(sample(c(0, 1,2), size=N*P, replace=TRUE), nrow=N, ncol=P) #Genotype
+beta0       <- 0
+beta1       <- 1
+beta2       <- 1
+noisy.data  <- list()
+
+for ( i in 1:N)
+{
+  f1_obs <- f1
+  f2_obs <- f2
+  noise <- rnorm(length(f1), sd=  (1/  rsnr ) * var(f1))
+  noisy.data [[i]] <-   beta1*G[i,pos1]*f1_obs +noise
+  
+}
+noisy.data <- do.call(rbind, noisy.data)
+
+library(wesanderson)
+pal <- wes_palette("Zissou1", 3, type = "continuous")
+
+plot( y=noisy.data[1,], x= ( (1:length(f1))) , type = "l", col=(pal[G[1, pos1]+1]),
+      main="Observed curves", ylim= c(-20,20), ylab = "observed value", xlab="")
+for ( i in 2:N)
+{
+  lines( noisy.data[i,], x= ( (1:length(f1))) , type = "l", col=pal[G[i, pos1]+1])
+  
+}
+legend(x=1000,
+       y=0,
+       lty = rep(1,3),
+       title = "SNP 1",
+       legend= c("0", "1","2"),
+       col=pal,
+       lwd=rep(2,3))
+
+
+
+Y <- noisy.data
+X <- G
+#Running fSuSiE
+
+out <- susiF(Y,X,L=2, verbose = TRUE,   prior = 'mixture_normal_per_scale')
+out$fitted_func[[1]]
+
+out$alpha_hist
+plot(out$outing_grid,out$fitted_func[[1]] , type="l")
+lines(f1)
+
+plot(c(out$pip, rep(0,(1000- length(out$pip)))),
+     col=c("red", rep("black",999)),
+     pch=19,
+     ylab = "PIP",
+     xlab= "Covariate Index")
+
+
+plot(f1, x= (10*(1:length(f1))) , 
+     type ="l",
+     ylab="effect",
+     col="darkblue",
+     lwd=1, 
+     xlab = "base pair" 
+)
+
+lines(out$fitted_func[[1]],x= (10*(1:length(f1))),
+      lwd=2, col=pal[3])
+
+legend(x=700,
+       y=4,
+       lwd = c(1,2),
+       legend= c("True effect", "Estimate"),
+       col=c("darkblue",pal[3]))
+
+
+
+
+

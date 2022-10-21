@@ -1,0 +1,3 @@
+ cac <-  update_cal_cs(susiF.obj)
+ cac$cs
+susiF.obj$alpha 

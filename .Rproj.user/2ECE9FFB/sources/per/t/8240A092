@@ -1,0 +1,27 @@
+{
+    "id": "8240A092",
+    "path": "D:/Document/Serieux/Travail/Package/susiF.alpha/tests/testthat/test_mixture_per_scale_prior.R",
+    "project_path": "tests/testthat/test_mixture_per_scale_prior.R",
+    "type": "r_source",
+    "hash": "730637389",
+    "contents": "",
+    "dirty": false,
+    "created": 1666345886517.0,
+    "source_on_save": false,
+    "relative_order": 14,
+    "properties": {
+        "source_window_id": "",
+        "Source": "Source",
+        "cursorPosition": "394,12",
+        "scrollLine": "0",
+        "docOutlineVisible": "1"
+    },
+    "folds": "",
+    "lastKnownWriteTime": 1666345926,
+    "encoding": "UTF-8",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1666345926486,
+    "read_only": false,
+    "read_only_alternatives": []
+}
