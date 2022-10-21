@@ -939,6 +939,7 @@ merge_effect.susiF <- function( susiF.obj, tl, discard=TRUE){
 #' @param filter.cs logical, if TRUE filter the credible set (removing low purity cs and cs with estimated prior equal to 0)
 #'
 #' @param lfsr_curve Maximum local false sign rate of the wavelet coefficients used to reconstruct lfsr_curves (see output)
+#' @param outing_grid grid use to fit fsusie
 #' @return susiF object
 #'
 #' @export
@@ -967,7 +968,7 @@ out_prep.susiF <- function(susiF.obj,Y, X, indx_lst, filter.cs, lfsr_curve, outi
   }
   susiF.obj <-  update_cal_indf(susiF.obj, Y, X, indx_lst)
 
-susiF.obj$outing_grid <- outing_grid
+  susiF.obj$outing_grid <- outing_grid
   return(susiF.obj)
 }
 
@@ -2024,7 +2025,9 @@ which_dummy_cs <- function(susiF.obj, min.purity=0.5,X,...)
 
 which_dummy_cs.susiF <- function(susiF.obj, min.purity=0.5,X,...){
   dummy.cs<- c()
-
+if( susiF.obj$L==1){
+  return(dummy.cs)
+}
 
   if( class(susiF.obj$G_prior)=="mixture_normal")
   {

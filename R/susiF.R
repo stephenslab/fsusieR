@@ -214,9 +214,8 @@ susiF <- function(Y, X, L = 2,
       message( "Response matrix dimensions not equal to nx 2^J \n or unevenly spaced data \n interpolation procedure used")
     }
   }  else{
-    start_pos <- min( pos)
-    end_pos <-max(pos)
-    outing_grid   <- start_pos + (end_pos-start_pos)/(length(pos))*inter_pol.obj$grid
+
+    outing_grid   <- pos
   }
   # centering and scaling covariate
   X <- colScale(X)
@@ -425,12 +424,12 @@ susiF <- function(Y, X, L = 2,
   }#end else in if(L==1)
 
   #preparing output
-  susiF.obj <- out_prep(susiF.obj  = susiF.obj,
-                        Y          = Y,
-                        X          = X,
-                        indx_lst   = indx_lst,
-                        filter.cs  = filter.cs,
-                        outing_grid=outing_grid
+  susiF.obj <- out_prep(susiF.obj   = susiF.obj,
+                        Y           = Y,
+                        X           = X,
+                        indx_lst    = indx_lst,
+                        filter.cs   = filter.cs,
+                        outing_grid = outing_grid
                         )
   susiF.obj$runtime <- proc.time()-pt
   return(susiF.obj)

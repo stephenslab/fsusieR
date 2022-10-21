@@ -379,7 +379,7 @@ G_prior <- update_prior(G_prior,
 susiF_obj <-  update_susiF_obj(susiF_obj, 1, outEM, Bhat, Shat, indx_lst ,
                                lowc_wc=NULL)
 
-susiF_obj <-  out_prep(susiF_obj,Y, X=X, indx_lst=indx_lst,filter.cs = FALSE)
+susiF_obj <-  out_prep(susiF_obj,Y, X=X, indx_lst=indx_lst,filter.cs = FALSE, outing_grid = 1:ncol(Y))
 
 plot( (unlist(susiF_obj$fitted_func[[1]])), type="l", col="green")
 lines(f1$sim_func, col="red")
