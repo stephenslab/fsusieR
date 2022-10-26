@@ -34,8 +34,8 @@ str(genotypes)
 
 library(gplots)
 
-load("check_L_accuracy.RData")
-#res <- list()
+#load("check_L_accuracy.RData")
+res <- list()
   for (o  in (length(res)+1):1000) {
 
        L <- sample(1:10, size=1)
@@ -55,7 +55,7 @@ load("check_L_accuracy.RData")
        # G <- matrix( rnorm(100*300), nrow = 100)
        true_pos <- sample( 1:ncol(G), L)
 
-       Y <- matrix(rnorm((2^5)*100 ,sd=1), nrow = 100)
+       Y <- matrix(rnorm((2^5)*100 ,sd=2), nrow = 100)
        for ( i in 1:100){
          for ( l in 1:L){
            Y[i,] <- Y[i,]+ lf[[l]]*G[i,true_pos[[l]]]
@@ -83,5 +83,5 @@ load("check_L_accuracy.RData")
                  L,tt)
        res[[o]] <- out
        print(res)
-     #  save(res, file="check_L_accuracy.RData")
+      save(res, file="check_L_accuracy_sd2.RData")
   }
