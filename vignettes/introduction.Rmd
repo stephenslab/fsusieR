@@ -11,12 +11,19 @@ vignette: >
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
-  comment = "#>"
-)
+  comment = "#>",
+  fig.width = 5,
+  fig.height = 3,
+  fig.align = "center",
+  fig.cap = "&nbsp;",
+  dpi = 120
+  )
+
+ 
 ```
 
-# fSuSiE^[this vignette is based on the original SuSiE vignette by [Gao Wang](https://stephenslab.github.io/susieR/articles/finemapping.html) ]
- In this package we implement a  Bayesian variable selection method called the "Functional Sum of Single Effects" ({\em fSuSiE}) model that extends the {\em SuSiE} model of Wang et al.  to functional phenotypes that can span over large genomic regions. The methods implemented here are particularly well-suited to settings where some of the X variables are highly correlated, and the true effects are highly sparse (e.g. <20 non-zero effects in the vector b). One example of this is genetic fine-mapping of complex molecular traitsthat vary along the genome; such as molecular measurement from sequencing assays (ChIP-seq, ATAC-seq ), as well as DNA methylation. However, the methods should also be useful more generally (e.g. detecting change in time series).
+# fSuSiE
+ In this package we implement a  Bayesian variable selection method called the "Functional Sum of Single Effects" ({\em fSuSiE}) model that extends the {\em SuSiE} model of Wang et al.^[this vignette is based on the original SuSiE vignette by [Gao Wang](https://stephenslab.github.io/susieR/articles/finemapping.html) ]  to functional phenotypes that can span over large genomic regions. The methods implemented here are particularly well-suited to settings where some of the X variables are highly correlated, and the true effects are highly sparse (e.g. <20 non-zero effects in the vector b). One example of this is genetic fine-mapping  molecular measurements from sequencing assays (ChIP-seq, ATAC-seq ), as well as DNA methylation. However, the methods should also be useful more generally (e.g. detecting change in time series).
 
 ###Model Description 
 fSuSiE fits the following linear regression $\bm{Y} = \bm{XB} + \bm{E}$, where $\bm{Y}$ is a N x T matrix containing the observed curves, $\bm{X}$ is the N × p matrix of  single nucleotide polymorphisms (SNP) in the region to be fine-mapped. $\bm{B}$ is a p × T matrix whose element $b_{jt}$ is the effect of SNP $j$ on the trait at location t, and $\bm{E}$ is a matrix of error terms which initially we consider to be normally-distributed with variance $\sigma^2$. Analogous to regular fine-mapping, the matrix $\bm{B}$ is expected to be sparse, i.e., most rows will be zero. Non-zero rows correspond to SNPs that do affect the trait. The goal is to identify the non-zero rows of  $\bm{B}$. We extended  {\em SuSiE} to functional traits by writing $\bm{B}= \sum_l^M \bm{B}^{(l)}$, where each "single-effect" matrix $\bm{B}^{(l)}$ has only one non-zero row, corresponding to a single causal SNP. We devised a fast variational inference procedure~\cite{blei_variational_2017} for fitting this model by first projecting the data in the wavelet space and then using an adaptation of the efficient iterative Bayesian stepwise selection (IBSS) approach proposed by Wang and colleagues .
@@ -32,9 +39,7 @@ Please post issues to ask questions, get our support or provide us feedback; ple
 ### Using fSuSiE
 
 #### the data
-This vignette demonstrates fsusieR in the context of genetic fine-mapping. We use simulated data of expression level of a gene (y) in N≈600 individuals. We want to identify with the genotype matrix X  (P=1000)
-
-  the genetic variables that causes changes in expression level.
+This vignette show how to use fsusieR in the context of genetic fine-mapping. We use simulated data of a molecular trait over a region of 124 base pair (Y) witg N≈600 individuals. We want to identify which columns of  the genotype matrix X  (P=1000) cause changes in expression level.
 
 The simulated data set is simulated to have exactly 2 non-zero effects.
 
@@ -54,8 +59,8 @@ attach(N3finemapping)
 
 rsnr <- 0.5 #expected root signal noise ratio
 
-pos1 <- 1   #Position of the causal covariate for effect 1
-pos2 <- 500   #Position of the causal covariate for effect 1
+pos1 <- 250   #Position of the causal covariate for effect 1
+pos2 <- 750   #Position of the causal covariate for effect 1
 lev_res <- 7#length of the molecular phenotype (2^lev_res)
 f1 <-  simu_IBSS_per_level(lev_res )$sim_func#first effect
 f2 <- simu_IBSS_per_level(lev_res )$sim_func #second effect
@@ -70,7 +75,7 @@ legend(x=100,
        col=c("black","blue","yellow"))
 
 ```
-
+So the underlying causal variant are variant 250 and variant 750.
 
 Here we generate the observed curves (effect +noise)
 
@@ -89,18 +94,6 @@ for ( i in 1:nrow(X))
 
 }
 noisy.data <- do.call(rbind, noisy.data)
-plot( noisy.data[1,], type = "l", col=(X[1, pos1]*3+1),
-     main="Observed curves \n colored by the causal effect", ylim= c(-40,40), xlab="")
-for ( i in 2:nrow(X))
-{
-  lines( noisy.data[i,], type = "l", col=(X[i, pos1]*3+1))
-
-}
-legend(x=0.3,
-       y=-10,
-       lty = rep(1,3),
-       legend= c("0", "1","2"),
-       col=c("black","blue","yellow"))
 
 Y <- noisy.data
 
@@ -109,13 +102,12 @@ Y <- noisy.data
 
 #### Output and interpretation
 
-So basically running fSuSiE requires: a Y matrix in which each line correspond to a individual profile. X the genotype matrix in
-which each line represent the individual genotype and the column the different SNPs.
+Basically running fSuSiE requires: a Y matrix in which each line correspond to a individual profile. X the genotype matrix in which each line represent the individual genotype and the column the different SNPs. L is an upper bound on the number causal SNPs with the regions (we advice to keep this parameter below 20).
 
 
 
 ```{r}
- out <- susiF(Y,X,L=10 , prior = 'mixture_normal_per_scale')
+ out <- susiF(Y,X,L=10 )
 ```
 
 
@@ -128,14 +120,14 @@ the easiest way to visualize the result is to use the \code{plot_susiF} function
 
 ```
 
- You can also access the information directly in the output of susiF in the fitted_func part of the output. See below  as follow
+ You can also access the information directly in the output of susiF in the fitted_func part of the output. See below 
  
  
 ```{r}
  par(mfrow=c(1,2))
  
  plot( f1, type="l", main="Estimated effect 1", xlab="")
- lines(unlist(out$fitted_func[[1]]),col='blue' )
+ lines(unlist(out$fitted_func[[2]]),col='blue' )
  abline(a=0,b=0)
  legend(x= 35,
         y=3,
@@ -144,7 +136,7 @@ the easiest way to visualize the result is to use the \code{plot_susiF} function
         col=c("black","blue" )
  )
  plot( f2, type="l", main="Estimated effect 2", xlab="")
- lines(unlist(out$fitted_func[[2]]),col='green' )
+ lines(unlist(out$fitted_func[[1]]),col='green' )
  abline(a=0,b=0)
  legend(x= 20,
         y=-1.5,
@@ -162,16 +154,36 @@ Credible sets
 
 By default, we output 95% credible set:
 
+
+ 
+```{r}
+out$cs
+```
+
+As you can see the two CSs contain the correct causal SNP
 ###Posterior inclusion probabilities
 
-Previously we’ve determined that summing over 3 single effect regression models is approperate for our application. Here we summarize the variable selection results by posterior inclusion probability (PIP):
+Previously we’ve determined that summing over 2 single effect regression models is appropriate for our application. Here we summarize the variable selection results by posterior inclusion probability (PIP):
 
- The true causal variables are colored red. The 95% CS identified are circled in different colors. Of interest is the cluster around position 400. The true signal is 403 but apparently it does not have the highest PIP. To compare ranking of PIP and original z-score in that CS:
+
+ 
+```{r}
+ 
+out$pip[1:10]
+
+plot_susiF(out, pip_only=TRUE)
+```
  
  
  
  #### A note on the different available priors
+Note that fSuSiE has two different prior available \textit{mixture_normal_per_scale} and \textit{mixture_normal}. The default value is \textit{mixture_normal_per_scale}, which has slightly higher power that the  \textit{mixture_normal}. However,  \textit{mixture_normal} is up to 60% faster than the \textit{mixture_normal_per_scale}. You may consider using this option before performing genome-wide fine mapping. 
+ 
 
-Notice that by default SuSiE estimates prior effect size from data. For fine-mapping applications, however, we sometimes have knowledge of SuSiE prior effect size since it is parameterized as percentage of variance explained (PVE) by a non-zero effect, which, in the context of fine-mapping, is related to per-SNP heritability. It is possible to use scaled_prior_variance to specify this PVE and explicitly set estimate_prior_variance=FALSE to fix the prior effect to given value.
-
-In this data-set, SuSiE is robust to choice of priors. Here we set PVE to 0.2, and compare with previous results:
+```{r}
+ out1 <- susiF(Y,X,L=10 , prior = 'mixture_normal_per_scale')
+ out1$runtime
+ out2 <- susiF(Y,X,L=10 , prior = 'mixture_normal')
+ out2$runtime
+```
+ 

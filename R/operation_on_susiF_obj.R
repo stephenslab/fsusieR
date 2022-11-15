@@ -1683,7 +1683,7 @@ update_residual_variance.susiF <- function(susiF.obj,sigma2)
 #' @export
 #'
 
-plot_susiF <- function(susiF.obj, cred.band=FALSE , effect   ,...)
+plot_susiF <- function(susiF.obj, cred.band=FALSE , effect , pip_only=FALSE  ,...)
 
 {
   #check if required package are install if not install them
@@ -1715,6 +1715,31 @@ plot_susiF <- function(susiF.obj, cred.band=FALSE , effect   ,...)
 
   y     <-  susiF.obj$pip
   col_y <-  rep( 0, length(y))
+  if(pip_only){
+    for ( l in 1:L)
+    {
+      col_y[ which (1:length(y)%in% susiF.obj$cs[[l]])] <- l
+    }
+    df <-  data.frame( y=y,
+                       CS= as.factor(col_y)
+    )
+    P1 <- ggplot2::ggplot(df,aes(y=y, x= 1:length(y), col= CS))+
+      geom_point(size =2)+
+      theme(axis.ticks.x = element_blank(),
+            axis.text.x = element_blank()
+      )+
+      scale_color_manual("Credible set", values =color)+
+      xlab( "covariate index")+
+      ylab("Posterior Inclusion Probability (PIP)")
+
+    out <- P1
+    out
+    return( out)
+
+
+
+  }
+
 
 
   if(missing(effect)){
