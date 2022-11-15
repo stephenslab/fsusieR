@@ -1,7 +1,7 @@
 Encoding: UTF-8
 Type: Package
 Package: susiF.alpha
-Version: 0.1.177
+Version: 0.1.178
 Date: 2022-02-16
 Title: Sum of Single Functions
 Authors@R: person("William R. P.","Denault",role = c("aut","cre"),
@@ -19,11 +19,14 @@ Imports:
   graphics,
   stats
 Suggests:
-  ggplot2,
-  gridExtra
+    ggplot2,
+    gridExtra,
+    knitr,
+    rmarkdown
 License: GPL (>=3)
 LazyData: true
 LazyDataCompression: xz
 NeedsCompilation: yes
 RoxygenNote: 7.2.1
 ByteCompile: yes
+VignetteBuilder: knitr

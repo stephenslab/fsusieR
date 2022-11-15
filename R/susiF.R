@@ -118,7 +118,7 @@
 #'
 #'plot_susiF(out)
 #'
-#'#You can also acces the information directly in the out of susiF. as follow
+#'#You can also acces the information directly in the output of susiF  as follow
 #'par(mfrow=c(1,2))
 #'
 #'plot( f1, type="l", main="Estimated effect 1", xlab="")
