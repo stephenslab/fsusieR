@@ -8,7 +8,7 @@ Authors@R: person("William R. P.","Denault",role = c("aut","cre"),
                   email = "wdenault@uchicago.edu")
 URL: https://github.com/stephenslab/susiF.alpha
 BugReports: https://github.com/stephenslab/susiF.alpha
-Description: Implementation of the Sum of Single Functions ("FSuSi") method.
+Description: Implementation of the Sum of Single Functions ("FSuSiE") method.
 Depends:
   R (>= 3.5.0),
   wavethresh (>= 4.6.8),
