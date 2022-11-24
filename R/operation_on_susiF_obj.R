@@ -1683,7 +1683,7 @@ update_residual_variance.susiF <- function(susiF.obj,sigma2)
 #' @export
 #'
 
-plot_susiF <- function(susiF.obj, cred.band=FALSE , effect , pip_only=FALSE  ,...)
+plot_susiF <- function(susiF.obj, size_point=2 ,size_line=2, cred.band=FALSE , effect , pip_only=FALSE ,title="" ,...)
 
 {
   #check if required package are install if not install them
@@ -1724,7 +1724,7 @@ plot_susiF <- function(susiF.obj, cred.band=FALSE , effect , pip_only=FALSE  ,..
                        CS= as.factor(col_y)
     )
     P1 <- ggplot2::ggplot(df,aes(y=y, x= 1:length(y), col= CS))+
-      geom_point(size =2)+
+      geom_point(size =size_point)+
       theme(axis.ticks.x = element_blank(),
             axis.text.x = element_blank()
       )+
@@ -1751,7 +1751,7 @@ plot_susiF <- function(susiF.obj, cred.band=FALSE , effect , pip_only=FALSE  ,..
                        CS= as.factor(col_y)
     )
     P1 <- ggplot2::ggplot(df,aes(y=y, x= 1:length(y), col= CS))+
-      geom_point(size =2)+
+      geom_point(size =size_point)+
       theme(axis.ticks.x = element_blank(),
             axis.text.x = element_blank()
       )+
@@ -1796,16 +1796,16 @@ plot_susiF <- function(susiF.obj, cred.band=FALSE , effect , pip_only=FALSE  ,..
       df <- df[-which(df$CS==0),]
 
       P2 <- ggplot(df, aes(y=fun_plot, x= x ,col=CS))+
-        geom_line(size=2)+
+        geom_line(size=size_line)+
         geom_ribbon(aes(ymin=lwr,ymax=upr, fill=CS,col=CS),alpha=0.3)+
         scale_color_manual("Credible set", values =color[-1])+
         scale_fill_manual ("Credible set", values =color[-1])+
         xlab( "postion")+
         ylab("Estimated effect")+
-        facet_wrap(CS~.,nrow=L)
+        facet_wrap(CS~.,nrow=L, scales = "free")
 
 
-      out <- gridExtra::grid.arrange(P1,P2,ncol=2)
+      out <- gridExtra::grid.arrange(P1,P2,ncol=2,top =title)
     }else{
 
 
@@ -1822,14 +1822,14 @@ plot_susiF <- function(susiF.obj, cred.band=FALSE , effect , pip_only=FALSE  ,..
       )
       df <- df[-which(df$CS==0),]
       P2 <- ggplot(df, aes(y=fun_plot, x= x ,col=CS))+
-        geom_line(size=2)+
+        geom_line(size=size_line)+
         scale_color_manual("Credible set", values =color[-1])+
         xlab( "postion")+
         ylab("Estimated effect")+
-        facet_wrap(CS~.,nrow=L)
+        facet_wrap(CS~.,nrow=L, scales = "free")
 
 
-      out <- gridExtra::grid.arrange(P1,P2,ncol=2)
+      out <- gridExtra::grid.arrange(P1,P2,ncol=2,top =title)
     }
 
   }else{
@@ -1865,7 +1865,7 @@ plot_susiF <- function(susiF.obj, cred.band=FALSE , effect , pip_only=FALSE  ,..
                        lwr      = cred_band$low
       )
       P2 <- ggplot(df, aes(y=fun_plot, x= x ,col=CS))+
-        geom_line(size=2)+
+        geom_line(size=size_line)+
         geom_ribbon(aes(ymin=lwr,ymax=upr, fill=CS,col=CS),alpha=0.3)+
         scale_color_manual("Credible set", values =color)+
         scale_fill_manual ("Credible set", values =color)+
@@ -1890,7 +1890,7 @@ plot_susiF <- function(susiF.obj, cred.band=FALSE , effect , pip_only=FALSE  ,..
 
       )
       P2 <- ggplot(df, aes(y=fun_plot, x= x ,col=CS))+
-        geom_line(size=2)+
+        geom_line(size=size_line)+
 
         scale_color_manual("Credible set", values =color)+
 
@@ -1921,7 +1921,7 @@ plot_susiF <- function(susiF.obj, cred.band=FALSE , effect , pip_only=FALSE  ,..
 #' @export
 #'
 
-plot_effect <- function(susiF.obj, L   ,...)
+plot_effect <- function(susiF.obj, L,size_line=2   ,...)
 {
 
   list.of.packages <- c("ggplot2", "gridExtra")
@@ -1935,7 +1935,7 @@ plot_effect <- function(susiF.obj, L   ,...)
                     x = rep( 1: tl ,L )
   )
  out <-  ggplot(df, aes(x=x, y=func, col=col))+
-                geom_line()+
+                geom_line(size=size_line)+
                 facet_wrap(.~col)
 }
 #'

@@ -1,7 +1,7 @@
 
 
 which_lowcount <- function( Y_f, thresh_lowcount ){
-  tt <- which( apply( abs(Y_f),2,median) <thresh_lowcount )
+  tt <- which( apply( abs(Y_f),2,median) <= thresh_lowcount )
 
   if(length(tt)==0)
   {

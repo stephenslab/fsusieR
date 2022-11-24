@@ -159,7 +159,7 @@ susiF <- function(Y, X, L = 2,
                   init_pi0_w= 1,
                   nullweight ,
                   control_mixsqp =  list(verbose=FALSE,eps = 1e-6,numiter.em = 4),
-                  thresh_lowcount,
+                  thresh_lowcount=0,
                   cal_obj=FALSE,
                   L_start = 3,
                   quantile_trans=FALSE,
@@ -231,19 +231,18 @@ susiF <- function(Y, X, L = 2,
 
   #X <- matrix(X)
   ### Definition of some static parameters ---
-  indx_lst <-  gen_wavelet_indx(log2(length( outing_grid)))
 
-  if(!missing(thresh_lowcount)){
-     lowc_wc <-   which_lowcount(Y_f,thresh_lowcount)
+  indx_lst <-  gen_wavelet_indx(log2(length( outing_grid)))
+  #removing wc with variance 0 or below a certain level
+
+  lowc_wc <-   which_lowcount(Y_f,thresh_lowcount)
      if(verbose){
        print( paste("Discarding ", length(lowc_wc), "wavelet coefficients out of ", ncol(Y_f)))
      }
      if(length(lowc_wc)> (ncol(Y_f )-3)){
-       stop("almost all the wavelet coefficients are null, consider using univariate fine mapping")
+       stop("almost all the wavelet coefficients are null/low variance, consider using univariate fine mapping")
      }
-  }else{
-    lowc_wc <- NULL
-  }
+
 
   if(quantile_trans)# important to do it after testing for lowcount
   {

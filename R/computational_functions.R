@@ -781,7 +781,7 @@ cal_lfsr  <- function (clfsr_wc, alpha){
 L_mixsq <- function(G_prior,Bhat, Shat, indx_lst, nullweight, ...)
   UseMethod("L_mixsq")
 
-
+#### Potential speed gain heree ------
 
 #' @rdname L_mixsq
 #'
