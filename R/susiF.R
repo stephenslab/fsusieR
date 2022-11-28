@@ -40,16 +40,28 @@
 #' expected level of coverage of the cs if not specified set to 0.95
 #'
 #' @param min.purity minimum purity for estimated credible sets
-#' @param filter.cs logical, if TRUE filter the credible set (removing low purity cs and cs with estimated prior equal to 0)
-#' @param init_pi0_w starting value of weight on null compoenent in mixsqp (between 0 and 1)
+#' @param filter.cs logical, if TRUE filter the credible set (removing low purity
+#' cs and cs with estimated prior equal to 0)
+#' @param init_pi0_w starting value of weight on null compoenent in mixsqp
+#'  (between 0 and 1)
 #' @param control_mixsqp list of parameter for mixsqp function see\link{\code{mixsqp}}
 #' @param  cal_obj logical if set as true compute ELBO for convergence monitoring
-#' @param quantile_trans logical if set as true perform normal quantile transform on wavelet coefficients
+#' @param quantile_trans logical if set as true perform normal quantile transform
+#' on wavelet coefficients
 #' @param L_start number of effect initialized at the start of the algorithm
 #' @param nullweight numeric value for penalizing likelihood at point mass 0 (should be between 0 and 1)
 #' (usefull in small sample size)
-#' @param greedy logical, if true allow greedy search for extra effect (up to L specify by the user). Set as TRUE by default
-#' @param backfit logical, if true allow discarding effect via backfitting. Set as true by default as TRUE. We advise to keep it as TRUE
+#' @param thresh_lowcount numeric, use to check the wavelet coefficients have
+#'  problematic distribution (very low dispersion even after standardization).
+#'  Basically check if the median of the absolute value of the distribution of
+#'   a wavelet coefficient is below this threshold, if yes the algorithm discard
+#'   this wavelet coefficient (setting its estimate effect to 0 and estimate sd to 1).
+#'   Set to 0 by default. Can be useful when analyzing sparse data from sequence
+#'    based assay or small samples.
+#' @param greedy logical, if true allow greedy search for extra effect
+#'  (up to L specify by the user). Set as TRUE by default
+#' @param backfit logical, if true allow discarding effect via backfitting.
+#'  Set as true by default as TRUE. We advise to keep it as TRUE
 #'
 #' @examples
 #'
@@ -158,7 +170,10 @@ susiF <- function(Y, X, L = 2,
                   filter.cs =TRUE,
                   init_pi0_w= 1,
                   nullweight ,
-                  control_mixsqp =  list(verbose=FALSE,eps = 1e-6,numiter.em = 4),
+                  control_mixsqp =  list(verbose=FALSE,
+                                         eps = 1e-6,
+                                         numiter.em = 4
+                                         ),
                   thresh_lowcount=0,
                   cal_obj=FALSE,
                   L_start = 3,
