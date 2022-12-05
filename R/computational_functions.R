@@ -515,8 +515,6 @@ post_mat_mean.mixture_normal_per_scale <- function( G_prior,Bhat,Shat, indx_lst,
 }
 
 
-
-
 #'@title Compute posterior standard deviation under mixture normal prior
 #'
 #' @description Compute posterior standard deviation under mixture normal prior
