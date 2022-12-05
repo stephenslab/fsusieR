@@ -38,7 +38,7 @@ init_prior <- function(  ...)
 #' @importFrom ashr ash
 #'
 #' @export
-init_prior.default <- function(Y,X, prior,v1 , indx_lst,lowc_wc,control_mixsqp,nullweight   )
+init_prior.default <- function(Y,X, prior,v1 , indx_lst,lowc_wc,control_mixsqp,nullweight ,gridmult=sqrt(2)  )
 {
   if( prior == "mixture_normal")
   {
@@ -49,11 +49,13 @@ init_prior.default <- function(Y,X, prior,v1 , indx_lst,lowc_wc,control_mixsqp,n
     if( !is.null(lowc_wc)){
       G_prior[[1]]  <-  ash(c(temp$Bhat[,-lowc_wc]), c(temp$Shat[,-lowc_wc]),
                             mixcompdist ="normal",
-                            outputlevel=0)
+                            outputlevel=0,
+                            gridmult =gridmult)
     }else {
       G_prior[[1]]  <-  ash(c(temp$Bhat ), c(temp$Shat ),
                             mixcompdist ="normal",
-                            outputlevel=0)
+                            outputlevel=0,
+                            gridmult =gridmult )
     }
 
     attr(G_prior, "class")  <- "mixture_normal"
@@ -67,11 +69,13 @@ init_prior.default <- function(Y,X, prior,v1 , indx_lst,lowc_wc,control_mixsqp,n
     if( !is.null(lowc_wc)){
       t_ash <-   ash(c(temp$Bhat[,-lowc_wc]), c(temp$Shat[,-lowc_wc]),
                      mixcompdist ="normal",
-                     outputlevel=0)
+                     outputlevel=0,
+                     gridmult =gridmult)
     }else {
       t_ash <-  ash(c(temp$Bhat ), c(temp$Shat ),
                     mixcompdist ="normal",
-                    outputlevel=0)
+                    outputlevel=0,
+                    gridmult =gridmult)
     }
 
     G_prior  <- rep(list(t_ash),length(indx_lst))

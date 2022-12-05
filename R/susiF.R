@@ -62,6 +62,10 @@
 #'  (up to L specify by the user). Set as TRUE by default
 #' @param backfit logical, if true allow discarding effect via backfitting.
 #'  Set as true by default as TRUE. We advise to keep it as TRUE
+#'  @param gridmult numeric used to control the number of component used in the mixture prior (see ashr package
+#'  for more details). From the ash function:  multiplier by which the default grid values for mixsd differ by one another.
+#'   (Smaller values produce finer grids.). Increasing this value may reduce computational time
+#'
 #'
 #' @examples
 #'
@@ -179,7 +183,8 @@ susiF <- function(Y, X, L = 2,
                   L_start = 3,
                   quantile_trans=FALSE,
                   greedy =TRUE,
-                  backfit =TRUE
+                  backfit =TRUE,
+                  gridmult= sqrt(2)
                   )
 {
 
@@ -284,7 +289,8 @@ susiF <- function(Y, X, L = 2,
                             indx_lst       = indx_lst,
                             lowc_wc        = lowc_wc,
                             control_mixsqp = control_mixsqp,
-                            nullweight     = nullweight )
+                            nullweight     = nullweight,
+                            gridmult       = gridmult )
   G_prior     <- temp$G_prior
   tt          <- temp$tt
   init        <- TRUE
