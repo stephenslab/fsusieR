@@ -386,6 +386,7 @@ susiF <- function(Y, X, L = 2,
                                   )
             init <- FALSE
         }else{
+
           tt <- cal_Bhat_Shat(update_Y,X,v1, lowc_wc =lowc_wc )
 
           tpi <-  get_pi(susiF.obj,l)
@@ -415,6 +416,7 @@ susiF <- function(Y, X, L = 2,
 
       }#end for l in 1:L  -----
 
+
       ####Check greedy/backfit and stopping condition -----
       susiF.obj <- greedy_backfit (susiF.obj,
                                   verbose    = verbose,
@@ -422,7 +424,9 @@ susiF <- function(Y, X, L = 2,
                                   X          = X,
                                   min.purity = min.purity
                                   )
-
+     sigma2    <- estimate_residual_variance(susiF.obj,Y=Y_f,X)
+      #print(sigma2)
+     susiF.obj <- update_residual_variance(susiF.obj, sigma2 = sigma2 )
      susiF.obj <- test_stop_cond(susiF.obj = susiF.obj,
                                  check     = check,
                                  cal_obj   = cal_obj,
@@ -430,14 +434,12 @@ susiF <- function(Y, X, L = 2,
                                  X         = X,
                                  D         = W$D,
                                  C         = W$C,
-                                indx_lst  = indx_lst)
+                                 indx_lst  = indx_lst)
    #  print(susiF.obj$alpha)
      #print(susiF.obj$ELBO)
     check <- susiF.obj$check
 
-    sigma2    <- estimate_residual_variance(susiF.obj,Y=Y_f,X)
-    #print(sigma2)
-    susiF.obj <- update_residual_variance(susiF.obj, sigma2 = sigma2 )
+
 
     iter <- iter +1
 

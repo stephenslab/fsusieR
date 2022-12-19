@@ -125,7 +125,7 @@ loglik_SFR.susiF <- function(susiF.obj, l,Y ,X,indx_lst )
   weighted_sum_w = sum(w_weighted)
 
   lBF_model = maxlBF + log(weighted_sum_w)
-  loglik <-  lBF_model    + sum(dnorm(Y,0,sqrt(susiF.obj$sigma2),log = TRUE))
+  loglik <-  lBF_model    + sum(dnorm(Y,0,sd= sqrt(susiF.obj$sigma2),log = TRUE))
 
   return(loglik)
 }
@@ -256,7 +256,7 @@ get_objective <- function    (susiF.obj,  Y, X, D, C , indx_lst,  ...)
 #' @export
 get_objective.susiF <- function    (susiF.obj, Y, X, D, C , indx_lst,  ...)
 {
-
+#print(susiF.obj$KL)
   out <-  Eloglik(susiF.obj, Y, X)  - sum(susiF.obj$KL)
   return(out)
 
