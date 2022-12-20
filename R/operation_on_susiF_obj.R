@@ -40,7 +40,7 @@ cal_partial_resid.susiF  <- function( susiF.obj, l, X, D, C,  indx_lst, ... )
   if (L > 1){
     id_L <- (1:L)[ - ( (l%%L) +1) ]#Computing residuals R_{l+1} by removing all the effect except effect l+1
 
-    if(class(get_G_prior(susiF.obj))=="mixture_normal_per_scale" )
+    if(inherits(get_G_prior(susiF.obj),"mixture_normal_per_scale" ))
     {
       update_D  <-  D - Reduce("+", lapply  ( id_L, function(l) X%*%sweep(susiF.obj$fitted_wc[[l]][,-indx_lst[[length(indx_lst)]]],
                                                                           1,
@@ -56,7 +56,7 @@ cal_partial_resid.susiF  <- function( susiF.obj, l, X, D, C,  indx_lst, ... )
       update_Y  <- cbind(  update_D, update_C)
 
     }
-    if(class(get_G_prior(susiF.obj))=="mixture_normal" )
+    if(inherits(get_G_prior(susiF.obj),"mixture_normal" ))
     {
 
 
@@ -80,7 +80,7 @@ cal_partial_resid.susiF  <- function( susiF.obj, l, X, D, C,  indx_lst, ... )
   }else{
     id_L <- 1
 
-    if(class(get_G_prior(susiF.obj))=="mixture_normal_per_scale" )
+    if(inherits(get_G_prior(susiF.obj),"mixture_normal_per_scale" ))
     {
       update_D  <-  D - Reduce("+", lapply  ( id_L, function(l) X%*%sweep(susiF.obj$fitted_wc[[l]][,-indx_lst[[length(indx_lst)]]],
                                                                           1,
@@ -96,7 +96,7 @@ cal_partial_resid.susiF  <- function( susiF.obj, l, X, D, C,  indx_lst, ... )
 
       update_Y  <- cbind(  update_D, update_C)
     }
-    if(class(get_G_prior(susiF.obj))=="mixture_normal" )
+    if(inherits(get_G_prior(susiF.obj),"mixture_normal" ))
     {
 
 
@@ -1278,7 +1278,7 @@ update_cal_indf.susiF <- function(susiF.obj, Y, X, indx_lst, ...)
   temp <- wd(rep(0, susiF.obj$n_wac)) #create dummy wd object
 
 
-  if(class(get_G_prior(susiF.obj))=="mixture_normal_per_scale" )
+  if(inherits(get_G_prior(susiF.obj),"mixture_normal_per_scale" ))
   {
     for ( i in 1:susiF.obj$N)
     {
@@ -1293,7 +1293,7 @@ update_cal_indf.susiF <- function(susiF.obj, Y, X, indx_lst, ...)
       }
     }
   }
-  if(class(get_G_prior(susiF.obj))=="mixture_normal" )
+  if(inherits(get_G_prior(susiF.obj),"mixture_normal" ))
   {
     for ( i in 1:susiF.obj$N)
     {
@@ -1348,7 +1348,7 @@ update_cal_fit_func.susiF <- function(susiF.obj, indx_lst, ...)
   }
   temp <- wd(rep(0, susiF.obj$n_wac))
 
-  if(class(get_G_prior(susiF.obj))=="mixture_normal_per_scale" )
+  if(inherits(get_G_prior(susiF.obj),"mixture_normal_per_scale" ))
   {
     for ( l in 1:susiF.obj$L)
     {
@@ -1359,7 +1359,7 @@ update_cal_fit_func.susiF <- function(susiF.obj, indx_lst, ...)
       susiF.obj$fitted_func[[l]] <- wr(temp)
     }
   }
-  if(class(get_G_prior(susiF.obj))=="mixture_normal" )
+  if(inherits(get_G_prior(susiF.obj),"mixture_normal" ))
   {
     for ( l in 1:susiF.obj$L)
     {
@@ -1467,7 +1467,7 @@ update_cal_lfsr_func.susiF <- function(susiF.obj, lfsr_curve, indx_lst, ...)
   }
   temp <- wd(rep(0, susiF.obj$n_wac))
 
-  if(class(get_G_prior(susiF.obj))=="mixture_normal_per_scale" )
+  if(inherits(get_G_prior(susiF.obj),"mixture_normal_per_scale" ))
   {
     for ( l in 1:susiF.obj$L)
     {
@@ -1478,7 +1478,7 @@ update_cal_lfsr_func.susiF <- function(susiF.obj, lfsr_curve, indx_lst, ...)
       susiF.obj$lfsr_func[[l]] <- wr(temp)
     }
   }
-  if(class(get_G_prior(susiF.obj))=="mixture_normal" )
+  if(inherits(get_G_prior(susiF.obj),"mixture_normal" ))
   {
     for ( l in 1:susiF.obj$L)
     {
@@ -2167,7 +2167,7 @@ if( susiF.obj$L==1){
   }
 
 
-  if(class(susiF.obj$G_prior)=="mixture_normal_per_scale")
+  if(inherits(susiF.obj$G_prior,"mixture_normal_per_scale"))
   {
     for (l in 1:susiF.obj$L )
     {
