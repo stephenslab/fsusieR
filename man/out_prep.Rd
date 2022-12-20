@@ -7,9 +7,9 @@
 \alias{out_prep.susiF_ss}
 \title{Preparing output of main susiF function}
 \usage{
-out_prep(susiF.obj, Y, X, indx_lst, filter.cs, lfsr_curve, ...)
+out_prep(susiF.obj, Y, X, indx_lst, filter.cs, lfsr_curve, outing_grid, ...)
 
-\method{out_prep}{susiF}(susiF.obj, Y, X, indx_lst, filter.cs, lfsr_curve, ...)
+\method{out_prep}{susiF}(susiF.obj, Y, X, indx_lst, filter.cs, lfsr_curve, outing_grid, ...)
 
 \method{out_prep}{susiF_ss}(susiF_ss.obj, ...)
 }
@@ -25,6 +25,8 @@ out_prep(susiF.obj, Y, X, indx_lst, filter.cs, lfsr_curve, ...)
 \item{filter.cs}{logical, if TRUE filter the credible set (removing low purity cs and cs with estimated prior equal to 0)}
 
 \item{lfsr_curve}{Maximum local false sign rate of the wavelet coefficients used to reconstruct lfsr_curves (see output)}
+
+\item{outing_grid}{grid use to fit fsusie}
 }
 \value{
 susiF object

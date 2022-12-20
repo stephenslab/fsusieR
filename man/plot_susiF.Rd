@@ -4,7 +4,16 @@
 \alias{plot_susiF}
 \title{Plot susiF object}
 \usage{
-plot_susiF(susiF.obj, cred.band = TRUE, effect, ...)
+plot_susiF(
+  susiF.obj,
+  size_point = 2,
+  size_line = 2,
+  cred.band = FALSE,
+  effect,
+  pip_only = FALSE,
+  title = "",
+  ...
+)
 }
 \arguments{
 \item{susiF.obj}{output of the susiF function}

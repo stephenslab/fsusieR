@@ -12,19 +12,20 @@ susiF(
   prior = "mixture_normal_per_scale",
   verbose = TRUE,
   maxit = 100,
-  tol = 10^-3,
+  tol = 1,
   cov_lev = 0.95,
   min.purity = 0.5,
   filter.cs = TRUE,
   init_pi0_w = 1,
   nullweight,
   control_mixsqp = list(verbose = FALSE, eps = 1e-06, numiter.em = 4),
-  thresh_lowcount,
+  thresh_lowcount = 0,
   cal_obj = FALSE,
   L_start = 3,
   quantile_trans = FALSE,
   greedy = TRUE,
-  backfit = TRUE
+  backfit = TRUE,
+  gridmult = sqrt(2)
 )
 }
 \arguments{
@@ -63,24 +64,40 @@ expected level of coverage of the cs if not specified set to 0.95}
 
 \item{min.purity}{minimum purity for estimated credible sets}
 
-\item{filter.cs}{logical, if TRUE filter the credible set (removing low purity cs and cs with estimated prior equal to 0)}
+\item{filter.cs}{logical, if TRUE filter the credible set (removing low purity
+cs and cs with estimated prior equal to 0)}
 
-\item{init_pi0_w}{starting value of weight on null compoenent in mixsqp (between 0 and 1)}
+\item{init_pi0_w}{starting value of weight on null compoenent in mixsqp
+(between 0 and 1)}
 
 \item{nullweight}{numeric value for penalizing likelihood at point mass 0 (should be between 0 and 1)
 (usefull in small sample size)}
 
 \item{control_mixsqp}{list of parameter for mixsqp function see\link{\code{mixsqp}}}
 
+\item{thresh_lowcount}{numeric, use to check the wavelet coefficients have
+problematic distribution (very low dispersion even after standardization).
+Basically check if the median of the absolute value of the distribution of
+ a wavelet coefficient is below this threshold, if yes the algorithm discard
+ this wavelet coefficient (setting its estimate effect to 0 and estimate sd to 1).
+ Set to 0 by default. Can be useful when analyzing sparse data from sequence
+  based assay or small samples.}
+
 \item{cal_obj}{logical if set as true compute ELBO for convergence monitoring}
 
 \item{L_start}{number of effect initialized at the start of the algorithm}
 
-\item{quantile_trans}{logical if set as true perform normal quantile transform on wavelet coefficients}
+\item{quantile_trans}{logical if set as true perform normal quantile transform
+on wavelet coefficients}
 
-\item{greedy}{logical, if true allow greedy search for extra effect (up to L specify by the user). Set as TRUE by default}
+\item{greedy}{logical, if true allow greedy search for extra effect
+(up to L specify by the user). Set as TRUE by default}
 
-\item{backfit}{logical, if true allow discarding effect via backfitting. Set as true by default as TRUE. We advise to keep it as TRUE}
+\item{backfit}{logical, if true allow discarding effect via backfitting.
+Set as true by default as TRUE. We advise to keep it as TRUE
+@param gridmult numeric used to control the number of component used in the mixture prior (see ashr package
+for more details). From the ash function:  multiplier by which the default grid values for mixsd differ by one another.
+ (Smaller values produce finer grids.). Increasing this value may reduce computational time}
 }
 \description{
 Implementation of the SuSiF method
@@ -155,7 +172,7 @@ out <- susiF(Y,X,L=2 , prior = 'mixture_normal_per_scale')
 
 plot_susiF(out)
 
-#You can also acces the information directly in the out of susiF. as follow
+#You can also acces the information directly in the output of susiF  as follow
 par(mfrow=c(1,2))
 
 plot( f1, type="l", main="Estimated effect 1", xlab="")

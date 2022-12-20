@@ -1,5 +1,5 @@
 
-
+#' @importFrom stats median
 which_lowcount <- function( Y_f, thresh_lowcount ){
   tt <- which( apply( abs(Y_f),2,median) <= thresh_lowcount )
 
@@ -34,7 +34,8 @@ fast_lm <- function(x,y)
 
 #Circular permutation on vector
 # Code adapted from https://mzuer.github.io
-#'
+#' @importFrom utils head
+#' @importFrom utils tail
 shifter <- function(x, n = 1) {
   # if (n == 0) x else c(tail(x, -n), head(x, n))
   if (n == 0) x else c(tail(x, n), head(x, -n))
@@ -47,7 +48,7 @@ shifter <- function(x, n = 1) {
 #shifter(c(1:10), n=2)
 # [1]  9 10  1  2  3  4  5  6  7  8
 
-
+#'@importFrom stats qqnorm
 Quantile_transform  <- function(x)
 {
 
@@ -62,7 +63,7 @@ fast_var <- function (x)
 }
 
 
-
+#' @importFrom matrixStats colSds
 #from https://www.r-bloggers.com/2016/02/a-faster-scale-function/
 colScale = function(x,
                     center = TRUE,

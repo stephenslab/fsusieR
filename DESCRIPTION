@@ -14,10 +14,10 @@ Depends:
   wavethresh (>= 4.6.8),
   ashr (>= 2.2-47),
   mixsqp (>= 0.3-43),
-  matrixStats (>= 0.62.0)
 Imports:
   graphics,
-  stats
+  stats,
+  matrixStats (>= 0.62.0)
 Suggests:
     ggplot2,
     gridExtra,

@@ -44,5 +44,5 @@ EM_pi(
 \item{lBF}{ log Bayes Factor}
 }
 \description{
-Select the mixture wieght by maximizing the marginal likelihood
+Select the mixture weight by maximizing the marginal likelihood
 }

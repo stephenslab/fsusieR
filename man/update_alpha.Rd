@@ -12,7 +12,7 @@ update_alpha(susiF.obj, l, alpha, ...)
 
 \method{update_alpha}{susiF}(susiF.obj, l, alpha, ...)
 
-\method{update_alpha_hist}{susiF}(susiF.obj, ...)
+\method{update_alpha_hist}{susiF}(susiF.obj, discard = FALSE, ...)
 
 \method{update_alpha}{susiF_ss}(susiF_ss.obj, l, alpha, ...)
 }

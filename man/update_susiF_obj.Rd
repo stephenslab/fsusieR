@@ -37,6 +37,16 @@ update_susiF_obj(
 \item{susiF.obj}{a susiF object defined by \code{\link{init_susiF_obj}} function}
 
 \item{l}{integer larger or equal to 1. Corresponds to the effect to be accessed}
+
+\item{Bhat}{matrix of estimated regression coefficients}
+
+\item{Shat}{matrix of estimated standard errors}
+
+\item{indx_lst}{}
+
+\item{lowc_wc}{}
+
+\item{cal_wc_lsfr}{}
 }
 \value{
 susiF object

@@ -182,6 +182,10 @@ simu_IBSS_per_level  <-function( lev_res=7,
 #' @param pos2 position of the first active covariate (optional)
 #'
 #' @importFrom wavethresh DJ.EX
+#' @importFrom graphics lines
+#' @importFrom graphics legend
+#'
+#'
 #'
 #' @export
 #'

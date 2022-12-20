@@ -4,7 +4,7 @@
 \alias{plot_effect}
 \title{Plot susiF object}
 \usage{
-plot_effect(susiF.obj, L, ...)
+plot_effect(susiF.obj, L, size_line = 2, ...)
 }
 \arguments{
 \item{susiF.obj}{output of the susiF function}
