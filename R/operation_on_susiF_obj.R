@@ -863,6 +863,37 @@ greedy_backfit.susiF <-  function(susiF.obj,verbose,cov_lev,X,min.purity, ...  )
 }
 
 
+#' @title Updates CS names for output
+#'
+#' @param susiF.obj a susiF object defined by \code{\link{init_susiF_obj}} function
+#'
+#' @param X matrix of size N by p
+
+name_cs <- function(susiF.obj,X,...)
+  UseMethod("name_cs")
+
+#' @rdname name_cs
+#'
+#' @method name_cs susiF
+#'
+#' @export name_cs.susiF
+#'
+#' @export
+#'
+
+name_cs.susiF <- function(susiF.obj,X,...){
+
+  if( length(colnames(X))==ncol(X)){
+
+    for (l in 1: length(susiF.obj$cs)){
+      names(susiF.obj$cs[[l]]) <- colnames(X)[susiF.obj$cs[[l]]]
+    }
+
+  }
+  return(susiF.obj)
+}
+
+
 
 
 #' @title Merging effect function
@@ -962,6 +993,7 @@ out_prep.susiF <- function(susiF.obj,Y, X, indx_lst, filter.cs, lfsr_curve, outi
   susiF.obj <-  update_cal_pip(susiF.obj)
   susiF.obj <-  update_cal_fit_func(susiF.obj, indx_lst)
   susiF.obj <-  update_cal_credible_band(susiF.obj, indx_lst)
+  susiF.obj <-  name_cs(susiF.obj,X)
   if(filter.cs)
   {
     susiF.obj <- check_cs(susiF.obj,min.purity=0.5,X=X)
