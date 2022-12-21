@@ -10,7 +10,6 @@
 #'
 #' @param l integer larger or equal to 1. Corresponds to the effect to be accessed
 #'
-#' @param Y wavelet transformed phenotype
 #'
 #' @param X matrix of covariate
 #'
@@ -22,7 +21,7 @@
 #'
 #' @return The KL divergence for effect l
 #' @export
-cal_KL_l <- function(susiF.obj, l, Y, X, D,C , indx_lst, ...)
+cal_KL_l <- function(susiF.obj, l, X, D,C , indx_lst, ...)
   UseMethod("cal_KL_l")
 
 
@@ -115,7 +114,7 @@ loglik_SFR <- function    (susiF.obj, l,  ...)
 #' @export
 #'
 
-loglik_SFR.susiF <- function(susiF.obj, l,Y ,X,indx_lst )
+loglik_SFR.susiF <- function(susiF.obj, l,Y ,X,indx_lst,  ... )
 {
   lBF           <- get_lBF(susiF.obj,l)
   prior_weights <- rep(1/ncol(X),ncol(X))
@@ -158,7 +157,7 @@ loglik_SFR_post <- function    (susiF.obj, l,  ...)
 #' @export
 #'
 
-loglik_SFR_post.susiF <- function(susiF.obj, l,Y,X)
+loglik_SFR_post.susiF <- function(susiF.obj, l,Y,X,  ...)
 {
   n <- nrow(Y)
   t <- ncol(Y)
@@ -180,7 +179,7 @@ loglik_SFR_post.susiF <- function(susiF.obj, l,Y,X)
 #' @export
 #'
 
-loglik_SFR_post.susiF_ss <- function(susiF_ss.obj,l, data)
+loglik_SFR_post.susiF_ss <- function(susiF_ss.obj,l, data,  ...)
 {
   n <- data$N
   t <- ncol(data$Bhat)
@@ -213,7 +212,7 @@ Eloglik <- function    (susiF.obj, Y, X,  ...)
 #'
 #' @export Eloglik.susiF
 #' @export
-Eloglik.susiF = function (susiF.obj,Y ,X) {
+Eloglik.susiF = function (susiF.obj,Y ,X,  ...) {
   n = nrow(Y)
   t = ncol(Y)
 

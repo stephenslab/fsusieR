@@ -17,9 +17,9 @@ Depends:
 Imports:
   graphics,
   stats,
-  matrixStats (>= 0.62.0)
+  matrixStats (>= 0.62.0),
+  ggplot2
 Suggests:
-    ggplot2,
     gridExtra,
     knitr,
     rmarkdown
