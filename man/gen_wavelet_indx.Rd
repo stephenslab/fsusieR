@@ -7,7 +7,7 @@
 gen_wavelet_indx(lev_res)
 }
 \arguments{
-\item{s}{integer, corresponding to log2 of the signal length. WARNING the ordering change for different values of s.}
+\item{lev_res}{integer, corresponding to log2 of the signal length. WARNING the ordering change for different values of s.}
 }
 \description{
 Generate list of index corresponding to where the wavelet coefficient of scale s are stored in wd$D.

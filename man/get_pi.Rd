@@ -15,9 +15,9 @@ get_pi(susiF.obj, l, ...)
 
 \method{get_pi}{susiF}(susiF.obj, l, ...)
 
-\method{get_pi}{susiF_ss}(susiF_ss.obj, l, ...)
+\method{get_pi}{susiF_ss}(susiF.obj, l, ...)
 
-\method{get_lBF}{susiF_ss}(susiF_ss.obj, l, ...)
+\method{get_lBF}{susiF_ss}(susiF.obj, l, ...)
 }
 \arguments{
 \item{susiF.obj}{a susiF object defined by \code{\link{init_susiF_obj}} function}

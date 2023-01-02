@@ -38,7 +38,7 @@ init_prior <- function(  ...)
 #' @importFrom ashr ash
 #'
 #' @export
-init_prior.default <- function(Y,X, prior,v1 , indx_lst,lowc_wc,control_mixsqp,nullweight ,gridmult=sqrt(2)  )
+init_prior.default <- function(Y,X, prior,v1 , indx_lst,lowc_wc,control_mixsqp,nullweight ,gridmult=sqrt(2) , ... )
 {
   if( prior == "mixture_normal")
   {
@@ -119,7 +119,7 @@ init_prior.default <- function(Y,X, prior,v1 , indx_lst,lowc_wc,control_mixsqp,n
 #' @importFrom ashr ash
 #'
 #' @export
-init_prior.suff_stat <- function(data, prior,  indx_lst )
+init_prior.suff_stat <- function(data, prior,  indx_lst, ... )
 {
   if( prior == "mixture_normal")
   {

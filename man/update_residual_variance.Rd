@@ -9,9 +9,9 @@
 \usage{
 update_residual_variance(susiF.obj, sigma2, ...)
 
-\method{update_residual_variance}{susiF}(susiF.obj, sigma2)
+\method{update_residual_variance}{susiF}(susiF.obj, sigma2, ...)
 
-\method{update_residual_variance}{susiF_ss}(susiF_ss.obj, sigma2)
+\method{update_residual_variance}{susiF_ss}(susiF.obj, sigma2, ...)
 }
 \arguments{
 \item{susiF.obj}{a susiF object defined by \code{\link{init_susiF_obj}} function}

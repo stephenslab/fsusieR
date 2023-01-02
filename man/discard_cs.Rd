@@ -7,7 +7,7 @@
 \usage{
 discard_cs(susiF.obj, cs, out_prep, ...)
 
-\method{discard_cs}{susiF}(susiF.obj, cs, out_prep = FALSE)
+\method{discard_cs}{susiF}(susiF.obj, cs, out_prep = FALSE, ...)
 }
 \arguments{
 \item{susiF.obj}{a susif object defined by \code{\link{init_susiF_obj}} function}

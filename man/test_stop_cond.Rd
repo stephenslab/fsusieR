@@ -7,7 +7,7 @@
 \usage{
 test_stop_cond(susiF.obj, check, cal_obj, Y, X, D, C, indx_lst, ...)
 
-\method{test_stop_cond}{susiF}(susiF.obj, check, cal_obj, Y, X, D, C, indx_lst)
+\method{test_stop_cond}{susiF}(susiF.obj, check, cal_obj, Y, X, D, C, indx_lst, ...)
 }
 \description{
 Check tolerance for stopping criterion

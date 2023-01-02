@@ -44,7 +44,7 @@
 #' cs and cs with estimated prior equal to 0)
 #' @param init_pi0_w starting value of weight on null compoenent in mixsqp
 #'  (between 0 and 1)
-#' @param control_mixsqp list of parameter for mixsqp function see\link{\code{mixsqp}}
+#' @param control_mixsqp list of parameter for mixsqp function see  mixsqp package
 #' @param  cal_obj logical if set as true compute ELBO for convergence monitoring
 #' @param quantile_trans logical if set as true perform normal quantile transform
 #' on wavelet coefficients

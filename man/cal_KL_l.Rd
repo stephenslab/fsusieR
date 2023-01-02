@@ -6,7 +6,7 @@
 \alias{cal_KL_l.susiF_ss}
 \title{Compute KL divergence effect l}
 \usage{
-cal_KL_l(susiF.obj, l, Y, X, D, C, indx_lst, ...)
+cal_KL_l(susiF.obj, l, X, D, C, indx_lst, ...)
 
 \method{cal_KL_l}{susiF}(susiF.obj, l, X, D, C, indx_lst, ...)
 
@@ -16,8 +16,6 @@ cal_KL_l(susiF.obj, l, Y, X, D, C, indx_lst, ...)
 \item{susiF.obj}{a susisF object defined by \code{\link{init_susiF_obj}} function}
 
 \item{l}{integer larger or equal to 1. Corresponds to the effect to be accessed}
-
-\item{Y}{wavelet transformed phenotype}
 
 \item{X}{matrix of covariate}
 

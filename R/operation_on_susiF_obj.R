@@ -54,7 +54,7 @@ cal_cor_cs <- function(susiF.obj,X){
 #' @return a matrix of size N by size J of partial residuals
 #'
 #' @export
-cal_partial_resid  <- function( susiF.obj, l, X, D, C,  indx_lst, ... )
+cal_partial_resid  <- function( susiF.obj, l, X, D, C,  indx_lst,... )
   UseMethod("cal_partial_resid")
 
 
@@ -67,7 +67,7 @@ cal_partial_resid  <- function( susiF.obj, l, X, D, C,  indx_lst, ... )
 #' @export
 #'
 
-cal_partial_resid.susiF  <- function( susiF.obj, l, X, D, C,  indx_lst, ... )
+cal_partial_resid.susiF  <- function( susiF.obj, l, X, D, C,  indx_lst,... )
 {
   L <- susiF.obj$L
   if (L > 1){
@@ -291,7 +291,7 @@ discard_cs.susiF <- function(susiF.obj, cs, out_prep=FALSE,  ...)
 #' \item{lfsr_wc}{Local fasle sign rate of the fitted wavelet coefficients}
 #' @export
 
-init_susiF_obj <- function(L_max, G_prior, Y,X,L_start,greedy,backfit )
+init_susiF_obj <- function(L_max, G_prior, Y,X,L_start,greedy,backfit,... )
 {
 
 
@@ -376,7 +376,7 @@ init_susiF_obj <- function(L_max, G_prior, Y,X,L_start,greedy,backfit )
 #'
 #' @return estimated residual variance
 #' @export
-estimate_residual_variance <- function(susiF.obj,Y,X, ... )
+estimate_residual_variance <- function(susiF.obj,Y,X,... )
   UseMethod("estimate_residual_variance")
 
 
@@ -387,7 +387,7 @@ estimate_residual_variance <- function(susiF.obj,Y,X, ... )
 #' @export estimate_residual_variance.susiF
 #'
 #' @export
-estimate_residual_variance.susiF <- function(susiF.obj,Y,X, ... )
+estimate_residual_variance.susiF <- function(susiF.obj,Y,X,... )
 {
   out <-  (1/(prod(dim(Y))))*get_ER2 (susiF.obj,Y, X  )
   return(out)
@@ -445,7 +445,7 @@ expand_susiF_obj <- function(susiF.obj,L_extra)
 #'
 #' @export
 #'
-get_pi  <- function(susiF.obj, l, ...)
+get_pi  <- function(susiF.obj, l,...)
   UseMethod("get_pi")
 
 #' @rdname get_pi
@@ -456,7 +456,7 @@ get_pi  <- function(susiF.obj, l, ...)
 #'
 #' @export
 #'
-get_pi.susiF <- function(susiF.obj, l, ...)
+get_pi.susiF <- function(susiF.obj, l,...)
 {
 
   if( l >  length(susiF.obj$est_pi))
@@ -485,7 +485,7 @@ get_pi.susiF <- function(susiF.obj, l, ...)
 #'
 #' @export
 #'
-get_lBF  <- function(susiF.obj, l, ...)
+get_lBF  <- function(susiF.obj, l,...)
   UseMethod("get_lBF")
 
 #' @rdname get_pi
@@ -496,7 +496,7 @@ get_lBF  <- function(susiF.obj, l, ...)
 #'
 #' @export
 #'
-get_lBF.susiF <- function(susiF.obj, l, ...)
+get_lBF.susiF <- function(susiF.obj, l,...)
 {
 
   if( l >   susiF.obj$L)
@@ -531,7 +531,7 @@ get_lBF.susiF <- function(susiF.obj, l, ...)
 #'
 #' @return estimated residual variance
 #' @export
-get_ER2 <- function(susiF.obj,Y,X, ... )
+get_ER2 <- function(susiF.obj,Y,X,... )
   UseMethod("get_ER2")
 
 
@@ -563,7 +563,7 @@ get_ER2.susiF = function (  susiF.obj,Y, X,  ...) {
 #' @export
 #'
 #'
-get_G_prior  <- function(susiF.obj, ...)
+get_G_prior  <- function(susiF.obj,...)
   UseMethod("get_G_prior")
 
 
@@ -576,7 +576,7 @@ get_G_prior  <- function(susiF.obj, ...)
 #'
 #' @export
 #'
-get_G_prior.susiF <- function(susiF.obj, ...)
+get_G_prior.susiF <- function(susiF.obj,...)
 {
   out <- susiF.obj$G_prior
   return(out)
@@ -668,7 +668,7 @@ get_post_F2.susiF <- function(susiF.obj, l,...)
 #' @export
 #'
 #'
-get_alpha  <-  function(susiF.obj, l, ...  )
+get_alpha  <-  function(susiF.obj, l,...  )
   UseMethod("get_alpha")
 
 #' @rdname get_alpha
@@ -680,7 +680,7 @@ get_alpha  <-  function(susiF.obj, l, ...  )
 #' @export
 #'
 
-get_alpha.susiF <-  function(susiF.obj, l, ...  )
+get_alpha.susiF <-  function(susiF.obj, l,...  )
 {
   out <- susiF.obj$alpha[[l]]
   return( out)
@@ -689,13 +689,23 @@ get_alpha.susiF <-  function(susiF.obj, l, ...  )
 #' @title Update  susiF via greedy search or backfit
 #'
 #' @param susiF.obj a susiF object defined by \code{\link{init_susiF_obj}} function
-#'
+#' @param X matrix of size n by p contains the covariates
+#' @param min.purity minimum purity for estimated credible sets
+#' @param control_mixsqp list of parameter for mixsqp function see  mixsqp package
+#' @param verbose If \code{verbose = TRUE}, the algorithm's progress,
+#' and a summary of the optimization settings, are printed to the
+#' console.
+#' @param col_lev the desired level of converage
 #' @return susiF object
 #'
 #' @export
 #'
 #'
-greedy_backfit  <-  function(susiF.obj, verbose,cov_lev,X,min.purity, ...  )
+greedy_backfit  <-  function(susiF.obj,
+                             verbose,
+                             cov_lev,
+                             X,
+                             min.purity,...  )
   UseMethod("greedy_backfit")
 
 #' @rdname greedy_backfit
@@ -707,7 +717,11 @@ greedy_backfit  <-  function(susiF.obj, verbose,cov_lev,X,min.purity, ...  )
 #' @export
 #'
 
-greedy_backfit.susiF <-  function(susiF.obj,verbose,cov_lev,X,min.purity, ...  )
+greedy_backfit.susiF <-  function(susiF.obj,
+                                  verbose,
+                                  cov_lev,
+                                  X,
+                                  min.purity,...  )
 {
 
 
@@ -939,7 +953,7 @@ name_cs.susiF <- function(susiF.obj,X,...){
 #'
 #' @return  a susiF object
 #' @export
-merge_effect <- function( susiF.obj, tl, ...)
+merge_effect <- function( susiF.obj, tl,...)
   UseMethod("merge_effect")
 
 #' @rdname merge_effect
@@ -1008,7 +1022,7 @@ merge_effect.susiF <- function( susiF.obj, tl, discard=TRUE,  ...){
 #'
 #' @export
 #'
-out_prep <- function(susiF.obj,Y, X, indx_lst, filter.cs, lfsr_curve,outing_grid, ...)
+out_prep <- function(susiF.obj,Y, X, indx_lst, filter.cs, lfsr_curve,outing_grid,...)
   UseMethod("out_prep")
 
 #' @rdname out_prep
@@ -1051,7 +1065,7 @@ out_prep.susiF <- function(susiF.obj,Y, X, indx_lst, filter.cs, lfsr_curve, outi
 #' @export
 #'
 
-update_alpha  <-  function(susiF.obj, l, alpha, ... )
+update_alpha  <-  function(susiF.obj, l, alpha,... )
   UseMethod("update_alpha")
 
 
@@ -1063,7 +1077,7 @@ update_alpha  <-  function(susiF.obj, l, alpha, ... )
 #'
 #' @export
 #'
-update_alpha.susiF <-  function(susiF.obj, l, alpha, ... )
+update_alpha.susiF <-  function(susiF.obj, l, alpha,... )
 {
   susiF.obj$alpha[[l]] <- alpha
    return( susiF.obj)
@@ -1080,7 +1094,7 @@ update_alpha.susiF <-  function(susiF.obj, l, alpha, ... )
 #' @export
 #'
 
-update_alpha_hist  <-  function(susiF.obj, discard, ... )
+update_alpha_hist  <-  function(susiF.obj, discard,... )
   UseMethod("update_alpha_hist")
 
 
@@ -1092,7 +1106,7 @@ update_alpha_hist  <-  function(susiF.obj, discard, ... )
 #'
 #' @export
 #'
-update_alpha_hist.susiF <-  function(susiF.obj , discard=FALSE, ... )
+update_alpha_hist.susiF <-  function(susiF.obj , discard=FALSE,... )
 {
     if(!discard){
         susiF.obj$alpha_hist[[ (length(susiF.obj$alpha_hist)+1)  ]] <- susiF.obj$alpha
@@ -1134,7 +1148,7 @@ update_alpha_hist.susiF <-  function(susiF.obj , discard=FALSE, ... )
 #' @export
 
 
-update_susiF_obj  <- function(susiF.obj, l, EM_pi, Bhat, Shat, indx_lst, lowc_wc=NULL, cal_wc_lsfr=FALSE, ...)
+update_susiF_obj  <- function(susiF.obj, l, EM_pi, Bhat, Shat, indx_lst, lowc_wc=NULL, cal_wc_lsfr=FALSE,...)
       UseMethod("update_susiF_obj")
 
 #' @rdname update_susiF_obj
@@ -1146,7 +1160,7 @@ update_susiF_obj  <- function(susiF.obj, l, EM_pi, Bhat, Shat, indx_lst, lowc_wc
 #' @export
 #'
 
-update_susiF_obj.susiF <- function(susiF.obj, l, EM_pi, Bhat, Shat, indx_lst, lowc_wc=NULL, cal_wc_lsfr=FALSE, ...)
+update_susiF_obj.susiF <- function(susiF.obj, l, EM_pi, Bhat, Shat, indx_lst, lowc_wc=NULL, cal_wc_lsfr=FALSE,...)
 {
 
   if( l > length(susiF.obj$est_pi))
@@ -1207,7 +1221,7 @@ update_susiF_obj.susiF <- function(susiF.obj, l, EM_pi, Bhat, Shat, indx_lst, lo
 #'@return susiF object
 #'@export
 
-update_cal_pip  <- function (susiF.obj, ...)
+update_cal_pip  <- function (susiF.obj,...)
   UseMethod("update_cal_pip")
 
 #' @rdname update_cal_pip
@@ -1219,7 +1233,7 @@ update_cal_pip  <- function (susiF.obj, ...)
 #' @export
 #'
 
-update_cal_pip.susiF <- function (susiF.obj, ...)
+update_cal_pip.susiF <- function (susiF.obj,...)
 {
   if(sum( is.na(unlist(susiF.obj$alpha))))
   {
@@ -1245,7 +1259,7 @@ update_cal_pip.susiF <- function (susiF.obj, ...)
 #'
 #' @export
 
-update_cal_cs  <- function(susiF.obj, cov_lev=0.95, ...)
+update_cal_cs  <- function(susiF.obj, cov_lev=0.95,...)
   UseMethod("update_cal_cs")
 
 #' @rdname update_cal_cs
@@ -1257,7 +1271,7 @@ update_cal_cs  <- function(susiF.obj, cov_lev=0.95, ...)
 #' @export
 #'
 
-update_cal_cs.susiF <- function(susiF.obj, cov_lev=0.95)
+update_cal_cs.susiF <- function(susiF.obj, cov_lev=0.95,...)
 {
   if(sum( is.na(unlist(susiF.obj$alpha))))
   {
@@ -1285,7 +1299,7 @@ update_cal_cs.susiF <- function(susiF.obj, cov_lev=0.95)
 #'@export
 #'
 
-update_cal_indf <- function(susiF.obj, Y, X, indx_lst, ...)
+update_cal_indf <- function(susiF.obj, Y, X, indx_lst,...)
   UseMethod("update_cal_indf")
 
 #' @rdname update_cal_indf
@@ -1301,7 +1315,7 @@ update_cal_indf <- function(susiF.obj, Y, X, indx_lst, ...)
 #' @export
 #'
 
-update_cal_indf.susiF <- function(susiF.obj, Y, X, indx_lst, ...)
+update_cal_indf.susiF <- function(susiF.obj, Y, X, indx_lst,...)
 {
   mean_Y          <- attr(Y, "scaled:center")
   if(sum( is.na(unlist(susiF.obj$alpha))))
@@ -1356,7 +1370,7 @@ update_cal_indf.susiF <- function(susiF.obj, Y, X, indx_lst, ...)
 #' @return susiF object
 #'
 #' @export
-update_cal_fit_func  <- function(susiF.obj, indx_lst, ...)
+update_cal_fit_func  <- function(susiF.obj, indx_lst,...)
   UseMethod("update_cal_fit_func")
 
 #' @rdname update_cal_fit_func
@@ -1372,7 +1386,7 @@ update_cal_fit_func  <- function(susiF.obj, indx_lst, ...)
 #' @export
 #'
 
-update_cal_fit_func.susiF <- function(susiF.obj, indx_lst, ...)
+update_cal_fit_func.susiF <- function(susiF.obj, indx_lst,...)
 {
 
   if(sum( is.na(unlist(susiF.obj$alpha))))
@@ -1420,7 +1434,7 @@ update_cal_fit_func.susiF <- function(susiF.obj, indx_lst, ...)
 #' @return susiF object
 #'
 #' @export
-update_cal_credible_band  <- function(susiF.obj, indx_lst, ...)
+update_cal_credible_band  <- function(susiF.obj, indx_lst,...)
   UseMethod("update_cal_credible_band")
 
 #' @rdname  update_cal_credible_band
@@ -1437,7 +1451,7 @@ update_cal_credible_band  <- function(susiF.obj, indx_lst, ...)
 #' @export
 #'
 
-update_cal_credible_band.susiF <- function(susiF.obj, indx_lst, ...)
+update_cal_credible_band.susiF <- function(susiF.obj, indx_lst,...)
 {
 
   if(sum( is.na(unlist(susiF.obj$alpha))))
@@ -1475,7 +1489,7 @@ update_cal_credible_band.susiF <- function(susiF.obj, indx_lst, ...)
 #' @return susiF object
 #'
 #' @export
-update_cal_lfsr_func  <- function(susiF.obj, lfsr_curve,  indx_lst, ...)
+update_cal_lfsr_func  <- function(susiF.obj, lfsr_curve,  indx_lst,...)
   UseMethod("update_cal_lfsr_func")
 
 #' @rdname update_cal_lfsr_func
@@ -1491,7 +1505,7 @@ update_cal_lfsr_func  <- function(susiF.obj, lfsr_curve,  indx_lst, ...)
 #' @export
 #'
 
-update_cal_lfsr_func.susiF <- function(susiF.obj, lfsr_curve, indx_lst, ...)
+update_cal_lfsr_func.susiF <- function(susiF.obj, lfsr_curve, indx_lst,...)
 {
 
   if(sum( is.na(unlist(susiF.obj$alpha))))
@@ -1538,7 +1552,7 @@ update_cal_lfsr_func.susiF <- function(susiF.obj, lfsr_curve, indx_lst, ...)
 #'@return susiF object
 #'@export
 
-update_lBF  <- function    (susiF.obj, l, lBF, ...)
+update_lBF  <- function    (susiF.obj, l, lBF,...)
   UseMethod("update_lBF")
 
 #' @rdname update_lBF
@@ -1550,7 +1564,7 @@ update_lBF  <- function    (susiF.obj, l, lBF, ...)
 #' @export
 #'
 
-update_lBF.susiF <- function    (susiF.obj,l, lBF, ...)
+update_lBF.susiF <- function    (susiF.obj,l, lBF,...)
 {
   if(l> susiF.obj$L)
   {
@@ -1608,7 +1622,7 @@ update_lfsr.susiF <- function(susiF.obj, l, Bhat, Shat, alpha, indx_lst,...)
 #'@return susiF object
 #'@export
 
-update_ELBO  <- function    (susiF.obj,ELBO , ...)
+update_ELBO  <- function    (susiF.obj,ELBO ,...)
   UseMethod("update_ELBO")
 
 #' @rdname update_ELBO
@@ -1620,7 +1634,7 @@ update_ELBO  <- function    (susiF.obj,ELBO , ...)
 #' @export
 #'
 
-update_ELBO.susiF <- function    (susiF.obj,ELBO, ...)
+update_ELBO.susiF <- function    (susiF.obj,ELBO,...)
 {
 
   susiF.obj$ELBO <- c(susiF.obj$ELBO,ELBO)
@@ -1641,7 +1655,7 @@ update_ELBO.susiF <- function    (susiF.obj,ELBO, ...)
 #'
 #' @return susiF object
 #' @export
-update_KL <- function(susiF.obj,   X, D, C , indx_lst, ...)
+update_KL <- function(susiF.obj,   X, D, C , indx_lst,...)
   UseMethod("update_KL")
 
 
@@ -1655,7 +1669,7 @@ update_KL <- function(susiF.obj,   X, D, C , indx_lst, ...)
 #' @export
 #'
 
-update_KL.susiF <- function(susiF.obj,  X, D, C , indx_lst, ...)
+update_KL.susiF <- function(susiF.obj,  X, D, C , indx_lst,...)
 {
 
   susiF.obj$KL <-  do.call(c,lapply(1:susiF.obj$L,FUN=function(l) cal_KL_l(susiF.obj=susiF.obj,
@@ -1683,7 +1697,7 @@ update_KL.susiF <- function(susiF.obj,  X, D, C , indx_lst, ...)
 #'
 #' @export
 
-update_pi <- function( susiF.obj, l, tpi, ...)
+update_pi <- function( susiF.obj, l, tpi,...)
   UseMethod("update_pi")
 
 #' @rdname update_pi
@@ -1694,7 +1708,7 @@ update_pi <- function( susiF.obj, l, tpi, ...)
 #'
 #' @export
 #'
-update_pi.susiF <- function( susiF.obj, l, tpi, ...)
+update_pi.susiF <- function( susiF.obj, l, tpi,...)
 {
 
   if( l > length(susiF.obj$est_pi))
@@ -1730,7 +1744,7 @@ update_pi.susiF <- function( susiF.obj, l, tpi, ...)
 
 
 
-update_residual_variance  <- function(susiF.obj,sigma2, ...)
+update_residual_variance  <- function(susiF.obj,sigma2,...)
   UseMethod("update_residual_variance")
 
 #' @rdname update_residual_variance
@@ -1742,7 +1756,7 @@ update_residual_variance  <- function(susiF.obj,sigma2, ...)
 #' @export
 #'
 
-update_residual_variance.susiF <- function(susiF.obj,sigma2)
+update_residual_variance.susiF <- function(susiF.obj,sigma2,...)
 {
   susiF.obj$sigma2 <- sigma2
   return(susiF.obj)
@@ -2056,7 +2070,7 @@ test_stop_cond <- function(susiF.obj, check, cal_obj, Y, X, D, C, indx_lst  ,...
 #'
 
 
-test_stop_cond.susiF<- function(susiF.obj, check, cal_obj, Y, X, D, C, indx_lst)
+test_stop_cond.susiF<- function(susiF.obj, check, cal_obj, Y, X, D, C, indx_lst,...)
 {
 
   if( susiF.obj$L==1)

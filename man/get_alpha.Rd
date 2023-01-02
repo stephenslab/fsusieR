@@ -11,7 +11,7 @@ get_alpha(susiF.obj, l, ...)
 
 \method{get_alpha}{susiF}(susiF.obj, l, ...)
 
-\method{get_alpha}{susiF_ss}(susiF_ss.obj, l, ...)
+\method{get_alpha}{susiF_ss}(susiF.obj, l, ...)
 }
 \arguments{
 \item{susiF.obj}{a susiF object defined by \code{\link{init_susiF_obj}} function}

@@ -92,7 +92,7 @@ DWT2 <- function (data, filter.number = 10, family = "DaubLeAsymm")
 #' @description Generate list of index corresponding to where the wavelet coefficient of scale s are stored in wd$D.
 #'First element of the list corresponds to the index for the wavelet coefficient at scale 0, the second component corresponds to the index for the wavelet coefficient at scale 1 (and so on). The last componnet of the list correspond to where the C coefficients is stored in init_prior for class mixture_normal_per_scale
 #'
-#' @param s integer, corresponding to log2 of the signal length. WARNING the ordering change for different values of s.
+#' @param lev_res integer, corresponding to log2 of the signal length. WARNING the ordering change for different values of s.
 #'
 #' @export
 #'

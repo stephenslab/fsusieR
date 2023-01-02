@@ -7,7 +7,7 @@
 \usage{
 check_cs(susiF.obj, min.purity = 0.5, X, ...)
 
-\method{check_cs}{susiF}(susiF.obj, min.purity = 0.5, X)
+\method{check_cs}{susiF}(susiF.obj, min.purity = 0.5, X, ...)
 }
 \arguments{
 \item{susiF.obj}{a susif object defined by \code{\link{init_susiF_obj}} function}

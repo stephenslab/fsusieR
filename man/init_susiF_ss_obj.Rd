@@ -4,7 +4,7 @@
 \alias{init_susiF_ss_obj}
 \title{Initialize a susiF object using regression coefficients}
 \usage{
-init_susiF_ss_obj(L, G_prior, data)
+init_susiF_ss_obj(L, G_prior, data, ...)
 }
 \arguments{
 \item{L}{number of non zero coefficients An L-vector containing the indices of the

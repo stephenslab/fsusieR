@@ -11,6 +11,18 @@ greedy_backfit(susiF.obj, verbose, cov_lev, X, min.purity, ...)
 }
 \arguments{
 \item{susiF.obj}{a susiF object defined by \code{\link{init_susiF_obj}} function}
+
+\item{verbose}{If \code{verbose = TRUE}, the algorithm's progress,
+and a summary of the optimization settings, are printed to the
+console.}
+
+\item{X}{matrix of size n by p contains the covariates}
+
+\item{min.purity}{minimum purity for estimated credible sets}
+
+\item{control_mixsqp}{list of parameter for mixsqp function see  mixsqp package}
+
+\item{col_lev}{the desired level of converage}
 }
 \value{
 susiF object

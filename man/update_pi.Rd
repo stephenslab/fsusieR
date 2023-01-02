@@ -11,7 +11,7 @@ update_pi(susiF.obj, l, tpi, ...)
 
 \method{update_pi}{susiF}(susiF.obj, l, tpi, ...)
 
-\method{update_pi}{susiF_ss}(susiF_ss.obj, l, tpi, ...)
+\method{update_pi}{susiF_ss}(susiF.obj, l, tpi, ...)
 }
 \arguments{
 \item{susiF.obj}{a susif object defined by \code{\link{init_susiF_obj}} function}

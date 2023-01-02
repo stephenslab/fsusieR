@@ -11,7 +11,7 @@ update_cal_pip(susiF.obj, ...)
 
 \method{update_cal_pip}{susiF}(susiF.obj, ...)
 
-\method{update_cal_pip}{susiF_ss}(susiF_ss.obj, ...)
+\method{update_cal_pip}{susiF_ss}(susiF.obj, ...)
 }
 \arguments{
 \item{susiF.obj}{a susiF object defined by \code{\link{init_susiF_obj}} function}

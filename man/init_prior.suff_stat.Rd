@@ -4,7 +4,7 @@
 \alias{init_prior.suff_stat}
 \title{Initialize the prior using sufficient satistics}
 \usage{
-\method{init_prior}{suff_stat}(data, prior, indx_lst)
+\method{init_prior}{suff_stat}(data, prior, indx_lst, ...)
 }
 \arguments{
 \item{data}{an object of the class suff_stat define by function \code{\link{make_data_suff_stat}}}

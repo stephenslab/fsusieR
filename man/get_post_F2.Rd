@@ -11,7 +11,7 @@ get_post_F2(susiF.obj, l, ...)
 
 \method{get_post_F2}{susiF}(susiF.obj, l, ...)
 
-\method{get_post_F2}{susiF_ss}(susiF_ss.obj, l, ...)
+\method{get_post_F2}{susiF_ss}(susiF.obj, l, ...)
 }
 \arguments{
 \item{susiF.obj}{a susiF object defined by \code{\link{init_susiF_obj}} function}

@@ -14,7 +14,7 @@ update_alpha(susiF.obj, l, alpha, ...)
 
 \method{update_alpha_hist}{susiF}(susiF.obj, discard = FALSE, ...)
 
-\method{update_alpha}{susiF_ss}(susiF_ss.obj, l, alpha, ...)
+\method{update_alpha}{susiF_ss}(susiF.obj, l, alpha, ...)
 }
 \arguments{
 \item{susiF.obj}{a susiF object defined by \code{\link{init_susiF_obj}} function}

@@ -13,7 +13,8 @@
   lowc_wc,
   control_mixsqp,
   nullweight,
-  gridmult = sqrt(2)
+  gridmult = sqrt(2),
+  ...
 )
 }
 \arguments{

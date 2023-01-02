@@ -7,7 +7,7 @@
 \usage{
 merge_effect(susiF.obj, tl, ...)
 
-\method{merge_effect}{susiF}(susiF.obj, tl, discard = TRUE)
+\method{merge_effect}{susiF}(susiF.obj, tl, discard = TRUE, ...)
 }
 \arguments{
 \item{susiF.obj}{a susiF object defined by \code{\link{init_susiF_obj}} function}

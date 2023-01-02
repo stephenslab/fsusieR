@@ -7,7 +7,7 @@
 \usage{
 loglik_SFR(susiF.obj, l, ...)
 
-\method{loglik_SFR}{susiF}(susiF.obj, l, Y, X, indx_lst)
+\method{loglik_SFR}{susiF}(susiF.obj, l, Y, X, indx_lst, ...)
 }
 \arguments{
 \item{susiF.obj}{a susiF object defined by \code{\link{init_susiF_obj}} function}

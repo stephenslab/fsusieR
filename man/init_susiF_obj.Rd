@@ -4,7 +4,7 @@
 \alias{init_susiF_obj}
 \title{Initialize a susiF object using regression coefficients}
 \usage{
-init_susiF_obj(L_max, G_prior, Y, X, L_start, greedy, backfit)
+init_susiF_obj(L_max, G_prior, Y, X, L_start, greedy, backfit, ...)
 }
 \arguments{
 \item{L_max}{upper bound on the number of non zero coefficients An L-vector containing the indices of the

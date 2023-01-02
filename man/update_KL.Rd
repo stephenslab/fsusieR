@@ -11,7 +11,7 @@ update_KL(susiF.obj, X, D, C, indx_lst, ...)
 
 \method{update_KL}{susiF}(susiF.obj, X, D, C, indx_lst, ...)
 
-\method{update_KL}{susiF_ss}(susiF_ss.obj, data, ...)
+\method{update_KL}{susiF_ss}(susiF.obj, data, ...)
 }
 \arguments{
 \item{X}{matrix of covariate}

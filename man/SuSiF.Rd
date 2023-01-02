@@ -73,7 +73,7 @@ cs and cs with estimated prior equal to 0)}
 \item{nullweight}{numeric value for penalizing likelihood at point mass 0 (should be between 0 and 1)
 (usefull in small sample size)}
 
-\item{control_mixsqp}{list of parameter for mixsqp function see\link{\code{mixsqp}}}
+\item{control_mixsqp}{list of parameter for mixsqp function see  mixsqp package}
 
 \item{thresh_lowcount}{numeric, use to check the wavelet coefficients have
 problematic distribution (very low dispersion even after standardization).

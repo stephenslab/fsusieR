@@ -4,9 +4,13 @@
 \alias{fit_lm}
 \title{Regress column l of Y on column j of X}
 \usage{
-fit_lm(l, j, Y, X, v1, lowc_wc = NULL)
+fit_lm(l, j, Y, X, v1, lowc_wc = NULL, ...)
 }
 \arguments{
+\item{l}{Y column index}
+
+\item{j}{X column index}
+
 \item{Y}{functional phenotype, matrix of size N by size J. The underlying algorithm uses wavelets that assume that J is of the form J^2. If J is not a power of 2, susiF internally remaps the data into a grid of length 2^J}
 
 \item{X}{matrix of size n by p in}

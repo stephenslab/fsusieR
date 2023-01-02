@@ -7,7 +7,7 @@
 \usage{
 get_partial_residual(susiF_ss.obj, data, l, ...)
 
-\method{get_partial_residual}{susiF_ss}(susiF_ss.obj, data, l)
+\method{get_partial_residual}{susiF_ss}(susiF_ss.obj, data, l, ...)
 }
 \arguments{
 \item{susiF_ss.obj}{susiF_ss.obj object}

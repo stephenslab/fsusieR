@@ -19,18 +19,8 @@
 #'
 #' @export
 #'
-cal_expected_residual <- function (susiF_ss.obj, data, ...)
-  UseMethod("cal_expected_residual")
 
-#' @rdname cal_expected_residual
-#'
-#' @method cal_expected_residual susiF_ss
-#'
-#' @export cal_expected_residual.susiF_ss
-#'
-#' @export
-#'
-cal_expected_residual.susiF_ss <- function( susiF_ss.obj, data)
+cal_expected_residual_ss <- function( susiF_ss.obj, data, ...)
 {
 
   data$exp_residual <- data$Xty - data$XtX%*%get_post_F(susiF_ss.obj)
@@ -42,15 +32,10 @@ cal_expected_residual.susiF_ss <- function( susiF_ss.obj, data)
 
 
 
-#' @rdname cal_Bhat_Shat
+#'  @title Compute wavelet summary stat
 #'
-#' @method cal_Bhat_Shat  susiF_ss
 #'
-#' @export cal_Bhat_Shat.susiF_ss
-#'
-#' @export
-#'
-cal_Bhat_Shat.susiF_ss <- function( susiF_ss.obj,data , partial=TRUE )
+cal_Bhat_Shat_ss <- function( susiF_ss.obj,data , partial=TRUE , ...)
 {
 
 
@@ -70,14 +55,9 @@ cal_Bhat_Shat.susiF_ss <- function( susiF_ss.obj,data , partial=TRUE )
 }
 
 
-#' @rdname estimate_residual_variance
+#' @title Estimate residual variance for summary stat
 #'
-#' @method estimate_residual_variance susiF_ss
-#'
-#' @export estimate_residual_variance.susiF_ss
-#'
-#' @export
-estimate_residual_variance.susiF_ss <- function(susiF_ss.obj,data, ... )
+estimate_residual_variance_ss <- function(susiF_ss.obj,data, ... )
 {
   out <-  (1/(data$N*ncol(data$Bhat)))*get_ER2 (susiF_ss.obj,data  )
   return(out)
@@ -106,7 +86,7 @@ estimate_residual_variance.susiF_ss <- function(susiF_ss.obj,data, ... )
 #' \item{pip}{Posterior inclusion probabilites}
 #' \item{G_prior}{a G_prior of the same class as the input G_prior, used for internal calculation}
 #'
-init_susiF_ss_obj <- function(L, G_prior, data )
+init_susiF_ss_obj <- function(L, G_prior, data, ... )
 {
 
 
@@ -172,10 +152,10 @@ init_susiF_ss_obj <- function(L, G_prior, data )
 #'
 #' @export
 #'
-get_pi.susiF_ss <- function(susiF_ss.obj, l, ...)
+get_pi.susiF_ss <- function(susiF.obj, l, ...)
 {
 
-  if( l >  length(susiF_ss.obj$est_pi))
+  if( l >  length(susiF.obj$est_pi))
   {
     stop("Error trying to access mixture proportion")
   }
@@ -183,7 +163,7 @@ get_pi.susiF_ss <- function(susiF_ss.obj, l, ...)
   {
     stop("Error l should be larger ")
   }
-  out <- susiF_ss.obj$est_pi[[l]]
+  out <- susiF.obj$est_pi[[l]]
   return(out)
 }
 
@@ -198,10 +178,10 @@ get_pi.susiF_ss <- function(susiF_ss.obj, l, ...)
 #'
 #' @export
 #'
-get_lBF.susiF_ss <- function(susiF_ss.obj, l, ...)
+get_lBF.susiF_ss <- function(susiF.obj, l, ...)
 {
 
-  if( l >   susiF_ss.obj$L)
+  if( l >   susiF.obj$L)
   {
     stop("Error trying to access mixture proportion")
   }
@@ -209,7 +189,7 @@ get_lBF.susiF_ss <- function(susiF_ss.obj, l, ...)
   {
     stop("Error l should be larger ")
   }
-  out <- susiF_ss.obj$lBF[[l]]
+  out <- susiF.obj$lBF[[l]]
   return(out)
 }
 
@@ -221,9 +201,9 @@ get_lBF.susiF_ss <- function(susiF_ss.obj, l, ...)
 #'
 #' @export
 #'
-get_G_prior.susiF_ss <- function(susiF_ss.obj, ...)
+get_G_prior.susiF_ss <- function(susiF.obj, ...)
 {
-  out <- susiF_ss.obj$G_prior
+  out <- susiF.obj$G_prior
   return(out)
 }
 
@@ -238,9 +218,9 @@ get_G_prior.susiF_ss <- function(susiF_ss.obj, ...)
 #' @export
 #'
 
-get_alpha.susiF_ss <-  function(susiF_ss.obj, l, ...  )
+get_alpha.susiF_ss <-  function(susiF.obj, l, ...  )
 {
-  out <- susiF_ss.obj$alpha[[l]]
+  out <- susiF.obj$alpha[[l]]
   return( out)
 }
 
@@ -273,7 +253,7 @@ get_partial_residual <- function (susiF_ss.obj, data, l, ...)
 #'
 #' @export
 #'
-get_partial_residual.susiF_ss <- function( susiF_ss.obj, data,l)
+get_partial_residual.susiF_ss <- function( susiF_ss.obj, data,l, ...)
 {
 
   data$part_exp_residual <- data$exp_residual + data$XtX%*%get_post_F(susiF_ss.obj,l)
@@ -295,13 +275,13 @@ get_partial_residual.susiF_ss <- function( susiF_ss.obj, data,l)
 #' @export
 #'
 
-get_post_F.susiF_ss <- function(susiF_ss.obj,l,...)
+get_post_F.susiF_ss <- function(susiF.obj,l,...)
 {
   if(missing(l))
   {
-    out <-  Reduce("+",lapply(1:susiF_ss.obj$L, FUN=function(l) susiF_ss.obj$alpha[[l]] * susiF_ss.obj$fitted_wc[[l]]))
+    out <-  Reduce("+",lapply(1:susiF.obj$L, FUN=function(l) susiF.obj$alpha[[l]] * susiF.obj$fitted_wc[[l]]))
   }else{
-    out <-   susiF_ss.obj$alpha[[l]] * susiF_ss.obj$fitted_wc[[l]]
+    out <-   susiF.obj$alpha[[l]] * susiF.obj$fitted_wc[[l]]
   }
 
   return(out)
@@ -317,13 +297,13 @@ get_post_F.susiF_ss <- function(susiF_ss.obj,l,...)
 #'
 #' @export
 #'
-get_post_F2.susiF_ss <- function(susiF_ss.obj, l,...)
+get_post_F2.susiF_ss <- function(susiF.obj, l,...)
 {
   if(missing(l))
   {
-    out <-  Reduce("+",lapply(1:susiF_ss.obj$L, FUN=function(l) susiF_ss.obj$alpha[[l]] *(susiF_ss.obj$sigma2 + susiF_ss.obj$fitted_wc2[[l]])))
+    out <-  Reduce("+",lapply(1:susiF.obj$L, FUN=function(l) susiF_.obj$alpha[[l]] *(susiF.obj$sigma2 + susiF.obj$fitted_wc2[[l]])))
   }else{
-    out <-   susiF_ss.obj$alpha[[l]] *(susiF_ss.obj$sigma2 + susiF_ss.obj$fitted_wc2[[l]])
+    out <-   susiF.obj$alpha[[l]] *(susiF.obj$sigma2 + susiF.obj$fitted_wc2[[l]])
   }
 
   return(out)
@@ -331,15 +311,9 @@ get_post_F2.susiF_ss <- function(susiF_ss.obj, l,...)
 
 
 
-#' @rdname get_ER2
-#'
-#' @method get_ER2 susiF_ss
-#'
-#' @export get_ER2.susiF_ss
-#'
-#' @export
+#' @title  compute expected sum of squares for sum stat model
 
-get_ER2.susiF_ss = function (  susiF_ss.obj,data ) {
+get_ER2_ss = function (  susiF_ss.obj,data, ... ) {
   postF <- get_post_F( susiF_ss.obj )# J by N matrix
   postF2 <- get_post_F2( susiF_ss.obj ) # Posterior second moment.
   return( sum(data$yty) -2*sum(t(postF)%*%Xty) +  sum(( t(postF) %*% data$XtX %*% postF))  -sum(postF)^2 + sum( postF2))
@@ -347,16 +321,11 @@ get_ER2.susiF_ss = function (  susiF_ss.obj,data ) {
 }
 
 
-#' @rdname out_prep
-#'
-#' @method out_prep susiF_ss
-#'
-#' @export out_prep.susiF_ss
-#'
-#' @export
+#' @title Preparation output susiF_ss.obj type
 #'
 
-out_prep.susiF_ss <- function(susiF_ss.obj, ...)
+
+out_prep_ss <- function(susiF_ss.obj, ...)
 {
   susiF_ss.obj <-  update_cal_pip(susiF_ss.obj)
   susiF_ss.obj <-  update_cal_cs(susiF_ss.obj)
@@ -372,10 +341,10 @@ out_prep.susiF_ss <- function(susiF_ss.obj, ...)
 #'
 #' @export
 #'
-update_pi.susiF_ss <- function( susiF_ss.obj, l, tpi, ...)
+update_pi.susiF_ss <- function( susiF.obj, l, tpi, ...)
 {
 
-  if( l > length(susiF_ss.obj$est_pi))
+  if( l > length(susiF.obj$est_pi))
   {
     stop("Error trying to access mixture proportion")
   }
@@ -388,8 +357,8 @@ update_pi.susiF_ss <- function( susiF_ss.obj, l, tpi, ...)
     stop("Error tpi should be of one of the follwoing class:\n
           pi_mixture_normal \n pi_mixture_normal_per_scale")
   }
-  susiF_ss.obj$est_pi[[l]] <- tpi
-  out <-susiF_ss.obj
+  susiF.obj$est_pi[[l]] <- tpi
+  out <-susiF.obj
   class(out) <- "susiF_ss"
   return(out)
 }
@@ -405,11 +374,11 @@ update_pi.susiF_ss <- function( susiF_ss.obj, l, tpi, ...)
 #'
 #' @export
 #'
-update_alpha.susiF_ss <-  function(susiF_ss.obj, l, alpha, ... )
+update_alpha.susiF_ss <-  function(susiF.obj, l, alpha, ... )
 {
-  susiF_ss.obj$alpha[[l]] <- alpha
-  susiF_ss.obj$alpha_hist[[ (length(susiF_ss.obj$alpha_hist)+1)  ]] <- alpha
-  return( susiF_ss.obj)
+  susiF.obj$alpha[[l]] <- alpha
+  susiF.obj$alpha_hist[[ (length(susiF.obj$alpha_hist)+1)  ]] <- alpha
+  return( susiF.obj)
 }
 
 
@@ -424,15 +393,15 @@ update_alpha.susiF_ss <-  function(susiF_ss.obj, l, alpha, ... )
 #' @export
 #'
 
-update_lBF.susiF_ss <- function(susiF_ss.obj,l, lBF, ...)
+update_lBF.susiF_ss <- function(susiF.obj,l, lBF, ...)
 {
-  if(l> susiF_ss.obj$L)
+  if(l> susiF.obj$L)
   {
     stop("Error: trying to update more effects than the number of specified effect")
   }
 
-  susiF_ss.obj$lBF[[l]] <- lBF
-  return(susiF_ss.obj)
+  susiF.obj$lBF[[l]] <- lBF
+  return(susiF.obj)
 }
 
 
@@ -446,11 +415,11 @@ update_lBF.susiF_ss <- function(susiF_ss.obj,l, lBF, ...)
 #' @export
 #'
 
-update_ELBO.susiF_ss <- function (susiF_ss.obj,ELBO, ...)
+update_ELBO.susiF_ss <- function (susiF.obj,ELBO, ...)
 {
 
-  susiF_ss.obj$ELBO <- c(susiF_ss.obj$ELBO,ELBO)
-  return(susiF_ss.obj)
+  susiF.obj$ELBO <- c(susiF.obj$ELBO,ELBO)
+  return(susiF.obj)
 }
 
 
@@ -466,19 +435,19 @@ update_ELBO.susiF_ss <- function (susiF_ss.obj,ELBO, ...)
 #' @export
 #'
 
-update_cal_pip.susiF_ss <- function (susiF_ss.obj, ...)
+update_cal_pip.susiF_ss <- function (susiF.obj, ...)
 {
-  if(sum( is.na(unlist(susiF_ss.obj$alpha))))
+  if(sum( is.na(unlist(susiF.obj$alpha))))
   {
     stop("Error: some alpha value not updated, please update alpha value first")
   }
   tpip <- list()
-  for ( l in 1:susiF_ss.obj$L)
+  for ( l in 1:susiF.obj$L)
   {
-    tpip[[l]] <- rep(1, lengths(susiF_ss.obj$alpha)[[l]])-susiF_ss.obj$alpha[[l]]
+    tpip[[l]] <- rep(1, lengths(susiF.obj$alpha)[[l]])-susiF.obj$alpha[[l]]
   }
-  susiF_ss.obj$pip <- 1-  apply( do.call(rbind,tpip),2, prod)
-  return(susiF_ss.obj)
+  susiF.obj$pip <- 1-  apply( do.call(rbind,tpip),2, prod)
+  return(susiF.obj)
 }
 
 
@@ -491,18 +460,18 @@ update_cal_pip.susiF_ss <- function (susiF_ss.obj, ...)
 #' @export
 #'
 
-update_cal_cs.susiF_ss <- function(susiF_ss.obj, cov_lev=0.95)
+update_cal_cs.susiF_ss <- function(susiF.obj, cov_lev=0.95, ...)
 {
-  if(sum( is.na(unlist(susiF_ss.obj$alpha))))
+  if(sum( is.na(unlist(susiF.obj$alpha))))
   {
     stop("Error: some alpha value not updated, please update alpha value first")
   }
-  for ( l in 1:susiF_ss.obj$L)
+  for ( l in 1:susiF.obj$L)
   {
-    temp        <- susiF_ss.obj$alpha[[l]]
+    temp        <- susiF.obj$alpha[[l]]
     temp_cumsum <- cumsum( temp[order(temp, decreasing =TRUE)])
     max_indx_cs <- min(which( temp_cumsum >cov_lev ))
-    susiF_ss.obj$cs[[l]]  <- order(temp, decreasing = TRUE)[1:max_indx_cs ]
+    susiF.obj$cs[[l]]  <- order(temp, decreasing = TRUE)[1:max_indx_cs ]
 
   }
 
@@ -563,9 +532,9 @@ update_susiF_obj.susiF_ss <- function(susiF_ss.obj, l, EM_pi,Bhat, Shat , indx_l
 #' @export
 #'
 
-update_residual_variance.susiF_ss <- function(susiF_ss.obj,sigma2)
+update_residual_variance.susiF_ss <- function(susiF.obj,sigma2, ...)
 {
-  susiF_ss.obj$sigma2 <- sigma2
+  susiF.obj$sigma2 <- sigma2
   return(susiF_ss.obj)
 }
 
@@ -585,7 +554,7 @@ update_residual_variance.susiF_ss <- function(susiF_ss.obj,sigma2)
 #'
 #' @export
 #'
-update_expected_residual  <- function( susiF_ss.obj, data,l)
+update_expected_residual  <- function( susiF_ss.obj, data,l, ...)
   UseMethod("update_expected_residual")
 
 
@@ -619,9 +588,9 @@ update_expected_residual.susiF_ss <- function( susiF_ss.obj, data,l)
 #'
 #' @export
 #'
-update_KL.susiF_ss <- function(susiF_ss.obj, data , ...)
+update_KL.susiF_ss <- function(susiF.obj, data , ...)
 {
-  susiF_ss.obj$KL <-  do.call(c,lapply(1:susiF_ss.obj$L,FUN=function(l) cal_KL_l(susiF_ss.obj, l, data  )))
+  susiF.obj$KL <-  do.call(c,lapply(1:susiF.obj$L,FUN=function(l) cal_KL_l(susiF.obj, l, data  )))
   return( susiF_ss.obj)
 }
 

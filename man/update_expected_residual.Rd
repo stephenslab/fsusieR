@@ -5,7 +5,7 @@
 \alias{update_expected_residual.susiF_ss}
 \title{Update expected residuals for susiF_ss.obj}
 \usage{
-update_expected_residual(susiF_ss.obj, data, l)
+update_expected_residual(susiF_ss.obj, data, l, ...)
 
 \method{update_expected_residual}{susiF_ss}(susiF_ss.obj, data, l)
 }
