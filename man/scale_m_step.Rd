@@ -26,8 +26,6 @@ scale_m_step(
 
 \item{init_pi0_w}{starting value of weight on null compoenent in mixsqp}
 
-\item{control_mixsqp}{list of parameter for mixsqp function see  mixsqp package}
-
 \item{nullweight}{penalization parameter}
 }
 \value{

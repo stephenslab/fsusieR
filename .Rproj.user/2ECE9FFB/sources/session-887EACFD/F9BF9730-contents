@@ -1,6 +1,6 @@
 library(susiF.alpha)
 library(sim1000G)
-set.seed(1)
+#set.seed(1)
 examples_dir = system.file("examples", package = "sim1000G")
 vcf_file = file.path(examples_dir, "region.vcf.gz")
 
@@ -33,7 +33,7 @@ print(dim(genotypes))
 
 str(genotypes)
  
-  L <- sample(1:20, size=1)#actual number of effect
+  L <- sample(3:5, size=1)#actual number of effect
   print(L)
   lf <-  list()
   for(l in 1:L){
@@ -57,18 +57,20 @@ str(genotypes)
     }
   }
   
-  m1 <- susiF(Y=Y[1:30,], X=G[1:30,],L=10 ,L_start=11,
-              verbose=TRUE ,nullweight=1000, 
+  m1 <- susiF(Y=Y , X=G ,L=7 ,L_start=7,
+              verbose=TRUE ,nullweight=10, 
               prior="mixture_normal_per_scale",
-              cal_obj =TRUE,  maxit=30)
+              cal_obj =TRUE,  maxit=10,
+              gridmult=3)
   m1$ELBO
   diff(m1$ELBO)
   plot(m1$ELBO[-1])
   m1$cs
-  m1 <- susiF(Y=Y , X=G ,L=10 ,L_start=11,
+  m1 <-susiF(Y=Y[1:30,], X=G[1:30,],L=7 ,L_start=7,
               verbose=TRUE ,nullweight=20, 
-              prior="mixture_normal",
-                maxit=10)
+              cal_obj =TRUE, prior="mixture_normal",
+                maxit=20,
+              gridmult=4)
   m1$cs
   m1$ELBO
   diff(m1$ELBO)

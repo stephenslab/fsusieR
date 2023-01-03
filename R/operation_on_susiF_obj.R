@@ -5,6 +5,7 @@
 
 #' @importFrom stats median
 #' @importFrom stats cor
+#' @export
 cal_cor_cs <- function(susiF.obj,X){
 
   if(length(susiF.obj$cs)==1)
