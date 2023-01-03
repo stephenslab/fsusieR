@@ -10,6 +10,8 @@ plot_effect(susiF.obj, L, size_line = 2, ...)
 \item{susiF.obj}{output of the susiF function}
 
 \item{L}{maximum number of effect to display}
+
+\item{size_line}{numeric, width of the plotted lines}
 }
 \description{
 Plot susiF object

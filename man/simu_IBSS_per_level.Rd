@@ -17,11 +17,11 @@ simu_IBSS_per_level(
 
 \item{length_grid}{vector numerical corresponds to the length of the grid of sigma for mixture component(cf ash)}
 
+\item{pi0}{vector numerical , contain a digit  between 0 and 1, which corresponds to the null proportion ( non assocatied wavelet coefficients)}
+
 \item{alpha}{numeric >0, control smoothness of the curves, should be positive and up 4 in particular d_sl ~  pi_{0,sl}  delta_0 + sum_k  pi_k N(0, 2^{- alpha * s}   sigma_k^2)}
 
 \item{prop_decay}{numeric >0, control the proportion of non zero wavelet coefficient per scale, pi_{0,sl} = 1- exp(-prop_decay*s)}
-
-\item{piO}{vector numerical , contain a digit  between 0 and 1, which corresponds to the null proportion ( non assocatied wavelet coefficients)}
 }
 \description{
 Add description here.

@@ -273,6 +273,10 @@ discard_cs.susiF <- function(susiF.obj, cs, out_prep=FALSE,  ...)
 #'
 #' @param L_start number of effect to start with
 #'
+#' @param greedy logical, if TRUE allow greedy search
+#'
+#' @param backfit logical, if TRUE allow backfitting
+#'
 #' @export
 #' @return A list with the following elements
 #' \item{fitted_wc}{ list of length L, each element contains the fitted wavelet coefficients of effect l}
@@ -661,7 +665,6 @@ get_post_F2.susiF <- function(susiF.obj, l,...)
 #'
 #' @param l integer larger or equal to 1. Corresponds to the effect to be accessed
 #'
-#' @param alpha  vector of p alpha values summing up to one
 #'
 #' @return susiF object
 #'
@@ -691,11 +694,10 @@ get_alpha.susiF <-  function(susiF.obj, l,...  )
 #' @param susiF.obj a susiF object defined by \code{\link{init_susiF_obj}} function
 #' @param X matrix of size n by p contains the covariates
 #' @param min.purity minimum purity for estimated credible sets
-#' @param control_mixsqp list of parameter for mixsqp function see  mixsqp package
 #' @param verbose If \code{verbose = TRUE}, the algorithm's progress,
 #' and a summary of the optimization settings, are printed to the
 #' console.
-#' @param col_lev the desired level of converage
+#' @param cov_lev the desired level of converage
 #' @return susiF object
 #'
 #' @export
@@ -948,6 +950,8 @@ name_cs.susiF <- function(susiF.obj,X,...){
 #' @param susiF.obj a susiF object defined by \code{\link{init_susiF_obj}} function
 #'
 #' @param tl see  \code{\link{greedy_backfit}}
+#'
+#' @param discard logical, if set to TRUE allow discarding redundant effect
 #'
 #'
 #'
@@ -1772,7 +1776,9 @@ update_residual_variance.susiF <- function(susiF.obj,sigma2,...)
 #'
 #' @param cred.band logical if set as true plot credible bands. Set as TRUE by default
 #' @param effect numerical if specified plot on effect in particular
-#'
+#' @param size_line numeric, width of the plotted lines
+#' @param pip_only logical, if TRUE only ouput the PIP plot
+#' @param title character
 #' @importFrom ggplot2 ggplot
 #' @importFrom ggplot2 aes
 #' @importFrom ggplot2 geom_line
@@ -2029,6 +2035,7 @@ plot_susiF <- function(susiF.obj, size_point=2 ,size_line=2, cred.band=FALSE , e
 #' @param susiF.obj output of the susiF function
 #'
 #' @param L maximum number of effect to display
+#' @param size_line numeric, width of the plotted lines
 #' @export
 #'
 
@@ -2055,7 +2062,15 @@ plot_effect <- function(susiF.obj, L,size_line=2   ,...)
 #' @export
 #'
 #'
-test_stop_cond <- function(susiF.obj, check, cal_obj, Y, X, D, C, indx_lst  ,...)
+test_stop_cond <- function(susiF.obj,
+                           check,
+                           cal_obj,
+                           Y,
+                           X,
+                           D,
+                           C,
+                           indx_lst
+                           ,...)
   UseMethod("test_stop_cond")
 
 

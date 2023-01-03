@@ -6,6 +6,9 @@
 \usage{
 out_prep_ss(susiF_ss.obj, ...)
 }
+\arguments{
+\item{susiF_ss.obj}{an object of class susiF_ss}
+}
 \description{
 Preparation output susiF_ss.obj type
 }

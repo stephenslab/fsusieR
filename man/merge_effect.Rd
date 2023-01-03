@@ -13,6 +13,8 @@ merge_effect(susiF.obj, tl, ...)
 \item{susiF.obj}{a susiF object defined by \code{\link{init_susiF_obj}} function}
 
 \item{tl}{see  \code{\link{greedy_backfit}}}
+
+\item{discard}{logical, if set to TRUE allow discarding redundant effect}
 }
 \value{
 a susiF object

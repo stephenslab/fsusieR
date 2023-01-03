@@ -6,6 +6,11 @@
 \usage{
 estimate_residual_variance_ss(susiF_ss.obj, data, ...)
 }
+\arguments{
+\item{susiF_ss.obj}{an object of class susiF_ss}
+
+\item{data}{a data object see init_susiF_ss}
+}
 \description{
 Estimate residual variance for summary stat
 }

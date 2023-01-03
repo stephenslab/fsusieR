@@ -6,6 +6,11 @@
 \usage{
 get_ER2_ss(susiF_ss.obj, data, ...)
 }
+\arguments{
+\item{susiF_ss.obj}{an object of class susiF_ss}
+
+\item{data}{a data object see init_susiF_ss}
+}
 \description{
 compute expected sum of squares for sum stat model
 }

@@ -3,14 +3,11 @@
 \name{get_objective}
 \alias{get_objective}
 \alias{get_objective.susiF}
-\alias{get_objective.susiF_ss}
 \title{Get objective function from data and susiF object}
 \usage{
 get_objective(susiF.obj, Y, X, D, C, indx_lst, ...)
 
 \method{get_objective}{susiF}(susiF.obj, Y, X, D, C, indx_lst, ...)
-
-\method{get_objective}{susiF_ss}(susiF_ss.obj, data, ...)
 }
 \arguments{
 \item{susiF.obj}{a susiF object defined by \code{\link{init_susiF_obj}} function}

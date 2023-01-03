@@ -11,7 +11,7 @@ simu_IBSS_ash_vanilla(lev_res = 7, length_grid = 10, pi0 = 0.85)
 
 \item{length_grid}{vector numerical corresponds to the length of the grid of sigma for mixture component(cf ash)}
 
-\item{piO}{vector numerical , contain a digit  between 0 and 1, which corresponds to the null proportion ( non assocatied wavelet coefficients)}
+\item{pi0}{vector numerical , contain a digit  between 0 and 1, which corresponds to the null proportion ( non assocatied wavelet coefficients)}
 }
 \description{
 Add description here.

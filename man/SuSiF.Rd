@@ -94,8 +94,9 @@ on wavelet coefficients}
 (up to L specify by the user). Set as TRUE by default}
 
 \item{backfit}{logical, if true allow discarding effect via backfitting.
-Set as true by default as TRUE. We advise to keep it as TRUE
-@param gridmult numeric used to control the number of component used in the mixture prior (see ashr package
+Set as true by default as TRUE. We advise to keep it as TRUE}
+
+\item{gridmult}{numeric used to control the number of component used in the mixture prior (see ashr package
 for more details). From the ash function:  multiplier by which the default grid values for mixsd differ by one another.
  (Smaller values produce finer grids.). Increasing this value may reduce computational time}
 }

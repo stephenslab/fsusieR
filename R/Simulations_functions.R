@@ -6,7 +6,7 @@
 #'
 #' @param length_grid vector numerical corresponds to the length of the grid of sigma for mixture component(cf ash)
 #'
-#' @param piO vector numerical , contain a digit  between 0 and 1, which corresponds to the null proportion ( non assocatied wavelet coefficients)
+#' @param pi0 vector numerical , contain a digit  between 0 and 1, which corresponds to the null proportion ( non assocatied wavelet coefficients)
 #'
 #' @importFrom stats rchisq
 #' @importFrom stats runif
@@ -63,7 +63,7 @@ simu_IBSS_ash_vanilla <- function( lev_res=7, length_grid= 10, pi0= 0.85)
 #'
 #' @param length_grid vector numerical corresponds to the length of the grid of sigma for mixture component(cf ash)
 #'
-#' @param piO vector numerical , contain a digit  between 0 and 1, which corresponds to the null proportion ( non assocatied wavelet coefficients)
+#' @param pi0 vector numerical , contain a digit  between 0 and 1, which corresponds to the null proportion ( non assocatied wavelet coefficients)
 #'
 #' @param alpha numeric >0, control smoothness of the curves, should be positive and up 4 in particular d_sl ~  pi_{0,sl}  delta_0 + sum_k  pi_k N(0, 2^{- alpha * s}   sigma_k^2)
 #'

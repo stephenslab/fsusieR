@@ -34,7 +34,8 @@ cal_expected_residual_ss <- function( susiF_ss.obj, data, ...)
 
 #'  @title Compute wavelet summary stat
 #'
-#'
+#' @param susiF_ss.obj an object of class susiF_ss
+#' @param  data a data object see init_susiF_ss
 cal_Bhat_Shat_ss <- function( susiF_ss.obj,data , partial=TRUE , ...)
 {
 
@@ -56,7 +57,8 @@ cal_Bhat_Shat_ss <- function( susiF_ss.obj,data , partial=TRUE , ...)
 
 
 #' @title Estimate residual variance for summary stat
-#'
+#' @param susiF_ss.obj an object of class susiF_ss
+#' @param  data a data object see init_susiF_ss
 estimate_residual_variance_ss <- function(susiF_ss.obj,data, ... )
 {
   out <-  (1/(data$N*ncol(data$Bhat)))*get_ER2 (susiF_ss.obj,data  )
@@ -312,7 +314,8 @@ get_post_F2.susiF_ss <- function(susiF.obj, l,...)
 
 
 #' @title  compute expected sum of squares for sum stat model
-
+#' @param susiF_ss.obj an object of class susiF_ss
+#' @param  data a data object see init_susiF_ss
 get_ER2_ss = function (  susiF_ss.obj,data, ... ) {
   postF <- get_post_F( susiF_ss.obj )# J by N matrix
   postF2 <- get_post_F2( susiF_ss.obj ) # Posterior second moment.
@@ -323,7 +326,7 @@ get_ER2_ss = function (  susiF_ss.obj,data, ... ) {
 
 #' @title Preparation output susiF_ss.obj type
 #'
-
+#' @param susiF_ss.obj an object of class susiF_ss
 
 out_prep_ss <- function(susiF_ss.obj, ...)
 {

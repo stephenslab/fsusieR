@@ -22,6 +22,9 @@ m_step(L, zeta, indx_lst, init_pi0_w, control_mixsqp, ...)
 \item{init_pi0_w}{starting value of weight on null compoenent in mixsqp}
 
 \item{control_mixsqp}{list of parameter for mixsqp function see mixsqp package}
+
+\item{nullweight}{numeric value for penalizing likelihood at point mass 0 (should be between 0 and 1)
+(usefull in small sample size)}
 }
 \value{
 a vector of proportion (class pi_mixture_normal)

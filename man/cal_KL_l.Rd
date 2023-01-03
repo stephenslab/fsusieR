@@ -3,14 +3,11 @@
 \name{cal_KL_l}
 \alias{cal_KL_l}
 \alias{cal_KL_l.susiF}
-\alias{cal_KL_l.susiF_ss}
 \title{Compute KL divergence effect l}
 \usage{
 cal_KL_l(susiF.obj, l, X, D, C, indx_lst, ...)
 
 \method{cal_KL_l}{susiF}(susiF.obj, l, X, D, C, indx_lst, ...)
-
-\method{cal_KL_l}{susiF_ss}(susiF_ss.obj, l, data, ...)
 }
 \arguments{
 \item{susiF.obj}{a susisF object defined by \code{\link{init_susiF_obj}} function}

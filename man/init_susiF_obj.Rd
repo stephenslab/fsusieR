@@ -17,6 +17,10 @@ nonzero coefficients.}
 \item{X}{Matrix of covariates}
 
 \item{L_start}{number of effect to start with}
+
+\item{greedy}{logical, if TRUE allow greedy search}
+
+\item{backfit}{logical, if TRUE allow backfitting}
 }
 \value{
 A list with the following elements

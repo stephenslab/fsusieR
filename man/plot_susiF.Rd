@@ -18,9 +18,15 @@ plot_susiF(
 \arguments{
 \item{susiF.obj}{output of the susiF function}
 
+\item{size_line}{numeric, width of the plotted lines}
+
 \item{cred.band}{logical if set as true plot credible bands. Set as TRUE by default}
 
 \item{effect}{numerical if specified plot on effect in particular}
+
+\item{pip_only}{logical, if TRUE only ouput the PIP plot}
+
+\item{title}{character}
 }
 \description{
 Plot susiF object
