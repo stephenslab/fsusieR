@@ -3,24 +3,30 @@
 \name{loglik_SFR_post}
 \alias{loglik_SFR_post}
 \alias{loglik_SFR_post.susiF}
-\title{Compute posterior expected loglikelihood for  single function regression of effect l}
+\title{Compute posterior expected loglikelihood for single function
+  regression of effect l}
 \usage{
 loglik_SFR_post(susiF.obj, l, ...)
 
 \method{loglik_SFR_post}{susiF}(susiF.obj, l, Y, X, ...)
 }
 \arguments{
-\item{susiF.obj}{a susiF object defined by \code{\link{init_susiF_obj}} function}
+\item{susiF.obj}{susiF object, for example created by calling
+\code{\link{init_susiF_obj}}.}
 
-\item{l}{effect to update}
+\item{l}{Index of effect to update.}
 
-\item{Y}{wavelet transformed phenotype}
+\item{\dots}{Other arguments.}
 
-\item{X}{Matrix of covariates}
+\item{Y}{Wavelet-transformed phenotype.}
+
+\item{X}{Matrix of covariates.}
 }
 \value{
-posterior expected loglikelihood for  single function regression of effect l
+Posterior expected log-likelihood for the single-function
+  regression of effect l.
 }
 \description{
-Compute posterior expected loglikelihood for  single function regression of effect l
+Compute posterior expected loglikelihood for single function
+  regression of effect l
 }

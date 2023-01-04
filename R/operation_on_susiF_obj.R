@@ -2003,20 +2003,16 @@ plot_susiF <- function(susiF.obj, size_point=2 ,size_line=2, cred.band=FALSE , e
   return( out)
 }
 
-
-
-
-
-
 #' @title Plot susiF object
 #'
 #' @param susiF.obj output of the susiF function
 #'
 #' @param L maximum number of effect to display
+#' 
 #' @param size_line numeric, width of the plotted lines
+#' 
 #' @export
 #'
-
 plot_effect <- function(susiF.obj, L,size_line=2   ,...)
 {
   tl <- length(susiF.obj$fitted_func[[1]])
@@ -2028,7 +2024,7 @@ plot_effect <- function(susiF.obj, L,size_line=2   ,...)
                 geom_line(size=size_line)+
                 facet_wrap(.~col)
 }
-#'
+
 #' @title Check tolerance for stopping criterion
 #'
 #' @param susiF.obj a susiF object defined by \code{\link{init_susiF_obj}} function
@@ -2056,8 +2052,6 @@ test_stop_cond <- function(susiF.obj,
                            ,...)
   UseMethod("test_stop_cond")
 
-
-
 #' @rdname test_stop_cond
 #'
 #' @method test_stop_cond susiF
@@ -2066,11 +2060,7 @@ test_stop_cond <- function(susiF.obj,
 #'
 #' @export
 #'
-
-
-
-
-test_stop_cond.susiF<- function(susiF.obj, check, cal_obj, Y, X, D, C, indx_lst,...)
+test_stop_cond.susiF <- function(susiF.obj, check, cal_obj, Y, X, D, C, indx_lst,...)
 {
 
   if( susiF.obj$L==1)

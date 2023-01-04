@@ -1,11 +1,4 @@
-################################## Operations on susiF_ss object ############################
-#'
-#'
-
-
-
-
-
+########################## Operations on susiF_ss object ###################
 
 #' @title Compute expected residuals for susiF_ss.obj
 #'
@@ -19,7 +12,6 @@
 #'
 #' @export
 #'
-
 cal_expected_residual_ss <- function( susiF_ss.obj, data, ...)
 {
 
@@ -28,15 +20,12 @@ cal_expected_residual_ss <- function( susiF_ss.obj, data, ...)
   return( data)
 }
 
-
-
-
-
 #'  @title Compute wavelet summary stat
 #'
 #' @param susiF_ss.obj an object of class susiF_ss
 #' @param data a data object see init_susiF_ss
 #' @param partial logical
+#' 
 cal_Bhat_Shat_ss <- function(susiF_ss.obj, data, partial = TRUE, ...)
 {
 
@@ -426,10 +415,6 @@ update_ELBO.susiF_ss <- function (susiF.obj,ELBO, ...)
   return(susiF.obj)
 }
 
-
-
-
-
 #' @rdname update_cal_pip
 #'
 #' @method update_cal_pip susiF_ss
@@ -438,7 +423,6 @@ update_ELBO.susiF_ss <- function (susiF.obj,ELBO, ...)
 #'
 #' @export
 #'
-
 update_cal_pip.susiF_ss <- function (susiF.obj, ...)
 {
   if(sum( is.na(unlist(susiF.obj$alpha))))
@@ -454,7 +438,6 @@ update_cal_pip.susiF_ss <- function (susiF.obj, ...)
   return(susiF.obj)
 }
 
-
 #' @rdname update_cal_cs
 #'
 #' @method update_cal_cs susiF_ss
@@ -463,7 +446,6 @@ update_cal_pip.susiF_ss <- function (susiF.obj, ...)
 #'
 #' @export
 #'
-
 update_cal_cs.susiF_ss <- function(susiF.obj, cov_lev=0.95, ...)
 {
   if(sum( is.na(unlist(susiF.obj$alpha))))
@@ -482,7 +464,6 @@ update_cal_cs.susiF_ss <- function(susiF.obj, cov_lev=0.95, ...)
   return(susiF_ss.obj)
 }
 
-
 #' @title update susiF_ss object
 #'
 #' @param  susiF_ss.obj an object of class susiF_ss.
@@ -499,7 +480,6 @@ update_cal_cs.susiF_ss <- function(susiF.obj, cov_lev=0.95, ...)
 #'
 #' @export
 #'
-
 update_susiF_ss_obj <- function(susiF_ss.obj, l, EM_pi,Bhat, Shat , indx_lst, ...)
 {
 
@@ -531,10 +511,6 @@ update_susiF_ss_obj <- function(susiF_ss.obj, l, EM_pi,Bhat, Shat , indx_lst, ..
   return(susiF_ss.obj)
 }
 
-
-
-
-
 #' @rdname update_residual_variance
 #'
 #' @method update_residual_variance susiF_ss
@@ -543,14 +519,11 @@ update_susiF_ss_obj <- function(susiF_ss.obj, l, EM_pi,Bhat, Shat , indx_lst, ..
 #'
 #' @export
 #'
-
 update_residual_variance.susiF_ss <- function(susiF.obj,sigma2, ...)
 {
   susiF.obj$sigma2 <- sigma2
   return(susiF_ss.obj)
 }
-
-
 
 #' @title Update expected residuals for susiF_ss.obj
 #'
@@ -566,10 +539,8 @@ update_residual_variance.susiF_ss <- function(susiF.obj,sigma2, ...)
 #'
 #' @export
 #'
-update_expected_residual  <- function( susiF_ss.obj, data,l, ...)
+update_expected_residual <- function (susiF_ss.obj, data, l, ...)
   UseMethod("update_expected_residual")
-
-
 
 #' @rdname update_expected_residual
 #'
@@ -579,18 +550,12 @@ update_expected_residual  <- function( susiF_ss.obj, data,l, ...)
 #'
 #' @export
 #'
-update_expected_residual.susiF_ss <- function( susiF_ss.obj, data,l)
+update_expected_residual.susiF_ss <- function (susiF_ss.obj, data, l)
 {
-
-  data$exp_residual <- data$part_exp_residual - data$XtX%*%get_post_F(susiF_ss.obj,l)
-
-  return( data)
+  data$exp_residual <- (data$part_exp_residual -
+                        data$XtX %*% get_post_F(susiF_ss.obj,l))
+  return(data)
 }
-
-
-
-
-
 
 #' @rdname update_KL
 #'
@@ -600,12 +565,8 @@ update_expected_residual.susiF_ss <- function( susiF_ss.obj, data,l)
 #'
 #' @export
 #'
-update_KL.susiF_ss <- function(susiF.obj, data , ...)
+update_KL.susiF_ss <- function(susiF.obj, data, ...)
 {
-  susiF.obj$KL <-  do.call(c,lapply(1:susiF.obj$L,FUN=function(l) cal_KL_l(susiF.obj, l, data  )))
+  susiF.obj$KL <- do.call(c,lapply(1:susiF.obj$L,FUN=function(l) cal_KL_l(susiF.obj, l, data  )))
   return( susiF_ss.obj)
 }
-
-
-
-

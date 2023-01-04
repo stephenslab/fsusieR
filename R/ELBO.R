@@ -1,9 +1,3 @@
-
-
-
-
-
-
 #' @title Compute KL divergence effect l
 #'
 #' @param susiF.obj a susisF object defined by \code{\link{init_susiF_obj}} function
@@ -35,7 +29,6 @@ cal_KL_l <- function(susiF.obj, l, X, D,C , indx_lst, ...)
 #'
 #' @export
 #'
-
 cal_KL_l.susiF <- function(susiF.obj, l, X, D, C , indx_lst, ...)
 {
 
@@ -63,7 +56,6 @@ cal_KL_l.susiF <- function(susiF.obj, l, X, D, C , indx_lst, ...)
 #' @param susiF_ss.obj an object of class susiF_ss
 #' @param l integer , effect of interest
 #' @param  data a data object see init_susiF_ss
-
 cal_KL_l_ss <- function(susiF_ss.obj, l, data , ...)
 {
   lBF           <- get_lBF(susiF_ss.obj,l)
@@ -102,53 +94,52 @@ cal_KL_l_ss <- function(susiF_ss.obj, l, data , ...)
 loglik_SFR <- function    (susiF.obj, l,  ...)
   UseMethod("loglik_SFR")
 
-
-
-
 #' @rdname loglik_SFR
 #'
 #' @method loglik_SFR susiF
 #'
+#' @importFrom stats dnorm
+#' 
 #' @export loglik_SFR.susiF
-#'
+#' 
 #' @export
 #'
-
-loglik_SFR.susiF <- function(susiF.obj, l,Y ,X,indx_lst,  ... )
+loglik_SFR.susiF <- function (susiF.obj, l, Y , X, indx_lst, ...)
 {
-  lBF           <- get_lBF(susiF.obj,l)
-  prior_weights <- rep(1/ncol(X),ncol(X))
-  maxlBF <- max(lBF)
-  w = exp( lBF- maxlBF)
-  w_weighted = w * prior_weights
-  weighted_sum_w = sum(w_weighted)
-
-  lBF_model = maxlBF + log(weighted_sum_w)
-  loglik <-  lBF_model    + sum(dnorm(Y,0,sd= sqrt(susiF.obj$sigma2),log = TRUE))
-
-  return(loglik)
+  lBF            <- get_lBF(susiF.obj,l)
+  prior_weights  <- rep(1/ncol(X),ncol(X))
+  maxlBF         <- max(lBF)
+  w              <- exp(lBF - maxlBF)
+  w_weighted     <- w * prior_weights
+  weighted_sum_w <- sum(w_weighted)
+  lBF_model      <- maxlBF + log(weighted_sum_w)
+  return(lBF_model + sum(dnorm(Y,0,sd = sqrt(susiF.obj$sigma2),log = TRUE)))
 }
-#https://github.com/stephenslab/mvsusieR/blob/master/R/single_effect_model.R
+# https://github.com/stephenslab/mvsusieR/blob/master/R/single_effect_model.R
 
-
-
-#' @title Compute posterior expected loglikelihood for  single function regression of effect l
+#' @title Compute posterior expected loglikelihood for single function
+#'   regression of effect l
 #'
-#' @param susiF.obj a susiF object defined by \code{\link{init_susiF_obj}} function
+#' @param susiF.obj susiF object, for example created by calling
+#' \code{\link{init_susiF_obj}}.
 #'
-#' @param l effect to update
+#' @param l Index of effect to update.
 #'
-#' @param Y wavelet transformed phenotype
-#'
-#' @param X Matrix of covariates
-#'
-#' @return posterior expected loglikelihood for  single function regression of effect l
+#' @param \dots Other arguments.
+#' 
+#' @return Posterior expected log-likelihood for the single-function
+#'   regression of effect l.
+#' 
 #' @export
-loglik_SFR_post <- function    (susiF.obj, l,  ...)
+#' 
+loglik_SFR_post <- function (susiF.obj, l, ...)
   UseMethod("loglik_SFR_post")
 
-
 #' @rdname loglik_SFR_post
+#'
+#' @param Y Wavelet-transformed phenotype.
+#'
+#' @param X Matrix of covariates.
 #'
 #' @method loglik_SFR_post susiF
 #'
@@ -156,17 +147,15 @@ loglik_SFR_post <- function    (susiF.obj, l,  ...)
 #'
 #' @export
 #'
-
-loglik_SFR_post.susiF <- function(susiF.obj, l,Y,X,  ...)
+loglik_SFR_post.susiF <- function (susiF.obj, l, Y, X, ...)
 {
-  n <- nrow(Y)
-  t <- ncol(Y)
+  n   <- nrow(Y)
+  t   <- ncol(Y)
   EF  <- get_post_F(susiF.obj,l)
   EF2 <- get_post_F2(susiF.obj,l)
   s2  <- susiF.obj$sigma2
-   return(-0.5*n*t*log(2*pi*s2) -0.5/s2*(sum(t(Y)%*%Y)-2*sum(t(Y)%*%X%*%EF)+ sum(t(EF2)%*%EF2)))
-  #return(   0.5 *(sum(t(Y)%*%Y)-2*sum(t(Y)%*%X%*%EF)+ sum(t(EF2)%*%EF2)))
-
+  return(-n*t/2*log(2*pi*s2)
+         - s2/2*(sum(t(Y)%*%Y) - 2*sum(t(Y)%*%X%*%EF) + sum(t(EF2)%*%EF2)))
 }
 
 #' @title Compute posterior expected log likelihood for
