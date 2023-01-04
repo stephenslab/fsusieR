@@ -1,8 +1,0 @@
-set.seed(1)
-n <- 1e5
-m <- 10
-w <- rep(1,n)/n
-L <- simulatemixdata(n,m)$L
-out.mixsqp <- mixsqp(L,w)
-f <- mixobjective(L,out.mixsqp$x,w)
-print(f,digits = 16)

@@ -1,1 +1,0 @@
-susiF_obj$fitted_wc[[l]][, dim(susiF_obj$fitted_wc[[l]])[2]]*(1/(susiF_obj$csd_X))
