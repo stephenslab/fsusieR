@@ -107,7 +107,7 @@ trans_sum_stat_wreg <- function( Bhat, Shat){
 #'
 #' @return Wavelet regression coefficient using wavelet transform from W1
 #'@export
-Bhat_recov <- function(Bhat)
+Bhat_recov <- function(Bhat, W1)
 {
   W <- DWT2(Bhat )
   t_Bhat <-   cbind( W$D,W$C)

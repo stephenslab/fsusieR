@@ -11,6 +11,8 @@
 #'
 #' @param Shat A p by t matrix of standard errors.
 #'
+#' @param N sample size
+#'
 #' @param R A p by p correlation matrix. It should be estimated from
 #'   the same samples used to compute \code{Bhat} and \code{Shat}. Using
 #'   an out-of-sample matrix may produce unreliable results.

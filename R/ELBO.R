@@ -169,17 +169,19 @@ loglik_SFR_post.susiF <- function(susiF.obj, l,Y,X,  ...)
 
 }
 
+#' @title Compute posterior expected log likelihood for
+#'  single function regression of effect l for summary stat model
+#'
+#' @param susiF_ss.obj an object of class susiF_ss
+#'
+#' @param l effect to update
+#'
+#' @param data a summary stat data format object
+#'
 
-#' @rdname loglik_SFR_post
-#'
-#' @method loglik_SFR_post susiF_ss
-#'
-#' @export loglik_SFR_post.susiF_ss
-#'
 #' @export
-#'
 
-loglik_SFR_post.susiF_ss <- function(susiF_ss.obj,l, data,  ...)
+loglik_SFR_post_ss <- function(susiF_ss.obj,l, data,  ...)
 {
   n <- data$N
   t <- ncol(data$Bhat)
