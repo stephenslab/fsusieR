@@ -184,8 +184,7 @@ simu_IBSS_per_level  <-function( lev_res=7,
 #' @importFrom wavethresh DJ.EX
 #' @importFrom graphics lines
 #' @importFrom graphics legend
-#'
-#'
+#' @importFrom graphics plot
 #'
 #' @export
 #'

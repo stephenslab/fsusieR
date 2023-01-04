@@ -1,17 +1,15 @@
 ################################## Operations on susiF object ############################
-#'
-#'
-
 
 #' @title Compute correlation between credible sets
 #'
 #' @param susiF.obj a susiF object defined by \code{\link{init_susiF_obj}} function
 #' @param  X matrix of covariates
+#' 
 #' @importFrom stats median
 #' @importFrom stats cor
 #'
-#'
 #' @export
+#' 
 cal_cor_cs <- function(susiF.obj,X){
 
   if(length(susiF.obj$cs)==1)
@@ -163,7 +161,6 @@ cal_partial_resid.susiF  <- function( susiF.obj, l, X, D, C,  indx_lst,... )
   return(update_Y)
 }
 
-#'
 #' @title Check purity credible sets
 #'
 #' @param susiF.obj a susif object defined by \code{\link{init_susiF_obj}} function
@@ -174,11 +171,8 @@ cal_partial_resid.susiF  <- function( susiF.obj, l, X, D, C,  indx_lst,... )
 #'
 #' @export
 #'
-#'
 check_cs <- function(susiF.obj, min.purity=0.5,X,...)
   UseMethod("check_cs")
-
-
 
 #' @rdname check_cs
 #'
@@ -220,13 +214,9 @@ check_cs.susiF <- function(susiF.obj, min.purity=0.5,X,  ...)
 #' @return a susif.obj without "dummy" credible sets
 #'
 #' @export
-
-
-
+#'
 discard_cs <- function(susiF.obj, cs,out_prep,...)
   UseMethod("discard_cs")
-
-
 
 #' @rdname discard_cs
 #'
@@ -236,7 +226,6 @@ discard_cs <- function(susiF.obj, cs,out_prep,...)
 #'
 #' @export
 #'
-
 discard_cs.susiF <- function(susiF.obj, cs, out_prep=FALSE,  ...)
 {
     if( length(cs)==susiF.obj$L){
@@ -301,7 +290,7 @@ discard_cs.susiF <- function(susiF.obj, cs, out_prep=FALSE,  ...)
 #' \item{ELBO}{ The evidence lower bound}
 #' \item{lfsr_wc}{Local fasle sign rate of the fitted wavelet coefficients}
 #' @export
-
+#'
 init_susiF_obj <- function(L_max, G_prior, Y,X,L_start,greedy,backfit,... )
 {
 
@@ -374,8 +363,6 @@ init_susiF_obj <- function(L_max, G_prior, Y,X,L_start,greedy,backfit,... )
   return(obj)
 }
 
-
-
 #' @title Update residual variance
 #'
 #' @param susiF.obj a susiF object defined by \code{\link{init_susiF_obj}} function
@@ -386,10 +373,11 @@ init_susiF_obj <- function(L_max, G_prior, Y,X,L_start,greedy,backfit,... )
 #'
 #'
 #' @return estimated residual variance
+#' 
 #' @export
+#' 
 estimate_residual_variance <- function(susiF.obj,Y,X,... )
   UseMethod("estimate_residual_variance")
-
 
 #' @rdname estimate_residual_variance
 #'
@@ -398,6 +386,7 @@ estimate_residual_variance <- function(susiF.obj,Y,X,... )
 #' @export estimate_residual_variance.susiF
 #'
 #' @export
+#' 
 estimate_residual_variance.susiF <- function(susiF.obj,Y,X,... )
 {
   out <-  (1/(prod(dim(Y))))*get_ER2 (susiF.obj,Y, X  )
@@ -1650,7 +1639,6 @@ update_ELBO.susiF <- function    (susiF.obj,ELBO,...)
 
 #' @title Compute KL divergence effect l
 #'
-#'
 #' @param X matrix of covariates
 #'
 #' @param D matrix of wavelet D coefficients from the original input data (Y)
@@ -1792,16 +1780,12 @@ update_residual_variance.susiF <- function(susiF.obj,sigma2,...)
 #' @importFrom ggplot2 xlab
 #' @importFrom ggplot2 ylab
 #' @importFrom ggplot2 geom_ribbon
+#' @importFrom ggplot2 scale_fill_manual
 #' @importFrom utils installed.packages
 #' @importFrom utils install.packages
 #'
-#'
-#'
-#'
-#'
 #' @export
 #'
-
 plot_susiF <- function(susiF.obj, size_point=2 ,size_line=2, cred.band=FALSE , effect , pip_only=FALSE ,title="" ,...)
 
 {
@@ -2060,8 +2044,6 @@ plot_effect <- function(susiF.obj, L,size_line=2   ,...)
 }
 #'
 #' @title Check tolerance for stopping criterion
-#'
-#'
 #'
 #' @param susiF.obj a susiF object defined by \code{\link{init_susiF_obj}} function
 #' @param check numeric, dynamic value for testing outing of th while loop

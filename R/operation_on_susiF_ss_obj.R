@@ -35,9 +35,9 @@ cal_expected_residual_ss <- function( susiF_ss.obj, data, ...)
 #'  @title Compute wavelet summary stat
 #'
 #' @param susiF_ss.obj an object of class susiF_ss
-#' @param  data a data object see init_susiF_ss
+#' @param data a data object see init_susiF_ss
 #' @param partial logical
-cal_Bhat_Shat_ss <- function( susiF_ss.obj,data , partial=TRUE , ...)
+cal_Bhat_Shat_ss <- function(susiF_ss.obj, data, partial = TRUE, ...)
 {
 
 
@@ -47,7 +47,7 @@ cal_Bhat_Shat_ss <- function( susiF_ss.obj,data , partial=TRUE , ...)
   }else{
     rho <-data$Xty
   }
-  Bhat  <- rho /diag(XtX)
+  Bhat  <- rho /diag(data$XtX)
 
   Shat  <- sqrt( susiF_ss.obj$sigma2 * matrix(1, ncol = ncol(Bhat), nrow= nrow(Bhat))/ diag(data$XtX))
 
