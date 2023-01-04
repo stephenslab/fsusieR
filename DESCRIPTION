@@ -10,17 +10,8 @@ URL: https://github.com/stephenslab/susiF.alpha
 BugReports: https://github.com/stephenslab/susiF.alpha
 Description: Implementation of the Sum of Single Functions ("SuSiF") method.
 Depends:
-<<<<<<< Updated upstream
   R (>= 3.1.0),
   wavethresh (>= 4.6.8)
-Imports:
-  graphics,
-  stats,
-  ashr (>= 2.2-47),
-  mixsqp (>= 0.3-43)
-=======
-    R (>= 3.5.0),
-  
 Imports:
   wavethresh (>= 4.6.8),
     ashr (>= 2.2-47),
