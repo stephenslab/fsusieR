@@ -11,7 +11,7 @@ which_dummy_cs(susiF.obj, min.purity = 0.5, X, ...)
 
 \item{min.purity}{minimal purity within a CS}
 
-\item{X}{matrix of covariate}
+\item{X}{matrix of covariates}
 }
 \value{
 a list of index corresponding the the dummy effect

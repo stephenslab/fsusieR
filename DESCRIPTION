@@ -1,32 +1,34 @@
 Encoding: UTF-8
 Type: Package
 Package: susiF.alpha
-Version: 0.1.181
-Date: 2022-02-16
+Version: 0.1.182
+Date: 2023-01-04
 Title: Sum of Single Functions
 Authors@R: person("William R. P.","Denault",role = c("aut","cre"),
                   email = "wdenault@uchicago.edu")
 URL: https://github.com/stephenslab/susiF.alpha
 BugReports: https://github.com/stephenslab/susiF.alpha
-Description: Implementation of the Sum of Single Functions ("FSuSiE") method.
+Description: Implementation of the Sum of Single Functions ("FSuSiE")
+    method.
 Depends:
-  R (>= 3.5.0),
-  wavethresh (>= 4.6.8),
-  ashr (>= 2.2-47),
-  mixsqp (>= 0.3-43),
+    R (>= 3.5.0),
+    wavethresh (>= 4.6.8),
+    ashr (>= 2.2-47),
+    mixsqp (>= 0.3-43)
 Imports:
-  graphics,
-  stats,
-  matrixStats (>= 0.62.0),
-  ggplot2
+    graphics,
+    stats,
+    matrixStats (>= 0.62.0),
+    ggplot2
 Suggests:
     gridExtra,
     knitr,
-    rmarkdown
+    rmarkdown,
+    testthat
 License: GPL (>=3)
 LazyData: true
 LazyDataCompression: xz
 NeedsCompilation: yes
-RoxygenNote: 7.2.1
+RoxygenNote: 7.2.3
 ByteCompile: yes
 VignetteBuilder: knitr

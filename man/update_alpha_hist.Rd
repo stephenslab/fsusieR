@@ -2,9 +2,12 @@
 % Please edit documentation in R/operation_on_susiF_obj.R
 \name{update_alpha_hist}
 \alias{update_alpha_hist}
+\alias{update_alpha_hist.susiF}
 \title{Update alpha_hist   susiF object}
 \usage{
 update_alpha_hist(susiF.obj, discard, ...)
+
+\method{update_alpha_hist}{susiF}(susiF.obj, discard = FALSE, ...)
 }
 \arguments{
 \item{susiF.obj}{a susiF object defined by \code{\link{init_susiF_obj}} function}

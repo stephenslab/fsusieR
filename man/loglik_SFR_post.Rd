@@ -3,14 +3,11 @@
 \name{loglik_SFR_post}
 \alias{loglik_SFR_post}
 \alias{loglik_SFR_post.susiF}
-\alias{loglik_SFR_post.susiF_ss}
 \title{Compute posterior expected loglikelihood for  single function regression of effect l}
 \usage{
 loglik_SFR_post(susiF.obj, l, ...)
 
 \method{loglik_SFR_post}{susiF}(susiF.obj, l, Y, X, ...)
-
-\method{loglik_SFR_post}{susiF_ss}(susiF_ss.obj, l, data, ...)
 }
 \arguments{
 \item{susiF.obj}{a susiF object defined by \code{\link{init_susiF_obj}} function}

@@ -4,7 +4,7 @@
 \alias{Bhat_recov}
 \title{Transform raw regression coefficient to wavelet regression coefficients}
 \usage{
-Bhat_recov(Bhat)
+Bhat_recov(Bhat, W1)
 }
 \arguments{
 \item{Bhat}{matrix of regression coefficient}

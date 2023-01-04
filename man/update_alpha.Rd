@@ -4,15 +4,12 @@
 \name{update_alpha}
 \alias{update_alpha}
 \alias{update_alpha.susiF}
-\alias{update_alpha_hist.susiF}
 \alias{update_alpha.susiF_ss}
 \title{Update alpha   susiF mixture proportion of effect l}
 \usage{
 update_alpha(susiF.obj, l, alpha, ...)
 
 \method{update_alpha}{susiF}(susiF.obj, l, alpha, ...)
-
-\method{update_alpha_hist}{susiF}(susiF.obj, discard = FALSE, ...)
 
 \method{update_alpha}{susiF_ss}(susiF.obj, l, alpha, ...)
 }

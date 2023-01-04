@@ -14,7 +14,7 @@ nonzero coefficients.}
 
 \item{Y}{Matrix of outcomes}
 
-\item{X}{Matrix of covariates}
+\item{X}{matrix of covariatess}
 
 \item{L_start}{number of effect to start with}
 

@@ -14,7 +14,7 @@ cal_partial_resid(susiF.obj, l, X, D, C, indx_lst, ...)
 
 \item{l}{integer larger or equal to 1. Corresponds to the effect to be accessed}
 
-\item{X}{matrix of covariate}
+\item{X}{matrix of covariates}
 
 \item{D}{matrix of wavelet D coefficients from the original input data (Y)}
 

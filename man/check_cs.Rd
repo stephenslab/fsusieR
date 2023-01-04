@@ -14,7 +14,7 @@ check_cs(susiF.obj, min.purity = 0.5, X, ...)
 
 \item{min.purity}{minimal purity within a CS}
 
-\item{X}{matrix of covariate}
+\item{X}{matrix of covariates}
 }
 \value{
 a susif.obj without "dummy" credible s

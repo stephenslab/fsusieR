@@ -35,6 +35,8 @@ susiF_ss(
 
  @param N The sample size.}
 
+\item{N}{sample size}
+
 \item{var_y}{a T vector of The sample variance of Y at each time point , defined as \eqn{y'y/(n-1)}.
 When the sample variance cannot be provided, the coefficients
 (returned from \code{coef}) are computed on the "standardized" X, y

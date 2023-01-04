@@ -10,7 +10,7 @@ EM_pi(
   Shat,
   indx_lst,
   max_step = 100,
-  espsilon = 1e-04,
+  espsilon = 0.0001,
   init_pi0_w = 1,
   control_mixsqp,
   lowc_wc,

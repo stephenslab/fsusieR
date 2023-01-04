@@ -10,6 +10,8 @@ cal_Bhat_Shat_ss(susiF_ss.obj, data, partial = TRUE, ...)
 \item{susiF_ss.obj}{an object of class susiF_ss}
 
 \item{data}{a data object see init_susiF_ss}
+
+\item{partial}{logical}
 }
 \description{
 @title Compute wavelet summary stat
