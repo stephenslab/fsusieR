@@ -1,11 +1,4 @@
-################################## SuSiF operation on prior ############################
-#'
-#'
-#'
-#'
-#'
-
-
+######################## SuSiF operation on prior ###########################
 
 #' @title Initialize the prior
 #'
@@ -14,10 +7,9 @@
 #' @return an object of the class "normal", "mixture_normal" or "mixture_normal_per_scale"
 #'
 #' @export
-
+#'
 init_prior <- function(  ...)
   UseMethod("init_prior")
-
 
 #' @title Initialize the prior
 #'
@@ -127,14 +119,14 @@ init_prior.default <- function(Y,X, prior,v1 , indx_lst,lowc_wc,control_mixsqp,n
 #' @importFrom ashr ash
 #'
 #' @export
-init_prior.suff_stat <- function(data, prior,  indx_lst, ... )
+#' 
+init_prior.suff_stat <- function (data, prior, indx_lst, ...)
 {
   if( prior == "mixture_normal")
   {
-    Bhat  <- data$Xty /diag(XtX)
+    Bhat  <- data$Xty /diag(data$XtX)
 
     Shat  <- sqrt( 1 * matrix(1, ncol = ncol(Bhat), nrow= nrow(Bhat))/ diag(data$XtX))
-
 
     G_prior <- list()
     G_prior[[1]]  <-  ash(c(data$Bhat), c(data$Shat),mixcompdist ="normal")
@@ -157,11 +149,6 @@ init_prior.suff_stat <- function(data, prior,  indx_lst, ... )
 
 }
 
-
-
-
-
-
 #' @title Get mixture proportion for mixture normal prior
 #'
 #' @description Get mixture proportion for mixture normal prior
@@ -171,7 +158,7 @@ init_prior.suff_stat <- function(data, prior,  indx_lst, ... )
 #' @return vector of mixture proportion
 #'
 #' @export
-
+#'
 get_pi_G_prior <- function(G_prior, ...)
   UseMethod("get_pi_G_prior")
 
