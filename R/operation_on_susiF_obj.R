@@ -1781,20 +1781,12 @@ update_residual_variance.susiF <- function(susiF.obj,sigma2,...)
 #' @importFrom ggplot2 ylab
 #' @importFrom ggplot2 geom_ribbon
 #' @importFrom ggplot2 scale_fill_manual
-#' @importFrom utils installed.packages
-#' @importFrom utils install.packages
 #'
 #' @export
 #'
 plot_susiF <- function(susiF.obj, size_point=2 ,size_line=2, cred.band=FALSE , effect , pip_only=FALSE ,title="" ,...)
 
 {
-  #check if required package are install if not install them
-
-  list.of.packages <- c("ggplot2", "gridExtra")
-  new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
-  if(length(new.packages)) install.packages(new.packages)
-  require(ggplot2)
   color = c(
     "black",
     "dodgerblue2",
@@ -2027,12 +2019,6 @@ plot_susiF <- function(susiF.obj, size_point=2 ,size_line=2, cred.band=FALSE , e
 
 plot_effect <- function(susiF.obj, L,size_line=2   ,...)
 {
-
-  list.of.packages <- c("ggplot2", "gridExtra")
-  new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
-  if(length(new.packages)) install.packages(new.packages)
-  require(ggplot2)
-
   tl <- length(susiF.obj$fitted_func[[1]])
   df <- data.frame (func = do.call(c, sapply(1:L,  function(k) susiF.obj$fitted_func[[k]], simplify=FALSE)),
                     col = factor( rep( 1:L, each = tl ) ),

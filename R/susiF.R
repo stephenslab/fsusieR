@@ -69,7 +69,6 @@
 #'
 #' @examples
 #'
-#'library(susiF.alpha)
 #'library(ashr)
 #'set.seed(1)
 #'#Example using curves simulated under the Mixture normal per scale prior
