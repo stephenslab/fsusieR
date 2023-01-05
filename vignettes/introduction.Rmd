@@ -51,8 +51,8 @@ knitr::opts_chunk$set(
 	warning = FALSE
 )
 library(susiF.alpha)
-library(ashr)
 library(susieR)
+library(wavethresh)
 set.seed(1)
 data(N3finemapping)
 attach(N3finemapping)
@@ -84,7 +84,7 @@ Here we generate the observed curves (effect +noise)
 ```{r}
 
 noisy.data  <- list()
-
+X <- N3finemapping$X
 for ( i in 1:nrow(X))
 {
   f1_obs <- f1
@@ -127,7 +127,7 @@ the easiest way to visualize the result is to use the \code{plot_susiF} function
  par(mfrow=c(1,2))
  
  plot( f1, type="l", main="Estimated effect 1", xlab="")
- lines(unlist(out$fitted_func[[2]]),col='blue' )
+ lines(get_fitted_effect(out,l=2),col='blue' )
  abline(a=0,b=0)
  legend(x= 35,
         y=3,
@@ -136,7 +136,7 @@ the easiest way to visualize the result is to use the \code{plot_susiF} function
         col=c("black","blue" )
  )
  plot( f2, type="l", main="Estimated effect 2", xlab="")
- lines(unlist(out$fitted_func[[1]]),col='green' )
+ lines(get_fitted_effect(out,l=1),col='green' )
  abline(a=0,b=0)
  legend(x= 20,
         y=-1.5,
@@ -176,7 +176,7 @@ plot_susiF(out, pip_only=TRUE)
  
  
  
- #### A note on the different available priors
+ #### A note on the   priors available
 Note that fSuSiE has two different prior available \textit{mixture_normal_per_scale} and \textit{mixture_normal}. The default value is \textit{mixture_normal_per_scale}, which has slightly higher power that the  \textit{mixture_normal}. However,  \textit{mixture_normal} is up to 60% faster than the \textit{mixture_normal_per_scale}. You may consider using this option before performing genome-wide fine mapping. 
  
 

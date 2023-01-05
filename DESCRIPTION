@@ -12,15 +12,16 @@ Description: Implementation of the Sum of Single Functions ("FSuSiE")
     method.
 Depends:
     R (>= 3.5.0),
+Imports:
     wavethresh (>= 4.6.8),
     ashr (>= 2.2-47),
-    mixsqp (>= 0.3-43)
-Imports:
+    mixsqp (>= 0.3-43),
     graphics,
     stats,
     matrixStats (>= 0.62.0),
     ggplot2,
-    gridExtra
+    gridExtra,
+    dplyr
 Suggests:
     knitr,
     rmarkdown,

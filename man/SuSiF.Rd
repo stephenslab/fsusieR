@@ -109,6 +109,7 @@ Implementation of the SuSiF method
 \examples{
 
 library(ashr)
+library(wavethresh)
 set.seed(1)
 #Example using curves simulated under the Mixture normal per scale prior
 rsnr <- 0.2 #expected root signal noise ratio

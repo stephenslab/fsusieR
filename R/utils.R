@@ -117,3 +117,18 @@ gen_EM_out <- function(tpi_k , lBF){
   return(out)
 
 }
+
+
+
+
+
+function(Y,X)
+{
+  Y <- colScale(Y, scale=FALSE)
+  W <- DWT2(Y)
+  Y_f      <-  cbind( W$D,W$C)
+
+
+  v1 <- rep(1, dim(X)[2])
+  tt <-  cal_Bhat_Shat(Y_f,X,v1,lowc_wc = NULL)
+}

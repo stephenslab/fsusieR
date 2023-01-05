@@ -170,8 +170,8 @@ test_that("Class of the prior is", {
   "mixture_normal_per_scale"
   )
 })
-plot( Bhat,  post_mat_mean(G_prior,Bhat,Shat, indx_lst,lowc_wc) )
-plot( Shat,  (post_mat_sd(G_prior,Bhat,Shat, indx_lst,lowc_wc) ))
+plot( Bhat,  post_mat_mean(G_prior,Bhat,Shat, indx_lst=indx_lst,lowc_w=,lowc_wc) )
+plot( Shat,  (post_mat_sd(G_prior,Bhat,Shat, indx_lst=indx_lst,lowc_w=,lowc_wc) ))
 test_that("Class of the proportions  is", {
 
   expect_equal(class(get_pi_G_prior(G_prior))[1]
@@ -305,8 +305,8 @@ test_that("The update susiF object should have its argument equal to    ",
 
             susiF_obj <- update_susiF_obj(susiF_obj, 1, outEM, Bhat, Shat, indx_lst )
 
-            expect_equal( susiF_obj$fitted_wc[[1]],post_mat_mean( G_prior , Bhat, Shat, indx_lst ,lowc_wc))
-            expect_equal( susiF_obj$fitted_wc2[[1]],post_mat_sd  ( G_prior , Bhat, Shat , indx_lst,lowc_wc)^2)
+            expect_equal( susiF_obj$fitted_wc[[1]],post_mat_mean( G_prior , Bhat, Shat, indx_lst=indx_lst,lowc_w=,lowc_wc))
+            expect_equal( susiF_obj$fitted_wc2[[1]],post_mat_sd  ( G_prior , Bhat, Shat , indx_lst=indx_lst,lowc_w=,lowc_wc)^2)
             expect_equal( get_alpha (susiF_obj , 1), cal_zeta(outEM$lBF))
             expect_equal( get_G_prior(susiF_obj) ,G_prior)
             expect_equal(   susiF_obj$lBF[[1]]  , outEM$lBF )
@@ -469,14 +469,12 @@ test_that("SusiF performance should be",
 
 test_that("Removing one wc coeef should lead to the followin results",
           {
-
             tt1 <- cal_Bhat_Shat (update_Y,X,v1 , lowc_wc=NULL  )
             tt2 <- cal_Bhat_Shat (update_Y,X,v1 , lowc_wc=1:10  )
             expect_equal(c(tt1$Bhat[,-c(1:10)] ),c(tt2$Bhat[,-c(1:10)]))
             expect_equal(c(tt1$Shat[,-c(1:10)] ),c(tt2$Shat[,-c(1:10)]))
             expect_equal(c(tt2$Bhat[, c(1:10)] ),rep(0, length(c(tt2$Bhat[, c(1:10)] ))))
             expect_equal(c(tt2$Shat[, c(1:10)] ),rep(1, length(c(tt2$Shat[, c(1:10)] ))))
-
           }
 )
 

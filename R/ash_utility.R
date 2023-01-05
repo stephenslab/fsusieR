@@ -21,7 +21,7 @@ calc_np = function(g,data){
 #' @importFrom ashr comp_postprob
 #' @importFrom ashr mixprop
 #' @importFrom ashr pm_on_zero
-#' 
+#'
 calc_lfdr = function(g,data){
   exclude  = get_exclusions(data)
   ZeroProb = rep(0,length =  length(data$x))
@@ -35,9 +35,9 @@ calc_lfdr = function(g,data){
 calc_lfsr <- function(g, data)
 {
 
-    return(compute_lfsr(calc_np(get_fitted_g(g),
+    return(compute_lfsr(calc_np(ashr::get_fitted_g(g),
                                 data),
-                        calc_lfdr(get_fitted_g(g),
+                        calc_lfdr(ashr::get_fitted_g(g),
                                   data)
                         )
            )

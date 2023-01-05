@@ -6,27 +6,38 @@
 \usage{
 plot_susiF(
   susiF.obj,
-  size_point = 2,
-  size_line = 2,
+  title = "",
   cred.band = FALSE,
   effect,
+  size_line = 2,
+  size_point = 4,
+  pos_SNP,
+  start_end_region = c(0, 1),
   pip_only = FALSE,
-  title = "",
+  point_shape,
   ...
 )
 }
 \arguments{
 \item{susiF.obj}{output of the susiF function}
 
-\item{size_line}{numeric, width of the plotted lines}
+\item{title}{character}
 
 \item{cred.band}{logical if set as true plot credible bands. Set as TRUE by default}
 
 \item{effect}{numerical if specified plot on effect in particular}
 
+\item{size_line}{numeric, width of the plotted lines}
+
+\item{size_point}{numeric, size of the point}
+
+\item{pos_SNP}{vector containing the base pair of the SNPs}
+
+\item{start_end_region}{start end of the region}
+
 \item{pip_only}{logical, if TRUE only ouput the PIP plot}
 
-\item{title}{character}
+\item{point_shape}{vector containing the shape of dots}
 }
 \description{
 Plot susiF object

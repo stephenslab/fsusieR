@@ -29,11 +29,11 @@ simu_IBSS_ash_vanilla <- function( lev_res=7, length_grid= 10, pi0= 0.85)
   tt <- (1-pi0)*tt/sum(tt)
   pi_sim <- c(pi0,tt )# proportion of each of the mixture component, first element is prop of the null
 
-  true_g = normalmix(pi_sim,rep(0, length_grid),grid) # define normalmix object used for ash
+  true_g = ashr::normalmix(pi_sim,rep(0, length_grid),grid) # define normalmix object used for ash
 
   #generating a set of wavelet coefficients under this model
   tem_func <- rep(0, 2^lev_res)
-  twav <- wd(tem_func)
+  twav <- wavethresh:::wd(tem_func)
   while ( sum(twav$D ==0 ) == length(twav$D))#to ensure that there is at least one coefficient different from 0
   {
     clust  <-  c()
@@ -46,7 +46,7 @@ simu_IBSS_ash_vanilla <- function( lev_res=7, length_grid= 10, pi0= 0.85)
       twav$D[i] <-  ifelse(clust[i]==1,0,rnorm(1, mean=0, sd= grid[clust]))
     }
   }
-  sim_func <- wr(twav)
+  sim_func <- wavethresh::wr(twav)
   out <- list( sim_func  = sim_func,
                true_coef =twav$D,
                true_g=true_g,
@@ -119,10 +119,10 @@ simu_IBSS_per_level  <-function( lev_res=7,
     pi_sim <- c(pi0[i],tt )# proportion of each of the mixture component, first element is prop of the null
 
 
-    G_level[[i]] <- normalmix(pi_sim,rep(0, length_grid),grid)# define normalmix object used for ash at lev res i
+    G_level[[i]] <- ashr::normalmix(pi_sim,rep(0, length_grid),grid)# define normalmix object used for ash at lev res i
   }
   tem_func <- rep(0, 2^lev_res)
-  twav <- wd(tem_func)
+  twav <- wavethresh::wd(tem_func)
 
   while ( sum(twav$D ==0 ) == length(twav$D))#to ensure that ther is at least one coefficient different from 0
   {
@@ -142,15 +142,15 @@ simu_IBSS_per_level  <-function( lev_res=7,
   }
 
   #plot(accessD(twav,level=6), rev( tt$D[unlist(indx_lst[7])]) )
-  sim_func <- wr(twav)
+  sim_func <- wavethresh::wr(twav)
   emp_pi0 <- rep( 0, lev_res)
   for ( i in 0:(lev_res-1))
   {
-    if(length(which(accessD(twav,level=i)==0)) ==0)
+    if(length(which(wavethresh::accessD(twav,level=i)==0)) ==0)
     {
       emp_pi0[i+1] <- 0
     }else{
-      emp_pi0[i+1] <-  length(which(accessD(twav,level=i)==0))/(length(accessD(twav,level=i)))
+      emp_pi0[i+1] <-  length(which(wavethresh::accessD(twav,level=i)==0))/(length(wavethresh::accessD(twav,level=i)))
 
     }
     # print( emp_pi0[i+1])
