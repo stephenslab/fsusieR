@@ -21,7 +21,8 @@ plot_susiF(
 \arguments{
 \item{susiF.obj}{output of the susiF function}
 
-\item{title}{character}
+\item{title}{character
+@param \dots Other arguments.}
 
 \item{cred.band}{logical if set as true plot credible bands. Set as TRUE by default}
 

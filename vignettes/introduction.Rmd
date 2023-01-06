@@ -60,7 +60,7 @@ attach(N3finemapping)
 rsnr <- 0.5 #expected root signal noise ratio
 
 pos1 <- 250   #Position of the causal covariate for effect 1
-pos2 <- 750   #Position of the causal covariate for effect 1
+pos2 <- 750   #Position of the causal covariate for effect 2
 lev_res <- 7#length of the molecular phenotype (2^lev_res)
 f1 <-  simu_IBSS_per_level(lev_res )$sim_func#first effect
 f2 <- simu_IBSS_per_level(lev_res )$sim_func #second effect

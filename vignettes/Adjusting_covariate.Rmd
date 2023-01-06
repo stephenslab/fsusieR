@@ -16,12 +16,10 @@ knitr::opts_chunk$set(echo = TRUE)
 
 In order to reduce the number of false positives in fine-mapping analysis, it is often 
 important to account for potential counfounders. As most of the tools in the SuSiE suite
-don't account for confounders while performing fine-mapping, it is important to  account for potential counfounders prior to the analysis. Similar problem arise with FSuSiE. While it is
-relatively straightforward to adjust univariate phenotypes. It is more complicated to adjust
-curves for confounding. Thus we implemented a user freindly function that performs this preprocessing step.
+don't account for confounders while performing fine-mapping, it is important to  account for potential counfounders prior to the analysis. Similar problem arise with FSuSiE. While it is relatively straightforward to adjust univariate phenotypes. It is more complicated to adjust curves for confounding. Thus we implemented a user freindly function that performs this preprocessing step.
 
 
-
+### Generating the data
 ```{r}
 knitr::opts_chunk$set(
 	echo = TRUE,
@@ -35,26 +33,19 @@ set.seed(1)
 data(N3finemapping)
 attach(N3finemapping)
 
-rsnr <- 0.5 #expected root signal noise ratio
+rsnr <- 1 #expected root signal noise ratio
 
 pos1 <- 250   #Position of the causal covariate for effect 1
-pos2 <- 750   #Position of the causal covariate for effect 1
+pos2 <- 750   #Position of the causal covariate for effect 2
 lev_res <- 7#length of the molecular phenotype (2^lev_res)
 f1 <-  simu_IBSS_per_level(lev_res )$sim_func#first effect
 f2 <- simu_IBSS_per_level(lev_res )$sim_func #second effect
 
-f_1cov  <- simu_IBSS_per_level(lev_res )$sim_func #effect cov 1
-f_2cov  <- simu_IBSS_per_level(lev_res )$sim_func #effect cov 2
-f_3cov  <- simu_IBSS_per_level(lev_res )$sim_func #effect cov 3
+f1_cov  <- simu_IBSS_per_level(lev_res )$sim_func #effect cov 1
+f2_cov  <- simu_IBSS_per_level(lev_res )$sim_func #effect cov 2
+f3_cov  <- simu_IBSS_per_level(lev_res )$sim_func #effect cov 3
 
-plot( f1, type ="l", ylab="effect", col="blue")
-abline(a=0,b=0)
-lines(f2, type="l", col="green")
-legend(x=100,
-       y=3,
-       lty = rep(1,3),
-      legend= c("effect 1", "effect 2" ),
-       col=c("black","blue","yellow"))
+ 
 ```
 
 
@@ -64,15 +55,16 @@ legend(x=100,
 
 noisy.data  <- list()
 Geno <- N3finemapping$X
-
-Cov <- matrix(rnorm(n=nrow(Geno)*3), ncol=3)
+tt <- svd(Geno)
+PCA <- tt$u%*%diag(tt$d)
+Cov <- cbind(PCA [,1], PCA [,2], PCA [,3]) 
 
 for ( i in 1:nrow(X))
 {
   f1_obs <- f1
   f2_obs <- f2
   noise <- rnorm(length(f1), sd=  (1/  rsnr ) * var(f1))
-  noisy.data [[i]] <-  Geno [i,pos1]*f1_obs +Geno [i,pos2]*f2_obs + Cov [i,1]*f1_cov + Cov  [i,2]*f2_cov + Cov  [i,3]*f3_obs +noise
+  noisy.data [[i]] <-  Geno [i,pos1]*f1_obs +Geno [i,pos2]*f2_obs + Cov [i,1]*f1_cov + Cov  [i,2]*f2_cov + Cov  [i,3]*f3_cov +noise
 
 }
 noisy.data <- do.call(rbind, noisy.data)
@@ -82,39 +74,88 @@ Y <- noisy.data
 ```
 
 
+###  Account for covariates
+
 We use the function \textit{adjust_FM_covariate} to regress out the effect of the covariate (in the matrix Cov). The function output an object that contains 
 * the adjusted curves
 * the fitted effect (covariate)
-* the corresponding position
+* the corresponding position for the mapped adjsuted curves and fitted curves
 
-NB: If you input matrix Y has a number of column that is not a power of 2. Then adjust_FM_covariate will remap the corresponding curves to a grid with $2^K$ points.  The adjusted curves and the fitted effect matrices 
-
-
+NB: If you input matrix Y has a number of column that is not a power of 2. Then adjust_FM_covariate will remap the corresponding curves to a grid with $2^K$ points. Note that if the corresponding positions of the columns are not evenly spaced then it is important to provide this position in the pos arugment in the pos function. The output of the  The adjusted curves and the fitted effect matrices are mapped on the grid provde
 
 
+```{r}
 
-doesn't account for potential counfounder while performing fine-mapping. T
+out <- adjust_FM_covariate(Y,Cov, pos=1:ncol(Y))
+plot( out$Y_adjusted, Y)
+plot( out$Y_adjusted, out$Y_fitted)
 
-covariate 
-In many  cases it is important adjust for covariate 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-```{r cars}
-summary(cars)
+Y_corrected  <- out$Y_adjusted
 ```
 
-## Including Plots
+
+### Fine-map
+We can now fine-map our curves without to be worried of potential confounding due to population stratification or age
+
+```{r, echo=FALSE}
+out <- susiF(Y=Y_corrected,
+             X=Geno,
+             L=3 )
 
 
-
-
-
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+We can check the results
+
+ 
+```{r}
+ 
+ plot_susiF(out)
+ 
+
+```
+
+### Comparison with fine-mapping without adjustement
+
+We can compare the performance when not adjusting
+
+
+```{r, echo=FALSE}
+out_unadj <- susiF(Y=Y,
+             X=Geno,
+             L=3 )
+
+
+```
+
+Here we can the performance 
+ 
+ 
+```{r}
+ par(mfrow=c(1,2))
+ 
+ plot( f1, type="l", main="Estimated effect 1", xlab="")
+ lines(get_fitted_effect(out,l=2),col='blue' )
+ lines(get_fitted_effect(out_unadj,l=2),col='blue' , lty=2)
+ 
+ abline(a=0,b=0)
+ legend(x= 35,
+        y=3,
+        lty= rep(1,2),
+        legend = c("effect 1"," fSuSiE est "),
+        col=c("black","blue" )
+ )
+ plot( f2, type="l", main="Estimated effect 2", xlab="")
+ lines(get_fitted_effect(out,l=1),col='green' )
+ lines(get_fitted_effect(out_unadj,l=1),col='green' , lty=2)
+ 
+ abline(a=0,b=0)
+ legend(x= 20,
+        y=-1.5,
+        lty= rep(1,2),
+        legend = c("effect 2"," fSuSiE est "),
+        col=c("black","green" )
+ )
+ 
+ par(mfrow=c(1,1))
+```

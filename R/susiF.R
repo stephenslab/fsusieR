@@ -1,4 +1,4 @@
-#' @title Sum of Single Functions
+#' @title Sum of Single Function
 #'
 #' @description Implementation of the SuSiF method
 #'
@@ -224,7 +224,7 @@ susiF <- function(Y, X, L = 2,
   if(!is.wholenumber(log2(dim(Y)[2])) | !(sum( duplicated(diff( pos)))== (length(pos) -2)) ) #check whether dim(Y) not equal to 2^J or if the data are unevenly spaced
   {
 
-    inter_pol.obj <- interpol_mat(Y, pos)
+    inter_pol.obj <-interpol_mat(Y, pos)
     Y             <- inter_pol.obj$Y
     bp            <- inter_pol.obj$bp
 

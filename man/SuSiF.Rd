@@ -2,7 +2,7 @@
 % Please edit documentation in R/susiF.R
 \name{susiF}
 \alias{susiF}
-\title{Sum of Single Functions}
+\title{Sum of Single Function}
 \usage{
 susiF(
   Y,

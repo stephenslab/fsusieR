@@ -75,7 +75,7 @@ DWT2 <- function (data, filter.number = 10, family = "DaubLeAsymm")
   D <- matrix(NA, nrow = n, ncol = J - 1)
   C <- rep(NA, n)
   for (i in 1:n) { ## Speed Gain
-    temp <- wd(data[i, ], filter.number = filter.number,
+    temp <- wavethresh::wd(data[i, ], filter.number = filter.number,
                family = family)
     D[i, ] <- temp$D
     C[i] <- wavethresh::accessC(temp, level = 0)
@@ -126,17 +126,17 @@ gen_wavelet_indx <- function(lev_res)
 #' @title Adjusting functions for covariates
 #
 #' @description Simple function to adjust the observed curves for covariate (e.g. age, population structure)
-#' @param Y  integer, corresponding to log2 of the signal length. WARNING the ordering change for different values of s.
-#'  @param X matrix of containning the covaraite
-#'  @param pos Original position of the column of Y
-#'  @param thresh_lowcount numeric, use to check the wavelet coefficients have
+#' @param Y  observed curves.
+#' @param X matrix of containning the covaraite
+#' @param pos Original position of the column of Y
+#' @param thresh_lowcount numeric, use to check the wavelet coefficients have
 #'  problematic distribution (very low dispersion even after standardization).
 #'  Basically check if the median of the absolute value of the distribution of
 #'   a wavelet coefficient is below this threshold, if yes the algorithm discard
 #'   this wavelet coefficient (setting its estimate effect to 0 and estimate sd to 1).
 #'   Set to 0 by default. Can be useful when analyzing sparse data from sequence
 #'    based assay or small samples.
-# @export
+#' @export
 #
 
 
@@ -166,7 +166,7 @@ adjust_FM_covariate <- function(Y,X,pos=NULL, thresh_lowcount=0){
     outing_grid   <- pos
   }
 
-  Y <- colScale(Y, scale=FALSE)
+
   W <- DWT2(Y)
   Y_f      <-  cbind( W$D,W$C)
 
@@ -197,10 +197,10 @@ adjust_FM_covariate <- function(Y,X,pos=NULL, thresh_lowcount=0){
     Y_fitted [i,] <-  wavethresh::wr(temp)
   }
 
-  susiF.obj$outing_grid <- outing_grid
-  Y_corrected = Y - Y_fitted
 
-  out <- list( Y_corrected = Y_corrected,
+  Y_adjusted = Y - Y_fitted
+
+  out <- list( Y_adjusted  = Y_adjusted,
                Y_fitted    = Y_fitted,
                pos         = outing_grid
   )

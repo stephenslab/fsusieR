@@ -33,7 +33,7 @@ simu_IBSS_ash_vanilla <- function( lev_res=7, length_grid= 10, pi0= 0.85)
 
   #generating a set of wavelet coefficients under this model
   tem_func <- rep(0, 2^lev_res)
-  twav <- wavethresh:::wd(tem_func)
+  twav <- wavethresh::wd(tem_func)
   while ( sum(twav$D ==0 ) == length(twav$D))#to ensure that there is at least one coefficient different from 0
   {
     clust  <-  c()
@@ -165,29 +165,29 @@ simu_IBSS_per_level  <-function( lev_res=7,
   return(out)
 }
 
-#' @title Simulation using Donoho and Johnstone test functions
-#'
-#' @param N integer number of sample to simulate
-#'
-#' @param P number of covariate
-#'
-#' @param lev_res control length of the generated function (length function = 2^lev_res)
-#'
-#' @param rsnr root signal noise ratio for the noise
-#'
-#' @param is.plot logical if set to TRUE plot underying function
-#'
-#' @param pos1 position of the first active covariate
-#'
-#' @param pos2 position of the first active covariate (optional)
-#'
-#' @importFrom wavethresh DJ.EX
-#' @importFrom graphics lines
-#' @importFrom graphics legend
-#' @importFrom graphics plot
-#'
-#' @export
-#'
+# @title Simulation using Donoho and Johnstone test functions
+#
+# @param N integer number of sample to simulate
+#
+# @param P number of covariate
+#
+# @param lev_res control length of the generated function (length function = 2^lev_res)
+#
+# @param rsnr root signal noise ratio for the noise
+#
+# @param is.plot logical if set to TRUE plot underying function
+#
+# @param pos1 position of the first active covariate
+#
+# @param pos2 position of the first active covariate (optional)
+#
+# @importFrom wavethresh DJ.EX
+# @importFrom graphics lines
+# @importFrom graphics legend
+# @importFrom graphics plot
+#
+# @export
+#
 simu_test_function <- function(N=50, P=10,lev_res=7, rsnr=2,is.plot=TRUE, pos1 =1, pos2)
 {
 

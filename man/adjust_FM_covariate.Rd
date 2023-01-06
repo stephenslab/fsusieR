@@ -7,8 +7,19 @@
 adjust_FM_covariate(Y, X, pos = NULL, thresh_lowcount = 0)
 }
 \arguments{
-\item{Y}{integer, corresponding to log2 of the signal length. WARNING the ordering change for different values of s.
-@param X matrix of containning the covaraite}
+\item{Y}{observed curves.}
+
+\item{X}{matrix of containning the covaraite}
+
+\item{pos}{Original position of the column of Y}
+
+\item{thresh_lowcount}{numeric, use to check the wavelet coefficients have
+problematic distribution (very low dispersion even after standardization).
+Basically check if the median of the absolute value of the distribution of
+ a wavelet coefficient is below this threshold, if yes the algorithm discard
+ this wavelet coefficient (setting its estimate effect to 0 and estimate sd to 1).
+ Set to 0 by default. Can be useful when analyzing sparse data from sequence
+  based assay or small samples.}
 }
 \description{
 Simple function to adjust the observed curves for covariate (e.g. age, population structure)

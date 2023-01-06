@@ -1,46 +1,5 @@
 ################################## Operations on susiF object ############################
 
-# @title Compute correlation between credible sets
-#
-# @param susiF.obj a susiF object defined by \code{\link{init_susiF_obj}} function
-# @param  X matrix of covariates
-#
-# @importFrom stats median
-# @importFrom stats cor
-#
-# @export
-#
-cal_cor_cs <- function(susiF.obj,X){
-
-  if(length(susiF.obj$cs)==1)
-  {return(susiF.obj)}else{
-
-    mat_cor <- matrix(NA, ncol = length(susiF.obj$cs),
-                      nrow= length(susiF.obj$cs))
-
-    for ( l in 1:length(susiF.obj$cs)){
-
-      for ( k in 1:length(susiF.obj$cs)){
-
-        temp <- max(do.call( c,
-                             sapply( 1:length(susiF.obj$cs[[l]]),
-                                     function(l1)
-                                       sapply( 1:length(susiF.obj$cs[[k]]),
-                                               function( k1)  cor(X[,c(susiF.obj$cs[[l]][l1],
-                                                                       susiF.obj$cs[[k]][k1])])[2,1],
-                                               simplify=FALSE)
-                                    )
-                            )
-                    )
-        mat_cor[l,k] <-temp
-        mat_cor[k,l] <-temp
-
-      }
-    }
-  }
-  susiF.obj$cs_cor <- mat_cor
-  return(susiF.obj)
-}
 
 # @title Compute partial residual for effect l
 #
@@ -928,36 +887,6 @@ greedy_backfit.susiF <-  function(susiF.obj,
 }
 
 
-# @title Updates CS names for output
-#
-# @param susiF.obj a susiF object defined by \code{\link{init_susiF_obj}} function
-#
-# @param X matrix of size N by p
-
-name_cs <- function(susiF.obj,X,...)
-  UseMethod("name_cs")
-
-# @rdname name_cs
-#
-# @method name_cs susiF
-#
-# @export name_cs.susiF
-#
-# @export
-#
-
-name_cs.susiF <- function(susiF.obj,X,...){
-
-  if( length(colnames(X))==ncol(X)){
-
-    for (l in 1: length(susiF.obj$cs)){
-      names(susiF.obj$cs[[l]]) <- colnames(X)[susiF.obj$cs[[l]]]
-    }
-
-  }
-  return(susiF.obj)
-}
-
 
 
 
@@ -1023,6 +952,36 @@ merge_effect.susiF <- function( susiF.obj, tl, discard=TRUE,  ...){
 
 
 
+# @title Updates CS names for output
+#
+# @param susiF.obj a susiF object defined by \code{\link{init_susiF_obj}} function
+#
+# @param X matrix of size N by p
+
+name_cs <- function(susiF.obj,X,...)
+  UseMethod("name_cs")
+
+# @rdname name_cs
+#
+# @method name_cs susiF
+#
+# @export name_cs.susiF
+#
+# @export
+#
+
+name_cs.susiF <- function(susiF.obj,X,...){
+
+  if( length(colnames(X))==ncol(X)){
+
+    for (l in 1: length(susiF.obj$cs)){
+      names(susiF.obj$cs[[l]]) <- colnames(X)[susiF.obj$cs[[l]]]
+    }
+
+  }
+  return(susiF.obj)
+}
+
 
 # @title Preparing output of main susiF function
 #
@@ -1070,6 +1029,286 @@ out_prep.susiF <- function(susiF.obj,Y, X, indx_lst, filter.cs, lfsr_curve, outi
   susiF.obj$outing_grid <- outing_grid
   return(susiF.obj)
 }
+
+
+
+
+
+#' @title Plot susiF object
+#
+#' @param susiF.obj output of the susiF function
+#
+#' @param cred.band logical if set as true plot credible bands. Set as TRUE by default
+#' @param effect numerical if specified plot on effect in particular
+#' @param size_line numeric, width of the plotted lines
+#' @param size_point numeric, size of the point
+#' @param pos_SNP vector containing the base pair of the SNPs
+#' @param point_shape vector containing the shape of dots
+#' @param start_end_region start end of the region
+#' @param pip_only logical, if TRUE only ouput the PIP plot
+#' @param title character
+#'  @param \dots Other arguments.
+#' @importFrom ggplot2 ggplot
+#' @importFrom ggplot2 aes
+#' @importFrom ggplot2 geom_line
+#' @importFrom ggplot2 facet_wrap
+#' @importFrom ggplot2 geom_point
+#' @importFrom ggplot2 theme
+#' @importFrom ggplot2 element_blank
+#' @importFrom ggplot2 scale_color_manual
+#' @importFrom ggplot2 xlab
+#' @importFrom ggplot2 ylab
+#' @importFrom ggplot2 geom_ribbon
+#' @importFrom ggplot2 scale_fill_manual
+#
+#' @export
+#
+plot_susiF  = function (susiF.obj, title="",
+                        cred.band = FALSE,
+                        effect,
+                        size_line=2,
+                        size_point=4,
+                        pos_SNP,
+                        start_end_region=c(0,1),
+                        pip_only=FALSE,
+                        point_shape, ...)
+{
+
+  if(missing(pos_SNP)){
+    pos_SNP<-  1:length(susiF.obj$pip)
+  }
+  if( missing(point_shape)){
+    point_shape <- rep( 19, length(pos_SNP))
+  }
+  list.of.packages <- c("ggplot2", "gridExtra","dplyr")
+  new.packages <- list.of.packages[!(list.of.packages %in%
+                                       installed.packages()[, "Package"])]
+  if (length(new.packages))
+    install.packages(new.packages)
+  require(ggplot2)
+  require(dplyr)
+  color = c("black", "dodgerblue2", "green4", "#6A3D9A", "#FF7F00",
+            "gold1", "skyblue2", "#FB9A99", "palegreen2", "#CAB2D6",
+            "#FDBF6F", "gray70", "khaki2", "maroon", "orchid1", "deeppink1",
+            "blue1", "steelblue4", "darkturquoise", "green1", "yellow4",
+            "yellow3", "darkorange4", "brown")
+  L <- susiF.obj$L
+  n_wac <- susiF.obj$n_wac
+  y <- susiF.obj$pip
+  col_y <- rep(0, length(y))
+  if (missing(effect)) {
+    for (l in 1:L) {
+      col_y[which(1:length(y) %in% susiF.obj$cs[[l]])] <- l
+    }
+    df <- data.frame(y = y, CS = as.factor(col_y))%>%
+      dplyr::mutate(CS = factor(CS, levels = 0:L, labels = c("Not in CS", 1:L)))
+
+
+
+    P1 <- ggplot(df, aes(y = y, x =pos_SNP,
+                         col = CS)) +
+      geom_point(size = size_point,shape=point_shape) +
+      theme(axis.ticks.x = element_blank(),axis.text.x = element_blank()) +
+      scale_color_manual("Credible set",values = color) +
+      xlab("SNP index") + ylab("Posterior Inclusion Probability (PIP)")
+    fun_plot <- do.call(c, susiF.obj$fitted_func)
+    fun_plot <- c(rep(0, n_wac), fun_plot)
+
+    if(pip_only){
+      return(P1)
+    }
+    if (cred.band) {
+      cred_band <- data.frame(t(do.call(cbind, susiF.obj$cred_band)))
+      cred_band <- rbind(data.frame(up = rep(0, n_wac),
+                                    low = rep(0, n_wac)), cred_band)
+      x <- rep(1:susiF.obj$n_wac, (susiF.obj$L + 1))
+      CS <- rep(0:L, each = n_wac)
+      df <- data.frame(fun_plot = fun_plot, CS = as.factor(CS),
+                       x = x, upr = cred_band$up, lwr = cred_band$low)
+      P2 <- ggplot(df, aes(y = fun_plot, x = x, col = CS)) +
+        geom_line(size = size_line) + geom_ribbon(aes(ymin = lwr,
+                                                      ymax = upr, fill = CS, col = CS), alpha = 0.3) +
+        scale_color_manual("Credible set", values = color) +
+        scale_fill_manual("Credible set", values = color) +
+        facet_grid(CS~.)+
+        xlab("postion") + ylab("Estimated effect")
+      out <- gridExtra::grid.arrange(P1, P2, ncol = 1)
+    }
+    else {
+      x <- rep(1:susiF.obj$n_wac, (susiF.obj$L + 1))
+      CS <- rep(0:L, each = n_wac)
+      df <- data.frame(fun_plot = fun_plot, CS = as.factor(CS),
+                       x = x) %>%
+        filter(CS != 0)
+      P2 <- ggplot(df, aes(y = fun_plot, x = x, col = CS)) +
+        geom_line(size = size_line) + scale_color_manual("Credible set",
+                                                         values = color[-1]) +
+        geom_hline(yintercept=0, linetype='dashed', col = 'grey', size = 1.5)+
+        facet_grid(CS~., scales = "free")+
+        xlab("postion") + ylab("Estimated effect")
+
+    }
+  }
+  else {
+    if (effect > L) {
+      stop(paste("the specified effect should be lower or equal to ",
+                 L))
+    }
+    fun_plot <- susiF.obj$fitted_func[[effect]]
+    fun_plot <- c(rep(0, n_wac), fun_plot)
+    if (cred.band) {
+      cred_band <- data.frame(t(susiF.obj$cred_band[[effect]]))
+      cred_band <- rbind(data.frame(up = rep(0, n_wac),
+                                    low = rep(0, n_wac)), cred_band)
+      x <- rep(1:susiF.obj$n_wac, (1 + 1))
+      CS <- rep(c(0, effect), each = n_wac)
+      df <- data.frame(fun_plot = fun_plot, CS = as.factor(CS),
+                       x = x, upr = cred_band$up, lwr = cred_band$low)
+      P2 <- ggplot(df, aes(y = fun_plot, x = x, col = CS)) +
+        geom_line(size = 2) + geom_ribbon(aes(ymin = lwr,
+                                              ymax = upr, fill = CS, col = CS), alpha = 0.3) +
+        scale_color_manual("Credible set", values = color) +
+        scale_fill_manual("Credible set", values = color) +
+        xlab("postion") + ylab("Estimated effect")
+      out <- P2
+      return(P2)
+    }
+    else {
+      x <- rep(1:susiF.obj$n_wac, (1 + 1))
+      CS <- rep(c(0, effect), each = n_wac)
+      df <- data.frame(fun_plot = fun_plot, CS = as.factor(CS),
+                       x = x)
+      P2 <- ggplot(df, aes(y = fun_plot, x = x, col = CS)) +
+        geom_line(size = 2) + scale_color_manual("Credible set",
+                                                 values = color) + xlab("postion") + ylab("Estimated effect")
+      out <- P2
+      return(P2)
+    }
+  }
+  # out
+  # return(out)
+
+  return(out <- gridExtra::grid.arrange(P1,P2,ncol=2,top =title))
+}
+
+
+
+
+
+# @title Check tolerance for stopping criterion
+#
+# @param susiF.obj a susiF object defined by \code{\link{init_susiF_obj}} function
+# @param check numeric, dynamic value for testing outing of th while loop
+# @param cal_obj logical, if set to TRUE compute ELBO
+#
+# @param X matrix of covariates
+#
+# @param D matrix of wavelet D coefficients from the original input data (Y)
+#
+# @param C vector of wavelet scaling coefficient from the original input data (Y)
+#
+# @param indx_lst list generated by gen_wavelet_indx for the given level of resolution
+#
+# @return a matrix of size N by size J of partial residuals
+#
+test_stop_cond <- function(susiF.obj,
+                           check,
+                           cal_obj,
+                           Y,
+                           X,
+                           D,
+                           C,
+                           indx_lst
+                           ,...)
+  UseMethod("test_stop_cond")
+
+# @rdname test_stop_cond
+#
+# @method test_stop_cond susiF
+#
+# @export test_stop_cond.susiF
+#
+# @export
+#
+test_stop_cond.susiF <- function(susiF.obj, check, cal_obj, Y, X, D, C, indx_lst,...)
+{
+
+  if( susiF.obj$L==1)
+  {
+    susiF.obj$check <- 0
+    return(susiF.obj)
+  }
+
+  if(!(susiF.obj$greedy_backfit_update)) #if not just updated check for stopping while loop
+  {
+    if( cal_obj){
+
+      susiF.obj <- update_KL(susiF.obj,
+                             X,
+                             D= D,
+                             C= C , indx_lst)
+
+      susiF.obj <- update_ELBO(susiF.obj,
+                               get_objective( susiF.obj = susiF.obj,
+                                              Y         = Y,
+                                              X         = X,
+                                              D         = D,
+                                              C         = C,
+                                              indx_lst  = indx_lst
+                               )
+      )
+
+      if(length(susiF.obj$ELBO)>1    )#update parameter convergence,
+      {
+        check <- abs(diff(susiF.obj$ELBO)[(length( susiF.obj$ELBO )-1)])
+        susiF.obj$check <- check
+        return(susiF.obj)
+      }else{
+        susiF.obj$check <- check
+        return(susiF.obj)
+      }
+    }
+    else{
+      len <- length( susiF.obj$alpha_hist)
+      if( len>1)#update parameter convergence, no ELBO for the moment
+      {
+        check <-0
+
+        T1 <- do.call( rbind, susiF.obj$alpha_hist[[len ]])
+        T1 <- T1[1:susiF.obj$L,] #might be longer than L because alpha computed before discarding effect
+        T2 <- do.call( rbind, susiF.obj$alpha_hist[[(len-1) ]])
+        T2 <- T2[1:susiF.obj$L,]
+        if(susiF.obj$L==1){
+          T2 <- T2[1,]
+        }
+
+        if((nrow(T1)>nrow(T2))){
+          susiF.obj$check <- 1
+          return(susiF.obj)
+        }
+        if( (nrow(T2)>nrow(T1))){
+          T2 <- T2[1:susiF.obj$L,]
+        }
+
+
+        check <- sum(abs(T1-T2))/nrow(X)
+        susiF.obj$check <- check
+        return(susiF.obj)
+        #print(check)
+      }else{
+        susiF.obj$check <- check
+        return(susiF.obj)
+      }
+    }
+  }else{
+    susiF.obj$check <- check
+    return(susiF.obj)
+  }
+
+}
+
+
+
 
 
 # @title Update alpha   susiF mixture proportion of effect l
@@ -1778,281 +2017,6 @@ update_residual_variance.susiF <- function(susiF.obj,sigma2,...)
 
 
 
-
-
-#' @title Plot susiF object
-#
-#' @param susiF.obj output of the susiF function
-#
-#' @param cred.band logical if set as true plot credible bands. Set as TRUE by default
-#' @param effect numerical if specified plot on effect in particular
-#' @param size_line numeric, width of the plotted lines
-#' @param size_point numeric, size of the point
-#' @param pos_SNP vector containing the base pair of the SNPs
-#' @param point_shape vector containing the shape of dots
-#' @param start_end_region start end of the region
-#' @param pip_only logical, if TRUE only ouput the PIP plot
-#' @param title character
-#'  @param \dots Other arguments.
-#' @importFrom ggplot2 ggplot
-#' @importFrom ggplot2 aes
-#' @importFrom ggplot2 geom_line
-#' @importFrom ggplot2 facet_wrap
-#' @importFrom ggplot2 geom_point
-#' @importFrom ggplot2 theme
-#' @importFrom ggplot2 element_blank
-#' @importFrom ggplot2 scale_color_manual
-#' @importFrom ggplot2 xlab
-#' @importFrom ggplot2 ylab
-#' @importFrom ggplot2 geom_ribbon
-#' @importFrom ggplot2 scale_fill_manual
-#
-#' @export
-#
-plot_susiF  = function (susiF.obj, title="",
-                        cred.band = FALSE,
-                        effect,
-                        size_line=2,
-                        size_point=4,
-                        pos_SNP,
-                        start_end_region=c(0,1),
-                        pip_only=FALSE,
-                        point_shape, ...)
-{
-
-  if(missing(pos_SNP)){
-    pos_SNP<-  1:length(susiF.obj$pip)
-  }
-  if( missing(point_shape)){
-    point_shape <- rep( 19, length(pos_SNP))
-  }
-  list.of.packages <- c("ggplot2", "gridExtra","dplyr")
-  new.packages <- list.of.packages[!(list.of.packages %in%
-                                       installed.packages()[, "Package"])]
-  if (length(new.packages))
-    install.packages(new.packages)
-  requireNamespace(ggplot2)
-  requireNamespace(dplyr)
-  color = c("black", "dodgerblue2", "green4", "#6A3D9A", "#FF7F00",
-            "gold1", "skyblue2", "#FB9A99", "palegreen2", "#CAB2D6",
-            "#FDBF6F", "gray70", "khaki2", "maroon", "orchid1", "deeppink1",
-            "blue1", "steelblue4", "darkturquoise", "green1", "yellow4",
-            "yellow3", "darkorange4", "brown")
-  L <- susiF.obj$L
-  n_wac <- susiF.obj$n_wac
-  y <- susiF.obj$pip
-  col_y <- rep(0, length(y))
-  if (missing(effect)) {
-    for (l in 1:L) {
-      col_y[which(1:length(y) %in% susiF.obj$cs[[l]])] <- l
-    }
-    df <- data.frame(y = y, CS = as.factor(col_y))%>%
-      dplyr::mutate(CS = factor(CS, levels = 0:L, labels = c("Not in CS", 1:L)))
-
-
-
-    P1 <- ggplot(df, aes(y = y, x =pos_SNP,
-                                  col = CS)) +
-      geom_point(size = size_point,shape=point_shape) +
-      theme(axis.ticks.x = element_blank(),axis.text.x = element_blank()) +
-      scale_color_manual("Credible set",values = color) +
-      xlab("SNP index") + ylab("Posterior Inclusion Probability (PIP)")
-    fun_plot <- do.call(c, susiF.obj$fitted_func)
-    fun_plot <- c(rep(0, n_wac), fun_plot)
-
-    if(pip_only){
-      return(P1)
-    }
-    if (cred.band) {
-      cred_band <- data.frame(t(do.call(cbind, susiF.obj$cred_band)))
-      cred_band <- rbind(data.frame(up = rep(0, n_wac),
-                                    low = rep(0, n_wac)), cred_band)
-      x <- rep(1:susiF.obj$n_wac, (susiF.obj$L + 1))
-      CS <- rep(0:L, each = n_wac)
-      df <- data.frame(fun_plot = fun_plot, CS = as.factor(CS),
-                       x = x, upr = cred_band$up, lwr = cred_band$low)
-      P2 <- ggplot(df, aes(y = fun_plot, x = x, col = CS)) +
-        geom_line(size = size_line) + geom_ribbon(aes(ymin = lwr,
-                                              ymax = upr, fill = CS, col = CS), alpha = 0.3) +
-        scale_color_manual("Credible set", values = color) +
-        scale_fill_manual("Credible set", values = color) +
-        facet_grid(CS~.)+
-        xlab("postion") + ylab("Estimated effect")
-      out <- gridExtra::grid.arrange(P1, P2, ncol = 1)
-    }
-    else {
-      x <- rep(1:susiF.obj$n_wac, (susiF.obj$L + 1))
-      CS <- rep(0:L, each = n_wac)
-      df <- data.frame(fun_plot = fun_plot, CS = as.factor(CS),
-                       x = x) %>%
-        filter(CS != 0)
-      P2 <- ggplot(df, aes(y = fun_plot, x = x, col = CS)) +
-        geom_line(size = size_line) + scale_color_manual("Credible set",
-                                                 values = color[-1]) +
-        geom_hline(yintercept=0, linetype='dashed', col = 'grey', size = 1.5)+
-        facet_grid(CS~., scales = "free")+
-        xlab("postion") + ylab("Estimated effect")
-
-    }
-  }
-  else {
-    if (effect > L) {
-      stop(paste("the specified effect should be lower or equal to ",
-                 L))
-    }
-    fun_plot <- susiF.obj$fitted_func[[effect]]
-    fun_plot <- c(rep(0, n_wac), fun_plot)
-    if (cred.band) {
-      cred_band <- data.frame(t(susiF.obj$cred_band[[effect]]))
-      cred_band <- rbind(data.frame(up = rep(0, n_wac),
-                                    low = rep(0, n_wac)), cred_band)
-      x <- rep(1:susiF.obj$n_wac, (1 + 1))
-      CS <- rep(c(0, effect), each = n_wac)
-      df <- data.frame(fun_plot = fun_plot, CS = as.factor(CS),
-                       x = x, upr = cred_band$up, lwr = cred_band$low)
-      P2 <- ggplot(df, aes(y = fun_plot, x = x, col = CS)) +
-        geom_line(size = 2) + geom_ribbon(aes(ymin = lwr,
-                                              ymax = upr, fill = CS, col = CS), alpha = 0.3) +
-        scale_color_manual("Credible set", values = color) +
-        scale_fill_manual("Credible set", values = color) +
-        xlab("postion") + ylab("Estimated effect")
-      out <- P2
-      return(P2)
-    }
-    else {
-      x <- rep(1:susiF.obj$n_wac, (1 + 1))
-      CS <- rep(c(0, effect), each = n_wac)
-      df <- data.frame(fun_plot = fun_plot, CS = as.factor(CS),
-                       x = x)
-      P2 <- ggplot(df, aes(y = fun_plot, x = x, col = CS)) +
-        geom_line(size = 2) + scale_color_manual("Credible set",
-                                                 values = color) + xlab("postion") + ylab("Estimated effect")
-      out <- P2
-      return(P2)
-    }
-  }
-  # out
-  # return(out)
-
-  return(out <- gridExtra::grid.arrange(P1,P2,ncol=2,top =title))
-}
-
-
-# @title Check tolerance for stopping criterion
-#
-# @param susiF.obj a susiF object defined by \code{\link{init_susiF_obj}} function
-# @param check numeric, dynamic value for testing outing of th while loop
-# @param cal_obj logical, if set to TRUE compute ELBO
-#
-# @param X matrix of covariates
-#
-# @param D matrix of wavelet D coefficients from the original input data (Y)
-#
-# @param C vector of wavelet scaling coefficient from the original input data (Y)
-#
-# @param indx_lst list generated by gen_wavelet_indx for the given level of resolution
-#
-# @return a matrix of size N by size J of partial residuals
-#
-test_stop_cond <- function(susiF.obj,
-                           check,
-                           cal_obj,
-                           Y,
-                           X,
-                           D,
-                           C,
-                           indx_lst
-                           ,...)
-  UseMethod("test_stop_cond")
-
-# @rdname test_stop_cond
-#
-# @method test_stop_cond susiF
-#
-# @export test_stop_cond.susiF
-#
-# @export
-#
-test_stop_cond.susiF <- function(susiF.obj, check, cal_obj, Y, X, D, C, indx_lst,...)
-{
-
-  if( susiF.obj$L==1)
-  {
-    susiF.obj$check <- 0
-    return(susiF.obj)
-  }
-
-  if(!(susiF.obj$greedy_backfit_update)) #if not just updated check for stopping while loop
-  {
-    if( cal_obj){
-
-      susiF.obj <- update_KL(susiF.obj,
-                             X,
-                             D= D,
-                             C= C , indx_lst)
-
-      susiF.obj <- update_ELBO(susiF.obj,
-                               get_objective( susiF.obj = susiF.obj,
-                                              Y         = Y,
-                                              X         = X,
-                                              D         = D,
-                                              C         = C,
-                                              indx_lst  = indx_lst
-                               )
-      )
-
-      if(length(susiF.obj$ELBO)>1    )#update parameter convergence,
-      {
-        check <- abs(diff(susiF.obj$ELBO)[(length( susiF.obj$ELBO )-1)])
-        susiF.obj$check <- check
-        return(susiF.obj)
-      }else{
-        susiF.obj$check <- check
-        return(susiF.obj)
-      }
-    }
-    else{
-      len <- length( susiF.obj$alpha_hist)
-      if( len>1)#update parameter convergence, no ELBO for the moment
-      {
-        check <-0
-
-        T1 <- do.call( rbind, susiF.obj$alpha_hist[[len ]])
-        T1 <- T1[1:susiF.obj$L,] #might be longer than L because alpha computed before discarding effect
-        T2 <- do.call( rbind, susiF.obj$alpha_hist[[(len-1) ]])
-        T2 <- T2[1:susiF.obj$L,]
-        if(susiF.obj$L==1){
-          T2 <- T2[1,]
-        }
-
-        if((nrow(T1)>nrow(T2))){
-            susiF.obj$check <- 1
-            return(susiF.obj)
-        }
-        if( (nrow(T2)>nrow(T1))){
-            T2 <- T2[1:susiF.obj$L,]
-          }
-
-
-        check <- sum(abs(T1-T2))/nrow(X)
-        susiF.obj$check <- check
-        return(susiF.obj)
-        #print(check)
-      }else{
-        susiF.obj$check <- check
-        return(susiF.obj)
-      }
-    }
-  }else{
-    susiF.obj$check <- check
-    return(susiF.obj)
-  }
-
-}
-
-
-
-
 #
 # @title Return which credible sets are  dummy
 #
@@ -2075,7 +2039,7 @@ if( susiF.obj$L==1){
   return(dummy.cs)
 }
 
-  if( class(susiF.obj$G_prior)=="mixture_normal")
+  if( inherits( susiF.obj$G_prior,"mixture_normal"))
   {
     for (l in 1:susiF.obj$L )
     {

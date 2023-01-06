@@ -104,27 +104,27 @@ init_prior.default <- function(Y,X, prior,v1 , indx_lst,lowc_wc,control_mixsqp,n
 
 
 
-# @title Get mixture proportion for mixture normal prior
-#
-# @description Get mixture proportion for mixture normal prior
-#
-# @param G_prior mixture normal prior
-#
-# @return vector of mixture proportion
-#
-# @export
-#
+#' @title Get mixture proportion for mixture prior
+#'
+#' @description Get mixture proportion for mixture   prior
+#'
+#' @param G_prior mixture normal prior
+#'
+#' @return vector of mixture proportion
+#'
+#' @export
+#'
 get_pi_G_prior <- function(G_prior, ...)
   UseMethod("get_pi_G_prior")
 
-# @rdname get_pi_G_prior
-#
-# @method get_pi_G_prior mixture_normal
-#
-# @export get_pi_G_prior.mixture_normal
-#
-# @export
-#
+#' @rdname get_pi_G_prior
+#'
+#' @method get_pi_G_prior mixture_normal
+#'
+#' @export get_pi_G_prior.mixture_normal
+#'
+#' @export
+#'
 
 get_pi_G_prior.mixture_normal <- function(G_prior, ...)
 {
@@ -133,14 +133,14 @@ get_pi_G_prior.mixture_normal <- function(G_prior, ...)
   return(out)
 }
 
-# @rdname get_pi_G_prior
-#
-# @method get_pi_G_prior mixture_normal_per_scale
-#
-# @export get_pi_G_prior.mixture_normal_per_scale
-#
-# @export
-#
+#' @rdname get_pi_G_prior
+#'
+#' @method get_pi_G_prior mixture_normal_per_scale
+#'
+#' @export get_pi_G_prior.mixture_normal_per_scale
+#'
+#' @export
+#'
 get_pi_G_prior.mixture_normal_per_scale <- function(G_prior, ...)
 {
   out <- lapply(G_prior, function(x) x$fitted_g$pi)
@@ -292,32 +292,32 @@ get_sd_G_prior.mixture_normal_per_scale <- function(G_prior, ...)
 
 
 
-# @title Update mixture proportion for mixture normal prior
-#
-# @description Add description here.
-#
-# @param G_prior a prior of class "mixture_normal" or a prior of class "mixture_normal_per_scale"
-#
-# @param tpi a vector of proportion of class "pi_mixture_normal" resp "pi_mixture_normal_per_scale"
-#
-# @return a prior of class "mixture_normal" or a prior of class "mixture_normal_per_scale"
-#
-# @export
-#
-#
+#' @title Update mixture proportion for mixture normal prior
+#'
+#' @description Add description here.
+#'
+#' @param G_prior a prior of class "mixture_normal" or a prior of class "mixture_normal_per_scale"
+#'
+#' @param tpi a vector of proportion of class "pi_mixture_normal" resp "pi_mixture_normal_per_scale"
+#'
+#' @return a prior of class "mixture_normal" or a prior of class "mixture_normal_per_scale"
+#'
+#' @export
+#'
+#'
 
 update_prior <- function(G_prior, tpi, ...)
   UseMethod("update_prior")
 
 
-# @rdname update_prior
-#
-# @method update_prior mixture_normal
-#
-# @export update_prior.mixture_normal
-#
-# @export
-#
+#' @rdname update_prior
+#'
+#' @method update_prior mixture_normal
+#'
+#' @export update_prior.mixture_normal
+#'
+#' @export
+#'
 update_prior.mixture_normal <- function(G_prior, tpi, ...)
 {
   if( class(tpi)[1]=="pi_mixture_normal"){
@@ -330,14 +330,14 @@ update_prior.mixture_normal <- function(G_prior, tpi, ...)
 }
 
 
-# @rdname update_prior
-#
-# @method update_prior mixture_normal_per_scale
-#
-# @export update_prior.mixture_normal_per_scale
-#
-# @export
-#
+#' @rdname update_prior
+#'
+#' @method update_prior mixture_normal_per_scale
+#'
+#' @export update_prior.mixture_normal_per_scale
+#'
+#' @export
+#'
 
 update_prior.mixture_normal_per_scale <- function(G_prior, tpi, ...)
 {

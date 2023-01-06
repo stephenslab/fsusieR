@@ -13,6 +13,8 @@ get_fitted_effect(susiF.obj, l, ...)
 \item{susiF.obj}{a fitted objected}
 
 \item{l}{effect of interest}
+
+\item{\dots}{Other arguments.}
 }
 \description{
 Access fitted effect l
