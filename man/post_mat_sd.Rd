@@ -31,3 +31,4 @@ pxJ matrix of posterior standard deviation
 \description{
 Compute posterior standard deviation under mixture normal prior
 }
+\keyword{internal}

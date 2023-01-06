@@ -1,0 +1,268 @@
+install.packages("roxygen2")
+library(susiF.alpha)
+devtools::run_examples()
+library(susiF.alpha)
+devtools::run_examples()
+library(susiF.alpha)
+devtools::run_examples()
+help(package = susiF.alpha)
+help(package = susiF.alpha)
+library(susiF.alpha)
+help(package = susiF.alpha)
+library(susiF.alpha)
+library(susiF.alpha)
+library(susiF.alpha)
+?rev
+library(susiF.alpha)
+library(susiF.alpha)
+library(susiF.alpha)
+ashr:calc_logLR
+library(ashr)
+ashr::calc_logLR
+library(susiF.alpha)
+library(susiF.alpha)
+library(susiF.alpha)
+devtools::run_examples()
+library(susiF.alpha)
+help(package=susiF.alpha)
+help(package=susiF.alpha)
+library(susiF.alpha)
+help(package=susiF.alpha)
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(
+echo = TRUE,
+message = FALSE,
+warning = FALSE
+)
+library(susiF.alpha)
+library(susieR)
+library(wavethresh)
+set.seed(1)
+data(N3finemapping)
+attach(N3finemapping)
+rsnr <- 1 #expected root signal noise ratio
+pos1 <- 250   #Position of the causal covariate for effect 1
+pos2 <- 750   #Position of the causal covariate for effect 1
+lev_res <- 7#length of the molecular phenotype (2^lev_res)
+f1 <-  simu_IBSS_per_level(lev_res )$sim_func#first effect
+f2 <- simu_IBSS_per_level(lev_res )$sim_func #second effect
+f1_cov  <- simu_IBSS_per_level(lev_res )$sim_func #effect cov 1
+f2_cov  <- simu_IBSS_per_level(lev_res )$sim_func #effect cov 2
+f3_cov  <- simu_IBSS_per_level(lev_res )$sim_func #effect cov 3
+noisy.data  <- list()
+Geno <- N3finemapping$X
+Cov <- cbind(Geno[,(pos1+3)], Geno[,(pos1-3)], Geno[,(pos2-3)])+ matrix(rnorm(n=nrow(Geno)*3), ncol=3)
+for ( i in 1:nrow(X))
+{
+f1_obs <- f1
+f2_obs <- f2
+noise <- rnorm(length(f1), sd=  (1/  rsnr ) * var(f1))
+noisy.data [[i]] <-  Geno [i,pos1]*f1_obs +Geno [i,pos2]*f2_obs + Cov [i,1]*f1_cov + Cov  [i,2]*f2_cov + Cov  [i,3]*f3_cov +noise
+}
+noisy.data <- do.call(rbind, noisy.data)
+Y <- noisy.data
+out <- adjust_FM_covariate(Y,Cov, pos=1:ncol(Y))
+plot( out$Y_adjusted, Y)
+plot( out$Y_adjusted, out$Y_fitted)
+Y_corrected  <- out$Y_adjusted
+out <- susiF(Y=Y_corrected,
+X=Geno,
+L=3 )
+#
+# @param lowc_wc wavelet coefficient with low count to be discarded
+#
+#
+# @return vector of 2 containing the regression coefficient and standard error
+#
+# @importFrom stats var
+#
+# @export
+#
+fit_lm <- function( l,j,Y,X,v1, lowc_wc =NULL ,...)  ## Speed Gain
+{
+if( !is.null(lowc_wc)){
+if (l %in%lowc_wc){
+return(c(0,
+1
+)
+)
+}else{
+return(  fast_lm(x=X[,j] ,
+y= Y[,l]
+)
+)
+}
+}else{
+return(  fast_lm(X[,j] ,
+Y[,l]
+)
+)
+}
+}
+plot_susiF(out)
+out_unadj <- susiF(Y=Y,
+X=Geno,
+L=3 )
+par(mfrow=c(1,2))
+plot( f1, type="l", main="Estimated effect 1", xlab="")
+lines(get_fitted_effect(out,l=2),col='blue' )
+lines(get_fitted_effect(out_unadj,l=2),col='blue' , lty=2)
+abline(a=0,b=0)
+legend(x= 35,
+y=3,
+lty= rep(1,2),
+legend = c("effect 1"," fSuSiE est "),
+col=c("black","blue" )
+)
+plot( f2, type="l", main="Estimated effect 2", xlab="")
+lines(get_fitted_effect(out,l=1),col='green' )
+lines(get_fitted_effect(out_unadj,l=1),col='green' , lty=2)
+abline(a=0,b=0)
+legend(x= 20,
+y=-1.5,
+lty= rep(1,2),
+legend = c("effect 2"," fSuSiE est "),
+col=c("black","green" )
+)
+par(mfrow=c(1,1))
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(
+echo = TRUE,
+message = FALSE,
+warning = FALSE
+)
+library(susiF.alpha)
+library(susieR)
+library(wavethresh)
+set.seed(1)
+data(N3finemapping)
+attach(N3finemapping)
+rsnr <- 1 #expected root signal noise ratio
+pos1 <- 250   #Position of the causal covariate for effect 1
+pos2 <- 750   #Position of the causal covariate for effect 1
+lev_res <- 7#length of the molecular phenotype (2^lev_res)
+f1 <-  simu_IBSS_per_level(lev_res )$sim_func#first effect
+f2 <- simu_IBSS_per_level(lev_res )$sim_func #second effect
+f1_cov  <- simu_IBSS_per_level(lev_res )$sim_func #effect cov 1
+f2_cov  <- simu_IBSS_per_level(lev_res )$sim_func #effect cov 2
+f3_cov  <- simu_IBSS_per_level(lev_res )$sim_func #effect cov 3
+noisy.data  <- list()
+Geno <- N3finemapping$X
+Cov <- cbind(Geno[,(pos1+10)], Geno[,(pos1-10)], Geno[,(pos2-20)])+ matrix(rnorm(n=nrow(Geno)*3), ncol=3)
+for ( i in 1:nrow(X))
+{
+f1_obs <- f1
+f2_obs <- f2
+noise <- rnorm(length(f1), sd=  (1/  rsnr ) * var(f1))
+noisy.data [[i]] <-  Geno [i,pos1]*f1_obs +Geno [i,pos2]*f2_obs + Cov [i,1]*f1_cov + Cov  [i,2]*f2_cov + Cov  [i,3]*f3_cov +noise
+}
+noisy.data <- do.call(rbind, noisy.data)
+Y <- noisy.data
+out <- adjust_FM_covariate(Y,Cov, pos=1:ncol(Y))
+plot( out$Y_adjusted, Y)
+plot( out$Y_adjusted, out$Y_fitted)
+Y_corrected  <- out$Y_adjusted
+out <- susiF(Y=Y_corrected,
+X=Geno,
+L=3 )
+tt <- eigen(Geno)
+Geno <- N3finemapping$X
+tt <- eigen(Geno)
+tt <- svd(Geno)
+str(tt)
+dim(Geno)
+tt$u%*%diag(tt$d)
+noisy.data  <- list()
+Geno <- N3finemapping$X
+tt <- eigen(Geno)
+noisy.data  <- list()
+Geno <- N3finemapping$X
+tt <- svd(Geno)
+PCA <- tt$u%*%diag(tt$d)
+Cov <- cbind(PCA [,1], PCA [,2], PCA [,3])
+for ( i in 1:nrow(X))
+{
+f1_obs <- f1
+f2_obs <- f2
+noise <- rnorm(length(f1), sd=  (1/  rsnr ) * var(f1))
+noisy.data [[i]] <-  Geno [i,pos1]*f1_obs +Geno [i,pos2]*f2_obs + Cov [i,1]*f1_cov + Cov  [i,2]*f2_cov + Cov  [i,3]*f3_cov +noise
+}
+noisy.data <- do.call(rbind, noisy.data)
+Y <- noisy.data
+out <- adjust_FM_covariate(Y,Cov, pos=1:ncol(Y))
+plot( out$Y_adjusted, Y)
+plot( out$Y_adjusted, out$Y_fitted)
+Y_corrected  <- out$Y_adjusted
+out <- susiF(Y=Y_corrected,
+X=Geno,
+L=3 )
+library(susiF.alpha)
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(
+echo = TRUE,
+message = FALSE,
+warning = FALSE
+)
+library(susiF.alpha)
+library(susieR)
+library(wavethresh)
+set.seed(1)
+data(N3finemapping)
+attach(N3finemapping)
+rsnr <- 1 #expected root signal noise ratio
+pos1 <- 250   #Position of the causal covariate for effect 1
+pos2 <- 750   #Position of the causal covariate for effect 2
+lev_res <- 7#length of the molecular phenotype (2^lev_res)
+f1 <-  simu_IBSS_per_level(lev_res )$sim_func#first effect
+f2 <- simu_IBSS_per_level(lev_res )$sim_func #second effect
+f1_cov  <- simu_IBSS_per_level(lev_res )$sim_func #effect cov 1
+f2_cov  <- simu_IBSS_per_level(lev_res )$sim_func #effect cov 2
+f3_cov  <- simu_IBSS_per_level(lev_res )$sim_func #effect cov 3
+noisy.data  <- list()
+Geno <- N3finemapping$X
+tt <- svd(Geno)
+PCA <- tt$u%*%diag(tt$d)
+Cov <- cbind(PCA [,1], PCA [,2], PCA [,3])
+for ( i in 1:nrow(X))
+{
+f1_obs <- f1
+f2_obs <- f2
+noise <- rnorm(length(f1), sd=  (1/  rsnr ) * var(f1))
+noisy.data [[i]] <-  Geno [i,pos1]*f1_obs +Geno [i,pos2]*f2_obs + Cov [i,1]*f1_cov + Cov  [i,2]*f2_cov + Cov  [i,3]*f3_cov +noise
+}
+noisy.data <- do.call(rbind, noisy.data)
+Y <- noisy.data
+out <- adjust_FM_covariate(Y,Cov, pos=1:ncol(Y))
+plot( out$Y_adjusted, Y)
+plot( out$Y_adjusted, out$Y_fitted)
+Y_corrected  <- out$Y_adjusted
+out <- susiF(Y=Y_corrected,
+X=Geno,
+L=3 )
+library(susiF.alpha)
+library(susiF.alpha)
+library(susiF.alpha)
+library(susiF.alpha)
+library(susiF.alpha)
+library(susiF.alpha)
+library(susiF.alpha)
+library(susiF.alpha)
+ashr:cal_lik
+ashr::cal_lik
+library(ashr)
+ashr::cal_lik
+library(susiF.alpha)
+library(susiF.alpha)
+library(susiF.alpha)
+#' @title Get mixture proportion for mixture prior
+#'
+#' @description Get mixture proportion for mixture   prior
+#'
+#' @param G_prior mixture normal prior
+#'
+#' @return vector of mixture proportion
+#'
+#' @export
+#'
+get_pi_G_prior <- function(G_prior, ...)
+{}

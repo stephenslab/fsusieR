@@ -23,3 +23,4 @@ vector of mixture proportion
 \description{
 Get mixture proportion for mixture   prior
 }
+\keyword{internal}

@@ -17,3 +17,4 @@ Likelihood value
 \description{
 Add description here.
 }
+\keyword{internal}

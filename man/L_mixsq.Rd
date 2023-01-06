@@ -29,3 +29,4 @@ See L argument mixsqp package mixsqp function
 \description{
 Compute likelihood matrix for mixsqp
 }
+\keyword{internal}

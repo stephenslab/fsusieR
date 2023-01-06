@@ -25,3 +25,4 @@ a prior of class "mixture_normal" or a prior of class "mixture_normal_per_scale"
 \description{
 Add description here.
 }
+\keyword{internal}

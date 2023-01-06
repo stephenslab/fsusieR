@@ -14,3 +14,4 @@ cal_cor_cs(susiF.obj, X)
 \description{
 Compute correlation between credible sets
 }
+\keyword{internal}

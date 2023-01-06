@@ -34,3 +34,4 @@ a vector of proportion (class pi_mixture_normal)
 \description{
 Compute M step in the weighted ash problem for different prior
 }
+\keyword{internal}

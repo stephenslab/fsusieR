@@ -37,3 +37,4 @@ The log-Bayes factor for each covariate.
 \description{
 Compute Log-Bayes Factor
 }
+\keyword{internal}

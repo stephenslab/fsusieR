@@ -31,3 +31,4 @@ pxJ matrix of posterior mean
 \description{
 Add description here.
 }
+\keyword{internal}
