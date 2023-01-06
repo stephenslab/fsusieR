@@ -19,13 +19,13 @@ Imports:
     stats,
     matrixStats (>= 0.62.0),
     dplyr,
+    ggplot2,
+    gridExtra,
+    graphics,
 Suggests:
     knitr,
     rmarkdown,
-    testthat,
-    ggplot2,
-    gridExtra,
-    graphics
+    testthat
 License: GPL (>=3)
 LazyData: true
 LazyDataCompression: xz

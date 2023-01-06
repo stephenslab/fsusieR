@@ -21,8 +21,7 @@ plot_susiF(
 \arguments{
 \item{susiF.obj}{output of the susiF function}
 
-\item{title}{character
-@param \dots Other arguments.}
+\item{title}{character}
 
 \item{cred.band}{logical if set as true plot credible bands. Set as TRUE by default}
 
@@ -39,6 +38,8 @@ plot_susiF(
 \item{pip_only}{logical, if TRUE only ouput the PIP plot}
 
 \item{point_shape}{vector containing the shape of dots}
+
+\item{\dots}{Other arguments..}
 }
 \description{
 Plot susiF object

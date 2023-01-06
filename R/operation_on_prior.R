@@ -300,6 +300,7 @@ get_sd_G_prior.mixture_normal_per_scale <- function(G_prior, ...)
 #'
 #' @param tpi a vector of proportion of class "pi_mixture_normal" resp "pi_mixture_normal_per_scale"
 #'
+#' @param \dots Other arguments.
 #' @return a prior of class "mixture_normal" or a prior of class "mixture_normal_per_scale"
 #'
 #' @export

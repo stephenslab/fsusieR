@@ -7,7 +7,7 @@
 cal_cor_cs(susiF.obj, X)
 }
 \arguments{
-\item{susiF.obj}{a susiF object defined by \code{\link{init_susiF_obj}} function}
+\item{susiF.obj}{a susiF object}
 
 \item{X}{matrix of covariates}
 }

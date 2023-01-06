@@ -23,6 +23,8 @@ m_step(L, zeta, indx_lst, init_pi0_w, control_mixsqp, ...)
 
 \item{control_mixsqp}{list of parameter for mixsqp function see mixsqp package}
 
+\item{\dots}{Other arguments.}
+
 \item{nullweight}{numeric value for penalizing likelihood at point mass 0 (should be between 0 and 1)
 (usefull in small sample size)}
 }

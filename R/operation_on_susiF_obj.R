@@ -214,114 +214,6 @@ discard_cs.susiF <- function(susiF.obj, cs, out_prep=FALSE,  ...)
   return(susiF.obj)
 }
 
-
-# @title Initialize a susiF object using regression coefficients
-#
-# @param L_max upper bound on the number of non zero coefficients An L-vector containing the indices of the
-#   nonzero coefficients.
-#
-# @param G_prior prior object defined by init_prior function
-#
-# @param Y Matrix of outcomes
-#
-# @param X matrix of covariatess
-#
-# @param L_start number of effect to start with
-#
-# @param greedy logical, if TRUE allow greedy search
-#
-# @param backfit logical, if TRUE allow backfitting
-#
-# @export
-# @return A list with the following elements
-# \item{fitted_wc}{ list of length L, each element contains the fitted wavelet coefficients of effect l}
-# \item{fitted_wc2}{list of length L, each element contains the variance of the fitted wavelet coefficients of effect l}
-# \item{alpha_hist}{ history of the fitted alpha value}
-# \item{N}{ number of indidivual in the study}
-# \item{sigma2}{residual variance}
-# \item{n_wac}{number of wavelet coefficients}
-# \item{ind_fitted_func}{fitted curves of each individual }
-# \item{cs}{credible set}
-# \item{pip}{Posterior inclusion probabilites}
-# \item{G_prior}{a G_prior of the same class as the input G_prior, used for internal calculation}
-# \item{lBF}{ log Bayes factor for the different effect}
-# \item{KL}{ the KL divergence for the different effect}
-# \item{ELBO}{ The evidence lower bound}
-# \item{lfsr_wc}{Local fasle sign rate of the fitted wavelet coefficients}
-# @export
-#
-init_susiF_obj <- function(L_max, G_prior, Y,X,L_start,greedy,backfit,... )
-{
-
-
-
-  fitted_wc       <- list()
-  fitted_wc2      <- list()
-  alpha           <- list()
-  alpha_hist      <- list()
-  ind_fitted_func <- matrix(0, nrow = dim(Y)[1], ncol=dim(Y)[2]  )
-  cs              <- list()
-  cred_band       <- list()
-  pip             <- rep(0, dim(X)[2])
-  est_pi          <- list()
-  est_sd          <- list()
-  L_max           <- L_max
-  L               <- L_start
-  G_prior         <- G_prior
-  N               <- dim(Y)[1]
-  n_wac           <- dim(Y)[2]
-  P               <- dim(X)[2]
-  sigma2          <- 1
-  lBF             <- list()
-  KL              <- rep(NA,L)
-  ELBO            <- c()
-  mean_X          <- attr(X, "scaled:center")
-  csd_X           <- attr(X, "scaled:scale")
-  n_expand        <- 0 #number of greedy expansion
-  greedy          <- greedy
-  backfit         <- backfit
-  greedy_backfit_update <- FALSE
-  for ( l in 1:L )
-  {
-    fitted_wc[[l]]        <-  matrix(0, nrow = dim(X)[2], ncol=dim(Y)[2]  )
-    fitted_wc2[[l]]       <-  matrix(1, nrow = dim(X)[2], ncol=dim(Y)[2]  )
-    alpha [[l]]           <-  rep(1/dim(X)[2], dim(X)[2])
-    cs[[l]]               <-  list()
-    est_pi [[l]]          <-  get_pi_G_prior(G_prior)
-    est_sd [[l]]          <-  get_sd_G_prior(G_prior)
-    lBF[[l]]              <-  rep(NA, ncol(X))
-    cred_band[[l]]        <-  matrix(0, ncol = dim(Y)[2], nrow = 2)
-  }
-  obj <- list( fitted_wc       = fitted_wc,
-               fitted_wc2      = fitted_wc2,
-               lBF             = lBF,
-               KL              = KL,
-               cred_band       = cred_band,
-               ELBO            = ELBO,
-               ind_fitted_func = ind_fitted_func,
-               G_prior         = G_prior,
-               alpha_hist      = alpha_hist,
-               N               = N,
-               n_wac           = n_wac,
-               sigma2          = sigma2,
-               P               = P,
-               alpha           = alpha,
-               cs              = cs,
-               pip             = pip,
-               est_pi          = est_pi,
-               est_sd          = est_sd,
-               L               = L,
-               L_max           = L_max,
-               csd_X           = csd_X,
-               n_expand        = n_expand,
-               greedy          = greedy,
-               backfit         = backfit,
-               greedy_backfit_update=greedy_backfit_update)
-
-  class(obj) <- "susiF"
-  return(obj)
-}
-
 # @title Update residual variance
 #
 # @param susiF.obj a susiF object defined by \code{\link{init_susiF_obj}} function
@@ -889,6 +781,114 @@ greedy_backfit.susiF <-  function(susiF.obj,
 
 
 
+# @title Initialize a susiF object using regression coefficients
+#
+# @param L_max upper bound on the number of non zero coefficients An L-vector containing the indices of the
+#   nonzero coefficients.
+#
+# @param G_prior prior object defined by init_prior function
+#
+# @param Y Matrix of outcomes
+#
+# @param X matrix of covariatess
+#
+# @param L_start number of effect to start with
+#
+# @param greedy logical, if TRUE allow greedy search
+#
+# @param backfit logical, if TRUE allow backfitting
+#
+# @export
+# @return A list with the following elements
+# \item{fitted_wc}{ list of length L, each element contains the fitted wavelet coefficients of effect l}
+# \item{fitted_wc2}{list of length L, each element contains the variance of the fitted wavelet coefficients of effect l}
+# \item{alpha_hist}{ history of the fitted alpha value}
+# \item{N}{ number of indidivual in the study}
+# \item{sigma2}{residual variance}
+# \item{n_wac}{number of wavelet coefficients}
+# \item{ind_fitted_func}{fitted curves of each individual }
+# \item{cs}{credible set}
+# \item{pip}{Posterior inclusion probabilites}
+# \item{G_prior}{a G_prior of the same class as the input G_prior, used for internal calculation}
+# \item{lBF}{ log Bayes factor for the different effect}
+# \item{KL}{ the KL divergence for the different effect}
+# \item{ELBO}{ The evidence lower bound}
+# \item{lfsr_wc}{Local fasle sign rate of the fitted wavelet coefficients}
+# @export
+#
+init_susiF_obj <- function(L_max, G_prior, Y,X,L_start,greedy,backfit,... )
+{
+
+
+
+  fitted_wc       <- list()
+  fitted_wc2      <- list()
+  alpha           <- list()
+  alpha_hist      <- list()
+  ind_fitted_func <- matrix(0, nrow = dim(Y)[1], ncol=dim(Y)[2]  )
+  cs              <- list()
+  cred_band       <- list()
+  pip             <- rep(0, dim(X)[2])
+  est_pi          <- list()
+  est_sd          <- list()
+  L_max           <- L_max
+  L               <- L_start
+  G_prior         <- G_prior
+  N               <- dim(Y)[1]
+  n_wac           <- dim(Y)[2]
+  P               <- dim(X)[2]
+  sigma2          <- 1
+  lBF             <- list()
+  KL              <- rep(NA,L)
+  ELBO            <- c()
+  mean_X          <- attr(X, "scaled:center")
+  csd_X           <- attr(X, "scaled:scale")
+  n_expand        <- 0 #number of greedy expansion
+  greedy          <- greedy
+  backfit         <- backfit
+  greedy_backfit_update <- FALSE
+  for ( l in 1:L )
+  {
+    fitted_wc[[l]]        <-  matrix(0, nrow = dim(X)[2], ncol=dim(Y)[2]  )
+    fitted_wc2[[l]]       <-  matrix(1, nrow = dim(X)[2], ncol=dim(Y)[2]  )
+    alpha [[l]]           <-  rep(1/dim(X)[2], dim(X)[2])
+    cs[[l]]               <-  list()
+    est_pi [[l]]          <-  get_pi_G_prior(G_prior)
+    est_sd [[l]]          <-  get_sd_G_prior(G_prior)
+    lBF[[l]]              <-  rep(NA, ncol(X))
+    cred_band[[l]]        <-  matrix(0, ncol = dim(Y)[2], nrow = 2)
+  }
+  obj <- list( fitted_wc       = fitted_wc,
+               fitted_wc2      = fitted_wc2,
+               lBF             = lBF,
+               KL              = KL,
+               cred_band       = cred_band,
+               ELBO            = ELBO,
+               ind_fitted_func = ind_fitted_func,
+               G_prior         = G_prior,
+               alpha_hist      = alpha_hist,
+               N               = N,
+               n_wac           = n_wac,
+               sigma2          = sigma2,
+               P               = P,
+               alpha           = alpha,
+               cs              = cs,
+               pip             = pip,
+               est_pi          = est_pi,
+               est_sd          = est_sd,
+               L               = L,
+               L_max           = L_max,
+               csd_X           = csd_X,
+               n_expand        = n_expand,
+               greedy          = greedy,
+               backfit         = backfit,
+               greedy_backfit_update=greedy_backfit_update)
+
+  class(obj) <- "susiF"
+  return(obj)
+}
+
+
 
 # @title Merging effect function
 #
@@ -1047,7 +1047,7 @@ out_prep.susiF <- function(susiF.obj,Y, X, indx_lst, filter.cs, lfsr_curve, outi
 #' @param start_end_region start end of the region
 #' @param pip_only logical, if TRUE only ouput the PIP plot
 #' @param title character
-#'  @param \dots Other arguments.
+#' @param \dots Other arguments..
 #' @importFrom ggplot2 ggplot
 #' @importFrom ggplot2 aes
 #' @importFrom ggplot2 geom_line

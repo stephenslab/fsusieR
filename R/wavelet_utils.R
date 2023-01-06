@@ -87,21 +87,22 @@ DWT2 <- function (data, filter.number = 10, family = "DaubLeAsymm")
 }
 
 
-# @title Generate list of index wavelet coefficients
+#' @title Generate list of index wavelet coefficients
 #
-# @description Generate list of index corresponding to where the wavelet coefficient of scale s are stored in wd$D.
+#' @description Generate list of index corresponding to where the wavelet coefficient of scale s are stored in wd$D.
 #First element of the list corresponds to the index for the wavelet coefficient at scale 0, the second component corresponds to the index for the wavelet coefficient at scale 1 (and so on). The last componnet of the list correspond to where the C coefficients is stored in init_prior for class mixture_normal_per_scale
 #
-# @param lev_res integer, corresponding to log2 of the signal length. WARNING the ordering change for different values of s.
+#' @param lev_res integer, corresponding to log2 of the signal length. WARNING the ordering change for different values of s.
 #
-# @export
+#' @export
 #
-# @examples
-# library(wavethresh)
-# tem_func <- rnorm( 2^8)
-# twav <- wd(tem_func)
-# indx_lst <- gen_wavelet_indx(8)
-# plot(accessD(twav,level=6), ( twav$D[unlist(indx_lst[(6+1)])]) )
+#' @examples
+#' library(wavethresh)
+#' tem_func <- rnorm( 2^8)
+#' twav <- wd(tem_func)
+#' indx_lst <- gen_wavelet_indx(8)
+#' plot(accessD(twav,level=6), ( twav$D[unlist(indx_lst[(6+1)])]) )
+#'  #should a straightline
 gen_wavelet_indx <- function(lev_res)
 {
   indx_lst <- list()

@@ -16,6 +16,8 @@ update_prior(G_prior, tpi, ...)
 \item{G_prior}{a prior of class "mixture_normal" or a prior of class "mixture_normal_per_scale"}
 
 \item{tpi}{a vector of proportion of class "pi_mixture_normal" resp "pi_mixture_normal_per_scale"}
+
+\item{\dots}{Other arguments.}
 }
 \value{
 a prior of class "mixture_normal" or a prior of class "mixture_normal_per_scale"
