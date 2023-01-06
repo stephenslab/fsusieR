@@ -4,7 +4,7 @@
 \alias{adjust_FM_covariate}
 \title{Adjusting functions for covariates}
 \usage{
-adjust_FM_covariate(Y, X, pos = NULL, thresh_lowcount = 0)
+adjust_FM_covariate(Y, X, pos = NULL, thresh_lowcount = 0, verbose)
 }
 \arguments{
 \item{Y}{observed curves.}
@@ -20,6 +20,10 @@ Basically check if the median of the absolute value of the distribution of
  this wavelet coefficient (setting its estimate effect to 0 and estimate sd to 1).
  Set to 0 by default. Can be useful when analyzing sparse data from sequence
   based assay or small samples.}
+
+\item{verbose}{If \code{verbose = TRUE}, the algorithm's progress,
+and a summary of the optimization settings, are printed to the
+console.}
 }
 \description{
 Simple function to adjust the observed curves for covariate (e.g. age, population structure)

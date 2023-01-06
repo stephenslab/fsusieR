@@ -109,7 +109,7 @@ init_prior.default <- function(Y,X, prior,v1 , indx_lst,lowc_wc,control_mixsqp,n
 #' @description Get mixture proportion for mixture   prior
 #'
 #' @param G_prior mixture normal prior
-#'
+#' @param \dots Other arguments.
 #' @return vector of mixture proportion
 #'
 #' @export

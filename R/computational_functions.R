@@ -325,7 +325,7 @@ fit_ash_level <- function (Bhat, Shat, s, indx_lst, lowc_wc,...)
     }
 
   }else{
-    out <- ash(as.vector(Bhat[,indx_lst[[s]]]),
+    out <- ashr::ash(as.vector(Bhat[,indx_lst[[s]]]),
                as.vector(Shat[,indx_lst[[s]]]),
                mixcompdist = "normal" ,
                outputlevel=0)

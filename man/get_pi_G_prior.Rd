@@ -14,6 +14,8 @@ get_pi_G_prior(G_prior, ...)
 }
 \arguments{
 \item{G_prior}{mixture normal prior}
+
+\item{\dots}{Other arguments.}
 }
 \value{
 vector of mixture proportion

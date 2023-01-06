@@ -1662,7 +1662,7 @@ update_cal_fit_func.susiF <- function(susiF.obj, indx_lst,...)
                                                                     1,
                                                                     1/(susiF.obj$csd_X ), "*")
       temp$C[length(temp$C)]     <- (susiF.obj$alpha[[l]])%*% (susiF.obj$fitted_wc[[l]][,indx_lst[[length(indx_lst)]]]*( 1/(susiF.obj$csd_X )))
-      susiF.obj$fitted_func[[l]] <- wr(temp)
+      susiF.obj$fitted_func[[l]] <-  wavethresh::wr(temp)
     }
   }
   if(inherits(get_G_prior(susiF.obj),"mixture_normal" ))
@@ -1719,7 +1719,7 @@ update_cal_credible_band.susiF <- function(susiF.obj, indx_lst,...)
   for ( l in 1:susiF.obj$L)
   {
     Smat <- susiF.obj$fitted_wc2[[l]]
-    W1   <- ((GenW(n=  ncol(Smat )  , filter.number = 10, family = "DaubLeAsymm")))
+    W1   <- ((wavethresh::GenW(n=  ncol(Smat )  , filter.number = 10, family = "DaubLeAsymm")))
     tt   <- diag((W1)%*%diag(c(susiF.obj$alpha[[1]]%*%Smat ))%*% t(W1))
 
     up                       <-  susiF.obj$fitted_func[[l]]+ 1.96 *sqrt(tt)
@@ -1777,7 +1777,7 @@ update_cal_lfsr_func.susiF <- function(susiF.obj, lfsr_curve, indx_lst,...)
       t_wc <- susiF.obj$fitted_wc[[l]]%*% diag(wc_to_select)
       temp$D                     <- (susiF.obj$alpha[[l]])%*%t_wc[,-indx_lst[[length(indx_lst)]]]
       temp$C[length(temp$C)]     <- (susiF.obj$alpha[[l]])%*%t_wc[,indx_lst[[length(indx_lst)]]]
-      susiF.obj$lfsr_func[[l]] <- wr(temp)
+      susiF.obj$lfsr_func[[l]] <-  wavethresh::wr(temp)
     }
   }
   if(inherits(get_G_prior(susiF.obj),"mixture_normal" ))
