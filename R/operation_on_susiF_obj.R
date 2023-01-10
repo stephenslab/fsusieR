@@ -2005,20 +2005,14 @@ update_pi.susiF <- function( susiF.obj, l, tpi,...)
 
 
 
-# @title Update residual variance
-#
-# @param susiF.obj a susiF object defined by \code{\link{init_susiF_obj}} function
-#
-# @param sigma2 estimate residual variance
-#
-# @return updated susiF.obj
-# @export
 
 
 #' @title Update residual variance
 #' @description  See title
 #' @param susiF.obj a susiF object
 #' @param sigma2 the new value for residual variance
+#' @export
+#' @keywords internal
 
 update_residual_variance  <- function(susiF.obj,sigma2,...)
   UseMethod("update_residual_variance")
@@ -2030,7 +2024,7 @@ update_residual_variance  <- function(susiF.obj,sigma2,...)
 #' @export update_residual_variance.susiF
 #
 #' @export
-#
+#' @keywords internal
 
 update_residual_variance.susiF <- function(susiF.obj,sigma2,...)
 {

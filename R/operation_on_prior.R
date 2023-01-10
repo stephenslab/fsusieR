@@ -170,7 +170,7 @@ get_pi0 <- function(G_prior, ...)
 #' @export get_pi0.mixture_normal
 #'
 #' @export
-#'@keywords internal
+#' @keywords internal
 get_pi0.mixture_normal <- function(G_prior, ...)
 {
   out <- get_pi_G_prior(G_prior)[1]
@@ -184,7 +184,7 @@ get_pi0.mixture_normal <- function(G_prior, ...)
 #' @export get_pi0.mixture_normal_per_scale
 #'
 #' @export
-#'@keywords internal
+#' @keywords internal
 get_pi0.mixture_normal_per_scale <- function(G_prior, ...)
 {
   pi_prior_list <- get_pi_G_prior(G_prior)
@@ -204,7 +204,7 @@ get_pi0.mixture_normal_per_scale <- function(G_prior, ...)
 #' @return numeric between 0 an 1
 #'
 #' @export
-#'@keywords internal
+#' @keywords internal
 
 
 get_pi0 <- function(tpi, ...)
