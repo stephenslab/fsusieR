@@ -95,7 +95,7 @@ DWT2 <- function (data, filter.number = 10, family = "DaubLeAsymm")
 #' @param lev_res integer, corresponding to log2 of the signal length. WARNING the ordering change for different values of s.
 #
 #' @export
-#
+#' @keywords internal
 #' @examples
 #' library(wavethresh)
 #' tem_func <- rnorm( 2^8)
