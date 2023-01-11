@@ -268,7 +268,7 @@ expand_susiF_obj <- function(susiF.obj,L_extra)
   }else{
     L_old <- susiF.obj$L
     L_new <- susiF.obj$L+L_extra
-    susiF.obj$L <- ifelse(L_new<(susiF.obj$P+1),L_new,P)
+    susiF.obj$L <- ifelse(L_new<(susiF.obj$P+1),L_new,susiF.obj$P)
 
     for ( l in (L_old+1):susiF.obj$L )
     {
@@ -1104,8 +1104,6 @@ plot_susiF  = function (susiF.obj, title="",
     }
     df <- data.frame(y = y, CS = as.factor(col_y))%>%
       dplyr::mutate(CS = factor(CS, levels = 0:L, labels = c("Not in CS", 1:L)))
-
-
 
     P1 <- ggplot(df, aes_string(y = "y", x = "pos_SNP",col = "CS")) +
       geom_point(size = size_point,shape=point_shape) +
