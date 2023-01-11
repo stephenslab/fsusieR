@@ -1,5 +1,4 @@
 ######################## SuSiF operation on prior ###########################
-
 #' @title Initialize the prior
 #
 #' @description generate list of object corresponding to the parameters of the prior set for analysis
@@ -198,6 +197,7 @@ get_pi0.pi_mixture_normal_per_scale  <- function(tpi, ...)
   out <-    (unlist(lapply(tpi, function(y) y[[1]][1]) ))
   return(out)
 }
+
 
 
 #' @title Get mixture standard deviations for mixture normal prior

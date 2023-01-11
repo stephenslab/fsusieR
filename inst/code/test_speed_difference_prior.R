@@ -13,4 +13,32 @@ microbenchmark(
 )
 
 
+library(microbenchmark)
+?microbenchmark
 
+
+
+x <- rnorm(100)
+
+microbenchmark(
+  times=1000L,
+  v1=  .Call(stats:::C_cov, x, x, 5, FALSE),
+  v2= stats::cov(x,x)
+)
+
+x <- rnorm(1000)
+
+microbenchmark(
+  times=1000L,
+  v1=  .Call(stats:::C_cov, x, x, 5, FALSE),
+  v2= stats::cov(x,x)
+  )
+
+
+x <- rnorm(10000)
+
+microbenchmark(
+  times=1000L,
+  v1=  .Call(stats:::C_cov, x, x, 5, FALSE),
+  v2= stats::cov(x,x)
+)

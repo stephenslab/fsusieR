@@ -56,9 +56,8 @@ f3_cov  <- simu_IBSS_per_level(lev_res )$sim_func #effect cov 3
 noisy.data  <- list()
 Geno <- N3finemapping$X[,1:100]
 tt <- svd(N3finemapping$X[,500:700])
-PCA <- tt$u%*%diag(tt$d)
-Cov <- cbind(PCA [,1], PCA [,2], PCA [,3]) 
-Cov <- matrix(rnorm(3*nrow(Y)), ncol=3)
+ 
+Cov <- matrix(rnorm(3*nrow(Geno ),sd=2), ncol=3)
 for ( i in 1:nrow(Geno))
 {
   f1_obs <- f1

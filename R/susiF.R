@@ -306,7 +306,7 @@ susiF <- function(Y, X, L = 2,
 
   # numerical value to check breaking condition of while
   check <- 3*tol
-  ####Start while -----
+
   if(verbose){
     print("Initialization done")
   }
@@ -378,9 +378,9 @@ susiF <- function(Y, X, L = 2,
 
             EM_out <- gen_EM_out (tpi_k= get_pi_G_prior(G_prior),
                                    lBF  = log_BF  (G_prior,
-                                                   Bhat=tt$Bhat,
-                                                   Shat=tt$Shat,
-                                                   lowc_wc=lowc_wc,
+                                                   Bhat     = tt$Bhat,
+                                                   Shat     = tt$Shat,
+                                                   lowc_wc  = lowc_wc,
                                                    indx_lst = indx_lst
                                                    )
                                   )
