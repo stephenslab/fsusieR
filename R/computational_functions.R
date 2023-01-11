@@ -66,9 +66,17 @@ cal_cor_cs <- function(susiF.obj,X){
 cal_Bhat_Shat   <- function(Y, X ,v1 , lowc_wc=NULL,  ...  )
 {
 
-  out <- t(mapply( function(j,l) fit_lm(l= l, j=j, Y=Y ,X=X,v1=v1, lowc_wc=lowc_wc  ),
+  out <- t(mapply( function(j,l) fit_lm(l= l,
+                                        j=j,
+                                        Y=Y ,
+                                        X=X,
+                                        v1=v1,
+                                        lowc_wc=lowc_wc
+                                        ),
                    l=rep(1:dim(Y)[2],each= ncol(X)),
-                   j=rep(1:dim(X)[2], ncol(Y))))
+                   j=rep(1:dim(X)[2], ncol(Y))
+                   )
+           )
 
   Bhat   <-  matrix(  out[,1], nrow=ncol(X))
   Shat   <-  matrix(  out[,2], nrow=ncol(X))
