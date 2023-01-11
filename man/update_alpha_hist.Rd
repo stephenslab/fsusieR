@@ -10,7 +10,7 @@ update_alpha_hist(susiF.obj, discard, ...)
 \method{update_alpha_hist}{susiF}(susiF.obj, discard = FALSE, ...)
 }
 \arguments{
-\item{susiF.obj}{a susiF object defined by \code{\link{init_susiF_obj}} function}
+\item{susiF.obj}{a susiF object defined by init_susiF_obj function}
 
 \item{discard}{logical set to FALSE by default, if true remove element of history longer than L}
 }

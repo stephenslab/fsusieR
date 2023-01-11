@@ -1,6 +1,6 @@
 #' @title Compute KL divergence effect l
 #
-#' @param susiF.obj a susisF object defined by \code{\link{init_susiF_obj}} function
+#' @param susiF.obj a susisF object defined by  init_susiF_obj  function
 #
 #' @param l integer larger or equal to 1. Corresponds to the effect to be accessed
 #
@@ -55,7 +55,7 @@ cal_KL_l.susiF <- function(susiF.obj, l, X, D, C , indx_lst, ...)
 
 #' @title Compute log likelihood of single function regression of effect l
 #
-#' @param susiF.obj a susiF object defined by \code{\link{init_susiF_obj}} function
+#' @param susiF.obj a susiF object defined by  init_susiF_obj  function
 #
 #' @param l effect to update
 #
@@ -98,7 +98,7 @@ loglik_SFR.susiF <- function (susiF.obj, l, Y , X, indx_lst, ...)
 #   regression of effect l
 #
 #' @param susiF.obj susiF object, for example created by calling
-# \code{\link{init_susiF_obj}}.
+#'  init_susiF_obj .
 #
 #' @param l Index of effect to update.
 #
@@ -140,7 +140,7 @@ loglik_SFR_post.susiF <- function (susiF.obj, l, Y, X, ...)
 
 #' @title Expected log likelihood for a   susiF   object
 #
-#' @param susiF.obj a susiF object defined by \code{\link{init_susiF_obj}} function
+#' @param susiF.obj a susiF object defined by  init_susiF_obj  function
 #
 #' @param Y Matrix of outcomes
 #
@@ -176,7 +176,7 @@ Eloglik.susiF_ss = function (susiF_ss.obj,data) {
 
 #' @title Get objective function from data and susiF object
 #
-#' @param susiF.obj a susiF object defined by \code{\link{init_susiF_obj}} function
+#' @param susiF.obj a susiF object defined by  init_susiF_obj  function
 #
 #' @param Y Matrix of outcomes
 #

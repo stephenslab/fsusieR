@@ -150,49 +150,6 @@ get_pi_G_prior.mixture_normal_per_scale <- function(G_prior, ...)
 }
 
 
-#' @title Get mixture proportion for mixture normal prior per scale
-#
-#' @description Add description here.
-#' @param G_prior mixture normal prior
-#' @return list of vector of mixture proportion
-#' @export
-#' @keywords internal
-
-
-get_pi0 <- function(G_prior, ...)
-  UseMethod("get_pi0")
-
-
-#' @rdname get_pi0
-#'
-#' @method get_pi0 mixture_normal
-#'
-#' @export get_pi0.mixture_normal
-#'
-#' @export
-#' @keywords internal
-get_pi0.mixture_normal <- function(G_prior, ...)
-{
-  out <- get_pi_G_prior(G_prior)[1]
-  return(out)
-}
-
-#' @rdname get_pi0
-#'
-#' @method get_pi0 mixture_normal_per_scale
-#'
-#' @export get_pi0.mixture_normal_per_scale
-#'
-#' @export
-#' @keywords internal
-get_pi0.mixture_normal_per_scale <- function(G_prior, ...)
-{
-  pi_prior_list <- get_pi_G_prior(G_prior)
-  out <-  lapply(pi_prior_list, function(x){unlist( lapply(x, function(y) y[1])) } )
-  return(out)
-}
-
-
 
 
 #' @title Get mixture proportion for mixture normal prior

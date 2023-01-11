@@ -10,7 +10,7 @@ out_prep(susiF.obj, Y, X, indx_lst, filter.cs, lfsr_curve, outing_grid, ...)
 \method{out_prep}{susiF}(susiF.obj, Y, X, indx_lst, filter.cs, lfsr_curve, outing_grid, ...)
 }
 \arguments{
-\item{susiF.obj}{a susiF object defined by \code{\link{init_susiF_obj}} function}
+\item{susiF.obj}{a susiF object defined by init_susiF_obj function}
 
 \item{Y}{functional phenotype, matrix of size N by size J. The underlying algorithm uses wavelets that assume that J is of the form J^2. If J is not a power of 2, susiF internally remaps the data into a grid of length 2^J}
 

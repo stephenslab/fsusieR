@@ -3,7 +3,7 @@
 
 #' @title Compute partial residual for effect l
 #
-#' @param susiF.obj a susiF object defined by \code{\link{init_susiF_obj}} function
+#' @param susiF.obj a susiF object defined by init_susiF_obj function
 #
 #' @param l integer larger or equal to 1. Corresponds to the effect to be accessed
 #
@@ -123,7 +123,7 @@ cal_partial_resid.susiF  <- function( susiF.obj, l, X, D, C,  indx_lst,... )
 
 #' @title Check purity credible sets
 #
-#' @param susiF.obj a susif object defined by \code{\link{init_susiF_obj}} function
+#' @param susiF.obj a susif object defined by init_susiF_obj function
 #' @param min.purity minimal purity within a CS
 #' @param X matrix of covariates
 #
@@ -167,7 +167,7 @@ check_cs.susiF <- function(susiF.obj, min.purity=0.5,X,  ...)
 
 #' @title Discard credible sets
 #
-#' @param susiF.obj a susif object defined by \code{\link{init_susiF_obj}} function
+#' @param susiF.obj a susif object defined by init_susiF_obj function
 #
 #' @param cs vector of integer containing the credible sets to discard
 #
@@ -221,7 +221,7 @@ discard_cs.susiF <- function(susiF.obj, cs, out_prep=FALSE,  ...)
 
 #' @title Update residual variance
 #
-#' @param susiF.obj a susiF object defined by \code{\link{init_susiF_obj}} function
+#' @param susiF.obj a susiF object defined by init_susiF_obj function
 #
 #' @param Y wavelet transformed  functional phenotype, matrix of size N by size J.
 #
@@ -313,7 +313,7 @@ get_fitted_effect.susiF <- function(susiF.obj, l, ...){
 #
 # @title Access susiF mixture proportion of effect l
 #
-# @param susiF.obj a susiF object defined by \code{\link{init_susiF_obj}} function
+# @param susiF.obj a susiF object defined by init_susiF_obj function
 #
 # @param l integer larger or equal to 1. Corresponds to the effect to be accessed
 #
@@ -353,7 +353,7 @@ get_pi.susiF <- function(susiF.obj, l,...)
 
 # @title Access susiF log Bayes factors of effect l
 #
-# @param susiF.obj a susiF object defined by \code{\link{init_susiF_obj}} function
+# @param susiF.obj a susiF object defined by init_susiF_obj function
 #
 # @param l integer larger or equal to 1. Corresponds to the effect to be accessed
 #
@@ -398,7 +398,7 @@ get_lBF.susiF <- function(susiF.obj, l,...)
 
 #' @title Compute Epected sum of square
 #
-#' @param susiF.obj a susiF object defined by \code{\link{init_susiF_obj}} function
+#' @param susiF.obj a susiF object defined by init_susiF_obj function
 #
 #' @param Y wavelet transformed  functional phenotype, matrix of size N by size J.
 #
@@ -433,7 +433,7 @@ get_ER2.susiF = function (  susiF.obj,Y, X,  ...) {
 #
 #' @title Access susiF internal prior
 #
-#' @param susiF.obj a susiF object defined by \code{\link{init_susiF_obj}} function
+#' @param susiF.obj a susiF object defined by init_susiF_obj function
 #
 #' @return G_prior object
 #
@@ -465,7 +465,7 @@ get_G_prior.susiF <- function(susiF.obj,...)
 
 # @title Compute posterior mean of the fitted effect
 #
-# @param susiF.obj a susiF object defined by \code{\link{init_susiF_obj}} function
+# @param susiF.obj a susiF object defined by init_susiF_obj function
 #
 # @param l , optional effect to update
 #
@@ -500,7 +500,7 @@ get_post_F.susiF <- function(susiF.obj,l,...)
 
 # @title Compute posterior second moment
 #
-# @param susiF.obj a susiF object defined by \code{\link{init_susiF_obj}} function
+# @param susiF.obj a susiF object defined by init_susiF_obj function
 # @param l , optional effect to update
 #
 # @return  A J by T matrix of posterior wavelet coefficient,
@@ -534,7 +534,7 @@ get_post_F2.susiF <- function(susiF.obj, l,...)
 
 # @title Update alpha  susiF mixture proportion of effect l
 #
-# @param susiF.obj a susiF object defined by \code{\link{init_susiF_obj}} function
+# @param susiF.obj a susiF object defined by init_susiF_obj function
 #
 # @param l integer larger or equal to 1. Corresponds to the effect to be accessed
 #
@@ -564,7 +564,7 @@ get_alpha.susiF <-  function(susiF.obj, l,...  )
 
 #' @title Update  susiF via greedy search or backfit
 #
-#' @param susiF.obj a susiF object defined by \code{\link{init_susiF_obj}} function
+#' @param susiF.obj a susiF object defined by init_susiF_obj function
 #' @param X matrix of size n by p contains the covariates
 #' @param min.purity minimum purity for estimated credible sets
 #' @param verbose If \code{verbose = TRUE}, the algorithm's progress,
@@ -898,7 +898,7 @@ init_susiF_obj <- function(L_max, G_prior, Y,X,L_start,greedy,backfit,... )
 
 #' @title Merging effect function
 #
-#' @param susiF.obj a susiF object defined by \code{\link{init_susiF_obj}} function
+#' @param susiF.obj a susiF object defined by init_susiF_obj function
 #
 #' @param tl see  \code{\link{greedy_backfit}}
 #
@@ -961,7 +961,7 @@ merge_effect.susiF <- function( susiF.obj, tl, discard=TRUE,  ...){
 
 # @title Updates CS names for output
 #
-# @param susiF.obj a susiF object defined by \code{\link{init_susiF_obj}} function
+# @param susiF.obj a susiF object defined by init_susiF_obj function
 #
 # @param X matrix of size N by p
 
@@ -992,7 +992,7 @@ name_cs.susiF <- function(susiF.obj,X,...){
 
 #' @title Preparing output of main susiF function
 #
-#' @param susiF.obj a susiF object defined by \code{\link{init_susiF_obj}} function
+#' @param susiF.obj a susiF object defined by init_susiF_obj function
 #
 #' @param Y functional phenotype, matrix of size N by size J. The underlying algorithm uses wavelets that assume that J is of the form J^2. If J is not a power of 2, susiF internally remaps the data into a grid of length 2^J
 #
@@ -1204,7 +1204,7 @@ plot_susiF  = function (susiF.obj, title="",
 
 #' @title Check tolerance for stopping criterion
 #
-#' @param susiF.obj a susiF object defined by \code{\link{init_susiF_obj}} function
+#' @param susiF.obj a susiF object defined by init_susiF_obj function
 #' @param check numeric, dynamic value for testing outing of th while loop
 #' @param cal_obj logical, if set to TRUE compute ELBO
 #
@@ -1285,6 +1285,11 @@ test_stop_cond.susiF <- function(susiF.obj, check, cal_obj, Y, X, D, C, indx_lst
         T1 <- do.call( rbind, susiF.obj$alpha_hist[[len ]])
         T1 <- T1[1:susiF.obj$L,] #might be longer than L because alpha computed before discarding effect
         T2 <- do.call( rbind, susiF.obj$alpha_hist[[(len-1) ]])
+
+
+        if(!(susiF.obj$L==nrow(T2))){
+          return(susiF.obj)
+        }
         T2 <- T2[1:susiF.obj$L,]
         if(susiF.obj$L==1){
           T2 <- T2[1,]
@@ -1321,7 +1326,7 @@ test_stop_cond.susiF <- function(susiF.obj, check, cal_obj, Y, X, D, C, indx_lst
 
 #' @title Update alpha   susiF mixture proportion of effect l
 #
-#' @param susiF.obj a susiF object defined by \code{\link{init_susiF_obj}} function
+#' @param susiF.obj a susiF object defined by init_susiF_obj function
 #
 #' @param l integer larger or equal to 1. Corresponds to the effect to be accessed
 #
@@ -1352,7 +1357,7 @@ update_alpha.susiF <-  function(susiF.obj, l, alpha,... )
 
 #' @title Update alpha_hist   susiF object
 #
-#' @param susiF.obj a susiF object defined by \code{\link{init_susiF_obj}} function
+#' @param susiF.obj a susiF object defined by init_susiF_obj function
 #
 #' @param  discard logical set to FALSE by default, if true remove element of history longer than L
 #
@@ -1394,7 +1399,7 @@ update_alpha_hist.susiF <-  function(susiF.obj , discard=FALSE,... )
 #
 # @description Update  susiF object using the output of EM_pi
 #
-# @param susiF.obj a susiF object defined by \code{\link{init_susiF_obj}} function
+# @param susiF.obj a susiF object defined by init_susiF_obj function
 #
 # @param l integer larger or equal to 1. Corresponds to the effect to be accessed
 #
@@ -1484,7 +1489,7 @@ update_susiF_obj.susiF <- function(susiF.obj, l, EM_pi, Bhat, Shat, indx_lst, lo
 
 #' @title Update susiF by computing PiP
 #
-#' @param susiF.obj a susiF object defined by \code{\link{init_susiF_obj}} function
+#' @param susiF.obj a susiF object defined by  init_susiF_obj  function
 #' @return susiF object
 #' @export
 #' @keywords internal
@@ -1519,7 +1524,7 @@ update_cal_pip.susiF <- function (susiF.obj,...)
 
 #' @title Update susiF by computing credible sets
 #
-#' @param susiF.obj a susiF object defined by \code{\link{init_susiF_obj}} function
+#' @param susiF.obj a susiF object defined by  init_susiF_obj  function
 #
 #' @param cov_lev numeric between 0 and 1, corresponding to the expected level of coverage of the cs if not specified set to 0.95
 #
@@ -1560,7 +1565,7 @@ update_cal_cs.susiF <- function(susiF.obj, cov_lev=0.95,...)
 
 #@title Update susiF by computing predicted curves
 #
-#@param susiF.obj a susiF object defined by \code{\link{init_susiF_obj}} function
+#@param susiF.obj a susiF object defined by init_susiF_obj function
 #@param Y functional phenotype, matrix of size N by size J. The underlying algorithm uses wavelet which assume that J is of the form J^2. If J not a power of 2, susiF internally remaps the data into grid of length 2^J
 #@param X matrix of size N by p
 #@param indx_lst list generated by gen_wavelet_indx for the given level of resolution
@@ -1631,7 +1636,7 @@ update_cal_indf.susiF <- function(susiF.obj, Y, X, indx_lst,...)
 
 #' @title Update susiF by computing posterior curves
 #
-#' @param susiF.obj a susiF object defined by \code{\link{init_susiF_obj}} function
+#' @param susiF.obj a susiF object defined by init_susiF_obj function
 #
 #
 #' @param indx_lst list generated by gen_wavelet_indx for the given level of resolution
@@ -1693,7 +1698,7 @@ update_cal_fit_func.susiF <- function(susiF.obj, indx_lst,...)
 
 # @title Update susiF by computing credible band for posterior curves
 #
-# @param susiF.obj a susiF object defined by \code{\link{init_susiF_obj}} function
+# @param susiF.obj a susiF object defined by init_susiF_obj function
 #
 # @param indx_lst list generated by gen_wavelet_indx for the given level of resolution
 #
@@ -1746,7 +1751,7 @@ update_cal_credible_band.susiF <- function(susiF.obj, indx_lst,...)
 
 # @title Update susiF by computing posterior curves using wavelet coefficient with a low lfsr
 #
-# @param susiF.obj a susiF object defined by \code{\link{init_susiF_obj}} function
+# @param susiF.obj a susiF object defined by init_susiF_obj function
 #
 # @param lfsr_curve Maximum local false sign rate of the wavelet coefficients used to reconstruct lfsr_curves (see output)
 #
@@ -1812,7 +1817,7 @@ update_cal_lfsr_func.susiF <- function(susiF.obj, lfsr_curve, indx_lst,...)
 
 #' @title Update susiF log Bayes factor
 #
-#' @param susiF.obj a susiF object defined by \code{\link{init_susiF_obj}} function
+#' @param susiF.obj a susiF object defined by init_susiF_obj function
 #' @param l effect to update
 #' @param lBF vector of length p, containing the updated log Bayes factors
 #' @return susiF object
@@ -1849,7 +1854,7 @@ update_lBF.susiF <- function    (susiF.obj,l, lBF,...)
 
 #@title Update susiF local False Sign Rate
 #
-#@param susiF.obj a susiF object defined by \code{\link{init_susiF_obj}} function
+#@param susiF.obj a susiF object defined by init_susiF_obj function
 #
 #@param l effect to update
 #
@@ -1886,7 +1891,7 @@ update_lfsr.susiF <- function(susiF.obj, l, Bhat, Shat, alpha, indx_lst,...)
 
 #' @title Update susiF log Bayes factor
 #
-#' @param susiF.obj a susiF object defined by \code{\link{init_susiF_obj}} function
+#' @param susiF.obj a susiF object defined by init_susiF_obj function
 #' @param  ELBO new ELBO value
 #' @return susiF object
 #' @export
@@ -1960,7 +1965,7 @@ update_KL.susiF <- function(susiF.obj,  X, D, C , indx_lst,...)
 
 # @title Update mixture proportion of susiF mixture proportions of effect l
 #
-# @param susiF.obj a susif object defined by \code{\link{init_susiF_obj}} function
+# @param susiF.obj a susif object defined by init_susiF_obj function
 #
 # @param l integer larger or equal to 1. Corresponds to the effect to be accessed
 #
@@ -2037,7 +2042,7 @@ update_residual_variance.susiF <- function(susiF.obj,sigma2,...)
 #
 #' @title Return which credible sets are  dummy
 #
-#' @param susiF.obj a susif object defined by \code{\link{init_susiF_obj}} function
+#' @param susiF.obj a susif object defined by init_susiF_obj function
 #' @param min.purity minimal purity within a CS
 #' @param X matrix of covariates
 #

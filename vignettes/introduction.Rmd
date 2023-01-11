@@ -59,8 +59,8 @@ attach(N3finemapping)
 
 rsnr <- 0.5 #expected root signal noise ratio
 
-pos1 <- 250   #Position of the causal covariate for effect 1
-pos2 <- 750   #Position of the causal covariate for effect 2
+pos1 <- 25    #Position of the causal covariate for effect 1
+pos2 <- 75    #Position of the causal covariate for effect 2
 lev_res <- 7#length of the molecular phenotype (2^lev_res)
 f1 <-  simu_IBSS_per_level(lev_res )$sim_func#first effect
 f2 <- simu_IBSS_per_level(lev_res )$sim_func #second effect
@@ -84,7 +84,7 @@ Here we generate the observed curves (effect +noise)
 ```{r}
 
 noisy.data  <- list()
-X <- N3finemapping$X
+X <- N3finemapping$X[,1:100]
 for ( i in 1:nrow(X))
 {
   f1_obs <- f1
@@ -176,14 +176,14 @@ plot_susiF(out, pip_only=TRUE)
  
  
  
- #### A note on the   priors available
-Note that fSuSiE has two different prior available \textit{mixture_normal_per_scale} and \textit{mixture_normal}. The default value is \textit{mixture_normal_per_scale}, which has slightly higher power that the  \textit{mixture_normal}. However,  \textit{mixture_normal} is up to 60% faster than the \textit{mixture_normal_per_scale}. You may consider using this option before performing genome-wide fine mapping. 
+ #### A note on the priors available
+Note that fSuSiE has two different prior available \textit{mixture_normal_per_scale} and \textit{mixture_normal}. The default value is \textit{mixture_normal_per_scale}, which has slightly higher power that the  \textit{mixture_normal}. However,  \textit{mixture_normal} is up to 40% faster than the \textit{mixture_normal_per_scale}. You may consider using this option before performing genome-wide fine mapping. 
  
 
-```{r}
- out1 <- susiF(Y,X,L=10 , prior = 'mixture_normal_per_scale')
+```{r }
+ out1 <- susiF(Y,X,L=3 , prior = 'mixture_normal_per_scale',verbose=FALSE)
  out1$runtime
- out2 <- susiF(Y,X,L=10 , prior = 'mixture_normal')
+ out2 <- susiF(Y,X,L=3 , prior = 'mixture_normal',verbose=FALSE)
  out2$runtime
 ```
  

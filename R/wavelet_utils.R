@@ -178,36 +178,43 @@ adjust_FM_covariate <- function(Y,X,pos=NULL, thresh_lowcount=0, verbose){
   v1 <- rep(1, dim(X)[2])
   lowc_wc <-   which_lowcount(Y_f,thresh_lowcount)
 
-  fitted_Y_f <- do.call( cbind,lapply(1:dim(Y_f)[2],
-                                      function(j) if(j%in%lowc_wc){
-                                        return(rep(0,nrow(Y)))
-                                      }else{
-                                        return(fitted(lm(Y[,j]~X)))
-                                      }
 
 
-  )
 
-  )
+  coef_Y_f <- cal_Bhat_Shat  (Y_f, X ,v1)
 
 
-  Y_fitted <- 0*Y
-  indx_lst <- gen_wavelet_indx(lev_res = log2(ncol(fitted_Y_f)))
-  temp <- wavethresh::wd(rep(0, dim(fitted_Y_f)[2]))
-  for ( i in 1:nrow(Y))
-  {
-    temp$D                     <-  fitted_Y_f[i,-indx_lst[[length(indx_lst)]]]
-    temp$C[length(temp$C)]     <-   fitted_Y_f[i,indx_lst[[length(indx_lst)]]]
-    Y_fitted [i,] <-  wavethresh::wr(temp)
+  indx_lst <- gen_wavelet_indx(log2(dim(Y_f)[2]))
+  if (is.null(nrow(coef_Y_f$Bhat))){
+
+    coef_p <- ashr::ash(coef_Y_f$Bhat,coef_Y_f$Shat)$result$PosteriorMean
+    temp <- wavethresh::wd(rep(0, length(coef_Y_f$Bhat)[2]))
+
+    temp$D                     <-  coef_p[ -indx_lst[[length(indx_lst)]]]
+    temp$C[length(temp$C)]     <-  coef_p[ indx_lst[[length(indx_lst)]]]
+    fitted_coef   <-  wavethresh::wr(temp)
+  }else{
+    fitted_coef <-list()
+    for ( i in 1:nrow(coef_Y_f$Bhat ))
+    {
+      coef_p <- ashr::ash(coef_Y_f$Bhat[i,],coef_Y_f$Shat[i,])$result$PosteriorMean
+      temp <- wavethresh::wd(rep(0, dim(coef_Y_f$Bhat)[2]))
+
+      temp$D                     <-  coef_p[  -indx_lst[[length(indx_lst)]]]
+      temp$C[length(temp$C)]     <-   coef_p[  indx_lst[[length(indx_lst)]]]
+      fitted_coef[[i]]   <-  wavethresh::wr(temp)
+    }
+    fitted_coef <- do.call(cbind,   fitted_coef )
   }
 
 
-  Y_adjusted = Y - Y_fitted
-
+  Y_adjusted  = Y-X%*%t(fitted_coef)
   out <- list( Y_adjusted  = Y_adjusted,
-               Y_fitted    = Y_fitted,
+
+               fitted_coef = fitted_coef,
                pos         = outing_grid
   )
+
 
   return(out)
 }

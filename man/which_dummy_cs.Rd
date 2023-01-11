@@ -10,7 +10,7 @@ which_dummy_cs(susiF.obj, min.purity = 0.5, X, ...)
 \method{which_dummy_cs}{susiF}(susiF.obj, min.purity = 0.5, X, ...)
 }
 \arguments{
-\item{susiF.obj}{a susif object defined by \code{\link{init_susiF_obj}} function}
+\item{susiF.obj}{a susif object defined by init_susiF_obj function}
 
 \item{min.purity}{minimal purity within a CS}
 

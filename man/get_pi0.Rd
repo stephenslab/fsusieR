@@ -2,18 +2,10 @@
 % Please edit documentation in R/operation_on_prior.R
 \name{get_pi0}
 \alias{get_pi0}
-\alias{get_pi0.mixture_normal}
-\alias{get_pi0.mixture_normal_per_scale}
 \alias{get_pi0.pi_mixture_normal}
 \alias{get_pi0.pi_mixture_normal_per_scale}
-\title{Get mixture proportion for mixture normal prior per scale}
+\title{Get mixture proportion for mixture normal prior}
 \usage{
-get_pi0(tpi, ...)
-
-\method{get_pi0}{mixture_normal}(G_prior, ...)
-
-\method{get_pi0}{mixture_normal_per_scale}(G_prior, ...)
-
 get_pi0(tpi, ...)
 
 \method{get_pi0}{pi_mixture_normal}(tpi, ...)
@@ -22,17 +14,11 @@ get_pi0(tpi, ...)
 }
 \arguments{
 \item{tpi}{object of class pi_mixture_normal}
-
-\item{G_prior}{mixture normal prior}
 }
 \value{
-list of vector of mixture proportion
-
 numeric between 0 an 1
 }
 \description{
-Add description here.
-
 Add description here.
 }
 \keyword{internal}

@@ -10,7 +10,7 @@ get_ER2(susiF.obj, Y, X, ...)
 \method{get_ER2}{susiF}(susiF.obj, Y, X, ...)
 }
 \arguments{
-\item{susiF.obj}{a susiF object defined by \code{\link{init_susiF_obj}} function}
+\item{susiF.obj}{a susiF object defined by init_susiF_obj function}
 
 \item{Y}{wavelet transformed  functional phenotype, matrix of size N by size J.}
 

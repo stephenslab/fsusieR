@@ -10,7 +10,7 @@ get_G_prior(susiF.obj, ...)
 \method{get_G_prior}{susiF}(susiF.obj, ...)
 }
 \arguments{
-\item{susiF.obj}{a susiF object defined by \code{\link{init_susiF_obj}} function}
+\item{susiF.obj}{a susiF object defined by init_susiF_obj function}
 }
 \value{
 G_prior object

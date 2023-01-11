@@ -10,7 +10,8 @@ loglik_SFR_post(susiF.obj, l, ...)
 \method{loglik_SFR_post}{susiF}(susiF.obj, l, Y, X, ...)
 }
 \arguments{
-\item{susiF.obj}{susiF object, for example created by calling}
+\item{susiF.obj}{susiF object, for example created by calling
+init_susiF_obj .}
 
 \item{l}{Index of effect to update.}
 
