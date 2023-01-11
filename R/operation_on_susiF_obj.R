@@ -1054,7 +1054,9 @@ out_prep.susiF <- function(susiF.obj,Y, X, indx_lst, filter.cs, lfsr_curve, outi
 #' @param start_end_region start end of the region
 #' @param pip_only logical, if TRUE only ouput the PIP plot
 #' @param title character
+#' 
 #' @param \dots Other arguments..
+#' 
 #' @importFrom ggplot2 ggplot
 #' @importFrom ggplot2 aes_string
 #' @importFrom ggplot2 geom_line
@@ -1069,6 +1071,8 @@ out_prep.susiF <- function(susiF.obj,Y, X, indx_lst, filter.cs, lfsr_curve, outi
 #' @importFrom ggplot2 ylab
 #' @importFrom ggplot2 geom_ribbon
 #' @importFrom ggplot2 scale_fill_manual
+#' @importFrom magrittr %>%
+#' @importFrom dplyr filter
 #
 #' @export
 #
