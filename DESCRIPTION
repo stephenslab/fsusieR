@@ -1,8 +1,8 @@
 Encoding: UTF-8
 Type: Package
 Package: susiF.alpha
-Version: 0.1.190
-Date: 2023-01-04
+Version: 0.1.191
+Date: 2023-01-11
 Title: Sum of Single Functions
 Authors@R: person("William R. P.","Denault",role = c("aut","cre"),
                   email = "wdenault@uchicago.edu")
@@ -11,7 +11,7 @@ BugReports: https://github.com/stephenslab/susiF.alpha
 Description: Implementation of the Sum of Single Functions ("FSuSiE")
     method.
 Depends:
-    R (>= 3.5.0),
+    R (>= 3.5.0)
 Imports:
     wavethresh (>= 4.6.8),
     ashr (>= 2.2-47),
@@ -21,7 +21,7 @@ Imports:
     dplyr,
     ggplot2,
     gridExtra,
-    graphics,
+    graphics
 Suggests:
     knitr,
     rmarkdown,

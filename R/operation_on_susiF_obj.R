@@ -1056,10 +1056,12 @@ out_prep.susiF <- function(susiF.obj,Y, X, indx_lst, filter.cs, lfsr_curve, outi
 #' @param title character
 #' @param \dots Other arguments..
 #' @importFrom ggplot2 ggplot
-#' @importFrom ggplot2 aes
+#' @importFrom ggplot2 aes_string
 #' @importFrom ggplot2 geom_line
 #' @importFrom ggplot2 facet_wrap
+#' @importFrom ggplot2 facet_grid
 #' @importFrom ggplot2 geom_point
+#' @importFrom ggplot2 geom_hline
 #' @importFrom ggplot2 theme
 #' @importFrom ggplot2 element_blank
 #' @importFrom ggplot2 scale_color_manual
@@ -1087,13 +1089,6 @@ plot_susiF  = function (susiF.obj, title="",
   if( missing(point_shape)){
     point_shape <- rep( 19, length(pos_SNP))
   }
-  list.of.packages <- c("ggplot2", "gridExtra","dplyr")
-  new.packages <- list.of.packages[!(list.of.packages %in%
-                                       installed.packages()[, "Package"])]
-  if (length(new.packages))
-    install.packages(new.packages)
-  require(ggplot2)
-  require(dplyr)
   color = c("black", "dodgerblue2", "green4", "#6A3D9A", "#FF7F00",
             "gold1", "skyblue2", "#FB9A99", "palegreen2", "#CAB2D6",
             "#FDBF6F", "gray70", "khaki2", "maroon", "orchid1", "deeppink1",
@@ -1112,8 +1107,7 @@ plot_susiF  = function (susiF.obj, title="",
 
 
 
-    P1 <- ggplot(df, aes(y = y, x =pos_SNP,
-                         col = CS)) +
+    P1 <- ggplot(df, aes_string(y = "y", x = "pos_SNP",col = "CS")) +
       geom_point(size = size_point,shape=point_shape) +
       theme(axis.ticks.x = element_blank(),axis.text.x = element_blank()) +
       scale_color_manual("Credible set",values = color) +
@@ -1132,12 +1126,13 @@ plot_susiF  = function (susiF.obj, title="",
       CS <- rep(0:L, each = n_wac)
       df <- data.frame(fun_plot = fun_plot, CS = as.factor(CS),
                        x = x, upr = cred_band$up, lwr = cred_band$low)
-      P2 <- ggplot(df, aes(y = fun_plot, x = x, col = CS)) +
-        geom_line(size = size_line) + geom_ribbon(aes(ymin = lwr,
-                                                      ymax = upr, fill = CS, col = CS), alpha = 0.3) +
+      P2 <- ggplot(df, aes_string(y = fun_plot, x = x, col = CS)) +
+       geom_line(size = size_line) +
+           geom_ribbon(aes_string(ymin = "lwr",ymax = "upr",fill = "CS",
+                                  col = "CS"),alpha = 0.3) +
         scale_color_manual("Credible set", values = color) +
         scale_fill_manual("Credible set", values = color) +
-        facet_grid(CS~.)+
+        facet_grid(CS~.) +
         xlab("postion") + ylab("Estimated effect")
       out <- gridExtra::grid.arrange(P1, P2, ncol = 1)
     }
@@ -1147,7 +1142,7 @@ plot_susiF  = function (susiF.obj, title="",
       df <- data.frame(fun_plot = fun_plot, CS = as.factor(CS),
                        x = x) %>%
         filter(CS != 0)
-      P2 <- ggplot(df, aes(y = fun_plot, x = x, col = CS)) +
+      P2 <- ggplot(df, aes_string(y = "fun_plot", x = "x", col = "CS")) +
         geom_line(size = size_line) + scale_color_manual("Credible set",
                                                          values = color[-1]) +
         geom_hline(yintercept=0, linetype='dashed', col = 'grey', size = 1.5)+
@@ -1171,9 +1166,10 @@ plot_susiF  = function (susiF.obj, title="",
       CS <- rep(c(0, effect), each = n_wac)
       df <- data.frame(fun_plot = fun_plot, CS = as.factor(CS),
                        x = x, upr = cred_band$up, lwr = cred_band$low)
-      P2 <- ggplot(df, aes(y = fun_plot, x = x, col = CS)) +
-        geom_line(size = 2) + geom_ribbon(aes(ymin = lwr,
-                                              ymax = upr, fill = CS, col = CS), alpha = 0.3) +
+      P2 <- ggplot(df, aes_string(y = "fun_plot", x = "x", col = "CS")) +
+        geom_line(size = 2) +
+        geom_ribbon(aes_string(ymin = "lwr",ymax = "upr",fill = "CS",
+                               col = "CS"),alpha = 0.3) +
         scale_color_manual("Credible set", values = color) +
         scale_fill_manual("Credible set", values = color) +
         xlab("postion") + ylab("Estimated effect")
@@ -1185,7 +1181,7 @@ plot_susiF  = function (susiF.obj, title="",
       CS <- rep(c(0, effect), each = n_wac)
       df <- data.frame(fun_plot = fun_plot, CS = as.factor(CS),
                        x = x)
-      P2 <- ggplot(df, aes(y = fun_plot, x = x, col = CS)) +
+      P2 <- ggplot(df,aes_string(y = "fun_plot",x = "x",col = "CS")) +
         geom_line(size = 2) + scale_color_manual("Credible set",
                                                  values = color) + xlab("postion") + ylab("Estimated effect")
       out <- P2
