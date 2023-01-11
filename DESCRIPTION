@@ -13,10 +13,10 @@ Description: Implementation of the Sum of Single Functions ("FSuSiE")
 Depends:
     R (>= 3.5.0)
 Imports:
+    stats,
     wavethresh (>= 4.6.8),
     ashr (>= 2.2-47),
     mixsqp (>= 0.3-43),
-    stats,
     matrixStats (>= 0.62.0),
     magrittr,
     dplyr,
