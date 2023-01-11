@@ -103,6 +103,7 @@ DWT2 <- function (data, filter.number = 10, family = "DaubLeAsymm")
 #' indx_lst <- gen_wavelet_indx(8)
 #' plot(accessD(twav,level=6), ( twav$D[unlist(indx_lst[(6+1)])]) )
 #'  #should a straightline
+#' 
 gen_wavelet_indx <- function(lev_res)
 {
   indx_lst <- list()
