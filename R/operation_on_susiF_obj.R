@@ -1072,8 +1072,6 @@ out_prep.susiF <- function(susiF.obj,Y, X, indx_lst, filter.cs, lfsr_curve, outi
 #' @importFrom ggplot2 ylab
 #' @importFrom ggplot2 geom_ribbon
 #' @importFrom ggplot2 scale_fill_manual
-#' @importFrom magrittr %>%
-#' @importFrom dplyr filter
 #
 #' @export
 #
@@ -1115,7 +1113,8 @@ plot_susiF  = function (susiF.obj, title="",
     df <-  data.frame(y = y, CS = CS)
 
 
-    P1 <- ggplot(df, aes_string(y = "y", x ="pos_SNP",
+    P1 <- ggplot(df, aes_string(y = "y",
+                                x ="pos_SNP",
                          col = "CS")) +
       geom_point(size = size_point,
                  shape=point_shape) +
@@ -1138,13 +1137,20 @@ plot_susiF  = function (susiF.obj, title="",
                                 )
                               )
       cred_band <- rbind(data.frame(up = rep(0, n_wac),
-                                    low = rep(0, n_wac)), cred_band)
-      x <- rep(1:susiF.obj$n_wac, (susiF.obj$L + 1))
+                                    low = rep(0, n_wac)),
+                         cred_band)
+      x  <- rep(1:susiF.obj$n_wac, (susiF.obj$L + 1))
       CS <- rep(0:L, each = n_wac)
-      df <- data.frame(fun_plot = fun_plot, CS = as.factor(CS),
-                       x = x, upr = cred_band$up, lwr = cred_band$low)
-      P2 <- ggplot(df, aes_string(y = fun_plot, x = x, col = CS)) +
-       geom_line(size = size_line) +
+      df <- data.frame(fun_plot = fun_plot,
+                       CS = as.factor(CS),
+                       x = x,
+                       upr = cred_band$up,
+                       lwr = cred_band$low)
+
+      P2 <- ggplot(df, aes_string(y = "fun_plot",
+                                  x = "x",
+                                  col = "CS")) +
+            geom_line(size = size_line) +
            geom_ribbon(aes_string(ymin = "lwr",ymax = "upr",fill = "CS",
                                   col = "CS"),alpha = 0.3) +
         scale_color_manual("Credible set", values = color) +
@@ -1156,10 +1162,13 @@ plot_susiF  = function (susiF.obj, title="",
     else {
       x <- rep(1:susiF.obj$n_wac, (susiF.obj$L + 1))
       CS <- rep(0:L, each = n_wac)
-      df <- data.frame(fun_plot = fun_plot, CS = as.factor(CS),
-                       x = x) %>%
-        filter(CS != 0)
-      P2 <- ggplot(df, aes_string(y = "fun_plot", x = "x", col = "CS")) +
+      df <- data.frame(fun_plot = fun_plot,
+                       CS = as.factor(CS),
+                       x = x)
+      df <- df[-which(df$CS==0),]
+      P2 <- ggplot(df, aes_string(y = "fun_plot",
+                                  x = "x",
+                                  col = "CS")) +
         geom_line(size = size_line) + scale_color_manual("Credible set",
                                                          values = color[-1]) +
         geom_hline(yintercept=0, linetype='dashed', col = 'grey', size = 1.5)+
@@ -1182,8 +1191,11 @@ plot_susiF  = function (susiF.obj, title="",
       x <- rep(1:susiF.obj$n_wac, (1 + 1))
       CS <- rep(c(0, effect), each = n_wac)
 
-      df <- data.frame(fun_plot = fun_plot, CS = as.factor(CS),
-                       x = x, upr = cred_band$up, lwr = cred_band$low)
+      df <- data.frame(fun_plot = fun_plot,
+                       CS = as.factor(CS),
+                       x = x,
+                       upr = cred_band$up,
+                       lwr = cred_band$low)
       P2 <- ggplot(df, aes_string(y = "fun_plot", x = "x", col = "CS")) +
         geom_line(size = 2) +
         geom_ribbon(aes_string(ymin = "lwr",ymax = "upr",fill = "CS",
