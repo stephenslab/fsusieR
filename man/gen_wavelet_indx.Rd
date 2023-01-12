@@ -19,5 +19,6 @@ twav <- wd(tem_func)
 indx_lst <- gen_wavelet_indx(8)
 plot(accessD(twav,level=6), ( twav$D[unlist(indx_lst[(6+1)])]) )
  #should a straightline
+
 }
 \keyword{internal}

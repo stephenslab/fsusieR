@@ -1,12 +1,13 @@
-#' @title Simulate data under the mixture normal prior
+#' @title Simulate data under a simple mixture normal prior
 #'
-#' @description Add description here.
+#' @description Simulate data under a simple mixture normal prior
 #'
-#' @param lev_res numerical corresponds to the resolution of the simulated function (idealy between 3 and 10)
+#' @param lev_res numeric, corresponds to the resolution of the simulated function (ideally between 3 and 10)
 #'
-#' @param length_grid vector numerical corresponds to the length of the grid of sigma for mixture component(cf ash)
+#' @param length_grid vector, numerical corresponds to the length of the grid of sigma for mixture component (cf ashr package)
 #'
-#' @param pi0 vector numerical , contain a digit  between 0 and 1, which corresponds to the null proportion ( non assocatied wavelet coefficients)
+#' @param pi0 numeric, contains a digit between 0 and 1, which corresponds to the
+#'    proportion of wavelet coefficients that are exactly 0
 #'
 #' @importFrom stats rchisq
 #' @importFrom stats runif
@@ -54,20 +55,20 @@ simu_IBSS_ash_vanilla <- function( lev_res=7, length_grid= 10, pi0= 0.85)
   return(out)
 }
 
-
 #' @title Simulate data under the mixture normal prior
 #'
-#' @description Add description here.
+#' @description Simulate data under the mixture normal prior
 #'
-#' @param lev_res numerical corresponds to the resolution of the simulated function (idealy between 3 and 10)
+#' @param lev_res numerical corresponds to the resolution of the simulated function (ideally between 3 and 10)
 #'
 #' @param length_grid vector numerical corresponds to the length of the grid of sigma for mixture component(cf ash)
 #'
-#' @param pi0 vector numerical , contain a digit  between 0 and 1, which corresponds to the null proportion ( non assocatied wavelet coefficients)
+#' @param pi0 vector of length lev_res, contain  digits  between 0 and 1, which corresponds corresponds to the
+#'    proportion of wavelet coefficients that are exactly 0 at a given level of resolution
 #'
-#' @param alpha numeric >0, control smoothness of the curves, should be positive and up 4 in particular d_sl ~  pi_{0,sl}  delta_0 + sum_k  pi_k N(0, 2^{- alpha * s}   sigma_k^2)
+#' @param alpha numeric >0, control smoothness of the curves, should be positive and up 4, in particular, $d_{sl} ~  pi_{0,sl}   delta_0 + sum_k  pi_k N(0, 2^{- alpha * s}   sigma_k^2)$
 #'
-#' @param prop_decay numeric >0, control the proportion of non zero wavelet coefficient per scale, pi_{0,sl} = 1- exp(-prop_decay*s)
+#' @param prop_decay numeric >0, control the proportion of non-zero wavelet coefficient per scale, $pi_{0,sl} = 1- exp(-prop_decay*s)$
 #'
 #' @importFrom stats rchisq
 #' @importFrom stats runif

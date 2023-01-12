@@ -1045,13 +1045,14 @@ out_prep.susiF <- function(susiF.obj,Y, X, indx_lst, filter.cs, lfsr_curve, outi
 #
 #' @param susiF.obj output of the susiF function
 #
-#' @param cred.band logical if set as true plot credible bands. Set as TRUE by default
-#' @param effect numerical if specified plot on effect in particular
+#' @param cred.band logical, if TRUE, plot credible bands. Set as FALSE by default
+#' @param effect numeric, if specified plot on effect in particular
 #' @param size_line numeric, width of the plotted lines
 #' @param size_point numeric, size of the point
-#' @param pos_SNP vector containing the base pair of the SNPs
-#' @param point_shape vector containing the shape of dots
-#' @param start_end_region start end of the region
+#' @param pos_SNP vector, containing the base pair of the SNPs
+#' @param point_shape vector, containing the shape of dots
+#' @param start_end_region vector of length 2 containing the start and the end
+#'  of the region
 #' @param pip_only logical, if TRUE only ouput the PIP plot
 #' @param title character
 #'

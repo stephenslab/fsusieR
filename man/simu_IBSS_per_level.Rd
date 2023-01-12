@@ -13,18 +13,19 @@ simu_IBSS_per_level(
 )
 }
 \arguments{
-\item{lev_res}{numerical corresponds to the resolution of the simulated function (idealy between 3 and 10)}
+\item{lev_res}{numerical corresponds to the resolution of the simulated function (ideally between 3 and 10)}
 
 \item{length_grid}{vector numerical corresponds to the length of the grid of sigma for mixture component(cf ash)}
 
-\item{pi0}{vector numerical , contain a digit  between 0 and 1, which corresponds to the null proportion ( non assocatied wavelet coefficients)}
+\item{pi0}{vector of length lev_res, contain  digits  between 0 and 1, which corresponds corresponds to the
+proportion of wavelet coefficients that are exactly 0 at a given level of resolution}
 
-\item{alpha}{numeric >0, control smoothness of the curves, should be positive and up 4 in particular d_sl ~  pi_{0,sl}  delta_0 + sum_k  pi_k N(0, 2^{- alpha * s}   sigma_k^2)}
+\item{alpha}{numeric >0, control smoothness of the curves, should be positive and up 4, in particular, $d_{sl} ~  pi_{0,sl}   delta_0 + sum_k  pi_k N(0, 2^{- alpha * s}   sigma_k^2)$}
 
-\item{prop_decay}{numeric >0, control the proportion of non zero wavelet coefficient per scale, pi_{0,sl} = 1- exp(-prop_decay*s)}
+\item{prop_decay}{numeric >0, control the proportion of non-zero wavelet coefficient per scale, $pi_{0,sl} = 1- exp(-prop_decay*s)$}
 }
 \description{
-Add description here.
+Simulate data under the mixture normal prior
 }
 \examples{
 out <- simu_IBSS_per_level(lev_res=9, alpha=1, prop_decay = 0.5)

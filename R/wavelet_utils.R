@@ -103,7 +103,7 @@ DWT2 <- function (data, filter.number = 10, family = "DaubLeAsymm")
 #' indx_lst <- gen_wavelet_indx(8)
 #' plot(accessD(twav,level=6), ( twav$D[unlist(indx_lst[(6+1)])]) )
 #'  #should a straightline
-#' 
+#'
 gen_wavelet_indx <- function(lev_res)
 {
   indx_lst <- list()
@@ -123,23 +123,21 @@ gen_wavelet_indx <- function(lev_res)
 }
 
 
-
-
 #' @title Adjusting functions for covariates
 #
-#' @description Simple function to adjust the observed curves for covariate (e.g. age, population structure)
+#' @description Simple function to adjust the observed curves for covariates (e.g., age, population structure)
 #' @param Y  observed curves.
-#' @param X matrix of containning the covaraite
+#' @param X matrix containing the covariates
 #' @param pos Original position of the column of Y
-#' @param thresh_lowcount numeric, use to check the wavelet coefficients have
+#' @param thresh_lowcount numeric, used to check the wavelet coefficients have
 #'  problematic distribution (very low dispersion even after standardization).
 #'  Basically check if the median of the absolute value of the distribution of
-#'   a wavelet coefficient is below this threshold, if yes the algorithm discard
+#'   a wavelet coefficient is below this threshold, if yes, the algorithm discard
 #'   this wavelet coefficient (setting its estimate effect to 0 and estimate sd to 1).
-#'   Set to 0 by default. Can be useful when analyzing sparse data from sequence
+#'   Set to 0 by default. It can be useful when analyzing sparse data from sequence
 #'    based assay or small samples.
 #' @param verbose If \code{verbose = TRUE}, the algorithm's progress,
-#' and a summary of the optimization settings, are printed to the
+#' and a summary of the optimization settings are printed to the
 #' console.
 #' @export
 #

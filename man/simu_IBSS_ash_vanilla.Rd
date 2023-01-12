@@ -2,19 +2,20 @@
 % Please edit documentation in R/Simulations_functions.R
 \name{simu_IBSS_ash_vanilla}
 \alias{simu_IBSS_ash_vanilla}
-\title{Simulate data under the mixture normal prior}
+\title{Simulate data under a simple mixture normal prior}
 \usage{
 simu_IBSS_ash_vanilla(lev_res = 7, length_grid = 10, pi0 = 0.85)
 }
 \arguments{
-\item{lev_res}{numerical corresponds to the resolution of the simulated function (idealy between 3 and 10)}
+\item{lev_res}{numeric, corresponds to the resolution of the simulated function (ideally between 3 and 10)}
 
-\item{length_grid}{vector numerical corresponds to the length of the grid of sigma for mixture component(cf ash)}
+\item{length_grid}{vector, numerical corresponds to the length of the grid of sigma for mixture component (cf ashr package)}
 
-\item{pi0}{vector numerical , contain a digit  between 0 and 1, which corresponds to the null proportion ( non assocatied wavelet coefficients)}
+\item{pi0}{numeric, contains a digit between 0 and 1, which corresponds to the
+proportion of wavelet coefficients that are exactly 0}
 }
 \description{
-Add description here.
+Simulate data under a simple mixture normal prior
 }
 \examples{
 

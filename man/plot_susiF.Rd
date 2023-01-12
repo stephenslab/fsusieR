@@ -23,21 +23,22 @@ plot_susiF(
 
 \item{title}{character}
 
-\item{cred.band}{logical if set as true plot credible bands. Set as TRUE by default}
+\item{cred.band}{logical, if TRUE, plot credible bands. Set as FALSE by default}
 
-\item{effect}{numerical if specified plot on effect in particular}
+\item{effect}{numeric, if specified plot on effect in particular}
 
 \item{size_line}{numeric, width of the plotted lines}
 
 \item{size_point}{numeric, size of the point}
 
-\item{pos_SNP}{vector containing the base pair of the SNPs}
+\item{pos_SNP}{vector, containing the base pair of the SNPs}
 
-\item{start_end_region}{start end of the region}
+\item{start_end_region}{vector of length 2 containing the start and the end
+of the region}
 
 \item{pip_only}{logical, if TRUE only ouput the PIP plot}
 
-\item{point_shape}{vector containing the shape of dots}
+\item{point_shape}{vector, containing the shape of dots}
 
 \item{\dots}{Other arguments..}
 }
