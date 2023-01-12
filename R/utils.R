@@ -11,8 +11,7 @@ which_lowcount <- function( Y_f, thresh_lowcount ){
   }
 }
 
-#testing if x is a wholenumber
-#'
+# Testing if x is a whole number.
 is.wholenumber <- function (x, tol = .Machine$double.eps^0.5)
   abs(x - round(x)) < tol
 
@@ -20,8 +19,7 @@ is.wholenumber <- function (x, tol = .Machine$double.eps^0.5)
 
 '%!in%' <- function(x,y)!('%in%'(x,y))
 
-#based on Rfast implementation
-#'
+# Based on Rfast implementation.
 fast_lm <- function(x,y)
 {
 
@@ -30,7 +28,6 @@ fast_lm <- function(x,y)
 
     return(c(be,sd))
 }
-
 
 #Circular permutation on vector
 # Code adapted from https://mzuer.github.io
@@ -47,8 +44,8 @@ shifter <- function(x, n = 1) {
 # [1] 10  1  2  3  4  5  6  7  8  9
 #shifter(c(1:10), n=2)
 # [1]  9 10  1  2  3  4  5  6  7  8
-
-#'@importFrom stats qqnorm
+#
+#' @importFrom stats qqnorm
 Quantile_transform  <- function(x)
 {
 

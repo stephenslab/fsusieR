@@ -181,12 +181,10 @@ simu_IBSS_per_level  <-function( lev_res=7,
 #
 # @param pos2 position of the first active covariate (optional)
 #
-# @importFrom wavethresh DJ.EX
-# @importFrom graphics lines
-# @importFrom graphics legend
-# @importFrom graphics plot
-#
-# @export
+#' @importFrom wavethresh DJ.EX
+#' @importFrom graphics lines
+#' @importFrom graphics legend
+#' @importFrom graphics plot
 #
 simu_test_function <- function(N=50, P=10,lev_res=7, rsnr=2,is.plot=TRUE, pos1 =1, pos2)
 {
