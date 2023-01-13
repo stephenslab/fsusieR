@@ -178,26 +178,37 @@ adjust_FM_covariate <- function(Y,X,pos=NULL, thresh_lowcount=0, verbose){
   lowc_wc <-   which_lowcount(Y_f,thresh_lowcount)
 
 
+Est <- lapply( 1:ncol(Y_f), function(j){
+                                    fit <-  lm(Y_f[,j]~ X)
+                                    out <-  list(coef=summary(fit)$coefficients[,1] ,
+                                    sd  =summary(fit)$coefficients[,2])
+                                    return(out)
+                                    }
 
 
-  coef_Y_f <- cal_Bhat_Shat  (Y_f, X ,v1)
+
+
+             )
+Coef <- t(do.call(rbind,lapply(1:length(Est), function(j) Est[[j]]$coef)))
+Sd   <- t(do.call(rbind,lapply(1:length(Est), function(j) Est[[j]]$sd)))
+
 
 
   indx_lst <- gen_wavelet_indx(log2(dim(Y_f)[2]))
-  if (is.null(nrow(coef_Y_f$Bhat))){
+  if (is.null(nrow(Coef))){
 
-    coef_p <- ashr::ash(coef_Y_f$Bhat,coef_Y_f$Shat)$result$PosteriorMean
-    temp <- wavethresh::wd(rep(0, length(coef_Y_f$Bhat)[2]))
+    coef_p <- ashr::ash(Coef,Sd )$result$PosteriorMean
+    temp <- wavethresh::wd(rep(0, length(Coef)[2]))
 
     temp$D                     <-  coef_p[ -indx_lst[[length(indx_lst)]]]
     temp$C[length(temp$C)]     <-  coef_p[ indx_lst[[length(indx_lst)]]]
     fitted_coef   <-  wavethresh::wr(temp)
   }else{
     fitted_coef <-list()
-    for ( i in 1:nrow(coef_Y_f$Bhat ))
+    for ( i in 1:nrow(Coef ))
     {
-      coef_p <- ashr::ash(coef_Y_f$Bhat[i,],coef_Y_f$Shat[i,])$result$PosteriorMean
-      temp <- wavethresh::wd(rep(0, dim(coef_Y_f$Bhat)[2]))
+      coef_p <- ashr::ash(Coef[i,],Sd[i,])$result$PosteriorMean
+      temp <- wavethresh::wd(rep(0, dim(Coef)[2]))
 
       temp$D                     <-  coef_p[  -indx_lst[[length(indx_lst)]]]
       temp$C[length(temp$C)]     <-   coef_p[  indx_lst[[length(indx_lst)]]]
@@ -207,10 +218,10 @@ adjust_FM_covariate <- function(Y,X,pos=NULL, thresh_lowcount=0, verbose){
   }
 
 
-  Y_adjusted  = Y-X%*%t(fitted_coef)
+  Y_adjusted  = Y-X%*%t(fitted_coef[,-1])#removing estimated baseline
   out <- list( Y_adjusted  = Y_adjusted,
 
-               fitted_coef = fitted_coef,
+               fitted_coef = fitted_coef[,-1],#removing estimated baseline
                pos         = outing_grid
   )
 
