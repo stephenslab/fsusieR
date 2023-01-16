@@ -308,8 +308,8 @@ adjust_FM_covariate <- function (Y, X, pos = NULL,Batch=NULL ,thresh_lowcount = 
     for (i in 1:nrow(coef_Y_f$Bhat)) {
       coef_p <- do.call(c,lapply( 1:length(indx_lst),
                                   function (j) ashr::ash(coef_Y_f$Bhat[i ,indx_lst[[j]]],
-                                                         coef_Y_f$Shat[i ,indx_lst[[j]]]
-                                  )$result$PosteriorMean
+                                                         coef_Y_f$Shat[i ,indx_lst[[j]]],
+                                  nullweight=1)$result$PosteriorMean
                             )
                    )
       temp <- wavethresh::wd(rep(0, dim(coef_Y_f$Bhat)[2]))
