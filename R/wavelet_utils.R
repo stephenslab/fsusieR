@@ -242,29 +242,6 @@ wavelet_reg <-  function(Y, design_mat,pos=NULL,   thresh_lowcount=0){
 #
 
 ###TODO add per scale shrinkage for better fit
-adjust_FM_covariate2 <- function(Y,X,pos=NULL,Batch=NULL, thresh_lowcount=0, verbose){
-
-  if(is.null(Batch)){
-    mat <-X
-  }else{
-    temp <- as.data.frame(X)
-    if( table(temp$Batch)[4] < 2)
-    {
-      temp$Batch[ which( temp$Batch==4)] <- 1
-    }
-    ff <- ~-1+X+factor(Batch)  #ensure that each Batch effect is estimated individually
-    utils::str(m <- model.frame(ff, temp))
-    mat <- model.matrix(ff, m)
-
-
-
-  }
-
-  out <- wavelet_reg (Y=Y_t,X=mat )
-  return(out)
-}
-
-
 
 
 #' @export
@@ -306,8 +283,7 @@ adjust_FM_covariate <- function (Y, X, pos = NULL,Batch=NULL ,thresh_lowcount = 
   else {
     fitted_coef <- list()
     for (i in 1:nrow(coef_Y_f$Bhat)) {
-      coef_p <-ashr::ash(coef_Y_f$Bhat[i ,],
-                         coef_Y_f$Shat[i , ])$result$PosteriorMean
+      coef_p <-ashr::ash(coef_Y_f$Bhat[i ,],coef_Y_f$Shat[i , ])$result$PosteriorMean
       temp <- wavethresh::wd(rep(0, dim(coef_Y_f$Bhat)[2]))
       temp$D <- coef_p[-indx_lst[[length(indx_lst)]]]
       temp$C[length(temp$C)] <- coef_p[indx_lst[[length(indx_lst)]]]

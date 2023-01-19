@@ -1055,7 +1055,7 @@ out_prep.susiF <- function(susiF.obj,Y, X, indx_lst, filter.cs, lfsr_curve, outi
 #'  of the region
 #' @param pip_only logical, if TRUE only ouput the PIP plot
 #' @param title character
-#'
+#' @param func_only  output only plot for the fitted curves
 #' @param \dots Other arguments..
 #'
 #' @importFrom ggplot2 ggplot
@@ -1083,6 +1083,7 @@ plot_susiF  = function (susiF.obj, title="",
                         pos_SNP,
                         start_end_region=c(0,1),
                         pip_only=FALSE,
+                        func_only=FALSE,
                         point_shape, ...)
 {
 
@@ -1175,6 +1176,9 @@ plot_susiF  = function (susiF.obj, title="",
         facet_grid(CS~., scales = "free")+
         xlab("postion") + ylab("Estimated effect")
 
+    }
+    if(func_only){
+      return(P2)
     }
   }
   else {
