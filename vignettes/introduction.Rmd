@@ -75,7 +75,7 @@ legend(x=100,
        col=c("black","blue","yellow"))
 
 ```
-So the underlying causal variants are variant 250 and variant 750. The plot above shows the functional effect of the two variants. Below, we generate the  observed curves (effect +noise)
+So the underlying causal variants are variant 25  and variant 75. The plot above shows the functional effect of the two variants. Below, we generate the  observed curves (effect +noise)
 
 
 
