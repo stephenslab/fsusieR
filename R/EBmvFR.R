@@ -1,8 +1,8 @@
-#' @title Sum of Single Function
+#' @title Empirical Bayes multivariate functional regression
 #'
-#' @description Implementation of the SuSiF method
+#' @description Empirical Bayes multivariate functional regression
 #'
-#' @details Implementation of the SuSiF method
+#' @details Empirical Bayes multivariate functional regression
 #'
 #'
 #' @param Y functional phenotype, matrix of size N by size J. The
@@ -11,18 +11,12 @@
 #'   into a grid of length 2^J
 #'
 #' @param X matrix of size n by p contains the covariates
-#'
-#' @param L upper bound on the number of effects to fit (if not specified, set to =2)
-#'
 #' @param pos vector of length J, corresponding to position/time pf
 #' the observed column in Y, if missing, suppose that the observation
 #' are evenly spaced
 #'
 #' @param prior specify the prior used in susiF. The two available choices are
 #' available "mixture_normal_per_scale", "mixture_normal". Default "mixture_normal_per_scale",
-#' if this susiF is too slow, consider using  "mixture_normal" (up to 40% faster), but this may result in
-#' oversmoothing the estimated curves.
-#'
 #' @param verbose If \code{verbose = TRUE}, the algorithm's progress,
 #' and a summary of the optimization settings are printed to the
 #' console.
@@ -36,20 +30,13 @@
 #'
 #' @param maxit Maximum number of IBSS iterations.
 #'
-#' @param cov_lev numeric between 0 and 1, corresponding to the
-#' expected level of coverage of the cs if not specified set to 0.95
-#'
-#' @param min.purity minimum purity for estimated credible sets
-#' @param filter.cs logical, if TRUE filter the credible set (removing low purity
-#' cs and cs with estimated prior equal to 0). Set as TRUE by default.
 #' @param init_pi0_w starting value of weight on null compoenent in mixsqp
 #'  (between 0 and 1)
 #' @param control_mixsqp list of parameter for mixsqp function see  mixsqp package
 #' @param  cal_obj logical if set as TRUE compute ELBO for convergence monitoring
 #' @param quantile_trans logical if set as TRUE perform normal quantile transform
 #' on wavelet coefficients
-#' @param L_start number of effect initialized at the start of the algorithm
-#' @param nullweight numeric value for penalizing likelihood at point mass 0 (should be between 0 and 1)
+#' @param nullweight numeric value for penalizing likelihood at point mass 0
 #' (usefull in small sample size)
 #' @param thresh_lowcount numeric, used to check the wavelet coefficients have
 #'  problematic distribution (very low dispersion even after standardization).
@@ -58,10 +45,6 @@
 #'   this wavelet coefficient (setting its estimate effect to 0 and estimate sd to 1).
 #'   Set to 0 by default. It can be useful when analyzing sparse data from sequence
 #'    based assay or small samples.
-#' @param greedy logical, if TRUE allows greedy search for extra effect
-#'  (up to L specified by the user). Set as TRUE by default
-#' @param backfit logical, if TRUE allow discarding effect via backfitting.
-#'  Set as true by default as TRUE. We advise keeping it as TRUE
 #' @param gridmult numeric used to control the number of components used in the mixture prior (see ashr package
 #'  for more details). From the ash function:  multiplier by which the default grid values for mixsd differ from one another.
 #'   (Smaller values produce finer grids.). Increasing this value may reduce computational time
@@ -163,29 +146,23 @@
 #'
 #' @export
 #'
-susiF <- function(Y, X, L = 2,
+EBmvFR <- function(Y, X,
                   pos = NULL,
                   prior = "mixture_normal_per_scale",
                   verbose = TRUE,
                   maxit = 100,
-                  tol = 1e-3,
-                  cov_lev = 0.95,
-                  min.purity=0.5,
-                  filter.cs =TRUE,
+                  tol = 0.1,
                   init_pi0_w= 1,
                   nullweight ,
                   control_mixsqp =  list(verbose=FALSE,
                                          eps = 1e-6,
                                          numiter.em = 4
-                                         ),
+                  ),
                   thresh_lowcount=0,
                   cal_obj=FALSE,
-                  L_start = 3,
                   quantile_trans=FALSE,
-                  greedy =TRUE,
-                  backfit =TRUE,
                   gridmult= sqrt(2)
-                  )
+)
 {
 
 
@@ -200,12 +177,9 @@ susiF <- function(Y, X, L = 2,
     nullweight <- 10#/(sqrt(nrow(X)))
   }
   if(!cal_obj){
-     tol <-10^-3
+    tol <-10^-3
   }
-  if(L_start >L)
-  {
-    L_start <- L
-  }
+
   ## Input error messages
 
   if (is.null(pos))
@@ -258,12 +232,12 @@ susiF <- function(Y, X, L = 2,
   #removing wc with variance 0 or below a certain level
 
   lowc_wc <-   which_lowcount(Y_f,thresh_lowcount)
-     if(verbose){
-       print( paste("Discarding ", length(lowc_wc), "wavelet coefficients out of ", ncol(Y_f)))
-     }
-     if(length(lowc_wc)> (ncol(Y_f )-3)){
-       stop("almost all the wavelet coefficients are null/low variance, consider using univariate fine mapping")
-     }
+  if(verbose){
+    print( paste("Discarding ", length(lowc_wc), "wavelet coefficients out of ", ncol(Y_f)))
+  }
+  if(length(lowc_wc)> (ncol(Y_f )-3)){
+    stop("almost all the wavelet coefficients are null/low variance, consider using univariate fine mapping")
+  }
 
 
   if(quantile_trans)# important to do it after testing for lowcount
@@ -292,17 +266,12 @@ susiF <- function(Y, X, L = 2,
                             nullweight     = nullweight,
                             gridmult       = gridmult )
   G_prior     <- temp$G_prior
-  tt          <- temp$tt
-  init        <- TRUE
+
 
   #Recycled for the first step of the while loop
-  susiF.obj   <-  init_susiF_obj(L_max=L,
-                                 G_prior=G_prior,
+  EBmvFR.obj   <-  init_EBmvFR_obj(G_prior=G_prior,
                                  Y=Y,
-                                 X=X,
-                                 L_start=L_start,
-                                 greedy=greedy,
-                                 backfit=backfit)
+                                 X=X)
 
   # numerical value to check breaking condition of while
   check <- 3*tol
@@ -310,151 +279,70 @@ susiF <- function(Y, X, L = 2,
   if(verbose){
     print("Initialization done")
   }
-
-  if( susiF.obj$L_max==1)
-  {
-
-    tt   <- cal_Bhat_Shat(update_Y,X,v1 , lowc_wc =lowc_wc )
-    Bhat <- tt$Bhat
-    Shat <- tt$Shat #UPDATE. could be nicer
-    tpi  <- get_pi(susiF.obj,1)
-    G_prior <- update_prior(G_prior, tpi= tpi ) #allow EM to start close to previous solution (to double check)
-
-    EM_out  <- EM_pi(G_prior        = G_prior,
-                     Bhat           = Bhat,
-                     Shat           = Shat,
-                     indx_lst       = indx_lst,
-                     init_pi0_w     = init_pi0_w,
-                     control_mixsqp = control_mixsqp,
-                     lowc_wc        = lowc_wc,
-                     nullweight     = nullweight
-
-                     )
-
-     susiF.obj <-  update_susiF_obj(susiF.obj = susiF.obj ,
-                                   l         = 1,
-                                   EM_pi     = EM_out,
-                                   Bhat      = Bhat,
-                                   Shat      = Shat,
-                                   indx_lst  = indx_lst,
-                                   lowc_wc   = lowc_wc
-                                 )
-    susiF.obj <- update_ELBO(susiF.obj,
-                             get_objective( susiF.obj = susiF.obj,
-                                            Y         = Y_f,
-                                            X         = X,
-                                            D         = W$D,
-                                            C         = W$C,
-                                            indx_lst  = indx_lst
-                             )
-    )
-
-  }else{
     ##### Start While -----
     iter <- 1
 
 
     while( (check >tol & iter <maxit))
     {
-
-      for( l in 1:susiF.obj$L)
+      for( j in 1:ncol(X))
       {
 
-        #print(susiF.obj$alpha[[l]])
-        update_Y  <-  cal_partial_resid(
-          susiF.obj = susiF.obj,
-          l         =  (l-1)  ,
-          X         = X,
-          D         = W$D,
-          C         = W$C,
-          indx_lst  = indx_lst
-        )
-
         if(verbose){
-          print(paste("Fitting effect ", l,", iter" ,  iter ))
+          print(paste("Fitting effect ", j,", iter" ,  iter ))
         }
-
-        if(init){#recycle operation used to fit the prior
-
-            EM_out <- gen_EM_out (tpi_k= get_pi_G_prior(G_prior),
-                                   lBF  = log_BF  (G_prior,
-                                                   Bhat     = tt$Bhat,
-                                                   Shat     = tt$Shat,
-                                                   lowc_wc  = lowc_wc,
-                                                   indx_lst = indx_lst
-                                                   )
-                                  )
-            init <- FALSE
-        }else{
-
-          tt <- cal_Bhat_Shat(update_Y,X,v1, lowc_wc =lowc_wc )
-
-          tpi <-  get_pi(susiF.obj,l)
-          G_prior <- update_prior(G_prior, tpi= tpi ) #allow EM to start close to previous solution (to double check)
-
-          EM_out  <- EM_pi(G_prior        = G_prior,
-                           Bhat           = tt$Bhat,
-                           Shat           = tt$Shat,
-                           indx_lst       = indx_lst,
-                           init_pi0_w     = init_pi0_w,
-                           control_mixsqp = control_mixsqp,
-                           lowc_wc        = lowc_wc,
-                           nullweight     = nullweight
-          )
-        }
-
-        #print(h)
-        # print(EM_out$lBF[1:10])
-        susiF.obj <-  update_susiF_obj(susiF.obj   = susiF.obj ,
-                                       l           = l,
-                                       EM_pi       = EM_out,
-                                       Bhat        = tt$Bhat,
-                                       Shat        = tt$Shat,
-                                       indx_lst    = indx_lst,
-                                       lowc_wc     = lowc_wc
-        )
+        EBmvFR.obj   <-  fit_effect.EBmvFR (EBmvFR.obj = EBmvFR.obj,
+                                            j          = j,
+                                            X          = X,
+                                            D          = W$D,
+                                            C          = W$C,
+                                            indx_lst   = indx_lst,
+                                            lowc_wc    = lowc_wc)
 
       }#end for l in 1:L  -----
 
 
-      ####Check greedy/backfit and stopping condition -----
-      susiF.obj <- greedy_backfit (susiF.obj,
-                                  verbose    = verbose,
-                                  cov_lev    = cov_lev,
-                                  X          = X,
-                                  min.purity = min.purity
-                                  )
-     sigma2    <- estimate_residual_variance(susiF.obj,Y=Y_f,X)
-      #print(sigma2)
-     susiF.obj <- update_residual_variance(susiF.obj, sigma2 = sigma2 )
-     susiF.obj <- test_stop_cond(susiF.obj = susiF.obj,
-                                 check     = check,
-                                 cal_obj   = cal_obj,
-                                 Y         = Y_f,
-                                 X         = X,
-                                 D         = W$D,
-                                 C         = W$C,
-                                 indx_lst  = indx_lst)
-   #  print(susiF.obj$alpha)
-     #print(susiF.obj$ELBO)
-    check <- susiF.obj$check
+
+       sigma2    <- estimate_residual_variance(EBmvFR.obj,Y=Y_f,X)
+       print(sigma2)
+       EBmvFR.obj <- update_residual_variance(EBmvFR.obj, sigma2 = sigma2 )
+
+      EBmvFR.obj <- update_prior( EBmvFR.obj,
+                                  max_step       = 100,
+                                  espsilon       = 0.0001,
+                                  init_pi0_w     = init_pi0_w ,
+                                  control_mixsqp = control_mixsqp,
+                                  indx_lst       = indx_lst,
+                                  lowc_wc        = low_wc,
+                                  nullweight     = nullweight)
+
+      EBmvFR.obj <- test_stop_cond(EBmvFR.obj = EBmvFR.obj,
+                                   check      = check,
+                                   cal_obj    = cal_obj,
+                                   Y          = Y_f,
+                                   X          = X,
+                                   D          = W$D,
+                                   C          = W$C,
+                                  indx_lst    = indx_lst)
+
+      #print(EBmvFR.obj$alpha)
+      #print(EBmvFR.obj$ELBO)
+      check <- EBmvFR.obj$check
 
 
 
-    iter <- iter +1
+      iter <- iter +1
 
 
     }#end while
-  }#end else in if(L==1)
 
   #preparing output
-  susiF.obj <- out_prep(susiF.obj   = susiF.obj,
-                        Y           = Y,
-                        X           = X,
-                        indx_lst    = indx_lst,
-                        filter.cs   = filter.cs,
-                        outing_grid = outing_grid
-                        )
-  susiF.obj$runtime <- proc.time()-pt
-  return(susiF.obj)
+   EBmvFR.obj <- out_prep(EBmvFR.obj   = EBmvFR.obj,
+                         X           = X,
+                         indx_lst    = indx_lst,
+                         outing_grid = outing_grid
+   )
+  EBmvFR.obj$runtime <- proc.time()-pt
+  EBmvFR.obj$niter <- iter
+  return(EBmvFR.obj)
 }

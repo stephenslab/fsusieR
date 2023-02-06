@@ -104,7 +104,7 @@ EM_pi <- function(G_prior,Bhat, Shat, indx_lst,
 # @export
 #
 #
-cal_L_mixsq_s_per_scale <- function(G_prior,s, Bhat, Shat ,indx_lst)
+cal_L_mixsq_s_per_scale <- function(G_prior,s, Bhat, Shat ,indx_lst,is.EBmvFR=FALSE)
 {
   m <-  (G_prior[[s]])
   sdmat <-sqrt(outer(c(Shat[,indx_lst[[s]]]^2),
@@ -122,8 +122,11 @@ cal_L_mixsq_s_per_scale <- function(G_prior,s, Bhat, Shat ,indx_lst)
     x[which(is.na(x))] <- median(x, na.rm=T)
     return(x)
   })
-  L <- rbind(c(0, rep(  -1e+30,(ncol(L)-1)  )),#adding penalty line
-             L)
+  if(!is.EBmvFR){
+    L <- rbind(c(0, rep(  -1e+30,(ncol(L)-1)  )),#adding penalty line
+               L)
+  }
+
   return(L)
 }
 
@@ -160,7 +163,11 @@ L_mixsq <- function(G_prior,Bhat, Shat, indx_lst,...)
 #' @export
 #' @keywords internal
 #'
-L_mixsq.mixture_normal <- function(G_prior,Bhat, Shat, indx_lst,...)
+L_mixsq.mixture_normal <- function(G_prior,
+                                   Bhat,
+                                   Shat,
+                                   indx_lst,
+                                   is.EBmvFR=FALSE,...)
 {
   m     <-  (G_prior[[1]])
   sdmat <- sqrt(outer(c(Shat ^2),get_sd_G_prior(G_prior)^2,"+"))
@@ -179,8 +186,11 @@ L_mixsq.mixture_normal <- function(G_prior,Bhat, Shat, indx_lst,...)
     x[which(is.na(x))] <- median(x, na.rm=T)
     return(x)
   })
-  L <- rbind(c(0, rep(  -1e+30,(ncol(L)-1)  )),#adding penalty line
-             L)
+  if( !is.EBmvFR ){
+    L <- rbind(c(0, rep(  -1e+30,(ncol(L)-1)  )),#adding penalty line
+               L)
+  }
+
   class(L) <- "lik_mixture_normal"
   return(L)
 }
@@ -195,9 +205,13 @@ L_mixsq.mixture_normal <- function(G_prior,Bhat, Shat, indx_lst,...)
 #' @export
 #' @keywords internal
 #'
-L_mixsq.mixture_normal_per_scale <- function(G_prior,Bhat, Shat, indx_lst,...)
+L_mixsq.mixture_normal_per_scale <- function(G_prior,
+                                             Bhat,
+                                             Shat,
+                                             indx_lst,
+                                             is.EBmvFR=FALSE,...)
 {
-  L  <- lapply(1:length(indx_lst  ) , function(s) cal_L_mixsq_s_per_scale (G_prior,s, Bhat, Shat, indx_lst))
+  L  <- lapply(1:length(indx_lst  ) , function(s) cal_L_mixsq_s_per_scale (G_prior,s, Bhat, Shat, indx_lst,is.EBmvFR=is.EBmvFR))
 
   class(L) <- c("lik_mixture_normal_per_scale","list")
   return(L)
@@ -222,7 +236,7 @@ L_mixsq.mixture_normal_per_scale <- function(G_prior,Bhat, Shat, indx_lst,...)
 #' @export
 #' @keywords internal
 
-m_step <- function(L, zeta, indx_lst,init_pi0_w,control_mixsqp,...)
+m_step <- function(L, zeta, indx_lst,init_pi0_w,control_mixsqp,is.EBmvFR=FALSE,...)
   UseMethod("m_step")
 
 
@@ -244,11 +258,21 @@ m_step.lik_mixture_normal <- function (L,
                                        indx_lst,
                                        init_pi0_w ,
                                        control_mixsqp,
-                                       nullweight,  ...)
+                                       nullweight,
+                                       is.EBmvFR=FALSE,
+                                       ...)
 {
-  w <- c(nullweight*sum(lengths(indx_lst)),
-         rep(zeta,sum(lengths(indx_lst))) # setting the weight to fit the weighted ash problem
-  )
+
+  if(!is.EBmvFR){
+    w <- c(nullweight*sum(lengths(indx_lst)),
+           rep(zeta,sum(lengths(indx_lst))) # setting the weight to fit the weighted ash problem
+    )
+
+  }else{
+    w <-  rep(zeta,sum(lengths(indx_lst)))  # setting the weight to fit the weighted ash problem
+
+
+  }
 
 
   tlength <- ncol(L) - 1
@@ -278,16 +302,19 @@ m_step.lik_mixture_normal_per_scale <- function(L,
                                                 indx_lst,
                                                 init_pi0_w=1,
                                                 control_mixsqp,
-                                                nullweight,...)
+                                                nullweight,
+                                                is.EBmvFR=FALSE,
+                                                ...)
 {
   #setting the weight to fit the weighted ash problem
 
 
   out <- lapply(1:length(indx_lst) ,
                 function(s) scale_m_step(L,s,zeta,indx_lst,
-                                         init_pi0_w=init_pi0_w,
+                                         init_pi0_w     =init_pi0_w,
                                          control_mixsqp = control_mixsqp,
-                                         nullweight     =  nullweight )
+                                         nullweight     =  nullweight,
+                                         is.EBmvFR      = is.EBmvFR)
   )
   class( out ) <-  c("pi_mixture_normal_per_scale" )
   return(out)
@@ -319,12 +346,19 @@ scale_m_step <- function(L,
                          indx_lst,
                          init_pi0_w=0.5,
                          control_mixsqp,
-                         nullweight,...)
+                         nullweight,
+                         is.EBmvFR=FALSE,...)
 {
 
-  w <-  c(nullweight*length(indx_lst[[s]] ),
-          rep(zeta,length(indx_lst[[s]] ))
-  )
+  if(!is.EBmvFR){
+    w <-  c(nullweight*length(indx_lst[[s]] ),
+            rep(zeta,length(indx_lst[[s]] ))
+    )
+  }else{
+    w <-  rep(zeta,length(indx_lst[[s]] )
+    )
+  }
+
 
 
   tlength <- dim(L[[s]])[2]-1
