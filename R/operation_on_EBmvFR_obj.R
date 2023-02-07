@@ -142,7 +142,7 @@ update_prior.EBmvFR <- function( EBmvFR.obj,
                                  nullweight){
 
 
-
+  get_G_prior(EBmvFR.obj)
 
 
   #static parameters
@@ -151,6 +151,7 @@ update_prior.EBmvFR <- function( EBmvFR.obj,
                     Shat      = sqrt(EBmvFR.obj$MLE_wc2[[1]]),
                     indx_lst  = indx_lst,
                     is.EBmvFR =TRUE)
+  print(0)
   J <- dim(EBmvFR.obj$MLE_wc[[1]])[1]
   tsd_k <- get_sd_G_prior(get_G_prior( EBmvFR.obj))
 
@@ -181,6 +182,7 @@ update_prior.EBmvFR <- function( EBmvFR.obj,
     k <- k+1
 
   }
+
   EBmvFR.obj         <-  update_pi_hist(EBmvFR.obj,
                                         tpi = tpi_k
                                         )

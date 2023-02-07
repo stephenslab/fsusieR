@@ -147,21 +147,21 @@
 #' @export
 #'
 EBmvFR <- function(Y, X,
-                  pos = NULL,
-                  prior = "mixture_normal_per_scale",
-                  verbose = TRUE,
-                  maxit = 100,
-                  tol = 0.1,
-                  init_pi0_w= 1,
-                  nullweight ,
-                  control_mixsqp =  list(verbose=FALSE,
-                                         eps = 1e-6,
-                                         numiter.em = 4
-                  ),
-                  thresh_lowcount=0,
-                  cal_obj=FALSE,
-                  quantile_trans=FALSE,
-                  gridmult= sqrt(2)
+                   pos = NULL,
+                   prior = "mixture_normal_per_scale",
+                   verbose = TRUE,
+                   maxit = 100,
+                   tol = 0.1,
+                   init_pi0_w= 1,
+                   nullweight ,
+                   control_mixsqp =  list(verbose=FALSE,
+                                          eps = 1e-6,
+                                          numiter.em = 4
+                   ),
+                   thresh_lowcount=0,
+                   cal_obj=FALSE,
+                   quantile_trans=FALSE,
+                   gridmult= sqrt(2)
 )
 {
 
@@ -270,78 +270,28 @@ EBmvFR <- function(Y, X,
 
   #Recycled for the first step of the while loop
   EBmvFR.obj   <-  init_EBmvFR_obj(G_prior=G_prior,
-                                 Y=Y,
-                                 X=X)
+                                   Y=Y,
+                                   X=X)
 
-  # numerical value to check breaking condition of while
-  check <- 3*tol
-
-  if(verbose){
-    print("Initialization done")
-  }
-    ##### Start While -----
-    iter <- 1
-
-
-    while( (check >tol & iter <maxit))
-    {
-      for( j in 1:ncol(X))
-      {
-
-        if(verbose){
-          print(paste("Fitting effect ", j,", iter" ,  iter ))
-        }
-        EBmvFR.obj   <-  fit_effect.EBmvFR (EBmvFR.obj = EBmvFR.obj,
-                                            j          = j,
-                                            X          = X,
-                                            D          = W$D,
-                                            C          = W$C,
-                                            indx_lst   = indx_lst,
-                                            lowc_wc    = lowc_wc)
-
-      }#end for l in 1:L  -----
-
-
-
-       sigma2    <- estimate_residual_variance(EBmvFR.obj,Y=Y_f,X)
-       print(sigma2)
-       EBmvFR.obj <- update_residual_variance(EBmvFR.obj, sigma2 = sigma2 )
-
-      EBmvFR.obj <- update_prior( EBmvFR.obj,
-                                  max_step       = 100,
-                                  espsilon       = 0.0001,
-                                  init_pi0_w     = init_pi0_w ,
-                                  control_mixsqp = control_mixsqp,
-                                  indx_lst       = indx_lst,
-                                  lowc_wc        = low_wc,
-                                  nullweight     = nullweight)
-
-      EBmvFR.obj <- test_stop_cond(EBmvFR.obj = EBmvFR.obj,
-                                   check      = check,
-                                   cal_obj    = cal_obj,
-                                   Y          = Y_f,
-                                   X          = X,
-                                   D          = W$D,
-                                   C          = W$C,
-                                  indx_lst    = indx_lst)
-
-      #print(EBmvFR.obj$alpha)
-      #print(EBmvFR.obj$ELBO)
-      check <- EBmvFR.obj$check
-
-
-
-      iter <- iter +1
-
-
-    }#end while
-
+  EBmvFR.obj   <- EBmvFR.workhorse(EBmvFR.obj     = EBmvFR.obj,
+                                   W              = W,
+                                   X              = X,
+                                   tol            = tol,
+                                   low_wc         = low_wc,
+                                   init_pi0_w     = init_pi0_w ,
+                                   control_mixsqp = control_mixsqp ,
+                                   indx_lst       = indx_lst,
+                                   lowc_wc        = lowc_wc,
+                                   nullweight     = nullweight,
+                                   cal_obj        = cal_obj,
+                                   verbose        = verbose,
+                                   maxit          = maxit)
   #preparing output
-   EBmvFR.obj <- out_prep(EBmvFR.obj   = EBmvFR.obj,
+  EBmvFR.obj <- out_prep(EBmvFR.obj  = EBmvFR.obj,
                          X           = X,
                          indx_lst    = indx_lst,
                          outing_grid = outing_grid
-   )
+  )
   EBmvFR.obj$runtime <- proc.time()-pt
   EBmvFR.obj$niter <- iter
   return(EBmvFR.obj)
