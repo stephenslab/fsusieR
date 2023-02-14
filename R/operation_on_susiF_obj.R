@@ -789,22 +789,23 @@ greedy_backfit.susiF <-  function(susiF.obj,
 
 
 
-# @title Initialize a susiF object using regression coefficients
+#' @title Initialize a susiF object using regression coefficients
+#' @details  Initialize a susiF object using regression coefficients
 #
-# @param L_max upper bound on the number of non zero coefficients An L-vector containing the indices of the
+#' @param L_max upper bound on the number of non zero coefficients An L-vector containing the indices of the
 #   nonzero coefficients.
 #
-# @param G_prior prior object defined by init_prior function
+#' @param G_prior prior object defined by init_prior function
 #
-# @param Y Matrix of outcomes
+#' @param Y Matrix of outcomes
 #
-# @param X matrix of covariatess
+#' @param X matrix of covariatess
 #
-# @param L_start number of effect to start with
+#' @param L_start number of effect to start with
 #
-# @param greedy logical, if TRUE allow greedy search
+#' @param greedy logical, if TRUE allow greedy search
 #
-# @param backfit logical, if TRUE allow backfitting
+#' @param backfit logical, if TRUE allow backfitting
 #
 # @export
 # @return A list with the following elements
@@ -822,7 +823,7 @@ greedy_backfit.susiF <-  function(susiF.obj,
 # \item{KL}{ the KL divergence for the different effect}
 # \item{ELBO}{ The evidence lower bound}
 # \item{lfsr_wc}{Local fasle sign rate of the fitted wavelet coefficients}
-# @export
+#' @export
 #
 init_susiF_obj <- function(L_max, G_prior, Y,X,L_start,greedy,backfit,... )
 {

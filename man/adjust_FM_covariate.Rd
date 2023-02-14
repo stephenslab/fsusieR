@@ -4,7 +4,14 @@
 \alias{adjust_FM_covariate}
 \title{Adjusting functions for covariates}
 \usage{
-adjust_FM_covariate(Y, X, pos = NULL, thresh_lowcount = 0, verbose)
+adjust_FM_covariate(
+  Y,
+  X,
+  pos = NULL,
+  Batch = NULL,
+  thresh_lowcount = 0,
+  verbose
+)
 }
 \arguments{
 \item{Y}{observed curves.}

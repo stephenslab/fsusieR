@@ -6,11 +6,38 @@
 \alias{m_step.lik_mixture_normal_per_scale}
 \title{Compute M step in the weighted ash problem for different prior}
 \usage{
-m_step(L, zeta, indx_lst, init_pi0_w, control_mixsqp, ...)
+m_step(
+  L,
+  zeta,
+  indx_lst,
+  init_pi0_w,
+  control_mixsqp,
+  nullweight,
+  is.EBmvFR = FALSE,
+  ...
+)
 
-\method{m_step}{lik_mixture_normal}(L, zeta, indx_lst, init_pi0_w, control_mixsqp, nullweight, ...)
+\method{m_step}{lik_mixture_normal}(
+  L,
+  zeta,
+  indx_lst,
+  init_pi0_w,
+  control_mixsqp,
+  nullweight,
+  is.EBmvFR = FALSE,
+  ...
+)
 
-\method{m_step}{lik_mixture_normal_per_scale}(L, zeta, indx_lst, init_pi0_w = 1, control_mixsqp, nullweight, ...)
+\method{m_step}{lik_mixture_normal_per_scale}(
+  L,
+  zeta,
+  indx_lst,
+  init_pi0_w = 1,
+  control_mixsqp,
+  nullweight,
+  is.EBmvFR = FALSE,
+  ...
+)
 }
 \arguments{
 \item{L}{output of  L_mixsqp  function}
@@ -23,10 +50,10 @@ m_step(L, zeta, indx_lst, init_pi0_w, control_mixsqp, ...)
 
 \item{control_mixsqp}{list of parameter for mixsqp function see mixsqp package}
 
-\item{\dots}{Other arguments.}
-
 \item{nullweight}{numeric value for penalizing likelihood at point mass 0 (should be between 0 and 1)
 (usefull in small sample size)}
+
+\item{\dots}{Other arguments.}
 }
 \value{
 a vector of proportion (class pi_mixture_normal)

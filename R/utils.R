@@ -68,6 +68,7 @@ fast_var <- function (x)
 
 #' @importFrom matrixStats colSds
 #from https://www.r-bloggers.com/2016/02/a-faster-scale-function/
+#' @export
 colScale = function(x,
                     center = TRUE,
                     scale = TRUE,

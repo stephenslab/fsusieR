@@ -8,9 +8,9 @@
 \usage{
 L_mixsq(G_prior, Bhat, Shat, indx_lst, ...)
 
-\method{L_mixsq}{mixture_normal}(G_prior, Bhat, Shat, indx_lst, ...)
+\method{L_mixsq}{mixture_normal}(G_prior, Bhat, Shat, indx_lst, is.EBmvFR = FALSE, ...)
 
-\method{L_mixsq}{mixture_normal_per_scale}(G_prior, Bhat, Shat, indx_lst, ...)
+\method{L_mixsq}{mixture_normal_per_scale}(G_prior, Bhat, Shat, indx_lst, is.EBmvFR = FALSE, ...)
 }
 \arguments{
 \item{G_prior}{mixture normal prior}

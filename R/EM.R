@@ -236,7 +236,7 @@ L_mixsq.mixture_normal_per_scale <- function(G_prior,
 #' @export
 #' @keywords internal
 
-m_step <- function(L, zeta, indx_lst,init_pi0_w,control_mixsqp,is.EBmvFR=FALSE,...)
+m_step <- function(L, zeta, indx_lst,init_pi0_w,control_mixsqp,nullweight,is.EBmvFR=FALSE,...)
   UseMethod("m_step")
 
 

@@ -11,6 +11,7 @@
 #'   into a grid of length 2^J
 #'
 #' @param X matrix of size n by p contains the covariates
+#' @param adjsut logical if set to TRUE (default FALSE), then the output contains the adjusted coeficients (usefull to correct for batch effect)
 #' @param pos vector of length J, corresponding to position/time pf
 #' the observed column in Y, if missing, suppose that the observation
 #' are evenly spaced
@@ -52,11 +53,12 @@
 #'
 #' @examples
 #'
+#'
 #'library(ashr)
 #'library(wavethresh)
 #'set.seed(1)
 #'#Example using curves simulated under the Mixture normal per scale prior
-#'rsnr <- 0.2 #expected root signal noise ratio
+#'rsnr <- 1 #expected root signal noise ratio
 #'N <- 100    #Number of individuals
 #'P <- 10     #Number of covariates/SNP
 #'pos1 <- 1   #Position of the causal covariate for effect 1
@@ -110,43 +112,37 @@
 #'
 #'Y <- noisy.data
 #'X <- G
-#'#Running fSuSiE
+#'#Running Empirical Bayes multivariate function regression
 #'
-#'out <- susiF(Y,X,L=2 , prior = 'mixture_normal_per_scale')
+#'out <- EBmvFR(Y,X )
 #'#the easiest way to visualize the result is to use the plot_susiF function
 #'
-#'plot_susiF(out)
-#'
-#'#You can also access the information directly in the output of susiF  as follow
-#'par(mfrow=c(1,2))
-#'
 #'plot( f1, type="l", main="Estimated effect 1", xlab="")
-#'lines(unlist(out$fitted_func[[1]]),col='blue' )
+#'lines(unlist(out$fitted_func[1,]),col='blue' )
 #'abline(a=0,b=0)
-#'legend(x= 35,
+#'legend(x= 60,
 #'       y=3,
 #'       lty= rep(1,2),
-#'       legend = c("effect 1"," fSuSiE est "),
+#'       legend = c("effect 1"," EBmvFR est "),
 #'       col=c("black","blue" )
 #')
 #'plot( f2, type="l", main="Estimated effect 2", xlab="")
-#'lines(unlist(out$fitted_func[[2]]),col='green' )
+#'lines(unlist(out$fitted_func[5,]),col='green' )
 #'abline(a=0,b=0)
-#'legend(x= 20,
-#'       y=-1.5,
+#'legend(x= 85,
+#'       y= 2,
 #'       lty= rep(1,2),
-#'       legend = c("effect 2"," fSuSiE est "),
+#'       legend = c("effect 2"," EBmvFR est "),
 #'       col=c("black","green" )
 #')
 #'
 #'par(mfrow=c(1,1))
-#'plot_susiF(out)
-#'
 #' @importFrom stats var
 #'
 #' @export
 #'
 EBmvFR <- function(Y, X,
+                   adjust=FALSE,
                    pos = NULL,
                    prior = "mixture_normal_per_scale",
                    verbose = TRUE,
@@ -213,6 +209,10 @@ EBmvFR <- function(Y, X,
 
     outing_grid   <- pos
   }
+  if(adjust){
+    Y_org <- Y
+    X_org <- X
+  }
   # centering and scaling covariate
   X <- colScale(X)
   # centering input
@@ -232,6 +232,7 @@ EBmvFR <- function(Y, X,
   #removing wc with variance 0 or below a certain level
 
   lowc_wc <-   which_lowcount(Y_f,thresh_lowcount)
+
   if(verbose){
     print( paste("Discarding ", length(lowc_wc), "wavelet coefficients out of ", ncol(Y_f)))
   }
@@ -277,7 +278,7 @@ EBmvFR <- function(Y, X,
                                    W              = W,
                                    X              = X,
                                    tol            = tol,
-                                   low_wc         = low_wc,
+                                   lowc_wc        = lowc_wc,
                                    init_pi0_w     = init_pi0_w ,
                                    control_mixsqp = control_mixsqp ,
                                    indx_lst       = indx_lst,
@@ -292,6 +293,9 @@ EBmvFR <- function(Y, X,
                          outing_grid = outing_grid
   )
   EBmvFR.obj$runtime <- proc.time()-pt
-  EBmvFR.obj$niter <- iter
+
+  if(adjust){
+    EBmvFR.obj$Y_adjusted <-  Y_org-X_org%*%EBmvFR.obj$fitted_func
+  }
   return(EBmvFR.obj)
 }

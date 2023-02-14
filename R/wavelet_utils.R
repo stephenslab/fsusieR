@@ -295,6 +295,10 @@ adjust_FM_covariate <- function (Y, X, pos = NULL,Batch=NULL ,thresh_lowcount = 
   out <- list(Y_adjusted = Y_adjusted, fitted_coef = fitted_coef,
               pos = outing_grid,
               coef_Y_f=coef_Y_f)
+
+
+
+
   return(out)
 }
 

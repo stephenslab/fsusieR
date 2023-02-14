@@ -14,6 +14,7 @@ plot_susiF(
   pos_SNP,
   start_end_region = c(0, 1),
   pip_only = FALSE,
+  func_only = FALSE,
   point_shape,
   ...
 )
@@ -37,6 +38,8 @@ plot_susiF(
 of the region}
 
 \item{pip_only}{logical, if TRUE only ouput the PIP plot}
+
+\item{func_only}{output only plot for the fitted curves}
 
 \item{point_shape}{vector, containing the shape of dots}
 
