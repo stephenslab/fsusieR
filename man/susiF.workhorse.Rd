@@ -37,6 +37,8 @@ will halt when the difference in the variational lower bound, or
 \dQuote{ELBO} (the objective function to be maximized), is less
 than \code{tol}.}
 
+\item{low_wc}{vector of index of which wavelet coefficients display pathologic distribution}
+
 \item{init_pi0_w}{starting value of weight on null compoenent in mixsqp
 (between 0 and 1)}
 

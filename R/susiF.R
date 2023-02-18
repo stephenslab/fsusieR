@@ -220,25 +220,13 @@ susiF <- function(Y, X, L = 2,
   }
 
 
+  map_data <- remap_data(Y=Y,
+                         pos=pos,
+                         verbose=verbose)
 
-  if(!is.wholenumber(log2(dim(Y)[2])) | !(sum( duplicated(diff( pos)))== (length(pos) -2)) ) #check whether dim(Y) not equal to 2^J or if the data are unevenly spaced
-  {
-
-    inter_pol.obj <-interpol_mat(Y, pos)
-    Y             <- inter_pol.obj$Y
-    bp            <- inter_pol.obj$bp
-
-    start_pos <- min( pos)
-    end_pos <-max(pos)
-    outing_grid   <- start_pos + (end_pos-start_pos)/(length(pos))*inter_pol.obj$grid
-    if(verbose)
-    {
-      message( "Response matrix dimensions not equal to nx 2^J \n or unevenly spaced data \n interpolation procedure used")
-    }
-  }  else{
-
-    outing_grid   <- pos
-  }
+  outing_grid <- map_data$outing_grid
+  Y           <- map_data$Y
+  rm( map_data)
   # centering and scaling covariate
   X <- colScale(X)
   # centering input

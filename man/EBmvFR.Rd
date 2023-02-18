@@ -30,6 +30,8 @@ into a grid of length 2^J}
 
 \item{X}{matrix of size n by p contains the covariates}
 
+\item{adjust}{logical if set to TRUE (default FALSE), then the output contains the adjusted coeficients (usefull to correct for batch effect)}
+
 \item{pos}{vector of length J, corresponding to position/time pf
 the observed column in Y, if missing, suppose that the observation
 are evenly spaced}
@@ -73,8 +75,6 @@ on wavelet coefficients}
 \item{gridmult}{numeric used to control the number of components used in the mixture prior (see ashr package
 for more details). From the ash function:  multiplier by which the default grid values for mixsd differ from one another.
  (Smaller values produce finer grids.). Increasing this value may reduce computational time}
-
-\item{adjsut}{logical if set to TRUE (default FALSE), then the output contains the adjusted coeficients (usefull to correct for batch effect)}
 }
 \description{
 Empirical Bayes multivariate functional regression

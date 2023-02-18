@@ -20,6 +20,8 @@ init_susiF_obj(L_max, G_prior, Y, X, L_start, greedy, backfit, ...)
 \item{greedy}{logical, if TRUE allow greedy search}
 
 \item{backfit}{logical, if TRUE allow backfitting}
+
+\item{\dots}{Other arguments.}
 }
 \description{
 Initialize a susiF object using regression coefficients

@@ -806,6 +806,7 @@ greedy_backfit.susiF <-  function(susiF.obj,
 #' @param greedy logical, if TRUE allow greedy search
 #
 #' @param backfit logical, if TRUE allow backfitting
+#' @param \dots Other arguments.
 #
 # @export
 # @return A list with the following elements

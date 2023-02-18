@@ -131,6 +131,7 @@ get_ER2.EBmvFR = function (  EBmvFR.obj,Y, X,  ...) {
 #' @param G_prior a prior generated vi the init_prior function
 #' @param Y matrix of wavelet coefficients
 #' @param X matrix of covariates
+#' @param \dots Other arguments.
 #' @export
 
 init_EBmvFR_obj <- function( G_prior, Y,X,... )

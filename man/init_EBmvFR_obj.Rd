@@ -12,6 +12,8 @@ init_EBmvFR_obj(G_prior, Y, X, ...)
 \item{Y}{matrix of wavelet coefficients}
 
 \item{X}{matrix of covariates}
+
+\item{\dots}{Other arguments.}
 }
 \description{
 Create an EBmvFR object

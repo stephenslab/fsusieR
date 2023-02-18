@@ -14,7 +14,7 @@
 #' @param verbose If \code{verbose = TRUE}, the algorithm's progress,
 #' and a summary of the optimization settings are printed to the
 #' console.
-#'
+#' @param low_wc  vector of index of which wavelet coefficients display pathologic distribution
 #'
 #' @param tol a small, non-negative number specifying the convergence
 #' tolerance for the IBSS fitting procedure. The fitting procedure
