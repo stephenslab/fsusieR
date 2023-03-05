@@ -14,6 +14,7 @@
   control_mixsqp,
   nullweight,
   gridmult = sqrt(2),
+  ind_analysis,
   ...
 )
 }
@@ -35,6 +36,9 @@
 \item{nullweight}{numeric value for penalizing likelihood at point mass 0 (should be between 0 and 1)}
 
 \item{gridmult}{numeric used to control the number of component used in the mixture prior (see ashr package}
+
+\item{ind_analysis, }{optional, specify index for the individual to be analysied, allow analyis data with different entry with NA
+if a vector is provided, then we assume that the entry of Y have NA at the same place, if a list is provide}
 }
 \value{
 an object of the class "normal", "mixture_normal" or "mixture_normal_per_scale"

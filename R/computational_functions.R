@@ -54,7 +54,8 @@ cal_cor_cs <- function(susiF.obj,X){
 #
 # @param lowc_wc wavelet coefficient with low count to be discarded
 #
-#
+# @param ind_analysis, optional, specify index for the individual to be analysied, allow analyis data with different entry with NA
+# if a vector is provided, then we assume that the entry of Y have NA at the same place, if a list is provide
 # @return list of two
 #
 # \item{Bhat}{ matrix pxJ regression coefficient, Bhat[j,t] corresponds to regression coefficient of Y[,t] on X[,j] }
@@ -63,24 +64,54 @@ cal_cor_cs <- function(susiF.obj,X){
 #
 # @export
 
-cal_Bhat_Shat   <- function(Y, X ,v1 , lowc_wc=NULL,  ...  )
+cal_Bhat_Shat   <- function(Y, X ,v1 , lowc_wc=NULL,ind_analysis,  ...  )
 {
 
-  out <- t(mapply( function(j,l) fit_lm(l= l,
-                                        j=j,
-                                        Y=Y ,
-                                        X=X,
-                                        v1=v1,
-                                        lowc_wc=lowc_wc
-                                        ),
-                   l=rep(1:dim(Y)[2],each= ncol(X)),
-                   j=rep(1:dim(X)[2], ncol(Y))
-                   )
-           )
+
+  if(missing(ind_analysis)){
+
+    out <- t(mapply(function(l,j)  fast_lm(x=X[,j] ,
+                                           y= Y[,l]
+    )
+    ,
+    l=rep(1:dim(Y)[2],each= ncol(X)),
+    j=rep(1:dim(X)[2], ncol(Y))
+    )
+    )
+
+
+
+
+  }else{
+    if( is.list(ind_analysis) ){
+      out <- t(mapply(function(l,j)  fast_lm(x=X[ind_analysis[[l]],j] ,
+                                             y= Y[ind_analysis[[l]],l]
+      )
+      ,
+      l=rep(1:dim(Y)[2],each= ncol(X)),
+      j=rep(1:dim(X)[2], ncol(Y))
+      )
+      )
+    }else
+      out <- t(mapply(function(l,j)  fast_lm(x=X[ind_analysis ,j] ,
+                                             y= Y[ind_analysis ,l]
+      )
+      ,
+      l=rep(1:dim(Y)[2],each= ncol(X)),
+      j=rep(1:dim(X)[2], ncol(Y))
+      )
+      )
+  }
+
+
+
 
   Bhat   <-  matrix(  out[,1], nrow=ncol(X))
   Shat   <-  matrix(  out[,2], nrow=ncol(X))
-
+  if( !is.null(lowc_wc)){
+    Bhat[,lowc_wc] <- 0
+    Shat[,lowc_wc] <- 1
+  }
   out  <- list( Bhat = Bhat,
                 Shat = Shat)
 

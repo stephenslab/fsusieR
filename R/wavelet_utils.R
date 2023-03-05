@@ -70,6 +70,10 @@ interpolKS <-  function (y, bp)
 DWT2 <- function (data, filter.number = 10, family = "DaubLeAsymm")
 {
 
+  NA_pos <- which(!complete.cases(data))
+  if (length(NA_pos )>0){
+    data [is.na(data)]<-0
+  }
   J <- ncol(data)
   n <- nrow(data)
   D <- matrix(NA, nrow = n, ncol = J - 1)
@@ -80,6 +84,11 @@ DWT2 <- function (data, filter.number = 10, family = "DaubLeAsymm")
     D[i, ] <- temp$D
     C[i] <- wavethresh::accessC(temp, level = 0)
   }
+  if (length(NA_pos )>0){
+    D [NA_pos,] <- NA
+    C [NA_pos]  <- NA
+  }
+
   output <- list(C = C, D = D, J = log2(J), filter.number = filter.number,
                  family = family)
   class(output) <- "DWT"
@@ -231,6 +240,12 @@ wavelet_reg <-  function(Y, design_mat,pos=NULL,   thresh_lowcount=0){
 #' @param verbose logical
 #' @export
 remap_data <- function(Y,pos, verbose=TRUE){
+
+  NA_pos <- which(!complete.cases(Y))
+  if (length(NA_pos )>0){
+    Y [is.na(Y)]<-0
+  }
+
   if(!is.wholenumber(log2(dim(Y)[2])) | !(sum( duplicated(diff( pos)))== (length(pos) -2)) ) #check whether dim(Y) not equal to 2^J or if the data are unevenly spaced
   {
 
@@ -248,6 +263,9 @@ remap_data <- function(Y,pos, verbose=TRUE){
   }  else{
 
     outing_grid   <- pos
+  }
+  if (length(NA_pos )>0){
+    Y [NA_pos,]<-NA
   }
   return(list(Y           = Y,
               outing_grid = outing_grid))

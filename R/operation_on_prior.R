@@ -30,7 +30,8 @@ init_prior <- function(  ...)
 #' @param gridmult numeric used to control the number of component used in the mixture prior (see ashr package
 #  for more details). From the ash function:  multiplier by which the default grid values for mixsd differ by one another.
 #   (Smaller values produce finer grids.). Increasing this value may reduce computational time
-#
+#' @param ind_analysis, optional, specify index for the individual to be analysied, allow analyis data with different entry with NA
+#' if a vector is provided, then we assume that the entry of Y have NA at the same place, if a list is provide
 #
 #' @return an object of the class "normal", "mixture_normal" or "mixture_normal_per_scale"
 #
@@ -38,12 +39,17 @@ init_prior <- function(  ...)
 #
 #' @export
 #' @keywords internal
-init_prior.default <- function(Y,X, prior,v1 , indx_lst,lowc_wc,control_mixsqp,nullweight ,gridmult=sqrt(2) , ... )
+init_prior.default <- function(Y,X, prior,v1 , indx_lst,lowc_wc,control_mixsqp,nullweight ,gridmult=sqrt(2),ind_analysis, ... )
 {
   if( prior == "mixture_normal")
   {
+    if(missing(ind_analysis)){
+      temp <- cal_Bhat_Shat(Y, X ,v1,lowc_wc )   ## Speed Gain would be good to call directly cal_Bhat_Shat in the ash function
 
-    temp <- cal_Bhat_Shat(Y, X ,v1,lowc_wc )   ## Speed Gain would be good to call directly cal_Bhat_Shat in the ash function
+    }else{
+      temp <- cal_Bhat_Shat(Y, X ,v1,lowc_wc, ind_analysis = ind_analysis )   ## Speed Gain would be good to call directly cal_Bhat_Shat in the ash function
+
+    }
 
     G_prior <- list()
     if( !is.null(lowc_wc)){
@@ -64,7 +70,13 @@ init_prior.default <- function(Y,X, prior,v1 , indx_lst,lowc_wc,control_mixsqp,n
   if( prior == "mixture_normal_per_scale")
   {
 
-    temp <- cal_Bhat_Shat(Y, X, v1 ,lowc_wc )   ## Speed Gain would be good to call directly cal_Bhat_Shat in the ash function
+    if(missing(ind_analysis)){
+      temp <- cal_Bhat_Shat(Y, X ,v1,lowc_wc )   ## Speed Gain would be good to call directly cal_Bhat_Shat in the ash function
+
+    }else{
+      temp <- cal_Bhat_Shat(Y, X ,v1,lowc_wc, ind_analysis = ind_analysis )   ## Speed Gain would be good to call directly cal_Bhat_Shat in the ash function
+
+    }
 
     if( !is.null(lowc_wc)){
       t_ash <-   ashr::ash(c(temp$Bhat[,-lowc_wc]), c(temp$Shat[,-lowc_wc]),
