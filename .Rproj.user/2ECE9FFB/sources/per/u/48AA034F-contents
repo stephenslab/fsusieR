@@ -1,0 +1,51 @@
+library(microbenchmark)
+X <- matrix(rnorm(200*100),nrow=200)
+
+Y <- matrix(rnorm(100*200), nrow=200)
+
+Y_l <- as.list(as.data.frame(Y ))
+
+X_l <- as.list(as.data.frame(X ))
+
+
+Y_min <- Y[1:100,]
+X_min <- X[1:100,]
+
+lowc_wc=NULL
+
+apply(Y, 2, function( y_j) which(is.na(y_j)))
+
+
+Y[10,3] <-NA
+apply(Y, 2, function( y_j) which(is.na(y_j)))
+
+
+
+microbenchmark(
+  v00 <- as.list(as.data.frame(Y[1:100,])),
+  V01 <- as.list(as.data.frame(X[1:100,])),
+  V02 <-X_min
+  
+)
+microbenchmark(
+  v1 = t(mapply( function(j,l) fast_lm(x=X_min[,j] ,
+                                       y= Y_min[,l]
+  )
+  ,
+  l=rep(1:dim(Y_min)[2],each= ncol(X_min)),
+  j=rep(1:dim(X_min)[2], ncol(Y))
+  )
+  ),
+  
+  v3 =  t(mapply( function(j,l)  fast_lm(x=X_l[[j]][1:100] ,
+                                         y=Y_l[[l]][1:100]
+  )
+  ,
+  l=rep(1:dim(Y)[2],each= ncol(X)),
+  j=rep(1:dim(X)[2], ncol(Y))
+  )
+  )
+  
+)
+
+
