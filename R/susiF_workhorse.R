@@ -70,7 +70,9 @@ susiF.workhorse <- function(susiF.obj,
   if( susiF.obj$L_max==1)
   {
 
-    tt   <- cal_Bhat_Shat(update_Y,X,v1 , lowc_wc =lowc_wc )
+    tt   <- cal_Bhat_Shat(update_Y,X,v1 ,
+                          resid_var=susiF.obj$sigma2,
+                          lowc_wc =lowc_wc )
     Bhat <- tt$Bhat
     Shat <- tt$Shat #UPDATE. could be nicer
     tpi  <- get_pi(susiF.obj,1)

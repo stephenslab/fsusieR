@@ -847,12 +847,13 @@ init_susiF_obj <- function(L_max, G_prior, Y,X,L_start,greedy,backfit,... )
   N               <- dim(Y)[1]
   n_wac           <- dim(Y)[2]
   P               <- dim(X)[2]
-  sigma2          <- 1
+  sigma2          <- mean(apply(Y,2 ,var))
   lBF             <- list()
   KL              <- rep(NA,L)
   ELBO            <- c()
   mean_X          <- attr(X, "scaled:center")
   csd_X           <- attr(X, "scaled:scale")
+  d               <- attr(X , "d")
   n_expand        <- 0 #number of greedy expansion
   greedy          <- greedy
   backfit         <- backfit
@@ -892,7 +893,8 @@ init_susiF_obj <- function(L_max, G_prior, Y,X,L_start,greedy,backfit,... )
                n_expand        = n_expand,
                greedy          = greedy,
                backfit         = backfit,
-               greedy_backfit_update=greedy_backfit_update)
+               greedy_backfit_update=greedy_backfit_update,
+               d               = d)
 
   class(obj) <- "susiF"
   return(obj)

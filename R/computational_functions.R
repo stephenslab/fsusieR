@@ -64,7 +64,7 @@ cal_cor_cs <- function(susiF.obj,X){
 #
 # @export
 
-cal_Bhat_Shat   <- function(Y, X ,v1 , lowc_wc=NULL,ind_analysis,  ...  )
+cal_Bhat_Shat   <- function(Y, X ,v1 ,resid_var=1, lowc_wc=NULL,ind_analysis,  ...  )
 {
 
 
@@ -105,9 +105,9 @@ cal_Bhat_Shat   <- function(Y, X ,v1 , lowc_wc=NULL,ind_analysis,  ...  )
 
 
 
-
-  Bhat   <-  matrix(  out[,1], nrow=ncol(X))
-  Shat   <-  matrix(  out[,2], nrow=ncol(X))
+  sd_res <- sqrt(resid_var)
+  Bhat   <-  matrix( unlist(out[,1]), nrow=ncol(X))
+  Shat   <-  matrix( sd_res , nrow=ncol(X), ncol=ncol(Y))/sqrt(attr(X,"d"))
   if( !is.null(lowc_wc)){
     Bhat[,lowc_wc] <- 0
     Shat[,lowc_wc] <- 1

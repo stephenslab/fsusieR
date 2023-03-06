@@ -30,7 +30,7 @@ fast_lm <- function(x,y)
 {
 
     be <- solve(crossprod(x),crossprod(x,y))
-    sd <-  sqrt(fast_var(y - x %*% be)/(length(x)-1))
+    sd <- 1# sqrt(fast_var(y - x %*% be) ) #assuming variance 1
 
     return(c(be,sd))
 }
@@ -109,6 +109,10 @@ colScale = function(x,
     if (scale) {
       attr(x, "scaled:scale") <- csd
     }
+    n <- nrow(x)
+    d = n*cm^2 + (n-1)*csd^2
+    d = (d - n*cm^2)/csd^2
+    attr(x, "d") <- d
   }
   return(x)
 }

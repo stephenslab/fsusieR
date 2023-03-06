@@ -52,6 +52,7 @@ thresh_lowcount <-0.001
 cal_obj=FALSE
 quantile_trans=FALSE
 L_start=3
+gridmult =sqrt(2)
 #testing if x is a wholenumber
 #'
 is.wholenumber <- function (x, tol = .Machine$double.eps^0.5)
@@ -66,7 +67,7 @@ is.wholenumber <- function (x, tol = .Machine$double.eps^0.5)
 fast_lm <- function(x,y)
 {
   be <- solve(crossprod(x),crossprod(x,y))
-  resid <-  y - x %*% be
+  resid <- 1# y - x %*% be
   out <- list(be = be,
               residuals = resid)
   return(out)
@@ -119,9 +120,15 @@ library(profvis)
    }
    if(missing(nullweight))
    {
-     nullweight <- 10/(sqrt(nrow(X)))
+     nullweight <- 10#/(sqrt(nrow(X)))
    }
-
+   if(!cal_obj){
+     tol <-10^-3
+   }
+   if(L_start >L)
+   {
+     L_start <- L
+   }
    ## Input error messages
 
    if (is.null(pos))
@@ -136,22 +143,13 @@ library(profvis)
    }
 
 
+   map_data <- remap_data(Y=Y,
+                          pos=pos,
+                          verbose=verbose)
 
-   if(!is.wholenumber(log2(dim(Y)[2])) | !(sum( duplicated(diff( pos)))== (length(pos) -2)) ) #check whether dim(Y) not equal to 2^J or if the data are unevenly spaced
-   {
-
-     inter_pol.obj <- interpol_mat(Y, pos)
-     Y             <- inter_pol.obj$Y
-     bp            <- inter_pol.obj$bp
-     outing_grid   <- inter_pol.obj$grid
-     if(verbose)
-     {
-       message( "Response matrix dimensions not equal to nx 2^J \n or unevenly spaced data \n interpolation procedure used")
-     }
-   }  else{
-
-     outing_grid <- 1:dim(Y)[2]
-   }
+   outing_grid <- map_data$outing_grid
+   Y           <- map_data$Y
+   rm( map_data)
    # centering and scaling covariate
    X <- colScale(X)
    # centering input
@@ -166,19 +164,18 @@ library(profvis)
 
    #X <- matrix(X)
    ### Definition of some static parameters ---
-   indx_lst <-  gen_wavelet_indx(log2(length( outing_grid)))
 
-   if(!missing(thresh_lowcount)){
-     lowc_wc <-   which_lowcount(Y_f,thresh_lowcount)
-     if(verbose){
-       print( paste("Discarding ", length(lowc_wc), "wavelet coefficients out of ", ncol(Y_f)))
-     }
-     if(length(lowc_wc)> (ncol(Y_f )-3)){
-       stop("almost all the wavelet coefficients are null, consider using univariate fine mapping")
-     }
-   }else{
-     lowc_wc <- NULL
+   indx_lst <-  gen_wavelet_indx(log2(length( outing_grid)))
+   #removing wc with variance 0 or below a certain level
+
+   lowc_wc <-   which_lowcount(Y_f,thresh_lowcount)
+   if(verbose){
+     print( paste("Discarding ", length(lowc_wc), "wavelet coefficients out of ", ncol(Y_f)))
    }
+   if(length(lowc_wc)> (ncol(Y_f )-3)){
+     stop("almost all the wavelet coefficients are null/low variance, consider using univariate fine mapping")
+   }
+
 
    if(quantile_trans)# important to do it after testing for lowcount
    {
@@ -193,10 +190,22 @@ library(profvis)
 
 
    update_D <- W
-   ### Definition of some dynamic parameters ---
+   ### Definition of some dynamic parameters ------
 
-   update_Y    <-  cbind( W$D,W$C) #Using a column like phenotype, temporary matrix that will be regularly updated
-   G_prior     <-  init_prior(update_Y,X,prior,v1, indx_lst, lowc_wc  )
+   update_Y    <- cbind( W$D,W$C) #Using a column like phenotype, temporary matrix that will be regularly updated
+   temp        <- init_prior(Y              = update_Y,
+                             X              = X,
+                             prior          = prior ,
+                             v1             = v1,
+                             indx_lst       = indx_lst,
+                             lowc_wc        = lowc_wc,
+                             control_mixsqp = control_mixsqp,
+                             nullweight     = nullweight,
+                             gridmult       = gridmult )
+   G_prior     <- temp$G_prior
+   tt          <- temp$tt
+
+   #Recycled for the first step of the while loop
    susiF.obj   <-  init_susiF_obj(L_max=L,
                                   G_prior=G_prior,
                                   Y=Y,
@@ -204,135 +213,37 @@ library(profvis)
                                   L_start=L_start,
                                   greedy=greedy,
                                   backfit=backfit)
-
-   # numerical value to check breaking condition of while
-   check <- 1
-   h     <- 0
-
    if(verbose){
      print("Initialization done")
    }
-
-   if( susiF.obj$L_max==1)
-   {
-     tt   <- cal_Bhat_Shat(update_Y,X,v1 , lowc_wc =lowc_wc )
-     Bhat <- tt$Bhat
-     Shat <- tt$Shat #UPDATE. could be nicer
-     tpi  <- get_pi(susiF.obj,1)
-     G_prior <- update_prior(G_prior, tpi= tpi ) #allow EM to start close to previous solution (to double check)
-
-     EM_out  <- EM_pi(G_prior        = G_prior,
-                      Bhat           = Bhat,
-                      Shat           = Shat,
-                      indx_lst       = indx_lst,
-                      init_pi0_w     = init_pi0_w,
-                      control_mixsqp = control_mixsqp,
-                      lowc_wc        = lowc_wc,
-                      nullweight     = nullweight
-
-     )
-
-     susiF.obj <-  update_susiF_obj(susiF.obj = susiF.obj ,
-                                    l         = 1,
-                                    EM_pi     = EM_out,
-                                    Bhat      = Bhat,
-                                    Shat      = Shat,
-                                    indx_lst  = indx_lst,
-                                    lowc_wc   = lowc_wc
-     )
-     susiF.obj <- update_ELBO(susiF.obj,
-                              get_objective( susiF.obj = susiF.obj,
-                                             Y         = Y_f,
-                                             X         = X,
-                                             D         = W$D,
-                                             C         = W$C,
-                                             indx_lst  = indx_lst
-                              )
-     )
-
-   }else{
-     iter <- 1
-     while(check >tol & iter <maxit)
-     {
-       for( l in 1:susiF.obj$L)
-       {
-         if(verbose){
-           print(paste("Fitting effect ", l,", iter" ,  iter ))
-         }
-         h <- h+1
-         tt <- cal_Bhat_Shat(update_Y,X,v1, lowc_wc =lowc_wc )
-         Bhat <- tt$Bhat
-         Shat <- tt$Shat #UPDATE. could be nicer
-         tpi <-  get_pi(susiF.obj,l)
-         G_prior <- update_prior(G_prior, tpi= tpi ) #allow EM to start close to previous solution (to double check)
-
-         EM_out  <- EM_pi(G_prior        = G_prior,
-                          Bhat           = Bhat,
-                          Shat           = Shat,
-                          indx_lst       = indx_lst,
-                          init_pi0_w     = init_pi0_w,
-                          control_mixsqp = control_mixsqp,
-                          lowc_wc        = lowc_wc,
-                          nullweight     = nullweight
-         )
-
-         #print(h)
-         #print(EM_out$lBF)
-         susiF.obj <-  update_susiF_obj(susiF.obj   = susiF.obj ,
-                                        l           = l,
-                                        EM_pi       = EM_out,
-                                        Bhat        = Bhat,
-                                        Shat        = Shat,
-                                        indx_lst    = indx_lst,
-                                        lowc_wc     = lowc_wc
-         )
-
-
-         update_Y  <-  cal_partial_resid(
-           susiF.obj = susiF.obj,
-           l         = l,
-           X         = X,
-           D         = W$D,
-           C         = W$C,
-           indx_lst  = indx_lst
-         )
-
-       }#end for l in 1:L
-
-
-       susiF.obj <- greedy_backfit (susiF.obj,
-                                    verbose = verbose,
-                                    cov_lev = cov_lev,
-                                    X       = X,
-                                    min.purity= min.purity
-       )
-       susiF.obj <- test_stop_cond(susiF.obj = susiF.obj,
-                                   check    = check,
-                                   cal_obj   = cal_obj,
-                                   Y         = Y_f,
-                                   X         = X,
-                                   D         = W$D,
-                                   C         = W$C,
-                                   indx_lst  = indx_lst)
-       #print(susiF.obj$ELBO)
-       check <- susiF.obj$check
-       iter <- iter+1
-       sigma2    <- estimate_residual_variance(susiF.obj,Y=Y_f,X)
-       susiF.obj <- update_residual_variance(susiF.obj, sigma2 = sigma2 )
+   # numerical value to check breaking condition of while
 
 
 
-
-     }#end while
-   }#end else in if(L==1)
-
-
+   susiF.obj     <- susiF.workhorse(susiF.obj      = susiF.obj,
+                                    W              = W,
+                                    X              = X,
+                                    tol            = tol,
+                                    low_wc         = low_wc,
+                                    init_pi0_w     = init_pi0_w ,
+                                    control_mixsqp = control_mixsqp ,
+                                    indx_lst       = indx_lst,
+                                    lowc_wc        = lowc_wc,
+                                    nullweight     = nullweight,
+                                    cal_obj        = cal_obj,
+                                    verbose        = verbose,
+                                    cov_lev        = cov_lev,
+                                    min.purity     = min.purity,
+                                    maxit          = maxit,
+                                    tt             = tt)
 
    #preparing output
-   susiF.obj <- out_prep(susiF.obj  = susiF.obj,
-                         Y          = Y,
-                         X          = X,
-                         indx_lst   = indx_lst,
-                         filter.cs  = filter.cs
+   susiF.obj <- out_prep(susiF.obj   = susiF.obj,
+                         Y           = Y,
+                         X           = X,
+                         indx_lst    = indx_lst,
+                         filter.cs   = filter.cs,
+                         outing_grid = outing_grid
    )
+   susiF.obj$runtime <- proc.time()-pt
  })

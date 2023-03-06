@@ -87,6 +87,7 @@ fit_effect.EBmvFR <- function(EBmvFR.obj, j,X,D, C,  indx_lst,lowc_wc){
   )
 
   MLE_wc <- cal_Bhat_Shat(Y,X= matrix(X[,j], ncol=1),
+                          resid_var  = EBmvFR.obj$sigma2,
                           lowc_wc    = lowc_wc
   )
   EBmvFR.obj <- update_effect.EBmvFR(EBmvFR.obj,
@@ -149,11 +150,13 @@ init_EBmvFR_obj <- function( G_prior, Y,X,... )
   N               <- dim(Y)[1]
   n_wac           <- dim(Y)[2]
   P               <- dim(X)[2]
-  sigma2          <- 1
+  sigma2          <- mean(apply(Y,2 ,var))
   KL              <- rep(NA,ncol(X))
   ELBO            <- c()
   mean_X          <- attr(X, "scaled:center")
   csd_X           <- attr(X, "scaled:scale")
+  d               <- attr(X , "d")
+
   pi_hist         <- list()
 
     MLE_wc    [[1]]       <-  matrix(0, nrow = dim(X)[2], ncol=dim(Y)[2]  )
@@ -179,6 +182,7 @@ init_EBmvFR_obj <- function( G_prior, Y,X,... )
                est_pi          = est_pi,
                est_sd          = est_sd,
                csd_X           = csd_X,
+               d               = d,
                pi_hist         = pi_hist)
 
   class(obj) <- "EBmvFR"

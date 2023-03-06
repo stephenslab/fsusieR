@@ -38,7 +38,8 @@ update_D <- W
 Y_f <- cbind( W$D,W$C) #Using a column like phenotype
 update_Y <-Y_f
 v1 <- rep(1, dim(X)[2])
-tt <-  cal_Bhat_Shat(Y_f,X,v1,lowc_wc=NULL)
+tt <-  cal_Bhat_Shat(Y_f,X,v1,resid_var=min(apply(Y_f,2,mad)),
+                       lowc_wc=NULL)
 indx_lst <- gen_wavelet_indx(9)
 Bhat <- tt$Bhat
 Shat <- tt$Shat
@@ -79,7 +80,7 @@ test_that("Class of the prior is", {
 ### Test validity normal mixture  -----
 Bhat <- tt$Bhat
 Shat <- tt$Shat
-G_prior<- init_prior(Y=Y_f,
+G_prior<- init_prior.default(Y=Y_f,
                 X=X,
                 prior="mixture_normal",
                 v1=v1,
@@ -471,7 +472,7 @@ lines(f1$sim_func, col="red")
 test_that("SusiF performance should be",
           {
             set.seed(1)
-            sim  <- simu_test_function(rsnr=2,is.plot = FALSE)
+            sim  <- simu_test_function(rsnr=0.5,is.plot = FALSE)
             Y <- sim$noisy.data
             X <- sim$G
             out <- susiF(Y,X,L=1, prior="mixture_normal")
@@ -486,7 +487,7 @@ test_that("SusiF performance should be",
 test_that("SusiF performance should be",
           {
             set.seed(1)
-            sim  <- simu_test_function(N=500,rsnr=2,pos2= 2 ,is.plot = FALSE)
+            sim  <- simu_test_function(N=500,rsnr=0.5,pos2= 2 ,is.plot = FALSE)
             Y <- sim$noisy.data
             X <- sim$G
             out <- susiF(Y,X,L=2, prior="mixture_normal")
