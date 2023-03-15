@@ -1040,6 +1040,7 @@ out_prep.susiF <- function(susiF.obj,Y, X, indx_lst, filter.cs, lfsr_curve, outi
   susiF.obj <-  update_cal_indf(susiF.obj, Y, X, indx_lst)
 
   susiF.obj$outing_grid <- outing_grid
+  susiF.obj$purity      <-  cal_purity(l_cs= susiF.obj$cs, X=X)
   return(susiF.obj)
 }
 

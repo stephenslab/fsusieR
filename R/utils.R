@@ -126,4 +126,16 @@ gen_EM_out <- function(tpi_k , lBF){
 
 }
 
-
+#' @export
+#' @keywords internal
+cal_purity <- function(l_cs,X){
+  tt <- list()
+  for (k in 1:length(l_cs)){
+    if(length(l_cs[[k]])==1 ){
+      tt[[k]] <- 1
+    }else{
+      tt[[k]] <-  min(cor(X[,l_cs[[k]]]))
+    }
+  }
+  return( tt )
+}
