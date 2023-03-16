@@ -1,8 +1,8 @@
-#' @title Sum of Single Function
+#' @title Empirical Bayes multivariate functional regression
 #'
-#' @description Implementation of the SuSiF method
+#' @description Empirical Bayes multivariate functional regression
 #'
-#' @details Implementation of the SuSiF method
+#' @details Empirical Bayes multivariate functional regression
 #'
 #'
 #' @param Y functional phenotype, matrix of size N by size J. The
@@ -11,18 +11,13 @@
 #'   into a grid of length 2^J
 #'
 #' @param X matrix of size n by p contains the covariates
-#'
-#' @param L upper bound on the number of effects to fit (if not specified, set to =2)
-#'
+#' @param adjust logical if set to TRUE (default FALSE), then the output contains the adjusted coeficients (usefull to correct for batch effect)
 #' @param pos vector of length J, corresponding to position/time pf
 #' the observed column in Y, if missing, suppose that the observation
 #' are evenly spaced
 #'
 #' @param prior specify the prior used in susiF. The two available choices are
 #' available "mixture_normal_per_scale", "mixture_normal". Default "mixture_normal_per_scale",
-#' if this susiF is too slow, consider using  "mixture_normal" (up to 40% faster), but this may result in
-#' oversmoothing the estimated curves.
-#'
 #' @param verbose If \code{verbose = TRUE}, the algorithm's progress,
 #' and a summary of the optimization settings are printed to the
 #' console.
@@ -36,20 +31,13 @@
 #'
 #' @param maxit Maximum number of IBSS iterations.
 #'
-#' @param cov_lev numeric between 0 and 1, corresponding to the
-#' expected level of coverage of the cs if not specified set to 0.95
-#'
-#' @param min.purity minimum purity for estimated credible sets
-#' @param filter.cs logical, if TRUE filter the credible set (removing low purity
-#' cs and cs with estimated prior equal to 0). Set as TRUE by default.
 #' @param init_pi0_w starting value of weight on null compoenent in mixsqp
 #'  (between 0 and 1)
 #' @param control_mixsqp list of parameter for mixsqp function see  mixsqp package
 #' @param  cal_obj logical if set as TRUE compute ELBO for convergence monitoring
 #' @param quantile_trans logical if set as TRUE perform normal quantile transform
 #' on wavelet coefficients
-#' @param L_start number of effect initialized at the start of the algorithm
-#' @param nullweight numeric value for penalizing likelihood at point mass 0 (should be between 0 and 1)
+#' @param nullweight numeric value for penalizing likelihood at point mass 0
 #' (usefull in small sample size)
 #' @param thresh_lowcount numeric, used to check the wavelet coefficients have
 #'  problematic distribution (very low dispersion even after standardization).
@@ -58,22 +46,17 @@
 #'   this wavelet coefficient (setting its estimate effect to 0 and estimate sd to 1).
 #'   Set to 0 by default. It can be useful when analyzing sparse data from sequence
 #'    based assay or small samples.
-#' @param greedy logical, if TRUE allows greedy search for extra effect
-#'  (up to L specified by the user). Set as TRUE by default
-#' @param backfit logical, if TRUE allow discarding effect via backfitting.
-#'  Set as true by default as TRUE. We advise keeping it as TRUE
 #' @param gridmult numeric used to control the number of components used in the mixture prior (see ashr package
 #'  for more details). From the ash function:  multiplier by which the default grid values for mixsd differ from one another.
 #'   (Smaller values produce finer grids.). Increasing this value may reduce computational time
-#'
-#'
 #' @examples
+#'
 #'
 #'library(ashr)
 #'library(wavethresh)
 #'set.seed(1)
 #'#Example using curves simulated under the Mixture normal per scale prior
-#'rsnr <- 0.2 #expected root signal noise ratio
+#'rsnr <- 1 #expected root signal noise ratio
 #'N <- 100    #Number of individuals
 #'P <- 10     #Number of covariates/SNP
 #'pos1 <- 1   #Position of the causal covariate for effect 1
@@ -127,64 +110,52 @@
 #'
 #'Y <- noisy.data
 #'X <- G
-#'#Running fSuSiE
+#'#Running Empirical Bayes multivariate function regression
 #'
-#'out <- susiF(Y,X,L=2 , prior = 'mixture_normal_per_scale')
+#'out <- EBmvFR(Y,X )
 #'#the easiest way to visualize the result is to use the plot_susiF function
 #'
-#'plot_susiF(out)
-#'
-#'#You can also access the information directly in the output of susiF  as follow
-#'par(mfrow=c(1,2))
-#'
 #'plot( f1, type="l", main="Estimated effect 1", xlab="")
-#'lines(unlist(out$fitted_func[[1]]),col='blue' )
+#'lines(unlist(out$fitted_func[1,]),col='blue' )
 #'abline(a=0,b=0)
-#'legend(x= 35,
+#'legend(x= 60,
 #'       y=3,
 #'       lty= rep(1,2),
-#'       legend = c("effect 1"," fSuSiE est "),
+#'       legend = c("effect 1"," EBmvFR est "),
 #'       col=c("black","blue" )
 #')
 #'plot( f2, type="l", main="Estimated effect 2", xlab="")
-#'lines(unlist(out$fitted_func[[2]]),col='green' )
+#'lines(unlist(out$fitted_func[5,]),col='green' )
 #'abline(a=0,b=0)
-#'legend(x= 20,
-#'       y=-1.5,
+#'legend(x= 85,
+#'       y= 2,
 #'       lty= rep(1,2),
-#'       legend = c("effect 2"," fSuSiE est "),
+#'       legend = c("effect 2"," EBmvFR est "),
 #'       col=c("black","green" )
 #')
 #'
 #'par(mfrow=c(1,1))
-#'plot_susiF(out)
-#'
 #' @importFrom stats var
 #'
 #' @export
 #'
-susiF <- function(Y, X, L = 2,
-                  pos = NULL,
-                  prior = "mixture_normal_per_scale",
-                  verbose = TRUE,
-                  maxit = 100,
-                  tol = 1e-3,
-                  cov_lev = 0.95,
-                  min.purity=0.5,
-                  filter.cs =TRUE,
-                  init_pi0_w= 1,
-                  nullweight ,
-                  control_mixsqp =  list(verbose=FALSE,
-                                         eps = 1e-6,
-                                         numiter.em = 4
-                  ),
-                  thresh_lowcount=0,
-                  cal_obj=FALSE,
-                  L_start = 3,
-                  quantile_trans=FALSE,
-                  greedy =TRUE,
-                  backfit =TRUE,
-                  gridmult= sqrt(2)
+EBmvFR <- function(Y, X,
+                   adjust=FALSE,
+                   pos = NULL,
+                   prior = "mixture_normal_per_scale",
+                   verbose = TRUE,
+                   maxit = 100,
+                   tol = 0.1,
+                   init_pi0_w= 1,
+                   nullweight ,
+                   control_mixsqp =  list(verbose=FALSE,
+                                          eps = 1e-6,
+                                          numiter.em = 4
+                   ),
+                   thresh_lowcount=0,
+                   cal_obj=FALSE,
+                   quantile_trans=FALSE,
+                   gridmult= sqrt(2)
 )
 {
 
@@ -202,10 +173,7 @@ susiF <- function(Y, X, L = 2,
   if(!cal_obj){
     tol <-10^-3
   }
-  if(L_start >L)
-  {
-    L_start <- L
-  }
+
   ## Input error messages
 
   if (is.null(pos))
@@ -220,13 +188,29 @@ susiF <- function(Y, X, L = 2,
   }
 
 
-  map_data <- remap_data(Y=Y,
-                         pos=pos,
-                         verbose=verbose)
 
-  outing_grid <- map_data$outing_grid
-  Y           <- map_data$Y
-  rm( map_data)
+  if(!is.wholenumber(log2(dim(Y)[2])) | !(sum( duplicated(diff( pos)))== (length(pos) -2)) ) #check whether dim(Y) not equal to 2^J or if the data are unevenly spaced
+  {
+
+    inter_pol.obj <-interpol_mat(Y, pos)
+    Y             <- inter_pol.obj$Y
+    bp            <- inter_pol.obj$bp
+
+    start_pos <- min( pos)
+    end_pos <-max(pos)
+    outing_grid   <- start_pos + (end_pos-start_pos)/(length(pos))*inter_pol.obj$grid
+    if(verbose)
+    {
+      message( "Response matrix dimensions not equal to nx 2^J \n or unevenly spaced data \n interpolation procedure used")
+    }
+  }  else{
+
+    outing_grid   <- pos
+  }
+  if(adjust){
+    Y_org <- Y
+    X_org <- X
+  }
   # centering and scaling covariate
   X <- colScale(X)
   # centering input
@@ -237,9 +221,7 @@ susiF <- function(Y, X, L = 2,
   if(verbose){
     print("Starting initialization")
   }
-  if(verbose){
-    print("Data transform")
-  }
+
 
   #X <- matrix(X)
   ### Definition of some static parameters ---
@@ -248,6 +230,7 @@ susiF <- function(Y, X, L = 2,
   #removing wc with variance 0 or below a certain level
 
   lowc_wc <-   which_lowcount(Y_f,thresh_lowcount)
+
   if(verbose){
     print( paste("Discarding ", length(lowc_wc), "wavelet coefficients out of ", ncol(Y_f)))
   }
@@ -269,13 +252,8 @@ susiF <- function(Y, X, L = 2,
 
 
   update_D <- W
-  if(verbose){
-    print("Data transform done")
-  }
   ### Definition of some dynamic parameters ------
-  if(verbose){
-    print("Initializing prior")
-  }
+
   update_Y    <- cbind( W$D,W$C) #Using a column like phenotype, temporary matrix that will be regularly updated
   temp        <- init_prior(Y              = update_Y,
                             X              = X,
@@ -287,49 +265,35 @@ susiF <- function(Y, X, L = 2,
                             nullweight     = nullweight,
                             gridmult       = gridmult )
   G_prior     <- temp$G_prior
-  tt          <- temp$tt
+
 
   #Recycled for the first step of the while loop
-  susiF.obj   <-  init_susiF_obj(L_max=L,
-                                 G_prior=G_prior,
-                                 Y=Y,
-                                 X=X,
-                                 L_start=L_start,
-                                 greedy=greedy,
-                                 backfit=backfit)
+  EBmvFR.obj   <-  init_EBmvFR_obj(G_prior=G_prior,
+                                   Y=Y,
+                                   X=X)
 
-  if(verbose){
-    print("Initialization done")
-  }
-  # numerical value to check breaking condition of while
-
-
-
-  susiF.obj     <- susiF.workhorse(susiF.obj      = susiF.obj,
+  EBmvFR.obj   <- EBmvFR.workhorse(EBmvFR.obj     = EBmvFR.obj,
                                    W              = W,
                                    X              = X,
                                    tol            = tol,
-                                   low_wc         = low_wc,
+                                   lowc_wc        = lowc_wc,
                                    init_pi0_w     = init_pi0_w ,
                                    control_mixsqp = control_mixsqp ,
                                    indx_lst       = indx_lst,
-                                   lowc_wc        = lowc_wc,
                                    nullweight     = nullweight,
                                    cal_obj        = cal_obj,
                                    verbose        = verbose,
-                                   cov_lev        = cov_lev,
-                                   min.purity     = min.purity,
-                                   maxit          = maxit,
-                                   tt             = tt)
-
+                                   maxit          = maxit)
   #preparing output
-  susiF.obj <- out_prep(susiF.obj   = susiF.obj,
-                        Y           = Y,
-                        X           = X,
-                        indx_lst    = indx_lst,
-                        filter.cs   = filter.cs,
-                        outing_grid = outing_grid
+  EBmvFR.obj <- out_prep(EBmvFR.obj  = EBmvFR.obj,
+                         X           = X,
+                         indx_lst    = indx_lst,
+                         outing_grid = outing_grid
   )
-  susiF.obj$runtime <- proc.time()-pt
-  return(susiF.obj)
+  EBmvFR.obj$runtime <- proc.time()-pt
+
+  if(adjust){
+    EBmvFR.obj$Y_adjusted <-  Y_org-X_org%*%EBmvFR.obj$fitted_func
+  }
+  return(EBmvFR.obj)
 }

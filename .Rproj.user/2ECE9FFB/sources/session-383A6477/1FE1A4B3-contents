@@ -41,13 +41,16 @@ init_prior <- function(  ...)
 #' @keywords internal
 init_prior.default <- function(Y,X, prior,v1 , indx_lst,lowc_wc,control_mixsqp,nullweight ,gridmult=sqrt(2),ind_analysis, ... )
 {
+  init_res_var <- mean(apply(Y, 2,function(x) var(x, na.rm=TRUE)))*10
   if( prior == "mixture_normal")
   {
     if(missing(ind_analysis)){
-      temp <- cal_Bhat_Shat(Y, X ,v1,lowc_wc )   ## Speed Gain would be good to call directly cal_Bhat_Shat in the ash function
+      temp <- cal_Bhat_Shat(Y, X , v1,resid_var=init_res_var,
+                            lowc_wc=lowc_wc )   ## Speed Gain would be good to call directly cal_Bhat_Shat in the ash function
 
     }else{
-      temp <- cal_Bhat_Shat(Y, X ,v1,lowc_wc, ind_analysis = ind_analysis )   ## Speed Gain would be good to call directly cal_Bhat_Shat in the ash function
+      temp <- cal_Bhat_Shat(Y, X ,v1=v1,resid_var=init_res_var,
+                            lowc_wc=lowc_wc , ind_analysis = ind_analysis )   ## Speed Gain would be good to call directly cal_Bhat_Shat in the ash function
 
     }
 
@@ -71,10 +74,15 @@ init_prior.default <- function(Y,X, prior,v1 , indx_lst,lowc_wc,control_mixsqp,n
   {
 
     if(missing(ind_analysis)){
-      temp <- cal_Bhat_Shat(Y, X ,v1,lowc_wc )   ## Speed Gain would be good to call directly cal_Bhat_Shat in the ash function
+      temp <- cal_Bhat_Shat(Y, X ,v1=v1,
+                            resid_var=init_res_var,
+                            lowc_wc=lowc_wc )   ## Speed Gain would be good to call directly cal_Bhat_Shat in the ash function
 
     }else{
-      temp <- cal_Bhat_Shat(Y, X ,v1,lowc_wc, ind_analysis = ind_analysis )   ## Speed Gain would be good to call directly cal_Bhat_Shat in the ash function
+      temp <- cal_Bhat_Shat(Y, X ,v1=v1,
+                            resid_var=init_res_var,
+                            lowc_wc=lowc_wc ,
+                            ind_analysis = ind_analysis )   ## Speed Gain would be good to call directly cal_Bhat_Shat in the ash function
 
     }
 

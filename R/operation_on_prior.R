@@ -41,7 +41,7 @@ init_prior <- function(  ...)
 #' @keywords internal
 init_prior.default <- function(Y,X, prior,v1 , indx_lst,lowc_wc,control_mixsqp,nullweight ,gridmult=sqrt(2),ind_analysis, ... )
 {
-  init_res_var <- mean(apply(Y, 2,function(x) var(x, na.rm=TRUE)))
+  init_res_var <- mean(apply(Y, 2,function(x) var(x, na.rm=TRUE)))*10
   if( prior == "mixture_normal")
   {
     if(missing(ind_analysis)){
