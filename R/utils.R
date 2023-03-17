@@ -30,7 +30,8 @@ fast_lm <- function(x,y)
 {
 
     be <- solve(crossprod(x),crossprod(x,y))
-    sd <-   sqrt(fast_var(y - x %*% be) )
+    sd <-  sqrt(fast_var(y - x %*% be)/(length(x)-1))
+
 
     return(c(be,sd))
 }
@@ -131,10 +132,10 @@ gen_EM_out <- function(tpi_k , lBF){
 cal_purity <- function(l_cs,X){
   tt <- list()
   for (k in 1:length(l_cs)){
-    if(length(l_cs[[k]])==1 ){
+    if(length(unlist(l_cs[[k]]))==1 ){
       tt[[k]] <- 1
     }else{
-      tt[[k]] <-  min(cor(X[,l_cs[[k]]]))
+      tt[[k]] <-  min(cor(X[,unlist(l_cs[[k]]   ) ]))
     }
   }
   return( tt )

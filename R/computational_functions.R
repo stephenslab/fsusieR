@@ -105,7 +105,7 @@ cal_Bhat_Shat   <- function(Y, X ,v1 ,resid_var=1, lowc_wc=NULL,ind_analysis,  .
 
 
 
-  sd_res <- sqrt(resid_var)
+ # sd_res <- sqrt(resid_var)
   Bhat   <-  matrix( unlist(out[,1]), nrow=ncol(X))
   Shat   <-  matrix( unlist(out[,2]), nrow=ncol(X))#matrix( sd_res , nrow=ncol(X), ncol=ncol(Y))/sqrt(attr(X,"d"))
   if( !is.null(lowc_wc)){

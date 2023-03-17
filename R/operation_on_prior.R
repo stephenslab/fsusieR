@@ -41,30 +41,25 @@ init_prior <- function(  ...)
 #' @keywords internal
 init_prior.default <- function(Y,X, prior,v1 , indx_lst,lowc_wc,control_mixsqp,nullweight ,gridmult=sqrt(2),ind_analysis, ... )
 {
-  init_res_var <- mean(apply(Y, 2,function(x) var(x, na.rm=TRUE)))*10
   if( prior == "mixture_normal")
   {
-    if(missing(ind_analysis)){
-      temp <- cal_Bhat_Shat(Y, X , v1,resid_var=init_res_var,
-                            lowc_wc=lowc_wc )   ## Speed Gain would be good to call directly cal_Bhat_Shat in the ash function
 
-    }else{
-      temp <- cal_Bhat_Shat(Y, X ,v1=v1,resid_var=init_res_var,
-                            lowc_wc=lowc_wc , ind_analysis = ind_analysis )   ## Speed Gain would be good to call directly cal_Bhat_Shat in the ash function
-
-    }
+    temp <- cal_Bhat_Shat(Y, X ,v1,lowc_wc )   ## Speed Gain would be good to call directly cal_Bhat_Shat in the ash function
 
     G_prior <- list()
     if( !is.null(lowc_wc)){
       G_prior[[1]]  <-  ashr::ash(c(temp$Bhat[,-lowc_wc]), c(temp$Shat[,-lowc_wc]),
-                            mixcompdist ="normal",
-                            outputlevel=0,
-                            gridmult =gridmult)
+                                  mixcompdist ="normal",
+                                  outputlevel=0,
+                                  gridmult =gridmult)
+
+
     }else {
       G_prior[[1]]  <-  ashr::ash(c(temp$Bhat ), c(temp$Shat ),
-                            mixcompdist ="normal",
-                            outputlevel=0,
-                            gridmult =gridmult )
+                                  mixcompdist ="normal",
+                                  outputlevel=0,
+                                  gridmult =gridmult )
+
     }
 
     attr(G_prior, "class")  <- "mixture_normal"
@@ -73,29 +68,21 @@ init_prior.default <- function(Y,X, prior,v1 , indx_lst,lowc_wc,control_mixsqp,n
   if( prior == "mixture_normal_per_scale")
   {
 
-    if(missing(ind_analysis)){
-      temp <- cal_Bhat_Shat(Y, X ,v1=v1,
-                            resid_var=init_res_var,
-                            lowc_wc=lowc_wc )   ## Speed Gain would be good to call directly cal_Bhat_Shat in the ash function
-
-    }else{
-      temp <- cal_Bhat_Shat(Y, X ,v1=v1,
-                            resid_var=init_res_var,
-                            lowc_wc=lowc_wc ,
-                            ind_analysis = ind_analysis )   ## Speed Gain would be good to call directly cal_Bhat_Shat in the ash function
-
-    }
+    temp <- cal_Bhat_Shat(Y, X, v1 ,lowc_wc )   ## Speed Gain would be good to call directly cal_Bhat_Shat in the ash function
 
     if( !is.null(lowc_wc)){
       t_ash <-   ashr::ash(c(temp$Bhat[,-lowc_wc]), c(temp$Shat[,-lowc_wc]),
-                     mixcompdist ="normal",
-                     outputlevel=0,
-                     gridmult =gridmult)
+                           mixcompdist ="normal",
+                           outputlevel=0,
+                           gridmult =gridmult)
+
+
     }else {
       t_ash <-  ashr::ash(c(temp$Bhat ), c(temp$Shat ),
-                    mixcompdist ="normal",
-                    outputlevel=0,
-                    gridmult =gridmult)
+                          mixcompdist ="normal",
+                          outputlevel=0,
+                          gridmult =gridmult)
+
     }
 
     G_prior  <- rep(list(t_ash),length(indx_lst))
@@ -106,18 +93,17 @@ init_prior.default <- function(Y,X, prior,v1 , indx_lst,lowc_wc,control_mixsqp,n
   }
 
 
- tpi_k <-  EM_pi(G_prior,temp$Bhat, temp$Shat, indx_lst,
-                    max_step = 100,
-                    espsilon = 0.0001,
-                    init_pi0_w =1,
-                    control_mixsqp,
-                    lowc_wc,
-                    nullweight)$tpi_k
- G_prior <- update_prior(G_prior , tpi_k)
+  tpi_k <-  EM_pi(G_prior,temp$Bhat, temp$Shat, indx_lst,
+                  max_step = 100,
+                  espsilon = 0.0001,
+                  init_pi0_w =1,
+                  control_mixsqp,
+                  lowc_wc,
+                  nullweight)$tpi_k
+  G_prior <- update_prior(G_prior , tpi_k)
   return(list(G_prior=G_prior,
               tt=temp)
-         )
-
+  )
 }
 
 

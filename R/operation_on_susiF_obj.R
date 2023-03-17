@@ -849,7 +849,7 @@ init_susiF_obj <- function(L_max, G_prior, Y,X,L_start,greedy,backfit,... )
   P               <- dim(X)[2]
   sigma2          <- mean(apply(Y,2 ,var))
   lBF             <- list()
-  KL              <- rep(NA,L)
+  KL              <- rep(NA,L_start)
   ELBO            <- c()
   mean_X          <- attr(X, "scaled:center")
   csd_X           <- attr(X, "scaled:scale")
@@ -1523,8 +1523,7 @@ update_susiF_obj.susiF <- function(susiF.obj, l, EM_pi, Bhat, Shat, indx_lst, lo
   new_alpha <- cal_zeta(  EM_pi$lBF)
   susiF.obj <- update_alpha(susiF.obj, l, new_alpha)
   susiF.obj <- update_lBF  (susiF.obj, l, EM_pi$lBF)
-
-
+  #susiF.obj <- update_cal_cs(susiF.obj,                             cov_lev=cov_lev)
   return(susiF.obj)
 }
 
@@ -2124,7 +2123,7 @@ if( susiF.obj$L==1){
 
       }else{
 
-        if( min(cor( X[,susiF.obj$cs[[l]]])) <  min.purity){#check if the purity of cs l is lower that min.purity
+        if( min(abs(cor( X[,susiF.obj$cs[[l]]]))) <  min.purity){#check if the purity of cs l is lower that min.purity
 
           dummy.cs<-  c( dummy.cs,l)
 
@@ -2166,7 +2165,7 @@ if( susiF.obj$L==1){
 
       }else{
 
-        if( min(cor( X[,susiF.obj$cs[[l]]])) <  min.purity){#check if the purity of cs l is lower that min.purity
+        if( min(abs(cor( X[,susiF.obj$cs[[l]]]))) <  min.purity){#check if the purity of cs l is lower that min.purity
 
           dummy.cs<-  c( dummy.cs,l)
 
