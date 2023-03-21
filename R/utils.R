@@ -135,7 +135,10 @@ cal_purity <- function(l_cs,X){
     if(length(unlist(l_cs[[k]]))==1 ){
       tt[[k]] <- 1
     }else{
-      tt[[k]] <-  min(cor(X[,unlist(l_cs[[k]]   ) ]))
+      x <-abs( cor(X[,unlist(l_cs[[k]]   ) ]))
+
+
+      tt[[k]] <-  min( x[col(x) != row(x)])
     }
   }
   return( tt )
