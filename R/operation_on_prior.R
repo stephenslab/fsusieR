@@ -41,10 +41,19 @@ init_prior <- function(  ...)
 #' @keywords internal
 init_prior.default <- function(Y,X, prior,v1 , indx_lst,lowc_wc,control_mixsqp,nullweight ,gridmult=sqrt(2),ind_analysis, ... )
 {
+
+
+
+
+  if(missing(ind_analysis)){
+    temp <- cal_Bhat_Shat(Y, X ,v1,lowc_wc )   ## Speed Gain would be good to call directly cal_Bhat_Shat in the ash function
+
+  }else{
+    temp <- cal_Bhat_Shat(Y[ind_analysis,], X [ind_analysis,] ,v1,lowc_wc )
+  }
   if( prior == "mixture_normal")
   {
 
-    temp <- cal_Bhat_Shat(Y, X ,v1,lowc_wc )   ## Speed Gain would be good to call directly cal_Bhat_Shat in the ash function
 
     G_prior <- list()
     if( !is.null(lowc_wc)){
@@ -67,9 +76,6 @@ init_prior.default <- function(Y,X, prior,v1 , indx_lst,lowc_wc,control_mixsqp,n
 
   if( prior == "mixture_normal_per_scale")
   {
-
-    temp <- cal_Bhat_Shat(Y, X, v1 ,lowc_wc )   ## Speed Gain would be good to call directly cal_Bhat_Shat in the ash function
-
     if( !is.null(lowc_wc)){
       t_ash <-   ashr::ash(c(temp$Bhat[,-lowc_wc]), c(temp$Shat[,-lowc_wc]),
                            mixcompdist ="normal",
