@@ -62,8 +62,7 @@ init_prior.default <- function(Y,X, prior,v1 , indx_lst,lowc_wc,control_mixsqp,n
       set.seed(1)
       betahat <- c(max(abs(temp$Bhat[,-lowc_wc])), sample(temp$Bhat[,-lowc_wc], size = min( prod(dim(temp$Bhat[,-lowc_wc])), 50000)) )
       set.seed(1)
-      idx <- which(temp$Bhat[,-lowc_wc] ==max(abs(temp$Bhat[,-lowc_wc])), arr.ind = TRUE)#idx of the marges entry of Bhat
-      sdhat <-c(temp$Shat[idx[1],idx[2]] , sample(temp$Shat[,-lowc_wc], size = min( prod(dim(temp$Shat[,-lowc_wc])), 50000)) )
+        sdhat <-c(0.01 , sample(temp$Shat[,-lowc_wc], size = min( prod(dim(temp$Shat[,-lowc_wc])), 50000)) )
 
       t_ash <-  ashr::ash(betahat, sdhat,#ash can take quite some space
                           mixcompdist ="normal",
@@ -84,8 +83,7 @@ init_prior.default <- function(Y,X, prior,v1 , indx_lst,lowc_wc,control_mixsqp,n
       set.seed(1)
       betahat <- c(max(abs(temp$Bhat)), sample(temp$Bhat, size = min( prod(dim(temp$Bhat)), 50000)) )
       set.seed(1)
-      idx <- which(temp$Bhat ==max(abs(temp$Bhat)), arr.ind = TRUE)#idx of the marges entry of Bhat
-      sdhat <- c(temp$Shat[idx[1],idx[2]], sample(temp$Shat, size = min( prod(dim(temp$Shat)), 50000)) )
+       sdhat <- c(0.01, sample(temp$Shat, size = min( prod(dim(temp$Shat)), 50000)) )
 
       t_ash <-  ashr::ash(betahat, sdhat,#ash can take quite some space
                           mixcompdist ="normal",
@@ -107,8 +105,7 @@ init_prior.default <- function(Y,X, prior,v1 , indx_lst,lowc_wc,control_mixsqp,n
       set.seed(1)
       betahat <- c(max(abs(temp$Bhat[,-lowc_wc])), sample(temp$Bhat[,-lowc_wc], size = min( prod(dim(temp$Bhat[,-lowc_wc])), 50000)) )
       set.seed(1)
-      idx <- which(temp$Bhat[,-lowc_wc] == max(abs(temp$Bhat[,-lowc_wc])), arr.ind = TRUE)#idx of the marges entry of Bhat
-      sdhat <-c(temp$Shat[idx[1],idx[2]] , sample(temp$Shat[,-lowc_wc], size = min( prod(dim(temp$Shat[,-lowc_wc])), 50000)) )
+       sdhat <-c(0.01 , sample(temp$Shat[,-lowc_wc], size = min( prod(dim(temp$Shat[,-lowc_wc])), 50000)) )
 
       t_ash <-  ashr::ash(betahat, sdhat,#ash can take quite some space
                           mixcompdist ="normal",
@@ -123,8 +120,7 @@ init_prior.default <- function(Y,X, prior,v1 , indx_lst,lowc_wc,control_mixsqp,n
       set.seed(1)
       betahat <- c(max(abs(temp$Bhat)), sample(temp$Bhat, size = min( prod(dim(temp$Bhat)), 50000)) )
       set.seed(1)
-      idx <- which(temp$Bhat ==max(abs(temp$Bhat)), arr.ind = TRUE)#idx of the marges entry of Bhat
-      sdhat <- c(temp$Shat[idx[1],idx[2]], sample(temp$Shat, size = min( prod(dim(temp$Shat)), 50000)) )
+       sdhat <- c(0.01, sample(temp$Shat, size = min( prod(dim(temp$Shat)), 50000)) )
 
       t_ash <-  ashr::ash(betahat, sdhat,#ash can take quite some space
                           mixcompdist ="normal",
