@@ -45,7 +45,7 @@ EBmvFR.workhorse <- function(EBmvFR.obj,
                              verbose,
                              maxit){
 
-  print(paste("workhorse", lowc_wc))
+
   Y_f      <-  cbind( W$D,W$C)
   # numerical value to check breaking condition of while
   check <- 3*tol

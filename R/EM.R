@@ -43,7 +43,17 @@ EM_pi <- function(G_prior,Bhat, Shat, indx_lst,
                   nullweight){
 
   #static parameters
-  Lmat  <-  L_mixsq(G_prior, Bhat, Shat, indx_lst)
+
+
+  lBF <- log_BF(G_prior,Bhat,Shat, indx_lst=indx_lst, lowc_wc=lowc_wc)
+
+  if( length(lBF)> 1000){ # basically allow runing EM only on data point with most signal
+    idx <- order(lBF)[1:1000]
+
+  }else{
+    idx <- 1:length(lBF)
+  }
+  Lmat  <-  L_mixsq(G_prior, Bhat[idx,], Shat[idx,], indx_lst)
   J <- dim(Bhat)[1]
   tsd_k <- get_sd_G_prior(G_prior)
 
@@ -55,8 +65,6 @@ EM_pi <- function(G_prior,Bhat, Shat, indx_lst,
   zeta <- rep(1/J,J) #assignation initial value
   k <- 1 #counting the number of iteration
 
-  lBF <- log_BF(G_prior,Bhat,Shat, indx_lst=indx_lst, lowc_wc=lowc_wc)
-
   while( k <max_step &  abs(newloglik-oldloglik)>=espsilon)
   {
     # E step----
@@ -64,7 +72,8 @@ EM_pi <- function(G_prior,Bhat, Shat, indx_lst,
     zeta      <- cal_zeta(lBF)
 
     # M step ----
-    tpi_k   <- m_step(Lmat,zeta,indx_lst,
+    tpi_k   <- m_step(Lmat,zeta= zeta[idx],
+                      indx_lst,
                       init_pi0_w     = init_pi0_w,
                       control_mixsqp = control_mixsqp,
                       nullweight     = nullweight)

@@ -57,18 +57,45 @@ init_prior.default <- function(Y,X, prior,v1 , indx_lst,lowc_wc,control_mixsqp,n
 
     G_prior <- list()
     if( !is.null(lowc_wc)){
-      G_prior[[1]]  <-  ashr::ash(c(temp$Bhat[,-lowc_wc]), c(temp$Shat[,-lowc_wc]),
-                                  mixcompdist ="normal",
-                                  outputlevel=0,
-                                  gridmult =gridmult)
+
+
+      set.seed(1)
+      betahat <- c(max(abs(temp$Bhat[,-lowc_wc])), sample(temp$Bhat[,-lowc_wc], size = min( prod(dim(temp$Bhat[,-lowc_wc])), 50000)) )
+      set.seed(1)
+      idx <- which(temp$Bhat[,-lowc_wc] ==max(abs(temp$Bhat[,-lowc_wc])), arr.ind = TRUE)#idx of the marges entry of Bhat
+      sdhat <-c(temp$Shat[idx[1],idx[2]] , sample(temp$Shat[,-lowc_wc], size = min( prod(dim(temp$Shat[,-lowc_wc])), 50000)) )
+
+      t_ash <-  ashr::ash(betahat, sdhat,#ash can take quite some space
+                          mixcompdist ="normal",
+                          outputlevel=0,
+                          gridmult =gridmult)
+
+      t_ash$fitted_g$pi <- c(0.8 , rep( 0.2/  (length(t_ash$fitted_g$pi)-1),  (length(t_ash$fitted_g$pi)-1)))
+
+
+
+      G_prior[[1]]  <-  t_ash
 
 
     }else {
-      G_prior[[1]]  <-  ashr::ash(c(temp$Bhat ), c(temp$Shat ),
-                                  mixcompdist ="normal",
-                                  outputlevel=0,
-                                  gridmult =gridmult )
 
+
+
+      set.seed(1)
+      betahat <- c(max(abs(temp$Bhat)), sample(temp$Bhat, size = min( prod(dim(temp$Bhat)), 50000)) )
+      set.seed(1)
+      idx <- which(temp$Bhat ==max(abs(temp$Bhat)), arr.ind = TRUE)#idx of the marges entry of Bhat
+      sdhat <- c(temp$Shat[idx[1],idx[2]], sample(temp$Shat, size = min( prod(dim(temp$Shat)), 50000)) )
+
+      t_ash <-  ashr::ash(betahat, sdhat,#ash can take quite some space
+                          mixcompdist ="normal",
+                          outputlevel=0,
+                          gridmult =gridmult)
+
+      t_ash$fitted_g$pi <- c(0.8 , rep( 0.2/  (length(t_ash$fitted_g$pi)-1),  (length(t_ash$fitted_g$pi)-1)))
+
+
+      G_prior[[1]]   <-  t_ash
     }
 
     attr(G_prior, "class")  <- "mixture_normal"
@@ -77,17 +104,35 @@ init_prior.default <- function(Y,X, prior,v1 , indx_lst,lowc_wc,control_mixsqp,n
   if( prior == "mixture_normal_per_scale")
   {
     if( !is.null(lowc_wc)){
-      t_ash <-   ashr::ash(c(temp$Bhat[,-lowc_wc]), c(temp$Shat[,-lowc_wc]),
-                           mixcompdist ="normal",
-                           outputlevel=0,
-                           gridmult =gridmult)
+      set.seed(1)
+      betahat <- c(max(abs(temp$Bhat[,-lowc_wc])), sample(temp$Bhat[,-lowc_wc], size = min( prod(dim(temp$Bhat[,-lowc_wc])), 50000)) )
+      set.seed(1)
+      idx <- which(temp$Bhat[,-lowc_wc] == max(abs(temp$Bhat[,-lowc_wc])), arr.ind = TRUE)#idx of the marges entry of Bhat
+      sdhat <-c(temp$Shat[idx[1],idx[2]] , sample(temp$Shat[,-lowc_wc], size = min( prod(dim(temp$Shat[,-lowc_wc])), 50000)) )
 
-
-    }else {
-      t_ash <-  ashr::ash(c(temp$Bhat ), c(temp$Shat ),
+      t_ash <-  ashr::ash(betahat, sdhat,#ash can take quite some space
                           mixcompdist ="normal",
                           outputlevel=0,
                           gridmult =gridmult)
+
+      t_ash$fitted_g$pi <- c(0.8 , rep( 0.2/  (length(t_ash$fitted_g$pi)-1),  (length(t_ash$fitted_g$pi)-1)))
+
+
+
+    }else {
+      set.seed(1)
+      betahat <- c(max(abs(temp$Bhat)), sample(temp$Bhat, size = min( prod(dim(temp$Bhat)), 50000)) )
+      set.seed(1)
+      idx <- which(temp$Bhat ==max(abs(temp$Bhat)), arr.ind = TRUE)#idx of the marges entry of Bhat
+      sdhat <- c(temp$Shat[idx[1],idx[2]], sample(temp$Shat, size = min( prod(dim(temp$Shat)), 50000)) )
+
+      t_ash <-  ashr::ash(betahat, sdhat,#ash can take quite some space
+                          mixcompdist ="normal",
+                          outputlevel=0,
+                          gridmult =gridmult)
+
+      t_ash$fitted_g$pi <- c(0.8 , rep( 0.2/  (length(t_ash$fitted_g$pi)-1),  (length(t_ash$fitted_g$pi)-1)))
+
 
     }
 

@@ -568,7 +568,10 @@ post_mat_mean.mixture_normal  <- function( G_prior ,
     t_col_post <- function(t){
       m <- G_prior [[1]]
       data <-  ashr::set_data(Bhat[t,-lowc_wc] ,Shat[t,-lowc_wc] )
-      return(ashr::postmean(ashr::get_fitted_g(m),data))
+
+      out <- rep(0,ncol(Bhat) )
+      out[t_ind]<- ashr::postmean(ashr::get_fitted_g(m),data)
+      return(out)
     }
   }else{
     t_col_post <- function(t){
@@ -620,7 +623,9 @@ post_mat_mean.mixture_normal_per_scale <- function( G_prior,
         data <-  ashr::set_data(Bhat[t,t_ind ],
                           Shat[t,t_ind ])
 
-        return(ashr::postmean(ashr::get_fitted_g(m),data))
+        out <- rep(0,ncol(Bhat) )
+        out[t_ind]<- ashr::postmean(ashr::get_fitted_g(m),data)
+        return(out)
       }
 
       temp <- c()#discard level of resolution with complelty zero coefficients
@@ -719,7 +724,12 @@ post_mat_sd.mixture_normal  <- function( G_prior ,
     t_col_post <- function(t){
       m <- G_prior [[1]]
       data <-  ashr::set_data(Bhat[t, -lowc_wc] ,Shat[t,-lowc_wc ] )
-      return(ashr::postsd(ashr::get_fitted_g(m),data))
+
+
+      out <- rep(1,ncol(Bhat) )
+      out[t_ind]<- ashr::postsd(ashr::get_fitted_g(m),data)
+      return(out)
+
     }
 
   }else{
@@ -770,8 +780,10 @@ post_mat_sd.mixture_normal_per_scale <-  function( G_prior ,
 
         data <-  ashr::set_data(Bhat[t,t_ind ],
                                 Shat[t,t_ind ])
+        out <- rep(1,ncol(Bhat) )
+        out[t_ind]<- ashr::postsd(ashr::get_fitted_g(m),data)
+        return(out)
 
-        return(ashr::postsd(ashr::get_fitted_g(m),data))
       }
 
       temp <- c()#discard level of resolution with complelty zero coefficients
