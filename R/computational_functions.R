@@ -564,27 +564,26 @@ post_mat_mean.mixture_normal  <- function( G_prior ,
                                            lowc_wc,
                                            indx_lst,...  )
 {
-  if(!is.null(lowc_wc)){
-    t_col_post <- function(t){
-      m <- G_prior [[1]]
-      data <-  ashr::set_data(Bhat[t,-lowc_wc] ,Shat[t,-lowc_wc] )
 
-      out <- rep(0,ncol(Bhat) )
-      out[t_ind]<- ashr::postmean(ashr::get_fitted_g(m),data)
-      return(out)
-    }
-  }else{
     t_col_post <- function(t){
       m <- G_prior [[1]]
       data <-  ashr::set_data(Bhat[t, ] ,Shat[t,] )
       return(ashr::postmean(ashr::get_fitted_g(m),data))
     }
+
+
+
+  out <- lapply( 1:(dim(Bhat)[1]),
+                 FUN= t_col_post)
+
+  out <- t(Reduce("cbind", out))
+
+
+  if( !is.null(lowc_wc)){
+    out[, lowc_wc] <-0
   }
 
-
-  out <- lapply(1:(dim(Bhat)[1] ),t_col_post )
-
-   return(t(Reduce("cbind", out)))
+  return(out)
 }
 
 
@@ -608,49 +607,6 @@ post_mat_mean.mixture_normal_per_scale <- function( G_prior,
 
 
 
-  if( !is.null(lowc_wc)){
-
-    t_col_post <- function(t ){
-
-      t_m_post <- function(s){
-        m <- G_prior [[ s]]
-
-        t_ind <-indx_lst[[s]]
-        t_ind <-  t_ind[which(t_ind %!in% lowc_wc)]
-
-
-
-        data <-  ashr::set_data(Bhat[t,t_ind ],
-                          Shat[t,t_ind ])
-
-        out <- rep(0,ncol(Bhat) )
-        out[t_ind]<- ashr::postmean(ashr::get_fitted_g(m),data)
-        return(out)
-      }
-
-      temp <- c()#discard level of resolution with complelty zero coefficients
-      for (s in 1:length(indx_lst))
-      {
-
-        t_ind <-indx_lst[[s]]
-        t_ind <-  t_ind[which(t_ind %!in% lowc_wc)]
-        #print(  which(t_ind %!in% lowc_wc))
-
-        if( length(t_ind)==0){
-          temp <- c(temp,s)
-        }
-      }
-      # temp
-      t_indx <-  c((length(indx_lst)  -1): 1,length(indx_lst)   )
-      if(length(temp)>0){#check if at least one level has to be discarded
-        t_indx <- t_indx[- which(t_indx %in% temp)]
-      }
-      return(unlist(lapply(t_indx , #important to maintain the ordering of the wavethresh package !!!!
-                           t_m_post )))
-    }
-
-
-  }else{
     t_col_post <- function(t  ){
 
       t_m_post <- function(s ){
@@ -668,13 +624,18 @@ post_mat_mean.mixture_normal_per_scale <- function( G_prior,
     }
 
 
-  }
+
   out <- lapply( 1:(dim(Bhat)[1]),
                  FUN= t_col_post)
 
+  out <- t(Reduce("cbind", out))
 
 
-  return(t(Reduce("cbind", out)))
+  if( !is.null(lowc_wc)){
+    out[, lowc_wc] <-0
+  }
+
+  return(out)
 }
 
 
@@ -720,30 +681,25 @@ post_mat_sd.mixture_normal  <- function( G_prior ,
                                          lowc_wc,
                                          indx_lst,...  )
 {
-  if(!is.null(lowc_wc)){
-    t_col_post <- function(t){
-      m <- G_prior [[1]]
-      data <-  ashr::set_data(Bhat[t, -lowc_wc] ,Shat[t,-lowc_wc ] )
 
-
-      out <- rep(1,ncol(Bhat) )
-      out[t_ind]<- ashr::postsd(ashr::get_fitted_g(m),data)
-      return(out)
-
-    }
-
-  }else{
     t_col_post <- function(t){
       m <- G_prior [[1]]
       data <-  ashr::set_data(Bhat[t,  ] ,Shat[t, ] )
       return(ashr::postsd(ashr::get_fitted_g(m),data))
     }
 
-  }
+
 
   out <- lapply(1:(dim(Bhat)[1] ),t_col_post )
 
-  return(t(Reduce("cbind", out)))
+
+  out <- t(Reduce("cbind", out))
+
+
+  if( !is.null(lowc_wc)){
+    out[, lowc_wc] <-1
+  }
+  return(out)
 }
 
 #' @rdname post_mat_sd
@@ -766,49 +722,7 @@ post_mat_sd.mixture_normal_per_scale <-  function( G_prior ,
                                                    indx_lst,...  )
 {
 
-  if( !is.null(lowc_wc)){
 
-    t_col_post <- function(t ){
-
-      t_sd_post <- function(s){
-        m <- G_prior [[ s]]
-
-        t_ind <-indx_lst[[s]]
-        t_ind <-  t_ind[which(t_ind %!in% lowc_wc)]
-
-
-
-        data <-  ashr::set_data(Bhat[t,t_ind ],
-                                Shat[t,t_ind ])
-        out <- rep(1,ncol(Bhat) )
-        out[t_ind]<- ashr::postsd(ashr::get_fitted_g(m),data)
-        return(out)
-
-      }
-
-      temp <- c()#discard level of resolution with complelty zero coefficients
-      for (s in 1:length(indx_lst))
-      {
-
-        t_ind <-indx_lst[[s]]
-        t_ind <-  t_ind[which(t_ind %!in% lowc_wc)]
-        #print(  which(t_ind %!in% lowc_wc))
-
-        if( length(t_ind)==0){
-          temp <- c(temp,s)
-        }
-      }
-      # temp
-      t_indx <-  c((length(indx_lst)  -1): 1,length(indx_lst)   )
-      if(length(temp)>0){#check if at least one level has to be discarded
-        t_indx <- t_indx[- which(t_indx %in% temp)]
-      }
-      return(unlist(lapply(t_indx , #important to maintain the ordering of the wavethresh package !!!!
-                           t_sd_post )))
-    }
-
-
-  }else{
     t_col_post <- function(t  ){
 
       t_sd_post <- function(s ){
@@ -826,10 +740,16 @@ post_mat_sd.mixture_normal_per_scale <-  function( G_prior ,
     }
 
 
-  }
-  out <- lapply( 1:(dim(Bhat)[1]),
-                 FUN= t_col_post)
 
-  return(t(Reduce("cbind", out)))
+  out <- lapply(1:(dim(Bhat)[1] ),t_col_post )
+
+
+  out <- t(Reduce("cbind", out))
+
+
+  if( !is.null(lowc_wc)){
+    out[, lowc_wc] <-1
+  }
+  return(out)
 }
 
