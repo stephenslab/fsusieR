@@ -184,7 +184,8 @@ susiF <- function(Y, X, L = 2,
                   quantile_trans=FALSE,
                   greedy =TRUE,
                   backfit =TRUE,
-                  gridmult= sqrt(2)
+                  gridmult= sqrt(2),
+                  max_scale=10
 )
 {
 
@@ -222,7 +223,8 @@ susiF <- function(Y, X, L = 2,
 
   map_data <- remap_data(Y=Y,
                          pos=pos,
-                         verbose=verbose)
+                         verbose=verbose,
+                         max_scale=max_scale)
 
   outing_grid <- map_data$outing_grid
   Y           <- map_data$Y

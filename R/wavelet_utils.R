@@ -15,17 +15,25 @@
 #
 # @export
 #
-interpol_mat <- function(Y, pos)
+interpol_mat <- function(Y, pos, max_scale=10)
 {
 
   bp    <- (pos- min(pos))/(max(pos)-min(pos))
-  Y_new <- t(apply(Y, 1, interpolKS, bp=bp))
-  grid  <- wavethresh::makegrid(t=bp, y = 1:dim(Y)[2], gridn = 2^(floor(log(length(pos)-1,2)) + 1)   )$gridy
-
+  Y_new <- t(apply(Y, 1, interpolKS2, bp=bp))
+  grid  <- wavethresh::makegrid(t=bp, y = 1:dim(Y)[2], gridn = min( 2^max_scale, 2^(floor(log(length(pos)-1,2)) + 1)   ))$gridy
+    grid <-  (grid  - min(grid) )*length(grid)/(max(grid)- min(grid))# * (max(bp)-  min(bp))/ (max(grid)-  min(grid))
   out <- list(Y    = Y_new,
               grid = grid,
               bp   = bp)
   return(out)
+}
+
+
+
+
+interpolKS2 <-  function (y, bp, max_scale=10)
+{
+  wavethresh::makegrid(t=bp,y=y, gridn = min( 2^max_scale, 2^(floor(log(length(bp)-1,2)) + 1)   ))$gridy
 }
 
 
@@ -80,7 +88,7 @@ DWT2 <- function (data, filter.number = 10, family = "DaubLeAsymm")
   C <- rep(NA, n)
   for (i in 1:n) { ## Speed Gain
     temp <- wavethresh::wd(data[i, ], filter.number = filter.number,
-               family = family)
+               family = family, min.scale=10)
     D[i, ] <- temp$D
     C[i] <- wavethresh::accessC(temp, level = 0)
   }
@@ -239,7 +247,7 @@ wavelet_reg <-  function(Y, design_mat,pos=NULL,   thresh_lowcount=0){
 #' @param pos sampling position
 #' @param verbose logical
 #' @export
-remap_data <- function(Y,pos, verbose=TRUE){
+remap_data <- function(Y,pos, verbose=TRUE, max_scale=10){
 
   NA_pos <- which(!complete.cases(Y))
   if (length(NA_pos )>0){
@@ -249,13 +257,13 @@ remap_data <- function(Y,pos, verbose=TRUE){
   if(!is.wholenumber(log2(dim(Y)[2])) | !(sum( duplicated(diff( pos)))== (length(pos) -2)) ) #check whether dim(Y) not equal to 2^J or if the data are unevenly spaced
   {
 
-    inter_pol.obj <-interpol_mat(Y, pos)
+    inter_pol.obj <-interpol_mat(Y, pos, max_scale =  max_scale)
     Y             <- inter_pol.obj$Y
     bp            <- inter_pol.obj$bp
 
     start_pos <- min( pos)
     end_pos <-max(pos)
-    outing_grid   <- start_pos + (end_pos-start_pos)/(length(pos))*inter_pol.obj$grid
+    outing_grid   <- start_pos + (end_pos-start_pos)/(length(inter_pol.obj$grid))*inter_pol.obj$grid
     if(verbose)
     {
       message( "Response matrix dimensions not equal to nx 2^J \n or unevenly spaced data \n interpolation procedure used")
