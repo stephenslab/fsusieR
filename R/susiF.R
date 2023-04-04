@@ -65,7 +65,8 @@
 #' @param gridmult numeric used to control the number of components used in the mixture prior (see ashr package
 #'  for more details). From the ash function:  multiplier by which the default grid values for mixsd differ from one another.
 #'   (Smaller values produce finer grids.). Increasing this value may reduce computational time
-#'
+#'@param max_scale numeric, define the maximum of wavelet coefficients used in the analysis (2^max_scale).
+#'        Set 10 true by default.
 #'
 #' @examples
 #'

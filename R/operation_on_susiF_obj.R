@@ -1493,30 +1493,18 @@ update_susiF_obj.susiF <- function(susiF.obj, l, EM_pi, Bhat, Shat, indx_lst, lo
                                    tpi =  EM_pi$tpi_k)
   susiF.obj$G_prior <-   update_prior(get_G_prior(susiF.obj) , EM_pi$tpi_k  )
 
-  if(!is.null(lowc_wc)){
-    susiF.obj$fitted_wc[[l]][,-lowc_wc]   <- post_mat_mean(get_G_prior(susiF.obj) ,
-                                                           Bhat,
-                                                           Shat,
-                                                           indx_lst = indx_lst,
-                                                           lowc_wc  = lowc_wc)
-    susiF.obj$fitted_wc2[[l]][,-lowc_wc]  <- post_mat_sd  (get_G_prior(susiF.obj) ,
-                                                           Bhat,
-                                                           Shat,
-                                                           indx_lst = indx_lst,
-                                                           lowc_wc  = lowc_wc)^2
 
-  }else{
-    susiF.obj$fitted_wc[[l]]   <- post_mat_mean(get_G_prior(susiF.obj) ,
-                                                Bhat,
-                                                Shat,
-                                                indx_lst = indx_lst,
-                                                lowc_wc  = lowc_wc)
-    susiF.obj$fitted_wc2[[l]]  <- post_mat_sd  (get_G_prior(susiF.obj) ,
-                                                Bhat,
-                                                Shat,
-                                                indx_lst = indx_lst,
-                                                lowc_wc  = lowc_wc)^2
-  }
+  susiF.obj$fitted_wc[[l]]   <- post_mat_mean(get_G_prior(susiF.obj) ,
+                                              Bhat,
+                                              Shat,
+                                              indx_lst = indx_lst,
+                                              lowc_wc  = lowc_wc)
+  susiF.obj$fitted_wc2[[l]]  <- post_mat_sd  (get_G_prior(susiF.obj) ,
+                                              Bhat,
+                                              Shat,
+                                              indx_lst = indx_lst,
+                                              lowc_wc  = lowc_wc)^2
+
 
 
 
