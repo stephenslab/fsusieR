@@ -67,6 +67,7 @@
 #'   (Smaller values produce finer grids.). Increasing this value may reduce computational time
 #'@param max_scale numeric, define the maximum of wavelet coefficients used in the analysis (2^max_scale).
 #'        Set 10 true by default.
+#'@param parallel allow parallel computation  (not supported on Windows)
 #'
 #' @examples
 #'
@@ -186,7 +187,8 @@ susiF <- function(Y, X, L = 2,
                   greedy =TRUE,
                   backfit =TRUE,
                   gridmult= sqrt(2),
-                  max_scale=10
+                  max_scale=10,
+                  parallel=FALSE
 )
 {
 
@@ -221,6 +223,9 @@ susiF <- function(Y, X, L = 2,
     stop("Error: number of position provided different from the number of column of Y")
   }
 
+  if(parallel){
+    numCores <- parallel::detectCores()
+  }
 
   map_data <- remap_data(Y=Y,
                          pos=pos,
@@ -288,7 +293,8 @@ susiF <- function(Y, X, L = 2,
                             lowc_wc        = lowc_wc,
                             control_mixsqp = control_mixsqp,
                             nullweight     = nullweight,
-                            gridmult       = gridmult )
+                            gridmult       = gridmult,
+                            parallel       = parallel)
   G_prior     <- temp$G_prior
   tt          <- temp$tt
 
@@ -323,7 +329,8 @@ susiF <- function(Y, X, L = 2,
                                    cov_lev        = cov_lev,
                                    min.purity     = min.purity,
                                    maxit          = maxit,
-                                   tt             = tt)
+                                   tt             = tt,
+                                   parallel       = parallel)
 
   #preparing output
   susiF.obj <- out_prep(susiF.obj   = susiF.obj,

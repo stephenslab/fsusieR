@@ -47,7 +47,7 @@ EM_pi <- function(G_prior,Bhat, Shat, indx_lst,
 
   lBF <- log_BF(G_prior,Bhat,Shat, indx_lst=indx_lst, lowc_wc=lowc_wc)
 
-  if( length(lBF)> 1000){ # basically allow runing EM only on data point with most signal
+  if( length(lBF)> 1000){ # basically allow running EM only on data point with most signal
     idx <- order(lBF)[1:1000]
 
   }else{

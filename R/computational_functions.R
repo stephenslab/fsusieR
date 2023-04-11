@@ -64,43 +64,90 @@ cal_cor_cs <- function(susiF.obj,X){
 #
 # @export
 
-cal_Bhat_Shat   <- function(Y, X ,v1 ,resid_var=1, lowc_wc=NULL,ind_analysis,  ...  )
+cal_Bhat_Shat   <- function(Y, X ,v1 ,resid_var=1, lowc_wc=NULL,
+                            ind_analysis,
+                            parallel=FALSE, ...  )
 {
 
 
   if(missing(ind_analysis)){
 
-    out <- t(mapply(function(l,j)  fast_lm(x=X[,j] ,
-                                           y= Y[,l]
-    )
-    ,
-    l=rep(1:dim(Y)[2],each= ncol(X)),
-    j=rep(1:dim(X)[2], ncol(Y))
-    )
-    )
+    if(parallel){
+      out <- t(parallel::mcmapply(function(l,j)  fast_lm(x=X[,j] ,
+                                             y= Y[,l]
+      )
+      ,
+      l=rep(1:dim(Y)[2],each= ncol(X)),
+      j=rep(1:dim(X)[2], ncol(Y)),
+      mc.cores=numCores,
+      mc.preschedule=FALSE
+      )
+      )
+    }else{
+      out <- t(mapply(function(l,j)  fast_lm(x=X[,j] ,
+                                             y= Y[,l]
+      )
+      ,
+      l=rep(1:dim(Y)[2],each= ncol(X)),
+      j=rep(1:dim(X)[2], ncol(Y))
+      )
+      )
+    }
+
 
 
 
 
   }else{
     if( is.list(ind_analysis) ){
-      out <- t(mapply(function(l,j)  fast_lm(x=X[ind_analysis[[l]],j] ,
-                                             y= Y[ind_analysis[[l]],l]
-      )
-      ,
-      l=rep(1:dim(Y)[2],each= ncol(X)),
-      j=rep(1:dim(X)[2], ncol(Y))
-      )
-      )
-    }else
-      out <- t(mapply(function(l,j)  fast_lm(x=X[ind_analysis ,j] ,
-                                             y= Y[ind_analysis ,l]
-      )
-      ,
-      l=rep(1:dim(Y)[2],each= ncol(X)),
-      j=rep(1:dim(X)[2], ncol(Y))
-      )
-      )
+
+      if(parallel){
+        out <- t(parallel::mapply(function(l,j)  fast_lm(x=X[ind_analysis[[l]],j] ,
+                                               y= Y[ind_analysis[[l]],l]
+        )
+        ,
+        l=rep(1:dim(Y)[2],each= ncol(X)),
+        j=rep(1:dim(X)[2], ncol(Y)),
+        mc.cores=numCores,
+        mc.preschedule=FALSE
+        )
+        )
+      }else{
+        out <- t(parallel::mapply(function(l,j)  fast_lm(x=X[ind_analysis[[l]],j] ,
+                                               y= Y[ind_analysis[[l]],l]
+        )
+        ,
+        l=rep(1:dim(Y)[2],each= ncol(X)),
+        j=rep(1:dim(X)[2], ncol(Y))
+        )
+        )
+      }
+
+    }else{
+      if(parallel){
+        out <- t(mapply(function(l,j)  fast_lm(x=X[ind_analysis ,j] ,
+                                               y= Y[ind_analysis ,l]
+        )
+        ,
+        l=rep(1:dim(Y)[2],each= ncol(X)),
+        j=rep(1:dim(X)[2], ncol(Y)),
+        mc.cores=numCores,
+        mc.preschedule=FALSE
+        )
+        )
+      }else{
+        out <- t(mapply(function(l,j)  fast_lm(x=X[ind_analysis ,j] ,
+                                               y= Y[ind_analysis ,l]
+        )
+        ,
+        l=rep(1:dim(Y)[2],each= ncol(X)),
+        j=rep(1:dim(X)[2], ncol(Y))
+        )
+        )
+      }
+
+    }
+
   }
 
 

@@ -39,17 +39,33 @@ init_prior <- function(  ...)
 #
 #' @export
 #' @keywords internal
-init_prior.default <- function(Y,X, prior,v1 , indx_lst,lowc_wc,control_mixsqp,nullweight ,gridmult=sqrt(2),ind_analysis, ... )
+init_prior.default <- function(Y,
+                               X,
+                               prior,
+                               v1 ,
+                               indx_lst,
+                               lowc_wc,
+                               control_mixsqp,
+                               nullweight ,
+                               gridmult=sqrt(2),
+                               ind_analysis,
+                               parallel =FALSE, ... )
 {
 
 
 
 
   if(missing(ind_analysis)){
-    temp <- cal_Bhat_Shat(Y, X ,v1,lowc_wc )   ## Speed Gain would be good to call directly cal_Bhat_Shat in the ash function
+
+
+    temp <- cal_Bhat_Shat(Y, X ,v1,
+                          lowc_wc=lowc_wc,
+                          parallel =parallel )   ## Speed Gain would be good to call directly cal_Bhat_Shat in the ash function
 
   }else{
-    temp <- cal_Bhat_Shat(Y[ind_analysis,], X [ind_analysis,] ,v1,lowc_wc )
+    temp <- cal_Bhat_Shat(Y[ind_analysis,], X [ind_analysis,] ,v1,
+                          lowc_wc=lowc_wc,
+                          parallel =parallel)
   }
   if( prior == "mixture_normal")
   {
