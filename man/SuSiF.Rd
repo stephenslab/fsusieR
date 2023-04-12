@@ -25,7 +25,9 @@ susiF(
   quantile_trans = FALSE,
   greedy = TRUE,
   backfit = TRUE,
-  gridmult = sqrt(2)
+  gridmult = sqrt(2),
+  max_scale = 10,
+  parallel = FALSE
 )
 }
 \arguments{
@@ -99,6 +101,11 @@ Set as true by default as TRUE. We advise keeping it as TRUE}
 \item{gridmult}{numeric used to control the number of components used in the mixture prior (see ashr package
 for more details). From the ash function:  multiplier by which the default grid values for mixsd differ from one another.
  (Smaller values produce finer grids.). Increasing this value may reduce computational time}
+
+\item{max_scale}{numeric, define the maximum of wavelet coefficients used in the analysis (2^max_scale).
+Set 10 true by default.}
+
+\item{parallel}{allow parallel computation  (not supported on Windows)}
 }
 \description{
 Implementation of the SuSiF method

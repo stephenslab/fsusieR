@@ -20,7 +20,8 @@ susiF.workhorse(
   cov_lev,
   min.purity,
   maxit,
-  tt
+  tt,
+  parallel = FALSE
 )
 }
 \arguments{

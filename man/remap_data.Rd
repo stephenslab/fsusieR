@@ -4,7 +4,7 @@
 \alias{remap_data}
 \title{Ramp matrix of unevenly space data (or non power of two)}
 \usage{
-remap_data(Y, pos, verbose = TRUE)
+remap_data(Y, pos, verbose = TRUE, max_scale = 10)
 }
 \arguments{
 \item{Y}{Matrix of observed curves}

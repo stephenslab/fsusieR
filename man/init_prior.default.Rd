@@ -15,6 +15,7 @@
   nullweight,
   gridmult = sqrt(2),
   ind_analysis,
+  parallel = FALSE,
   ...
 )
 }
