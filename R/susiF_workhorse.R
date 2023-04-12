@@ -166,8 +166,7 @@ susiF.workhorse <- function(susiF.obj,
                            lowc_wc        = lowc_wc,
                            nullweight     = nullweight
           )
-          print(get_pi0(EM_out$tpi_k))
-          #plot(EM_out$lBF/(sum( EM_out$lBFlBF)))
+           #plot(EM_out$lBF/(sum( EM_out$lBFlBF)))
         }
 
         #print(h)
