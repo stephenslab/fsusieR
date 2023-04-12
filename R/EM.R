@@ -40,15 +40,16 @@ EM_pi <- function(G_prior,Bhat, Shat, indx_lst,
                   init_pi0_w =1,
                   control_mixsqp,
                   lowc_wc,
-                  nullweight){
+                  nullweight,
+                  max_SNP_EM=1000){
 
   #static parameters
 
 
   lBF <- log_BF(G_prior,Bhat,Shat, indx_lst=indx_lst, lowc_wc=lowc_wc)
 
-  if( length(lBF)> 1000){ # basically allow running EM only on data point with most signal
-    idx <- order(lBF, decreasing = TRUE)[1:1000]
+  if( length(lBF)> max_SNP_EM){ # basically allow running EM only on data point with most signal
+    idx <- order(lBF, decreasing = TRUE)[1:ceiling(max_SNP_EM)]
 
   }else{
     idx <- 1:length(lBF)

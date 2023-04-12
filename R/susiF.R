@@ -188,10 +188,14 @@ susiF <- function(Y, X, L = 2,
                   backfit =TRUE,
                   gridmult= sqrt(2),
                   max_scale=10,
-                  parallel=FALSE
+                  parallel=FALSE,
+                  max_SNP_EM=1000
 )
 {
 
+  if(max_SNP_EM<10){
+    stop("Argument max_SNP_EM has to be larger than 10")
+  }
 
   ####Cleaning input -----
   pt <- proc.time()
@@ -294,7 +298,8 @@ susiF <- function(Y, X, L = 2,
                             control_mixsqp = control_mixsqp,
                             nullweight     = nullweight,
                             gridmult       = gridmult,
-                            parallel       = parallel)
+                            parallel       = parallel,
+                            max_SNP_EM     = max_SNP_EM)
   G_prior     <- temp$G_prior
   tt          <- temp$tt
 
@@ -330,7 +335,8 @@ susiF <- function(Y, X, L = 2,
                                    min.purity     = min.purity,
                                    maxit          = maxit,
                                    tt             = tt,
-                                   parallel       = parallel)
+                                   parallel       = parallel,
+                                   max_SNP_EM     = max_SNP_EM)
 
   #preparing output
   susiF.obj <- out_prep(susiF.obj   = susiF.obj,

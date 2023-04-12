@@ -56,7 +56,8 @@ susiF.workhorse <- function(susiF.obj,
                             min.purity,
                             maxit,
                             tt,
-                            parallel=FALSE){
+                            parallel=FALSE,
+                            max_SNP_EM=1000){
 
   G_prior  <- get_G_prior(susiF.obj )
   Y_f      <-  cbind( W$D,W$C)
@@ -86,7 +87,8 @@ susiF.workhorse <- function(susiF.obj,
                      init_pi0_w     = init_pi0_w,
                      control_mixsqp = control_mixsqp,
                      lowc_wc        = lowc_wc,
-                     nullweight     = nullweight
+                     nullweight     = nullweight,
+                     max_SNP_EM     = max_SNP_EM
 
     )
 
@@ -153,6 +155,8 @@ susiF.workhorse <- function(susiF.obj,
           tpi <-  get_pi(susiF.obj,l)
           G_prior <- update_prior(G_prior, tpi= tpi ) #allow EM to start close to previous solution (to double check)
 
+
+
           EM_out  <- EM_pi(G_prior        = G_prior,
                            Bhat           = tt$Bhat,
                            Shat           = tt$Shat,
@@ -162,6 +166,8 @@ susiF.workhorse <- function(susiF.obj,
                            lowc_wc        = lowc_wc,
                            nullweight     = nullweight
           )
+          print(get_pi0(EM_out$tpi_k))
+          #plot(EM_out$lBF/(sum( EM_out$lBFlBF)))
         }
 
         #print(h)

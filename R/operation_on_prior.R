@@ -49,7 +49,8 @@ init_prior.default <- function(Y,
                                nullweight ,
                                gridmult=sqrt(2),
                                ind_analysis,
-                               parallel =FALSE, ... )
+                               parallel =FALSE,
+                               max_SNP_EM,... )
 {
 
 
@@ -162,7 +163,8 @@ init_prior.default <- function(Y,
                   init_pi0_w =1,
                   control_mixsqp,
                   lowc_wc,
-                  nullweight)$tpi_k
+                  nullweight,
+                  max_SNP_EM=max_SNP_EM)$tpi_k
   G_prior <- update_prior(G_prior , tpi_k)
   return(list(G_prior=G_prior,
               tt=temp)
