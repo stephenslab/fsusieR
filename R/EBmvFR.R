@@ -155,7 +155,8 @@ EBmvFR <- function(Y, X,
                    thresh_lowcount=0,
                    cal_obj=FALSE,
                    quantile_trans=FALSE,
-                   gridmult= sqrt(2)
+                   gridmult= sqrt(2),
+                   max_SNP_EM=100
 )
 {
 
@@ -263,7 +264,8 @@ EBmvFR <- function(Y, X,
                             lowc_wc        = lowc_wc,
                             control_mixsqp = control_mixsqp,
                             nullweight     = nullweight,
-                            gridmult       = gridmult )
+                            gridmult       = gridmult,
+                            max_SNP_EM     = max_SNP_EM)
   G_prior     <- temp$G_prior
 
 
