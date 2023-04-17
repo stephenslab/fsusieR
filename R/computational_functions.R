@@ -102,7 +102,7 @@ cal_Bhat_Shat   <- function(Y, X ,v1 ,resid_var=1, lowc_wc=NULL,
     if( is.list(ind_analysis) ){
 
       if(parallel){
-        out <- t(parallel::mapply(function(l,j)  fast_lm(x=X[ind_analysis[[l]],j] ,
+        out <- t(parallel::mcmapply(function(l,j)  fast_lm(x=X[ind_analysis[[l]],j] ,
                                                y= Y[ind_analysis[[l]],l]
         )
         ,
@@ -113,7 +113,7 @@ cal_Bhat_Shat   <- function(Y, X ,v1 ,resid_var=1, lowc_wc=NULL,
         )
         )
       }else{
-        out <- t(parallel::mapply(function(l,j)  fast_lm(x=X[ind_analysis[[l]],j] ,
+        out <- t( mapply(function(l,j)  fast_lm(x=X[ind_analysis[[l]],j] ,
                                                y= Y[ind_analysis[[l]],l]
         )
         ,
@@ -125,7 +125,7 @@ cal_Bhat_Shat   <- function(Y, X ,v1 ,resid_var=1, lowc_wc=NULL,
 
     }else{
       if(parallel){
-        out <- t(mapply(function(l,j)  fast_lm(x=X[ind_analysis ,j] ,
+        out <- t(parallel::mcmapply(function(l,j)  fast_lm(x=X[ind_analysis ,j] ,
                                                y= Y[ind_analysis ,l]
         )
         ,
