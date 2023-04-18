@@ -76,19 +76,47 @@ cal_Bhat_Shat   <- function(Y, X ,v1 ,resid_var=1, lowc_wc=NULL,
       d <- colSums(X^2)
       Bhat <- (t(X)%*%Y )/d
 
-
+      Shat  <- do.call( cbind,
+                        lapply( 1:ncol(Bhat),
+                                function(i) matrixStats::colSds(Y [,i] -sweep( X,2, Bhat[,i], "*"))
+                        )
+      )
+      Shat <- Shat/sqrt(nrow(Y))
 
     }else{
-      if( is.list(ind_analysis) ){
+      if( is.list(ind_analysis) ){ #usefull for running multiple univariate regression with different problematic ind
 
-        d <- colSums(X[ind_analysis[[l]], ]^2)
-        Bhat <- (t(X[ind_analysis[[l]], ])%*%Y[ind_analysis[[l]], ])/d
 
+        Bhat <-  do.call(cbind,lapply(1:length(ind_analysis),
+                                      function(l){
+                                        d   <- colSums(X[ind_analysis[[l]], ]^2)
+                                        out <- (t(X[ind_analysis[[l]], ])%*%Y[ind_analysis[[l]], l])/d
+                                        return(out)
+                                      }
+
+
+        ) )
+
+
+        Shat  <-   matrix(mapply(function(l,j)
+                                           sqrt(fast_var(Y[ind_analysis[[l]],l] - X[ind_analysis[[l]], j]  *  Bhat[j,l]) /(length(ind_analysis[[l]])-1)),
+                                 l=rep(1:dim(Y)[2],each= ncol(X)),
+                                 j=rep(1:dim(X)[2], ncol(Y))
+                                 ),
+                           ncol=dim(Y)[2]
+                          )
 
 
       }else{
         d <- colSums(X[ind_analysis , ]^2)
         Bhat <- (t(X[ind_analysis , ])%*%Y[ind_analysis , ])/d
+
+        Shat  <- do.call( cbind,
+                          lapply( 1:ncol(Bhat),
+                                  function(i) matrixStats::colSds(Y [ind_analysis,i] -sweep( X,2, Bhat[ind_analysis,i], "*"))
+                          )
+        )
+        Shat <- Shat/sqrt(nrow(Y[ind_analysis,]))
 
       }
 
@@ -98,12 +126,8 @@ cal_Bhat_Shat   <- function(Y, X ,v1 ,resid_var=1, lowc_wc=NULL,
 
     # sd_res <- sqrt(resid_var)
 
-    Shat  <- do.call( cbind,
-                      lapply( 1:ncol(Bhat),
-                              function(i) matrixStats::colSds(Y [,i] -sweep( X,2, Bhat[,i], "*"))
-                      )
-    )
-    Shat <- Shat/sqrt(nrow(Y))
+
+
     if( !is.null(lowc_wc)){
       Bhat[,lowc_wc] <- 0
       Shat[,lowc_wc] <- 1
