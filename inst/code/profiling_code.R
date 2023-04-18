@@ -36,7 +36,7 @@ beta1       <- 1
 
 
 
-L=6
+L=12
 
 pos = NULL
 prior =  "mixture_normal_per_scale"
@@ -51,8 +51,8 @@ filter.cs =TRUE
 thresh_lowcount <-0.001
 cal_obj=FALSE
 quantile_trans=FALSE
-L_start=3
-gridmult =sqrt(2)
+L_start=10
+gridmult =sqrt(5)
 #testing if x is a wholenumber
 #'
 is.wholenumber <- function (x, tol = .Machine$double.eps^0.5)
@@ -111,7 +111,11 @@ which_lowcount <- function( Y_f, thresh_lowcount ){
   }
 }
 
-
+control_mixsqp=  list(verbose=FALSE,
+                      eps = 1e-6,
+                      numiter.em = 4
+)
+init_pi0_w=0.9
 library(profvis)
  profvis({
    if( prior %!in% c("normal", "mixture_normal", "mixture_normal_per_scale"))
@@ -200,7 +204,7 @@ library(profvis)
                              indx_lst       = indx_lst,
                              lowc_wc        = lowc_wc,
                              control_mixsqp = control_mixsqp,
-                             nullweight     = nullweight,
+                             nullweight     = nullweight, max_SNP_EM=100,
                              gridmult       = gridmult )
    G_prior     <- temp$G_prior
    tt          <- temp$tt
@@ -235,15 +239,7 @@ library(profvis)
                                     cov_lev        = cov_lev,
                                     min.purity     = min.purity,
                                     maxit          = maxit,
+                                    max_SNP_EM=100,
                                     tt             = tt)
 
-   #preparing output
-   susiF.obj <- out_prep(susiF.obj   = susiF.obj,
-                         Y           = Y,
-                         X           = X,
-                         indx_lst    = indx_lst,
-                         filter.cs   = filter.cs,
-                         outing_grid = outing_grid
-   )
-   susiF.obj$runtime <- proc.time()-pt
  })

@@ -73,8 +73,7 @@ susiF.workhorse <- function(susiF.obj,
   {
 
     tt   <- cal_Bhat_Shat(update_Y,X,v1 ,
-                          lowc_wc =lowc_wc,
-                          parallel=parallel)
+                          lowc_wc =lowc_wc )
     Bhat <- tt$Bhat
     Shat <- tt$Shat #UPDATE. could be nicer
     tpi  <- get_pi(susiF.obj,1)
@@ -149,8 +148,7 @@ susiF.workhorse <- function(susiF.obj,
         }else{
 
           tt <- cal_Bhat_Shat(update_Y,X,v1,
-                              lowc_wc =lowc_wc,
-                              parallel=parallel )
+                              lowc_wc =lowc_wc  )
 
           tpi <-  get_pi(susiF.obj,l)
           G_prior <- update_prior(G_prior, tpi= tpi ) #allow EM to start close to previous solution (to double check)

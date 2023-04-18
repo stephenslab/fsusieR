@@ -65,104 +65,54 @@ cal_cor_cs <- function(susiF.obj,X){
 # @export
 
 cal_Bhat_Shat   <- function(Y, X ,v1 ,resid_var=1, lowc_wc=NULL,
-                            ind_analysis,
-                            parallel=FALSE, ...  )
+                            ind_analysis,  ...  )
 {
 
 
-  if(missing(ind_analysis)){
 
-    if(parallel){
-      out <- t(parallel::mcmapply(function(l,j)  fast_lm(x=X[,j] ,
-                                             y= Y[,l]
-      )
-      ,
-      l=rep(1:dim(Y)[2],each= ncol(X)),
-      j=rep(1:dim(X)[2], ncol(Y)),
-      mc.cores=numCores,
-      mc.preschedule=FALSE
-      )
-      )
-    }else{
-      out <- t(mapply(function(l,j)  fast_lm(x=X[,j] ,
-                                             y= Y[,l]
-      )
-      ,
-      l=rep(1:dim(Y)[2],each= ncol(X)),
-      j=rep(1:dim(X)[2], ncol(Y))
-      )
-      )
-    }
+    if(missing(ind_analysis)){
 
 
+      d <- colSums(X^2)
+      Bhat <- (t(X)%*%Y )/d
 
 
-
-  }else{
-    if( is.list(ind_analysis) ){
-
-      if(parallel){
-        out <- t(parallel::mcmapply(function(l,j)  fast_lm(x=X[ind_analysis[[l]],j] ,
-                                               y= Y[ind_analysis[[l]],l]
-        )
-        ,
-        l=rep(1:dim(Y)[2],each= ncol(X)),
-        j=rep(1:dim(X)[2], ncol(Y)),
-        mc.cores=numCores,
-        mc.preschedule=FALSE
-        )
-        )
-      }else{
-        out <- t( mapply(function(l,j)  fast_lm(x=X[ind_analysis[[l]],j] ,
-                                               y= Y[ind_analysis[[l]],l]
-        )
-        ,
-        l=rep(1:dim(Y)[2],each= ncol(X)),
-        j=rep(1:dim(X)[2], ncol(Y))
-        )
-        )
-      }
 
     }else{
-      if(parallel){
-        out <- t(parallel::mcmapply(function(l,j)  fast_lm(x=X[ind_analysis ,j] ,
-                                               y= Y[ind_analysis ,l]
-        )
-        ,
-        l=rep(1:dim(Y)[2],each= ncol(X)),
-        j=rep(1:dim(X)[2], ncol(Y)),
-        mc.cores=numCores,
-        mc.preschedule=FALSE
-        )
-        )
+      if( is.list(ind_analysis) ){
+
+        d <- colSums(X[ind_analysis[[l]], ]^2)
+        Bhat <- (t(X[ind_analysis[[l]], ])%*%Y[ind_analysis[[l]], ])/d
+
+
+
       }else{
-        out <- t(mapply(function(l,j)  fast_lm(x=X[ind_analysis ,j] ,
-                                               y= Y[ind_analysis ,l]
-        )
-        ,
-        l=rep(1:dim(Y)[2],each= ncol(X)),
-        j=rep(1:dim(X)[2], ncol(Y))
-        )
-        )
+        d <- colSums(X[ind_analysis , ]^2)
+        Bhat <- (t(X[ind_analysis , ])%*%Y[ind_analysis , ])/d
+
       }
 
     }
 
-  }
 
 
+    # sd_res <- sqrt(resid_var)
 
- # sd_res <- sqrt(resid_var)
-  Bhat   <-  matrix( unlist(out[,1]), nrow=ncol(X))
-  Shat   <-  matrix( unlist(out[,2]), nrow=ncol(X))#matrix( sd_res , nrow=ncol(X), ncol=ncol(Y))/sqrt(attr(X,"d"))
-  if( !is.null(lowc_wc)){
-    Bhat[,lowc_wc] <- 0
-    Shat[,lowc_wc] <- 1
-  }
-  out  <- list( Bhat = Bhat,
-                Shat = Shat)
+    Shat  <- do.call( cbind,
+                      lapply( 1:ncol(Bhat),
+                              function(i) matrixStats::colSds(Y [,i] -sweep( X,2, Bhat[,i], "*"))
+                      )
+    )
+    Shat <- Shat/sqrt(nrow(Y))
+    if( !is.null(lowc_wc)){
+      Bhat[,lowc_wc] <- 0
+      Shat[,lowc_wc] <- 1
+    }
+    out  <- list( Bhat = Bhat,
+                  Shat = Shat)
 
-  return(out)
+    return(out)
+
 }
 
 

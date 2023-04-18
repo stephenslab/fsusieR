@@ -30,11 +30,16 @@ fast_lm <- function(x,y)
 {
 
     be <- solve(crossprod(x),crossprod(x,y))
-    sd <-  sqrt(fast_var(y - x %*% be)/(length(x)-1))
+    sd <-  sqrt(fast_var(y - x %*% be) /(length(x)-1))
 
 
     return(c(be,sd))
 }
+
+
+
+
+
 
 #Circular permutation on vector
 # Code adapted from https://mzuer.github.io

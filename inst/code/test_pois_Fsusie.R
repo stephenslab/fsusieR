@@ -1,102 +1,108 @@
-set.seed(1)
 library(susiF.alpha)
-func <- wavethresh::DJ.EX(n = 512, noisy = FALSE)
-baseline <- ( func[[1]]-min(func[[1]]))
-plot( baseline, type="l")
-effect <-  ( func[[2]]-min(func[[2]]))
-plot(effect, type="l")
+library(sim1000G)
+library(mvPoisVA)
+lev_res=7
+N=20
+examples_dir = system.file("examples", package = "sim1000G")
+vcf_file = file.path(examples_dir, "region.vcf.gz")
+
+vcf = readVCF( vcf_file , maxNumberOfVariants = 200000 , min_maf = 0.02 , max_maf = NA )
+
+# downloadGeneticMap( 4 )
+readGeneticMap( chromosome = 4)
+
+startSimulation( vcf )
 
 
-N=200
-nullweight = 10/sqrt(N)
-P=10
-G = matrix(sample(c(0, 1,2), size=N*P, replace=TRUE), nrow=N, ncol=P) #Genotype
-beta0       <- 0
-beta1       <- 1
-beta2       <- 1
-noisy.data  <- list()
 
-for ( i in 1:N)
-{
+'%!in%' <- function(x,y)!('%in%'(x,y))
+id = c()
+for(i in 1:100) id[i] = SIM$addUnrelatedIndividual()
 
-  noisy.data [[i]] <- rpois(n=length(baseline), lambda = ( baseline+G[i,1]*effect))
+# Show haplotype 1  of first 5 individuals
+#print(SIM$gt1[1:5,1:6])
 
+# Show haplotype 2
+#print(SIM$gt1[1:5,1:6])
+
+
+
+genotypes = SIM$gt1[1:N,] + SIM$gt2[1:N,]
+
+
+caca <- genotypes
+print(dim(genotypes))
+
+str(genotypes)
+load("~/inst/check_pois_perf_weak.RData")
+library(gplots)
+res <-list()
+for (o  in (length(res)+1):2000) {
+
+  L <- sample(1:20, size=1)#actual number of effect
+  print(L)
+  lf <-  list()
+  for(l in 1:L){
+    lf[[l]] <- abs(simu_IBSS_per_level(lev_res=lev_res)$sim_func) #functional effect for effect l
+  }
+
+
+  tt <- sample(0:4,1)
+  G <- genotypes
+
+  if( length(which(apply(G,2,var)==0))>0){
+    G <- G[,-which(apply(G,2,var)==0)]
+  }
+  # G <- matrix( rnorm(100*300), nrow = 100)
+  true_pos <- sample( 1:ncol(G), L)
+
+  Y <- matrix(0,ncol=2^lev_res, nrow = N)
+  for ( i in 1:N){
+    for ( l in 1:L){
+      Y[i,] <- Y[i,]+ lf[[l]]*G[i,true_pos[[l]]]
+    }
+    Y[i, ]<- rpois (n=length(Y[i,]),lambda=Y[i,])
+
+  }
+
+  m1 <- susiF(Y=Y, X=G,L=20,L_start=5 ,nullweight=10 , maxit=10)
+  m2 <- HF_susiF(Y=Y, X=G,L=20,L_start=5 ,nullweight=10 , maxit=10)
+  m1$cs
+  m1$est_pi
+
+
+  cal_purity <- function(l_cs,X){
+    tt <- list()
+    for (k in 1:length(l_cs)){
+      if(length(unlist(l_cs[[k]]))==1 ){
+        tt[[k]] <- 1
+      }else{
+        x <-abs( cor(X[,unlist(l_cs[[k]]   ) ]))
+
+
+        tt[[k]] <-  min( x[col(x) != row(x)])
+      }
+    }
+    return( tt )
+  }
+
+  out <- c( length(m1$cs), #number of CS
+            length(which(true_pos%in% do.call(c, m1$cs))), #number of effect found
+            Reduce("+",sapply(1:length(m1$cs), function(k)
+              ifelse( length(which(true_pos%in%m1$cs[[k]] ))==0, 1,0)
+            )
+            ),#number of CS without any effect
+            cal_purity(m1$cs, X=as.matrix(G)),#mean purity
+            length(m2$cs), #number of CS
+            length(which(true_pos%in% do.call(c, m2$cs))), #number of effect found
+            Reduce("+",sapply(1:length(m2$cs), function(k)
+              ifelse( length(which(true_pos%in%m2$cs[[k]] ))==0, 1,0)
+            )
+            ),#number of CS without any effect
+            cal_purity(m2$cs, X=as.matrix(G)),#mean purity
+            mean(sapply( m2$cs, length)),  #CS size
+            L,tt)
+  res[[o]] <- out
+  print(res)
+  save(res, file="~/inst/check_pois_perf_weak.RData")
 }
-noisy.data <- do.call(rbind, noisy.data)
-
-pos1<-1
-
-
-plot( noisy.data[1,], type = "l", col=(G[1, pos1]*3+1),
-      main="Observed curves \n colored by the causal effect", ylim= c(0,100), xlab="")
-for ( i in 2:N)
-{
-  lines( noisy.data[i,], type = "l", col=(G[i, pos1]*3+1))
-
-}
-legend(x=0.3,
-       y=-10,
-       lty = rep(1,3),
-       legend= c("0", "1","2"),
-       col=c("black","blue","yellow"))
-
-
-
-Y <- noisy.data
-Y_0 <- noisy.data
-X <- G
-library(wavethresh)
-library(haarfisz)
-Y_f <- DWT2_pois(Y)
-Y <- Y_f
-
-
-
-
-plot(Y_0[2,],hft.inv(Y_f[2,]))
-
-
- Y <- colScale(Y, scale=FALSE)
-  X <- colScale(X)
-
-
-  #Using a column like phenotype
-
-v1 <- rep(1,nrow(X))
-tt <-  cal_Bhat_Shat2( Y_f ,X,v1,lowc_wc = NULL)
-indx_lst <- gen_wavelet_indx(9)
-B0hat <- tt$B0hat
-Bhat <- tt$Bhat
-Shat <- tt$Shat
-init_pi0_w=1
-control_mixsqp =  list(verbose=FALSE)
-
-### Test validity normal mixture per scale -----
-G_prior <- init_prior(Y=Y_f,
-                      X=X,
-                      prior="mixture_normal_per_scale",
-                      v1=v1,
-                      indx_lst = indx_lst,
-                      lowc_wc=NULL,
-                      control_mixsqp = control_mixsqp,
-                      nullweight     = nullweight )$G_prior
-
-lBF <- log_BF (G_prior, tt$Bhat, tt$Shat , indx_lst,
-               lowc_wc=NULL)
-
-lBF
-
-tt <-  ash(Y_f[1,], rep( 0.1, 512))
-
-
-plot( hft.inv( Bhat[1, ] /(attr(X, "scaled:scale")[1]^2) ), ylim=c(0,70), type="l", col="green")
-abline(a=1,b=0)
-lines(  effect)
-
-
-
-
-plot(hft.inv( B0hat[1, ]) , ylim=c(0,70), type="l", col="green")
-abline(a=1,b=0)
-lines(  baseline+effect)
-

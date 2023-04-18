@@ -1,0 +1,6 @@
+"0"," legend(x= 35,"
+"0","        y=3,"
+"0","        lty= rep(1,2),"
+"0","        legend = c(""effect 1"","" fSuSiE est ""),"
+"0","        col=c(""black"",""blue"" )"
+"0"," )"
