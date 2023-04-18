@@ -66,7 +66,7 @@ EM_pi <- function(G_prior,Bhat, Shat, indx_lst,
   zeta <- rep(1/J,J) #assignation initial value
   k <- 1 #counting the number of iteration
 
-  while( k <max_step &  abs(newloglik-oldloglik)>=espsilon)
+  while( k <=max_step &  abs(newloglik-oldloglik)>=espsilon)
   {
     # E step----
     oldloglik <- cal_lik(lBF,zeta)

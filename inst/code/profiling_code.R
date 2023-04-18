@@ -52,7 +52,7 @@ thresh_lowcount <-0.001
 cal_obj=FALSE
 quantile_trans=FALSE
 L_start=10
-gridmult =sqrt(5)
+gridmult =sqrt(10)
 #testing if x is a wholenumber
 #'
 is.wholenumber <- function (x, tol = .Machine$double.eps^0.5)
@@ -205,6 +205,7 @@ library(profvis)
                              lowc_wc        = lowc_wc,
                              control_mixsqp = control_mixsqp,
                              nullweight     = nullweight, max_SNP_EM=100,
+                             max_step_EM=1,
                              gridmult       = gridmult )
    G_prior     <- temp$G_prior
    tt          <- temp$tt
@@ -240,6 +241,7 @@ library(profvis)
                                     min.purity     = min.purity,
                                     maxit          = maxit,
                                     max_SNP_EM=100,
+                                    max_step_EM=1,
                                     tt             = tt)
 
  })

@@ -87,7 +87,7 @@ NB: If you input matrix Y has a number of column that is not a power of 2. Then 
 
 ```{r}
 
-Est_effect <- EBmvFR(Y,X=Cov,adjust=TRUE)
+Est_effect <- EBmvFR(Y,X=Cov,adjust=TRUE )
 plot(Est_effect$fitted_func[1,],type = "l",
      col="blue",
      lty=2,

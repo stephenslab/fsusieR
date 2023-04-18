@@ -43,7 +43,8 @@ EBmvFR.workhorse <- function(EBmvFR.obj,
                              nullweight,
                              cal_obj ,
                              verbose,
-                             maxit){
+                             maxit,
+                             max_step_EM   ){
 
 
   Y_f      <-  cbind( W$D,W$C)
@@ -82,13 +83,13 @@ EBmvFR.workhorse <- function(EBmvFR.obj,
     EBmvFR.obj <- update_residual_variance(EBmvFR.obj, sigma2 = sigma2 )
 
     EBmvFR.obj <- update_prior( EBmvFR.obj,
-                                max_step       = 100,
+                                max_step       = max_step_EM,
                                 espsilon       = 0.0001,
                                 init_pi0_w     = init_pi0_w ,
                                 control_mixsqp = control_mixsqp,
                                 indx_lst       = indx_lst,
                                 lowc_wc        = lowc_wc,
-                                nullweight     = nullweight)
+                                nullweight     = nullweight   )
 
     EBmvFR.obj <- test_stop_cond(EBmvFR.obj = EBmvFR.obj,
                                  check      = check,

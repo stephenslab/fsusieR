@@ -372,7 +372,7 @@ update_prior.EBmvFR <- function( EBmvFR.obj,
                                  control_mixsqp,
                                  indx_lst,
                                  lowc_wc,
-                                 nullweight){
+                                 nullweight  ){
 
 
   get_G_prior(EBmvFR.obj)
@@ -397,7 +397,7 @@ update_prior.EBmvFR <- function( EBmvFR.obj,
   k <- 1 #counting the number of iteration
   tpi_k <- get_pi_G_prior(get_G_prior(EBmvFR.obj))
 
-  while( k <max_step &  abs(newloglik-oldloglik)>=espsilon)
+  while( k <=max_step &  abs(newloglik-oldloglik)>=espsilon)
   {
     # E step----
     oldloglik <- cal_lik_EBmvFR(Lmat,tpi_k)

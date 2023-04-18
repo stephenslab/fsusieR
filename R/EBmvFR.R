@@ -156,7 +156,7 @@ EBmvFR <- function(Y, X,
                    cal_obj=FALSE,
                    quantile_trans=FALSE,
                    gridmult= sqrt(2),
-                   max_SNP_EM=100
+                   max_step_EM=10
 )
 {
 
@@ -265,7 +265,8 @@ EBmvFR <- function(Y, X,
                             control_mixsqp = control_mixsqp,
                             nullweight     = nullweight,
                             gridmult       = gridmult,
-                            max_SNP_EM     = max_SNP_EM)
+                            max_SNP_EM     = max_SNP_EM,
+                            max_step_EM    = max_step_EM)
   G_prior     <- temp$G_prior
 
 
@@ -285,7 +286,8 @@ EBmvFR <- function(Y, X,
                                    nullweight     = nullweight,
                                    cal_obj        = cal_obj,
                                    verbose        = verbose,
-                                   maxit          = maxit)
+                                   maxit          = maxit,
+                                   max_step_EM    = max_step_EM)
   #preparing output
   EBmvFR.obj <- out_prep(EBmvFR.obj  = EBmvFR.obj,
                          X           = X,

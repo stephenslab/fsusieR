@@ -39,6 +39,8 @@
 #'
 #' @param tt output of the cal_Bhat_Shat function
 #'
+#' @param max_step_EM max_step_EM
+#'
 #' @export
 susiF.workhorse <- function(susiF.obj,
                             W,
@@ -57,7 +59,8 @@ susiF.workhorse <- function(susiF.obj,
                             maxit,
                             tt,
                             parallel=FALSE,
-                            max_SNP_EM=1000){
+                            max_SNP_EM=1000,
+                            max_step_EM=100){
 
   G_prior  <- get_G_prior(susiF.obj )
   Y_f      <-  cbind( W$D,W$C)
@@ -87,7 +90,8 @@ susiF.workhorse <- function(susiF.obj,
                      control_mixsqp = control_mixsqp,
                      lowc_wc        = lowc_wc,
                      nullweight     = nullweight,
-                     max_SNP_EM     = max_SNP_EM
+                     max_SNP_EM     = max_SNP_EM,
+                     max_step    = max_step_EM
 
     )
 
@@ -162,7 +166,9 @@ susiF.workhorse <- function(susiF.obj,
                            init_pi0_w     = init_pi0_w,
                            control_mixsqp = control_mixsqp,
                            lowc_wc        = lowc_wc,
-                           nullweight     = nullweight
+                           nullweight     = nullweight,
+                           max_SNP_EM     = max_SNP_EM,
+                           max_step       = max_step_EM
           )
            #plot(EM_out$lBF/(sum( EM_out$lBFlBF)))
         }

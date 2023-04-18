@@ -206,7 +206,7 @@ get_objective <- function    (susiF.obj,  Y, X, D, C , indx_lst,  ...)
 get_objective.susiF <- function    (susiF.obj, Y, X, D, C , indx_lst,  ...)
 {
 #print(susiF.obj$KL)
-  out <-  Eloglik(susiF.obj, Y, X)  - sum(susiF.obj$KL)
+  out <-  Eloglik(susiF.obj, Y, X)  + sum(susiF.obj$KL)
   return(out)
 
 }

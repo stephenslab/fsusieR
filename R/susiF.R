@@ -68,6 +68,7 @@
 #'@param max_scale numeric, define the maximum of wavelet coefficients used in the analysis (2^max_scale).
 #'        Set 10 true by default.
 #'@param parallel allow parallel computation  (not supported on Windows)
+#'@param max_step_EM max_step_EM
 #'
 #' @examples
 #'
@@ -189,7 +190,8 @@ susiF <- function(Y, X, L = 2,
                   gridmult= sqrt(2),
                   max_scale=10,
                   parallel=FALSE,
-                  max_SNP_EM=1000
+                  max_SNP_EM=1000,
+                  max_step_EM=1
 )
 {
 
@@ -299,7 +301,8 @@ susiF <- function(Y, X, L = 2,
                             nullweight     = nullweight,
                             gridmult       = gridmult,
                             parallel       = parallel,
-                            max_SNP_EM     = max_SNP_EM)
+                            max_SNP_EM     = max_SNP_EM,
+                            max_step_EM    = max_step_EM )
   G_prior     <- temp$G_prior
   tt          <- temp$tt
 
@@ -336,7 +339,8 @@ susiF <- function(Y, X, L = 2,
                                    maxit          = maxit,
                                    tt             = tt,
                                    parallel       = parallel,
-                                   max_SNP_EM     = max_SNP_EM)
+                                   max_SNP_EM     = max_SNP_EM,
+                                   max_step_EM    = max_step_EM)
 
   #preparing output
   susiF.obj <- out_prep(susiF.obj   = susiF.obj,
