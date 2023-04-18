@@ -1,8 +1,0 @@
-
-library(susiF.alpha)
-tad733.input <- readRDS("D:/Document/Serieux/Travail/Data_analysis_and_papers/chec/tad733.input.rds")
-X <- tad733.input$X
-Y <- tad733.input$Y
-pos <- tad733.input$pos
-m1 <-  susiF(X = X, Y = Y ,pos = pos,
-             L=20,prior = "mixture_normal_per_scale",max_SNP_EM=20 )
