@@ -108,7 +108,8 @@ Running fSuSiE requires a Y matrix in which each line corresponds to an individu
 
 
 ```{r}
- out <- susiF(Y,X,L=10 )
+ out <- susiF(Y,X,L=10, cal_obj = TRUE ) 
+
 ```
 
 FSuSiE automatically selects the number of causal effects (here two). The effect detected are summarized in terms of credible sets. Each credible set contains the likely causal covariates for a given effect. You can access them simply as 
@@ -118,11 +119,6 @@ out$cs
 ```
 As you can see the two CSs contain the correct causal SNPs.
 
-
-
-
-
- 
 
 ### Visualization
 
