@@ -156,7 +156,9 @@ EBmvFR <- function(Y, X,
                    cal_obj=FALSE,
                    quantile_trans=FALSE,
                    gridmult= sqrt(2),
-                   max_step_EM=10
+                   max_step_EM=1,
+
+                   max_SNP_EM=100
 )
 {
 
