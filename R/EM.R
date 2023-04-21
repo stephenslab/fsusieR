@@ -117,9 +117,9 @@ EM_pi <- function(G_prior,Bhat, Shat, indx_lst,
 cal_L_mixsq_s_per_scale <- function(G_prior,s, Bhat, Shat ,indx_lst,is.EBmvFR=FALSE)
 {
   m <-  (G_prior[[s]])
-  sdmat <-sqrt(outer(c(Shat[,indx_lst[[s]]]^2),
-                     get_sd_G_prior(G_prior)[[s]]^2,"+"))
 
+  sdmat <- outer(c(Shat[,indx_lst[[s]]]^2),
+                      get_sd_G_prior(G_prior)[[s]]^2,"+")
   L = (dnorm(
     outer(
       c(
@@ -133,10 +133,11 @@ cal_L_mixsq_s_per_scale <- function(G_prior,s, Bhat, Shat ,indx_lst,is.EBmvFR=FA
     return(x)
   })
   if(!is.EBmvFR){
-    L <- rbind(c(0, rep(  -1e+30,(ncol(L)-1)  )),#adding penalty line
-               L)
-  }
 
+       L <- rbind( c(1000,dnorm(0, sd=sqrt(   get_sd_G_prior(G_prior)[[s]][-1]^2), log=TRUE)),#adding penalty line
+                      L)
+  }
+dnorm(0)
   return(L)
 }
 

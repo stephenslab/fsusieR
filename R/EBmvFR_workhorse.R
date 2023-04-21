@@ -44,7 +44,7 @@ EBmvFR.workhorse <- function(EBmvFR.obj,
                              cal_obj ,
                              verbose,
                              maxit,
-                             max_step_EM   ){
+                             max_step_EM){
 
 
   Y_f      <-  cbind( W$D,W$C)

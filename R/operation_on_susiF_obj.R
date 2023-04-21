@@ -1762,12 +1762,12 @@ update_cal_credible_band.susiF <- function(susiF.obj, indx_lst,...)
 
   for ( l in 1:susiF.obj$L)
   {
-    Smat <- susiF.obj$fitted_wc2[[l]]
+    Smat <-  susiF.obj$fitted_wc2[[l]]
     W1   <- ((wavethresh::GenW(n=  ncol(Smat )  , filter.number = 10, family = "DaubLeAsymm")))
-    tt   <- diag((W1)%*%diag(c(susiF.obj$alpha[[1]]%*%Smat ))%*% t(W1))
+    tt   <- diag( W1%*%diag(c(susiF.obj$alpha[[l]]%*%Smat ))%*% t(W1 ))
 
-    up                       <-  susiF.obj$fitted_func[[l]]+ 1.96 *sqrt(tt)
-    low                      <-  susiF.obj$fitted_func[[l]]- 1.96 *sqrt(tt)
+    up                       <-  susiF.obj$fitted_func[[l]]+ 3*sqrt(tt)#*sqrt(susiF.obj$N-1)
+    low                      <-  susiF.obj$fitted_func[[l]]- 3*sqrt(tt)#*sqrt(susiF.obj$N-1)
     susiF.obj$cred_band[[l]] <- rbind(up, low)
   }
 
