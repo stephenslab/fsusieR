@@ -137,7 +137,6 @@ cal_L_mixsq_s_per_scale <- function(G_prior,s, Bhat, Shat ,indx_lst,is.EBmvFR=FA
        L <- rbind( c(1000,dnorm(0, sd=sqrt(   get_sd_G_prior(G_prior)[[s]][-1]^2), log=TRUE)),#adding penalty line
                       L)
   }
-dnorm(0)
   return(L)
 }
 
