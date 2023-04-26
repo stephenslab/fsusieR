@@ -108,7 +108,7 @@ Running fSuSiE requires a Y matrix in which each line corresponds to an individu
 
 
 ```{r}
- out <- susiF(Y,X,L=10, cal_obj = TRUE ) 
+ out <- susiF(Y,X,L=10) 
 
 ```
 
@@ -126,10 +126,14 @@ The easiest way to visualize the result is to use the \code{plot_susiF} function
 
 ```{r}
  
- plot_susiF(out)
+ plot_susiF(out )
  
 
 ```
+
+
+
+
 
 You can also access the information directly in the output of susiF in the fitted_func part of the output. See below 
  
@@ -171,7 +175,18 @@ out$pip[1:10]
 plot_susiF(out, pip_only=TRUE)
 ```
  
- #### A note on the priors available
+ 
+ 
+ 
+#### Extracting the regions affected by the credible sets
+ We provide a build-in function to retreive the regions where the credible bands are "crossing zero"/i.e. the effects are likely not to be 0 in this region. 
+```{r}
+ affected_reg(susiF.obj = out)
+  
+```
+ 
+ 
+#### A note on the priors available
 Note that fSuSiE has two different priors available \textit{mixture_normal_per_scale} and \textit{mixture_normal}. The default value is \textit{mixture_normal_per_scale}, which has slightly higher performance (power, estimation accuracy) than the  \textit{mixture_normal}. However,  \textit{mixture_normal} is up to 40% faster than the \textit{mixture_normal_per_scale}. You may consider using this option before performing genome-wide fine mapping. 
  
 

@@ -133,15 +133,24 @@
 #'#Running fSuSiE
 #'
 #'out <- susiF(Y,X,L=2 , prior = 'mixture_normal_per_scale')
-#'#the easiest way to visualize the result is to use the plot_susiF function
 #'
-#'plot_susiF(out)
+#'plot_susiF(out, cred.band = TRUE)
+#'
+#'
+#'
+#'#### Findout which regions are affected by the different CS
+#'
+#'affected_reg(susiF.obj = out)
+#'#This corresponds to the regions where the credible bands are "crossing zero"/i.e. the effects are likely not to be 0 in this region.
 #'
 #'#You can also access the information directly in the output of susiF  as follow
 #'par(mfrow=c(1,2))
 #'
+#'
 #'plot( f1, type="l", main="Estimated effect 1", xlab="")
 #'lines(unlist(out$fitted_func[[1]]),col='blue' )
+#'lines(unlist(out$cred_band[[1]][1,]),col='darkblue',lty=2 )
+#'lines(unlist(out$cred_band[[1]][2,]),col='darkblue' ,lty=2 )
 #'abline(a=0,b=0)
 #'legend(x= 35,
 #'       y=3,
@@ -150,8 +159,10 @@
 #'       col=c("black","blue" )
 #')
 #'plot( f2, type="l", main="Estimated effect 2", xlab="")
-#'lines(unlist(out$fitted_func[[2]]),col='green' )
-#'abline(a=0,b=0)
+#'lines(unlist(out$fitted_func[[2]]),col='darkgreen' )
+#'lines(unlist(out$cred_band[[2]][1,]),col='darkgreen',lty=2 )
+#'lines(unlist(out$cred_band[[2]][2,]),col='darkgreen' ,lty=2 )
+#'#'abline(a=0,b=0)
 #'legend(x= 20,
 #'       y=-1.5,
 #'       lty= rep(1,2),
@@ -159,8 +170,8 @@
 #'       col=c("black","green" )
 #')
 #'
+#'
 #'par(mfrow=c(1,1))
-#'plot_susiF(out)
 #'
 #' @importFrom stats var
 #'

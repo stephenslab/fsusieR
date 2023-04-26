@@ -1083,7 +1083,7 @@ out_prep.susiF <- function(susiF.obj,Y, X, indx_lst, filter.cs, lfsr_curve, outi
 #' @export
 #
 plot_susiF  = function (susiF.obj, title="",
-                        cred.band = FALSE,
+                        cred.band = TRUE,
                         effect,
                         size_line=2,
                         size_point=4,
@@ -1147,28 +1147,28 @@ plot_susiF  = function (susiF.obj, title="",
       cred_band <- rbind(data.frame(up = rep(0, n_wac),
                                     low = rep(0, n_wac)),
                          cred_band)
-      x  <- rep(1:susiF.obj$n_wac, (susiF.obj$L + 1))
+      x  <- rep(susiF.obj$outing_grid, (susiF.obj$L + 1))
       CS <- rep(0:L, each = n_wac)
       df <- data.frame(fun_plot = fun_plot,
                        CS = as.factor(CS),
                        x = x,
                        upr = cred_band$up,
                        lwr = cred_band$low)
-
+      df <- df[-which(df$CS==0),]
       P2 <- ggplot(df, aes_string(y = "fun_plot",
                                   x = "x",
                                   col = "CS")) +
             geom_line(size = size_line) +
            geom_ribbon(aes_string(ymin = "lwr",ymax = "upr",fill = "CS",
                                   col = "CS"),alpha = 0.3) +
-        scale_color_manual("Credible set", values = color) +
-        scale_fill_manual("Credible set", values = color) +
+        scale_color_manual("Credible set", values = color[-1]) +
+        scale_fill_manual("Credible set", values = color[-1]) +
         facet_grid(CS~.) +
         xlab("postion") + ylab("Estimated effect")
       out <- gridExtra::grid.arrange(P1, P2, ncol = 1)
     }
     else {
-      x <- rep(1:susiF.obj$n_wac, (susiF.obj$L + 1))
+      x <- rep(susiF.obj$outing_grid, (susiF.obj$L + 1))
       CS <- rep(0:L, each = n_wac)
       df <- data.frame(fun_plot = fun_plot,
                        CS = as.factor(CS),
@@ -1199,7 +1199,7 @@ plot_susiF  = function (susiF.obj, title="",
       cred_band <- data.frame(t(susiF.obj$cred_band[[effect]]))
       cred_band <- rbind(data.frame(up = rep(0, n_wac),
                                     low = rep(0, n_wac)), cred_band)
-      x <- rep(1:susiF.obj$n_wac, (1 + 1))
+      x <- rep(susiF.obj$outing_grid, (1 + 1))
       CS <- rep(c(0, effect), each = n_wac)
 
       df <- data.frame(fun_plot = fun_plot,
@@ -1218,7 +1218,7 @@ plot_susiF  = function (susiF.obj, title="",
       return(P2)
     }
     else {
-      x <- rep(1:susiF.obj$n_wac, (1 + 1))
+      x <- rep(susiF.obj$outing_grid, (1 + 1))
       CS <- rep(c(0, effect), each = n_wac)
       df <- data.frame(fun_plot = fun_plot, CS = as.factor(CS),
                        x = x)
