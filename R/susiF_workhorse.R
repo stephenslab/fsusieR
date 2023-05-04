@@ -60,7 +60,8 @@ susiF.workhorse <- function(susiF.obj,
                             tt,
                             parallel=FALSE,
                             max_SNP_EM=1000,
-                            max_step_EM=100){
+                            max_step_EM=100,
+                            cor_small=FALSE){
 
   G_prior  <- get_G_prior(susiF.obj )
   Y_f      <-  cbind( W$D,W$C)
@@ -72,11 +73,18 @@ susiF.workhorse <- function(susiF.obj,
   v1       <-  rep(1, dim(X)[1])
 
 
+  if (cor_small){
+    df = nrow(X)
+  }else{
+    df =NULL
+  }
+
   if( susiF.obj$L_max==1)
   {
 
     tt   <- cal_Bhat_Shat(update_Y,X,v1 ,
-                          lowc_wc =lowc_wc )
+                          lowc_wc =lowc_wc ,
+                          cor_small      = cor_small)
     Bhat <- tt$Bhat
     Shat <- tt$Shat #UPDATE. could be nicer
     tpi  <- get_pi(susiF.obj,1)
@@ -91,7 +99,8 @@ susiF.workhorse <- function(susiF.obj,
                      lowc_wc        = lowc_wc,
                      nullweight     = nullweight,
                      max_SNP_EM     = max_SNP_EM,
-                     max_step    = max_step_EM
+                     max_step       = max_step_EM,
+                     df             = df
 
     )
 
@@ -145,18 +154,19 @@ susiF.workhorse <- function(susiF.obj,
                                                 Bhat     = tt$Bhat,
                                                 Shat     = tt$Shat,
                                                 lowc_wc  = lowc_wc,
-                                                indx_lst = indx_lst
+                                                indx_lst = indx_lst,
+                                                df       = df
                                 )
           )
           init <- FALSE
         }else{
 
           tt <- cal_Bhat_Shat(update_Y,X,v1,
-                              lowc_wc =lowc_wc  )
+                              lowc_wc =lowc_wc,
+                              cor_small      = cor_small  )
 
           tpi <-  get_pi(susiF.obj,l)
           G_prior <- update_prior(G_prior, tpi= tpi ) #allow EM to start close to previous solution (to double check)
-
 
 
           EM_out  <- EM_pi(G_prior        = G_prior,
@@ -168,10 +178,12 @@ susiF.workhorse <- function(susiF.obj,
                            lowc_wc        = lowc_wc,
                            nullweight     = nullweight,
                            max_SNP_EM     = max_SNP_EM,
-                           max_step       = max_step_EM
+                           max_step       = max_step_EM,
+                           df             = df
           )
            #plot(EM_out$lBF/(sum( EM_out$lBFlBF)))
         }
+
 
         #print(h)
         # print(EM_out$lBF[1:10])
@@ -181,8 +193,10 @@ susiF.workhorse <- function(susiF.obj,
                                        Bhat        = tt$Bhat,
                                        Shat        = tt$Shat,
                                        indx_lst    = indx_lst,
-                                       lowc_wc     = lowc_wc
+                                       lowc_wc     = lowc_wc,
+                                       df          = df
         )
+
 
       }#end for l in 1:L  -----
 

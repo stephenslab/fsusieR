@@ -1461,7 +1461,7 @@ update_alpha_hist.susiF <-  function(susiF.obj , discard=FALSE,... )
 # @export
 
 
-update_susiF_obj  <- function(susiF.obj, l, EM_pi, Bhat, Shat, indx_lst, lowc_wc=NULL, cal_wc_lsfr=FALSE,...)
+update_susiF_obj  <- function(susiF.obj, l, EM_pi, Bhat, Shat, indx_lst, lowc_wc=NULL, cal_wc_lsfr=FALSE,df=NULL,...)
       UseMethod("update_susiF_obj")
 
 # @rdname update_susiF_obj
@@ -1473,7 +1473,7 @@ update_susiF_obj  <- function(susiF.obj, l, EM_pi, Bhat, Shat, indx_lst, lowc_wc
 # @export
 #
 
-update_susiF_obj.susiF <- function(susiF.obj, l, EM_pi, Bhat, Shat, indx_lst, lowc_wc=NULL, cal_wc_lsfr=FALSE,...)
+update_susiF_obj.susiF <- function(susiF.obj, l, EM_pi, Bhat, Shat, indx_lst, lowc_wc=NULL, cal_wc_lsfr=FALSE,df=NULL,...)
 {
 
   if( l > length(susiF.obj$est_pi))
@@ -1506,11 +1506,17 @@ update_susiF_obj.susiF <- function(susiF.obj, l, EM_pi, Bhat, Shat, indx_lst, lo
                                               lowc_wc  = lowc_wc)^2
 
 
+  G_prior <- update_prior(get_G_prior(susiF.obj), tpi= EM_pi$tpi_k )
+  lBF<-   log_BF (G_prior,  Bhat = Bhat,
+                 Shat=Shat,
+                  indx_lst=indx_lst,
+                  lowc_wc=lowc_wc,
+                  df=df)
 
-
-  new_alpha <- cal_zeta(  EM_pi$lBF)
+  new_alpha <- cal_zeta(   lBF)
+  print( new_alpha)
   susiF.obj <- update_alpha(susiF.obj, l, new_alpha)
-  susiF.obj <- update_lBF  (susiF.obj, l, EM_pi$lBF)
+  susiF.obj <- update_lBF  (susiF.obj, l, lBF)
   #susiF.obj <- update_cal_cs(susiF.obj,                             cov_lev=cov_lev)
   return(susiF.obj)
 }

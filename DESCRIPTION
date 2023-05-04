@@ -20,7 +20,8 @@ Imports:
     matrixStats (>= 0.62.0),
     ggplot2,
     gridExtra,
-    graphics
+    graphics,
+    LaplacesDemon
 Suggests:
     susieR,
     knitr,

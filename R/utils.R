@@ -196,3 +196,6 @@ affected_reg <- function( susiF.obj){
 }
 
 
+#From Lu and Stephens
+#p is  a log p to avoid underflow
+pval2se = function(bhat,p){z = qnorm(log(1-exp(p)/2) ,log.p = TRUE); s = abs(bhat/z); return(s)}

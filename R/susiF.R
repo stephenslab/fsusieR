@@ -202,7 +202,8 @@ susiF <- function(Y, X, L = 2,
                   max_scale=10,
                   parallel=FALSE,
                   max_SNP_EM=1000,
-                  max_step_EM=1
+                  max_step_EM=1,
+                  cor_small=FALSE
 )
 {
 
@@ -313,7 +314,8 @@ susiF <- function(Y, X, L = 2,
                             gridmult       = gridmult,
                             parallel       = parallel,
                             max_SNP_EM     = max_SNP_EM,
-                            max_step_EM    = max_step_EM )
+                            max_step_EM    = max_step_EM,
+                            cor_small      = cor_small)
   G_prior     <- temp$G_prior
   tt          <- temp$tt
 
@@ -351,7 +353,8 @@ susiF <- function(Y, X, L = 2,
                                    tt             = tt,
                                    parallel       = parallel,
                                    max_SNP_EM     = max_SNP_EM,
-                                   max_step_EM    = max_step_EM)
+                                   max_step_EM    = max_step_EM,
+                                   cor_small      = cor_small)
 
   #preparing output
   susiF.obj <- out_prep(susiF.obj   = susiF.obj,

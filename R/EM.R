@@ -41,12 +41,17 @@ EM_pi <- function(G_prior,Bhat, Shat, indx_lst,
                   control_mixsqp,
                   lowc_wc,
                   nullweight,
-                  max_SNP_EM=1000){
+                  max_SNP_EM=1000,
+                  df=NULL){
 
   #static parameters
 
 
-  lBF <- log_BF(G_prior,Bhat,Shat, indx_lst=indx_lst, lowc_wc=lowc_wc)
+  lBF <- log_BF(G_prior,
+                Bhat,Shat,
+                indx_lst=indx_lst,
+                lowc_wc=lowc_wc,
+                df = df)
 
   if( length(lBF)> max_SNP_EM){ # basically allow running EM only on data point with most signal
     idx <- order(lBF, decreasing = TRUE)[1:ceiling(max_SNP_EM)]
@@ -80,7 +85,13 @@ EM_pi <- function(G_prior,Bhat, Shat, indx_lst,
                       nullweight     = nullweight)
     G_prior <- update_prior(G_prior,tpi_k)
 
-    lBF <-  log_BF(G_prior,Bhat,Shat, indx_lst=indx_lst, lowc_wc=lowc_wc)
+    lBF <-  log_BF(G_prior,
+                   Bhat,
+                   Shat,
+                   indx_lst=indx_lst,
+                   lowc_wc=lowc_wc,
+                   df = df)
+
     newloglik <- cal_lik(lBF,zeta)
     k <- k+1
 

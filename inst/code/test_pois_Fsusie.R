@@ -1,8 +1,8 @@
 library(susiF.alpha)
 library(sim1000G)
 library(mvPoisVA)
-lev_res=7
-N=20
+lev_res=5
+N=100
 examples_dir = system.file("examples", package = "sim1000G")
 vcf_file = file.path(examples_dir, "region.vcf.gz")
 
@@ -34,7 +34,7 @@ caca <- genotypes
 print(dim(genotypes))
 
 str(genotypes)
-load("~/inst/check_pois_perf_weak.RData")
+load("D:/Document/Serieux/Travail/Package/susiF.alpha/inst/check_pois_perf_weak.RData")
 library(gplots)
 res <-list()
 for (o  in (length(res)+1):2000) {
@@ -65,11 +65,12 @@ for (o  in (length(res)+1):2000) {
 
   }
 
-  m1 <- susiF(Y=Y, X=G,L=20,L_start=5 ,nullweight=10 , maxit=10)
-  m2 <- HF_susiF(Y=Y, X=G,L=20,L_start=5 ,nullweight=10 , maxit=10)
+  m1 <- susiF(Y=Y, X=G,L=20,L_start=5 ,nullweight=10 , maxit=10, cor_small=TRUE)
+  m2 <- HF_susiF(Y=Y, X=G,L=20,L_start=5 ,nullweight=10 , maxit=10, cor_small=TRUE)
+  m3 <- mv_Poisproc_reg(Y=Y, X=G, cor_small=TRUE)
   m1$cs
-  m1$est_pi
-
+  m2$cs
+  m3$cs
 
   cal_purity <- function(l_cs,X){
     tt <- list()
@@ -83,10 +84,11 @@ for (o  in (length(res)+1):2000) {
         tt[[k]] <-  min( x[col(x) != row(x)])
       }
     }
-    return( tt )
+
+    return(  mean(unlist(tt)))
   }
 
-  out <- c( length(m1$cs), #number of CS
+  out <- unlist(c( length(m1$cs), #number of CS
             length(which(true_pos%in% do.call(c, m1$cs))), #number of effect found
             Reduce("+",sapply(1:length(m1$cs), function(k)
               ifelse( length(which(true_pos%in%m1$cs[[k]] ))==0, 1,0)
@@ -101,8 +103,19 @@ for (o  in (length(res)+1):2000) {
             ),#number of CS without any effect
             cal_purity(m2$cs, X=as.matrix(G)),#mean purity
             mean(sapply( m2$cs, length)),  #CS size
-            L,tt)
-  res[[o]] <- out
+
+
+
+            length(m3$cs), #number of CS
+            length(which(true_pos%in% do.call(c, m3$cs))), #number of effect found
+            Reduce("+",sapply(1:length(m3$cs), function(k)
+              ifelse( length(which(true_pos%in%m3$cs[[k]] ))==0, 1,0)
+            )
+            ),#number of CS without any effect
+            cal_purity(m3$cs, X=as.matrix(G)),#mean purity
+            mean(sapply( m3$cs, length)),  #CS size
+            L,tt))
+  res[[o]] <-  out
   print(res)
-  save(res, file="~/inst/check_pois_perf_weak.RData")
+  save(res, file="D:/Document/Serieux/Travail/Package/susiF.alpha/inst/check_pois_perf_weak.RData")
 }

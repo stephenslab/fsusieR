@@ -65,7 +65,7 @@ cal_cor_cs <- function(susiF.obj,X){
 # @export
 
 cal_Bhat_Shat   <- function(Y, X ,v1 ,resid_var=1, lowc_wc=NULL,
-                            ind_analysis,  ...  )
+                            ind_analysis, cor_small=FALSE, ...  )
 {
 
 
@@ -125,9 +125,35 @@ cal_Bhat_Shat   <- function(Y, X ,v1 ,resid_var=1, lowc_wc=NULL,
 
 
     # sd_res <- sqrt(resid_var)
+  #
+  #if( cor_small){
+  # Z <- Bhat/ Shat# (sqrt(n*Shat))
+  # if(missing(ind_analysis)){
+  #   n <- nrow(Y)
+  #  p <-    pt(Z,  df=n,log.p =TRUE)
 
 
 
+  #   print(  min(p) )
+
+  #   Shat  <- 0*Shat
+        # for ( i in 1: nrow(Shat)){
+        #   for ( j in 1:ncol(Shat)){
+        #     Shat[i,j]<-  pval2se(bhat=Bhat[i,j], p=p[i,j])
+        #  }
+      # }
+
+  #}else{
+  #
+  #
+  #   if ( is.list(ind_analysis)){
+  #
+  #    }else{
+
+  #      }
+  #
+  #      }
+  #    }
     if( !is.null(lowc_wc)){
       Bhat[,lowc_wc] <- 0
       Shat[,lowc_wc] <- 1
@@ -414,12 +440,13 @@ fit_ash_level <- function (Bhat, Shat, s, indx_lst, lowc_wc,...)
 #'   \dQuote{mixture_normal_per_scale}
 #'
 #' @param lowc_wc wavelet coefficient with low count to be discarded
+#' @param df degree of freedom, if set to NULL use normal distribution
 #' @param \dots Other arguments.
 #' @return  The log-Bayes factor for each covariate.
 #'
 #' @export
 #' @keywords internal
-log_BF <- function (G_prior, Bhat, Shat,lowc_wc,...)
+log_BF <- function (G_prior, Bhat, Shat,lowc_wc, df=NULL,...)
   UseMethod("log_BF")
 
 #' @rdname log_BF
@@ -432,41 +459,86 @@ log_BF <- function (G_prior, Bhat, Shat,lowc_wc,...)
 #'
 #' @export
 #' @keywords internal
-log_BF.mixture_normal <- function (G_prior, Bhat, Shat,lowc_wc,...) {
-  t_col_post <- function (t,lowc_wc) {
-
-    m    <- G_prior[[1]]
-    if(!is.null(lowc_wc)){
-      tt   <- rep(0,length(Shat[t,-lowc_wc] ))
-    }else{
-      tt   <- rep(0,length(Shat[t,]))
-    }
-
-    pi_k <- m$fitted_g$pi
-    sd_k <- m$fitted_g$sd
-
-    # Speed Gain: could potential skip the one that are exactly zero.
-    # Speed Gain: could potential skip the one that are exactly zero.
+log_BF.mixture_normal <- function (G_prior, Bhat, Shat,lowc_wc,df=NULL, ...) {
 
 
-    if(!is.null(lowc_wc)){
-      for (k in 1:length(m$fitted_g$pi))
-      {
-        tt <- tt + pi_k[k] * dnorm(Bhat[t,-lowc_wc],sd = sqrt(sd_k[k]^2 + Shat[t,-lowc_wc]^2))
+  if (is.null(df)){
+
+    print(paste("df  is null"))
+    t_col_post <- function (t,lowc_wc) {
+
+      m    <- G_prior[[1]]
+      if(!is.null(lowc_wc)){
+        tt   <- rep(0,length(Shat[t,-lowc_wc] ))
+      }else{
+        tt   <- rep(0,length(Shat[t,]))
       }
-      out <- sum(log(tt) - dnorm(Bhat[t,-lowc_wc],sd = Shat[t,-lowc_wc],log = TRUE))
-    }else{
-      for (k in 1:length(m$fitted_g$pi))
-      {
-        tt <- tt + pi_k[k] * dnorm(Bhat[t,],sd = sqrt(sd_k[k]^2 + Shat[t,]^2))
+
+      pi_k <- m$fitted_g$pi
+      sd_k <- m$fitted_g$sd
+
+      # Speed Gain: could potential skip the one that are exactly zero.
+      # Speed Gain: could potential skip the one that are exactly zero.
+
+
+      if(!is.null(lowc_wc)){
+        for (k in 1:length(m$fitted_g$pi))
+        {
+          tt <- tt + pi_k[k] * dnorm(Bhat[t,-lowc_wc],sd = sqrt(sd_k[k]^2 + Shat[t,-lowc_wc]^2))
+        }
+        out <- sum(log(tt) - dnorm(Bhat[t,-lowc_wc],sd = Shat[t,-lowc_wc],log = TRUE))
+      }else{
+        for (k in 1:length(m$fitted_g$pi))
+        {
+          tt <- tt + pi_k[k] * dnorm(Bhat[t,],sd = sqrt(sd_k[k]^2 + Shat[t,]^2))
+        }
+        out <- sum(log(tt) - dnorm(Bhat[t,],sd = Shat[t,],log = TRUE))
       }
-      out <- sum(log(tt) - dnorm(Bhat[t,],sd = Shat[t,],log = TRUE))
+
+      # tt <- ifelse(tt==Inf,max(10000, 100*max(tt[-which(tt==Inf)])),tt)
+
+      return(out)
     }
+  }else{
 
-   # tt <- ifelse(tt==Inf,max(10000, 100*max(tt[-which(tt==Inf)])),tt)
 
-    return(out)
+    print(paste("df  is not null"))
+    t_col_post <- function (t,lowc_wc) {
+
+      m    <- G_prior[[1]]
+      if(!is.null(lowc_wc)){
+        tt   <- rep(0,length(Shat[t,-lowc_wc] ))
+      }else{
+        tt   <- rep(0,length(Shat[t,]))
+      }
+
+      pi_k <- m$fitted_g$pi
+      sd_k <- m$fitted_g$sd
+
+      # Speed Gain: could potential skip the one that are exactly zero.
+      # Speed Gain: could potential skip the one that are exactly zero.
+
+      if(!is.null(lowc_wc)){
+        for (k in 1:length(m$fitted_g$pi))
+        {
+          tt <- tt + pi_k[k] *   LaplacesDemon::dstp(Bhat[t,-lowc_wc],tau = 1/(sd_k[k]^2 + Shat[t,-lowc_wc]^2), nu=df)
+        }
+        out <- sum(log(tt) - LaplacesDemon::dstp(Bhat[t,-lowc_wc],tau = 1/Shat[t,-lowc_wc]^2,nu=df,log = TRUE))
+      }else{
+        for (k in 1:length(m$fitted_g$pi))
+        {
+          tt <- tt + pi_k[k] *LaplacesDemon::dstp(Bhat[t,],tau = 1/(sd_k[k]^2 + Shat[t, ]^2), nu=df)
+        }
+        out <- sum(log(tt) - LaplacesDemon::dstp(Bhat[t,],tau = 1/Shat[t, ]^2,nu=df,log = TRUE))
+      }
+
+      # tt <- ifelse(tt==Inf,max(10000, 100*max(tt[-which(tt==Inf)])),tt)
+
+      return(out)
+    }
   }
+
+
   out <- lapply(1:nrow(Bhat),function(k) t_col_post(k, lowc_wc))
   lBF <- do.call(c,out)
 
@@ -497,37 +569,96 @@ log_BF.mixture_normal_per_scale <- function (G_prior,
                                              Shat,
                                              lowc_wc,
                                              indx_lst,
+                                             df=NULL,
                                              ...) {
-  t_col_post <- function (t) {
-    t_s_post <- function (s) {
 
-      if( !is.null(lowc_wc)){
+  if (is.null(df)){
+    t_col_post <- function (t) {
+      t_s_post <- function (s) {
+
+        if( !is.null(lowc_wc)){
 
 
-        t_ind <-indx_lst[[s]]
-        t_ind <-  t_ind[which(t_ind %!in% lowc_wc)]
+          t_ind <-indx_lst[[s]]
+          t_ind <-  t_ind[which(t_ind %!in% lowc_wc)]
 
-        if( length(t_ind)==0){ #create a ash object with full weight on null comp
-          return(0)
-        }else{
+          if( length(t_ind)==0){ #create a ash object with full weight on null comp
+            return(0)
+          }else{
+            m <- G_prior[[s]] # Speed Gain: could potential skip the one that are exactly zero.
+            data <- ashr::set_data(Bhat[t,t_ind],Shat[t,t_ind])
+            return(ashr::calc_logLR(ashr::get_fitted_g(m),data))
+          }
+        }
+
+        else{
           m <- G_prior[[s]] # Speed Gain: could potential skip the one that are exactly zero.
-          data <- ashr::set_data(Bhat[t,t_ind],Shat[t,t_ind])
+          data <- ashr::set_data(Bhat[t,indx_lst[[s]]],Shat[t,indx_lst[[s]]])
           return(ashr::calc_logLR(ashr::get_fitted_g(m),data))
         }
+
       }
 
-      else{
-        m <- G_prior[[s]] # Speed Gain: could potential skip the one that are exactly zero.
-        data <- ashr::set_data(Bhat[t,indx_lst[[s]]],Shat[t,indx_lst[[s]]])
-        return(ashr::calc_logLR(ashr::get_fitted_g(m),data))
-      }
+      # NOTE: Maybe replace unlist(lapply(...)) with sapply(...).
+      return(sum(unlist(lapply(1:(log2(ncol(Bhat))+1), # Important to maintain the ordering of the wavethresh package !!!!
+                               t_s_post))))
+    }
+  }
+    else{
+      t_col_post <- function (t) {
+        t_s_post <- function (s) {
+          m <- G_prior[[s]]
 
+
+          pi_k <- m$fitted_g$pi
+          sd_k <- m$fitted_g$sd
+          if( !is.null(lowc_wc)){
+
+
+            t_ind <-indx_lst[[s]]
+            t_ind <-  t_ind[which(t_ind %!in% lowc_wc)]
+
+
+            if( length(t_ind)==0){ #create a ash object with full weight on null comp
+              return(0)
+            }else{
+              for (k in 1:length(m$fitted_g$pi))
+              {
+                print(Shat[t,t_ind]^2)
+                tt <- tt + pi_k[k] *LaplacesDemon::dstp(Bhat[t,t_ind],tau = 1/(sd_k[k]^2 + Shat[t,t_ind]^2), nu=df)
+              }
+              out <- sum(log(tt) - LaplacesDemon::dstp(Bhat[t,t_ind],tau = 1/Shat[t,t_ind]^2,nu=df,log = TRUE))
+
+              return(out)
+            }
+          }
+
+          else{
+          # Speed Gain: could potential skip the one that are exactly zero.
+            t_ind <-indx_lst[[s]]
+            t_ind <-  t_ind[which(t_ind %!in% lowc_wc)]
+            tt   <- rep(0,length(Shat[t, t_ind]))
+            t_ind <-indx_lst[[s]]
+
+            for (k in 1:length(m$fitted_g$pi))
+            {
+              tt <- tt + pi_k[k] *LaplacesDemon::dstp(Bhat[t,t_ind],tau = 1/(sd_k[k]^2 + Shat[t,t_ind]^2), nu=df)
+            }
+            out <- sum(log(tt) - LaplacesDemon::dstp(Bhat[t,t_ind],tau = 1/Shat[t,t_ind]^2,nu=df,log = TRUE))
+
+
+            return(out )
+          }
+
+        }
+
+        # NOTE: Maybe replace unlist(lapply(...)) with sapply(...).
+        return(sum(unlist(lapply(1:(log2(ncol(Bhat))+1), # Important to maintain the ordering of the wavethresh package !!!!
+                                 t_s_post))))
+      }
     }
 
-    # NOTE: Maybe replace unlist(lapply(...)) with sapply(...).
-    return(sum(unlist(lapply(1:(log2(ncol(Bhat))+1), # Important to maintain the ordering of the wavethresh package !!!!
-                             t_s_post))))
-  }
+
 
   out <- lapply(1:nrow(Bhat),FUN = t_col_post)
   lBF <- do.call(c,out)
