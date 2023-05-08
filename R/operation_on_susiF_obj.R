@@ -1514,7 +1514,7 @@ update_susiF_obj.susiF <- function(susiF.obj, l, EM_pi, Bhat, Shat, indx_lst, lo
                   df=df)
 
   new_alpha <- cal_zeta(   lBF)
-  print( new_alpha)
+
   susiF.obj <- update_alpha(susiF.obj, l, new_alpha)
   susiF.obj <- update_lBF  (susiF.obj, l, lBF)
   #susiF.obj <- update_cal_cs(susiF.obj,                             cov_lev=cov_lev)
