@@ -49,7 +49,7 @@ init_prior.default <- function(Y,
                                nullweight ,
                                gridmult=sqrt(2),
                                ind_analysis,
-                               parallel =FALSE,
+
                                max_SNP_EM,
                                max_step_EM,
                                cor_small=FALSE, ... )
@@ -67,13 +67,13 @@ init_prior.default <- function(Y,
 
 
     temp <- cal_Bhat_Shat(Y, X ,v1,
-                          lowc_wc=lowc_wc,
-                          parallel =parallel )   ## Speed Gain would be good to call directly cal_Bhat_Shat in the ash function
+                          lowc_wc=lowc_wc
+                         )   ## Speed Gain would be good to call directly cal_Bhat_Shat in the ash function
 
   }else{
     temp <- cal_Bhat_Shat(Y[ind_analysis,], X [ind_analysis,] ,v1,
-                          lowc_wc=lowc_wc,
-                          parallel =parallel)
+                          lowc_wc=lowc_wc
+                         )
   }
   if( prior == "mixture_normal")
   {

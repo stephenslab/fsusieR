@@ -93,12 +93,12 @@ colScale = function(x,
   ################
   # Get the column means
   ################
-  cm = colMeans(x, na.rm = TRUE)
+  cm =  colMeans(x, na.rm = TRUE)
   ################
   # Get the column sd
   ################
   if (scale) {
-    csd = colSds(x, center = cm)
+    csd = matrixStats::colSds(x, center = cm)
   } else {
     # just divide by 1 if not
     csd = rep(1, length = length(cm))
@@ -198,4 +198,13 @@ affected_reg <- function( susiF.obj){
 
 #From Lu and Stephens
 #p is  a log p to avoid underflow
-pval2se = function(bhat,p){z = qnorm(log(1-exp(p)/2) ,log.p = TRUE); s = abs(bhat/z); return(s)}
+
+effective.effect=function(betahat,se,df){
+
+  p = 2 * pt(abs(betahat/se  ), df=n ,
+             lower.tail = FALSE)
+
+  sign(betahat)*stats::qnorm(p / 2, sd=se ,lower.tail=FALSE)
+
+
+}

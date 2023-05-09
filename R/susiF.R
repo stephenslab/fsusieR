@@ -67,7 +67,6 @@
 #'   (Smaller values produce finer grids.). Increasing this value may reduce computational time
 #'@param max_scale numeric, define the maximum of wavelet coefficients used in the analysis (2^max_scale).
 #'        Set 10 true by default.
-#'@param parallel allow parallel computation  (not supported on Windows)
 #'@param max_step_EM max_step_EM
 #'
 #' @examples
@@ -200,10 +199,11 @@ susiF <- function(Y, X, L = 2,
                   backfit =TRUE,
                   gridmult= sqrt(2),
                   max_scale=10,
-                  parallel=FALSE,
                   max_SNP_EM=1000,
                   max_step_EM=1,
-                  cor_small=FALSE
+                  cor_small=FALSE,
+                  cor_small2=FALSE
+
 )
 {
 
@@ -241,9 +241,7 @@ susiF <- function(Y, X, L = 2,
     stop("Error: number of position provided different from the number of column of Y")
   }
 
-  if(parallel){
-    numCores <- parallel::detectCores()
-  }
+
 
   map_data <- remap_data(Y=Y,
                          pos=pos,
@@ -254,6 +252,11 @@ susiF <- function(Y, X, L = 2,
   Y           <- map_data$Y
   rm( map_data)
   # centering and scaling covariate
+  tidx <- which(apply(X,2,var)==0)
+  if( length(tidx)>0){
+    warning(paste("Some of the columns of X are constants, we removed" ,length(tidx), "columns"))
+    X <- X[,-tidx]
+  }
   X <- colScale(X)
   # centering input
   Y <- colScale(Y, scale=FALSE)
@@ -312,7 +315,6 @@ susiF <- function(Y, X, L = 2,
                             control_mixsqp = control_mixsqp,
                             nullweight     = nullweight,
                             gridmult       = gridmult,
-                            parallel       = parallel,
                             max_SNP_EM     = max_SNP_EM,
                             max_step_EM    = max_step_EM,
                             cor_small      = cor_small)
@@ -351,10 +353,10 @@ susiF <- function(Y, X, L = 2,
                                    min.purity     = min.purity,
                                    maxit          = maxit,
                                    tt             = tt,
-                                   parallel       = parallel,
                                    max_SNP_EM     = max_SNP_EM,
                                    max_step_EM    = max_step_EM,
-                                   cor_small      = cor_small)
+                                   cor_small      = cor_small,
+                                   cor_small2     = cor_small2)
 
   #preparing output
   susiF.obj <- out_prep(susiF.obj   = susiF.obj,

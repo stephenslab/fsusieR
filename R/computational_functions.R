@@ -65,7 +65,7 @@ cal_cor_cs <- function(susiF.obj,X){
 # @export
 
 cal_Bhat_Shat   <- function(Y, X ,v1 ,resid_var=1, lowc_wc=NULL,
-                            ind_analysis, cor_small=FALSE, ...  )
+                            ind_analysis, cor_small2=FALSE, ...  )
 {
 
 
@@ -126,17 +126,13 @@ cal_Bhat_Shat   <- function(Y, X ,v1 ,resid_var=1, lowc_wc=NULL,
 
     # sd_res <- sqrt(resid_var)
   #
-  #if( cor_small){
-  # Z <- Bhat/ Shat# (sqrt(n*Shat))
+   if( cor_small2){
+    Z <- Bhat/ Shat# (sqrt(n*Shat))
   # if(missing(ind_analysis)){
-  #   n <- nrow(Y)
-  #  p <-    pt(Z,  df=n,log.p =TRUE)
-
-
-
-  #   print(  min(p) )
-
-  #   Shat  <- 0*Shat
+      n <- nrow(Y)-1
+      p <-   2 * pt(abs(Z ), df=n ,
+                    lower.tail = FALSE)
+    Bhat  <-  sign(Z)*stats::qnorm(p / 2, sd=c(Se) ,lower.tail=FALSE)
         # for ( i in 1: nrow(Shat)){
         #   for ( j in 1:ncol(Shat)){
         #     Shat[i,j]<-  pval2se(bhat=Bhat[i,j], p=p[i,j])
@@ -153,7 +149,7 @@ cal_Bhat_Shat   <- function(Y, X ,v1 ,resid_var=1, lowc_wc=NULL,
   #      }
   #
   #      }
-  #    }
+       }
     if( !is.null(lowc_wc)){
       Bhat[,lowc_wc] <- 0
       Shat[,lowc_wc] <- 1
@@ -624,7 +620,7 @@ log_BF.mixture_normal_per_scale <- function (G_prior,
             }else{
               for (k in 1:length(m$fitted_g$pi))
               {
-                print(Shat[t,t_ind]^2)
+
                 tt <- tt + pi_k[k] *LaplacesDemon::dstp(Bhat[t,t_ind],tau = 1/(sd_k[k]^2 + Shat[t,t_ind]^2), nu=df)
               }
               out <- sum(log(tt) - LaplacesDemon::dstp(Bhat[t,t_ind],tau = 1/Shat[t,t_ind]^2,nu=df,log = TRUE))
