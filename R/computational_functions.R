@@ -460,7 +460,6 @@ log_BF.mixture_normal <- function (G_prior, Bhat, Shat,lowc_wc,df=NULL, ...) {
 
   if (is.null(df)){
 
-    print(paste("df  is null"))
     t_col_post <- function (t,lowc_wc) {
 
       m    <- G_prior[[1]]
@@ -498,7 +497,6 @@ log_BF.mixture_normal <- function (G_prior, Bhat, Shat,lowc_wc,df=NULL, ...) {
   }else{
 
 
-    print(paste("df  is not null"))
     t_col_post <- function (t,lowc_wc) {
 
       m    <- G_prior[[1]]

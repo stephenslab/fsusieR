@@ -128,7 +128,7 @@ EM_pi(G_prior,Bhat,Shat, indx_lst=indx_lst,
 
 test_that("Max lBF should be in postion",
           {
-            lBF <- log_BF (G_prior, Bhat, Shat , indx_lst,
+            lBF <- log_BF (G_prior, Bhat, Shat ,
                            lowc_wc=NULL)
             expect_equal(which.max(lBF),
                          pos1

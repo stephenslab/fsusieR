@@ -50,8 +50,8 @@ init_prior.default <- function(Y,
                                gridmult=sqrt(2),
                                ind_analysis,
 
-                               max_SNP_EM,
-                               max_step_EM,
+                               max_SNP_EM=100,
+                               max_step_EM=1,
                                cor_small=FALSE, ... )
 {
 
@@ -163,17 +163,17 @@ init_prior.default <- function(Y,
     attr(G_prior, "class") <- "mixture_normal_per_scale"
   }
 
-  tpi_k <-  EM_pi(G_prior,
-                  temp$Bhat,
-                  temp$Shat,
-                  indx_lst,
+  tpi_k <-  EM_pi(G_prior=G_prior,
+                  Bhat=temp$Bhat,
+                  Shat= temp$Shat,
+                  indx_lst=indx_lst,
+                  max_step = max_step_EM,
                   espsilon = 0.0001,
                   init_pi0_w =1,
-                  control_mixsqp,
-                  lowc_wc,
-                  nullweight,
+                  control_mixsqp=control_mixsqp,
+                  lowc_wc=lowc_wc,
+                  nullweight=nullweight,
                   max_SNP_EM=max_SNP_EM,
-                  max_step = max_step_EM,
                   df=df)$tpi_k
 
   G_prior <- update_prior(G_prior , tpi_k)

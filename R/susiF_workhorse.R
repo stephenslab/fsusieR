@@ -75,7 +75,7 @@ susiF.workhorse <- function(susiF.obj,
 
 
   if (cor_small){
-    df = nrow(X)
+    df = nrow(X)-1
   }else{
     df =NULL
   }

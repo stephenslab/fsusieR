@@ -128,9 +128,9 @@ EM_pi <- function(G_prior,Bhat, Shat, indx_lst,
 cal_L_mixsq_s_per_scale <- function(G_prior,s, Bhat, Shat ,indx_lst,is.EBmvFR=FALSE)
 {
   m <-  (G_prior[[s]])
+  sdmat <-sqrt(outer(c(Shat[,indx_lst[[s]]]^2),
+                     get_sd_G_prior(G_prior)[[s]]^2,"+"))
 
-  sdmat <- outer(c(Shat[,indx_lst[[s]]]^2),
-                      get_sd_G_prior(G_prior)[[s]]^2,"+")
   L = (dnorm(
     outer(
       c(
@@ -144,13 +144,12 @@ cal_L_mixsq_s_per_scale <- function(G_prior,s, Bhat, Shat ,indx_lst,is.EBmvFR=FA
     return(x)
   })
   if(!is.EBmvFR){
-
-       L <- rbind( c(1000,dnorm(0, sd=sqrt(   get_sd_G_prior(G_prior)[[s]][-1]^2), log=TRUE)),#adding penalty line
-                      L)
+    L <- rbind(c(0, rep(  -1e+30,(ncol(L)-1)  )),#adding penalty line
+               L)
   }
+
   return(L)
 }
-
 
 #'@title Compute likelihood matrix for mixsqp
 #'
@@ -172,18 +171,6 @@ cal_L_mixsq_s_per_scale <- function(G_prior,s, Bhat, Shat ,indx_lst,is.EBmvFR=FA
 L_mixsq <- function(G_prior,Bhat, Shat, indx_lst,...)
   UseMethod("L_mixsq")
 
-
-#' @rdname L_mixsq
-#'
-#' @importFrom stats dnorm
-#'
-#' @method L_mixsq mixture_normal
-#'
-#' @export L_mixsq.mixture_normal
-#
-#' @export
-#' @keywords internal
-#'
 L_mixsq.mixture_normal <- function(G_prior,
                                    Bhat,
                                    Shat,
@@ -374,10 +361,10 @@ scale_m_step <- function(L,
   if(!is.EBmvFR){
     w <-  c(nullweight*length(indx_lst[[s]] ),
             rep(zeta,length(indx_lst[[s]] ))
-    )
+            )
   }else{
     w <-  rep(zeta,length(indx_lst[[s]] )
-    )
+               )
   }
 
 
