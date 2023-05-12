@@ -19,7 +19,9 @@ EBmvFR(
   thresh_lowcount = 0,
   cal_obj = FALSE,
   quantile_trans = FALSE,
-  gridmult = sqrt(2)
+  gridmult = sqrt(2),
+  max_step_EM = 1,
+  max_SNP_EM = 100
 )
 }
 \arguments{

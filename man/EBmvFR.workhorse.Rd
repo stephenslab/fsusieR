@@ -16,7 +16,8 @@ EBmvFR.workhorse(
   nullweight,
   cal_obj,
   verbose,
-  maxit
+  maxit,
+  max_step_EM
 )
 }
 \arguments{

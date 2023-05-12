@@ -192,6 +192,7 @@ affected_reg <- function( susiF.obj){
   colnames(reg) <- c("CS", "Start","End")
   reg <- as.data.frame(reg)
   reg <- reg[order(reg$CS, reg$Start)]
+  reg <- reg[complete.cases(reg),]
   return(reg)
 }
 

@@ -6,11 +6,11 @@
 \alias{log_BF.mixture_normal_per_scale}
 \title{Compute Log-Bayes Factor}
 \usage{
-log_BF(G_prior, Bhat, Shat, lowc_wc, ...)
+log_BF(G_prior, Bhat, Shat, lowc_wc, df = NULL, ...)
 
-\method{log_BF}{mixture_normal}(G_prior, Bhat, Shat, lowc_wc, ...)
+\method{log_BF}{mixture_normal}(G_prior, Bhat, Shat, lowc_wc, df = NULL, ...)
 
-\method{log_BF}{mixture_normal_per_scale}(G_prior, Bhat, Shat, lowc_wc, indx_lst, ...)
+\method{log_BF}{mixture_normal_per_scale}(G_prior, Bhat, Shat, lowc_wc, indx_lst, df = NULL, ...)
 }
 \arguments{
 \item{G_prior}{Mixture normal prior.}
@@ -24,6 +24,8 @@ gives standard error of the regression coefficient of
 \code{Y[,t]} on {X[,j]}.}
 
 \item{lowc_wc}{wavelet coefficient with low count to be discarded}
+
+\item{df}{degree of freedom, if set to NULL use normal distribution}
 
 \item{\dots}{Other arguments.}
 

@@ -15,7 +15,9 @@
   nullweight,
   gridmult = sqrt(2),
   ind_analysis,
-  parallel = FALSE,
+  max_SNP_EM = 100,
+  max_step_EM = 1,
+  cor_small = FALSE,
   ...
 )
 }

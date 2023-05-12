@@ -113,7 +113,7 @@ cal_Bhat_Shat   <- function(Y, X ,v1 ,resid_var=1, lowc_wc=NULL,
 
         Shat  <- do.call( cbind,
                           lapply( 1:ncol(Bhat),
-                                  function(i) matrixStats::colSds(Y [ind_analysis,i] -sweep( X,2, Bhat[ind_analysis,i], "*"))
+                                  function(i) matrixStats::colSds(Y [ind_analysis,i] -sweep( X[ind_analysis,],2, Bhat[ ,i], "*"))
                           )
         )
         Shat <- Shat/sqrt(nrow(Y[ind_analysis,]))

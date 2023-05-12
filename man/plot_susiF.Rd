@@ -7,7 +7,7 @@
 plot_susiF(
   susiF.obj,
   title = "",
-  cred.band = FALSE,
+  cred.band = TRUE,
   effect,
   size_line = 2,
   size_point = 4,

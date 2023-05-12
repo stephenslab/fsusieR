@@ -21,7 +21,11 @@ susiF.workhorse(
   min.purity,
   maxit,
   tt,
-  parallel = FALSE
+  parallel = FALSE,
+  max_SNP_EM = 1000,
+  max_step_EM = 100,
+  cor_small = FALSE,
+  cor_small2 = FALSE
 )
 }
 \arguments{
@@ -66,6 +70,8 @@ expected level of coverage of the cs if not specified set to 0.95}
 \item{maxit}{Maximum number of IBSS iterations.}
 
 \item{tt}{output of the cal_Bhat_Shat function}
+
+\item{max_step_EM}{max_step_EM}
 }
 \description{
 Implementation of the SuSiF method
