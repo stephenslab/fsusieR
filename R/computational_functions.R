@@ -611,7 +611,7 @@ log_BF.mixture_normal_per_scale <- function (G_prior,
 
             t_ind <-indx_lst[[s]]
             t_ind <-  t_ind[which(t_ind %!in% lowc_wc)]
-
+            tt   <- rep(0,length(Shat[t, t_ind]))
 
             if( length(t_ind)==0){ #create a ash object with full weight on null comp
               return(0)
@@ -632,7 +632,6 @@ log_BF.mixture_normal_per_scale <- function (G_prior,
             t_ind <-indx_lst[[s]]
             t_ind <-  t_ind[which(t_ind %!in% lowc_wc)]
             tt   <- rep(0,length(Shat[t, t_ind]))
-            t_ind <-indx_lst[[s]]
 
             for (k in 1:length(m$fitted_g$pi))
             {
@@ -662,7 +661,6 @@ log_BF.mixture_normal_per_scale <- function (G_prior,
     lBF <-  ifelse(lBF==Inf,max(10000, 100*max(lBF[-which(lBF==Inf)])),lBF)
     lBF <-  ifelse(lBF== -Inf,max(-10000, -100*max(lBF[-which(lBF== -Inf)])),lBF)
   }
-
   return(lBF)
 }
 

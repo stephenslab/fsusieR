@@ -150,6 +150,7 @@ susiF.workhorse <- function(susiF.obj,
 
         if(init){#recycle operation used to fit the prior
 
+
           EM_out <- gen_EM_out (tpi_k= get_pi_G_prior(G_prior),
                                 lBF  = log_BF  (G_prior,
                                                 Bhat     = tt$Bhat,
@@ -159,10 +160,11 @@ susiF.workhorse <- function(susiF.obj,
                                                 df       = df
                                 )
           )
+
           init <- FALSE
         }else{
 
-          print(paste("cor_samll2", cor_small2))
+
           tt   <- cal_Bhat_Shat(update_Y,X,v1 ,
                                 lowc_wc =lowc_wc ,
 
