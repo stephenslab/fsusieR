@@ -27,7 +27,7 @@ Suggests:
     knitr,
     rmarkdown,
     testthat
-License: GPL (>=3)
+License: BSD_3_clause + file LICENSE
 LazyData: true
 LazyDataCompression: xz
 NeedsCompilation: yes
