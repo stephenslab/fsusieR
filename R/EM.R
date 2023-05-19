@@ -53,6 +53,11 @@ EM_pi <- function(G_prior,Bhat, Shat, indx_lst,
                 lowc_wc=lowc_wc,
                 df = df)
 
+  if(sum(is.na(lBF))>0){
+    lBF[which(is.na(lBF))] <- 3*max(lBF, na.rm=TRUE)# normally due to problem related to
+    #too little residual variance
+  }
+
   if( length(lBF)> max_SNP_EM){ # basically allow running EM only on data point with most signal
     idx <- order(lBF, decreasing = TRUE)[1:ceiling(max_SNP_EM)]
 
