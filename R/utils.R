@@ -209,3 +209,26 @@ effective.effect=function(betahat,se,df){
 
 
 }
+
+
+
+
+update_Shat_pois <- function(Shat, indx_lst, lowc_wc){
+
+  for ( k in 1:length(indx_lst)){
+
+    idx <-  indx_lst[[k]]
+    if (!is.null(lowc_wc )){
+      if( length(which (lowc_wc %in% indx_lst[[k]] ))>0){
+        idx <-  indx_lst[[k]][ -which( lowc_wc%in%indx_lst[[k]])]
+      }
+    }
+
+    est_sd <-  ifelse(mean(Shat[,idx])>0,
+                      mean(Shat[, idx]),
+                      1e-10 )
+
+    Shat [,indx_lst[[k]]] <- est_sd
+  }
+  return(Shat)
+}

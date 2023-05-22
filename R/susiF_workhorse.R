@@ -62,7 +62,7 @@ susiF.workhorse <- function(susiF.obj,
                             max_SNP_EM=1000,
                             max_step_EM=100,
                             cor_small=FALSE,
-                            cor_small2=FALSE){
+                            is.pois=FALSE){
 
   G_prior  <- get_G_prior(susiF.obj )
   Y_f      <-  cbind( W$D,W$C)
@@ -83,11 +83,15 @@ susiF.workhorse <- function(susiF.obj,
   if( susiF.obj$L_max==1)
   {
     tt   <- cal_Bhat_Shat(update_Y,X,v1 ,
-                          lowc_wc =lowc_wc ,
-
-                          cor_small2     = cor_small2)
+                          lowc_wc =lowc_wc )
     Bhat <- tt$Bhat
     Shat <- tt$Shat #UPDATE. could be nicer
+    if(is.pois){
+      Shat <- update_Shat_pois(Shat=Shat,
+                               indx_lst=indx_lst,
+                               lowc_wc=low_wc
+                               )
+    }
     tpi  <- get_pi(susiF.obj,1)
     G_prior <- update_prior(G_prior, tpi= tpi ) #allow EM to start close to previous solution (to double check)
 
@@ -172,7 +176,13 @@ susiF.workhorse <- function(susiF.obj,
 
           tpi <-  get_pi(susiF.obj,l)
           G_prior <- update_prior(G_prior, tpi= tpi ) #allow EM to start close to previous solution (to double check)
-
+          if(is.pois){
+            tt$Shat <- update_Shat_pois(Shat=tt$Shat,
+                                     indx_lst=indx_lst,
+                                     lowc_wc=lowc_wc
+            )
+         #   print( tt$Shat)
+          }
 
           EM_out  <- EM_pi(G_prior        = G_prior,
                            Bhat           = tt$Bhat,
@@ -188,7 +198,6 @@ susiF.workhorse <- function(susiF.obj,
           )
            #plot(EM_out$lBF/(sum( EM_out$lBFlBF)))
         }
-
 
         #print(h)
         # print(EM_out$lBF[1:10])

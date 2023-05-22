@@ -3,7 +3,7 @@ title: "Accounting for covariate in functional fine-mapping"
 author: "William R.P. Denault"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Adjusting_covariate}
+  %\VignetteIndexEntry{Accounting for covariate in functional fine-mapping}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---

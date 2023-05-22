@@ -201,8 +201,7 @@ susiF <- function(Y, X, L = 2,
                   max_scale=10,
                   max_SNP_EM=1000,
                   max_step_EM=1,
-                  cor_small=FALSE,
-                  cor_small2=FALSE
+                  cor_small=FALSE
 
 )
 {
@@ -355,8 +354,7 @@ susiF <- function(Y, X, L = 2,
                                    tt             = tt,
                                    max_SNP_EM     = max_SNP_EM,
                                    max_step_EM    = max_step_EM,
-                                   cor_small      = cor_small,
-                                   cor_small2     = cor_small2)
+                                   cor_small      = cor_small )
 
   #preparing output
   susiF.obj <- out_prep(susiF.obj   = susiF.obj,
