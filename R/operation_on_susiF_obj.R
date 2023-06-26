@@ -934,9 +934,10 @@ merge_effect.susiF <- function( susiF.obj, tl, discard=TRUE,  ...){
 
   if(is.vector( tl)){
     #print( tl)
-    susiF.obj$fitted_wc[[tl[  2]]] <- 0* susiF.obj$fitted_wc[[tl[ 2]]]
+
     susiF.obj$fitted_wc[[tl[  1]]] <- susiF.obj$fitted_wc[[tl[  1]]] +   susiF.obj$fitted_wc[[tl[ 2]]]
     susiF.obj$fitted_wc2[[tl[ 1]]] <- susiF.obj$fitted_wc2[[tl[  1]]] +   susiF.obj$fitted_wc2[[tl[  2]]]
+    susiF.obj$fitted_wc[[tl[  2]]] <- 0* susiF.obj$fitted_wc[[tl[ 2]]]
     tindx <-  tl[  2]
   }else{
     tl <- tl[order(tl[,1], tl[,2], decreasing = TRUE),]
@@ -945,9 +946,10 @@ merge_effect.susiF <- function( susiF.obj, tl, discard=TRUE,  ...){
     for ( o in 1:dim(tl)[1]){
 
       if ( tl[o, 2]%!in%tindx){
-        susiF.obj$fitted_wc[[tl[o, 2]]] <- 0* susiF.obj$fitted_wc[[tl[o, 2]]]
+
         susiF.obj$fitted_wc[[tl[o, 1]]] <-susiF.obj$fitted_wc[[tl[o, 1]]] +   susiF.obj$fitted_wc[[tl[o, 2]]]
         susiF.obj$fitted_wc2[[tl[o, 1]]] <-susiF.obj$fitted_wc2[[tl[o, 1]]] +   susiF.obj$fitted_wc2[[tl[o, 2]]]
+        susiF.obj$fitted_wc[[tl[o, 2]]] <- 0* susiF.obj$fitted_wc[[tl[o, 2]]]
         tindx <- c(tindx, tl[o, 2])
       }
 
