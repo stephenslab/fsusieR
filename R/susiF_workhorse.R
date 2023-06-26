@@ -238,7 +238,6 @@ susiF.workhorse <- function(susiF.obj,
       check <- susiF.obj$check
 
 
-
       iter <- iter +1
 
 
