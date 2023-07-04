@@ -214,7 +214,7 @@ discard_cs.susiF <- function(susiF.obj, cs, out_prep=FALSE,  ...)
   susiF.obj$est_sd      <-  susiF.obj$est_sd[ -cs]
   susiF.obj$est_pi      <-  susiF.obj$est_pi[ -cs]
   susiF.obj$cred_band   <-  susiF.obj$cred_band[ -cs]
-  #susiF.obj$lfsr_wc     <-  susiF.obj$lfsr_wc [ -cs]
+  susiF.obj$lfsr_wc     <-  susiF.obj$lfsr_wc [ -cs]
   susiF.obj$L           <-  susiF.obj$L -length(cs)
   return(susiF.obj)
 }
@@ -858,6 +858,7 @@ init_susiF_obj <- function(L_max, G_prior, Y,X,L_start,greedy,backfit,... )
   greedy          <- greedy
   backfit         <- backfit
   greedy_backfit_update <- FALSE
+  lfsr_wc         <- list()
   for ( l in 1:L )
   {
     fitted_wc[[l]]        <-  matrix(0, nrow = dim(X)[2], ncol=dim(Y)[2]  )
@@ -894,7 +895,8 @@ init_susiF_obj <- function(L_max, G_prior, Y,X,L_start,greedy,backfit,... )
                greedy          = greedy,
                backfit         = backfit,
                greedy_backfit_update=greedy_backfit_update,
-               d               = d)
+               d               = d,
+               lfsr_wc         = lfsr_wc)
 
   class(obj) <- "susiF"
   return(obj)
@@ -934,10 +936,10 @@ merge_effect.susiF <- function( susiF.obj, tl, discard=TRUE,  ...){
 
   if(is.vector( tl)){
     #print( tl)
-
+    susiF.obj$fitted_wc[[tl[o, 2]]] <- 0* susiF.obj$fitted_wc[[tl[o, 2]]]
     susiF.obj$fitted_wc[[tl[  1]]] <- susiF.obj$fitted_wc[[tl[  1]]] +   susiF.obj$fitted_wc[[tl[ 2]]]
     susiF.obj$fitted_wc2[[tl[ 1]]] <- susiF.obj$fitted_wc2[[tl[  1]]] +   susiF.obj$fitted_wc2[[tl[  2]]]
-    susiF.obj$fitted_wc[[tl[  2]]] <- 0* susiF.obj$fitted_wc[[tl[ 2]]]
+    #susiF.obj$fitted_wc[[tl[  2]]] <- 0* susiF.obj$fitted_wc[[tl[ 2]]]
     tindx <-  tl[  2]
   }else{
     tl <- tl[order(tl[,1], tl[,2], decreasing = TRUE),]
@@ -946,10 +948,10 @@ merge_effect.susiF <- function( susiF.obj, tl, discard=TRUE,  ...){
     for ( o in 1:dim(tl)[1]){
 
       if ( tl[o, 2]%!in%tindx){
-
+        susiF.obj$fitted_wc[[tl[o, 2]]] <- 0* susiF.obj$fitted_wc[[tl[o, 2]]]
         susiF.obj$fitted_wc[[tl[o, 1]]] <-susiF.obj$fitted_wc[[tl[o, 1]]] +   susiF.obj$fitted_wc[[tl[o, 2]]]
         susiF.obj$fitted_wc2[[tl[o, 1]]] <-susiF.obj$fitted_wc2[[tl[o, 1]]] +   susiF.obj$fitted_wc2[[tl[o, 2]]]
-        susiF.obj$fitted_wc[[tl[o, 2]]] <- 0* susiF.obj$fitted_wc[[tl[o, 2]]]
+       # susiF.obj$fitted_wc[[tl[o, 2]]] <- 0* susiF.obj$fitted_wc[[tl[o, 2]]]
         tindx <- c(tindx, tl[o, 2])
       }
 
@@ -1034,13 +1036,15 @@ out_prep.susiF <- function(susiF.obj,Y, X, indx_lst, filter.cs, lfsr_curve, outi
   susiF.obj <-  update_cal_pip(susiF.obj)
   susiF.obj <-  update_cal_fit_func(susiF.obj, indx_lst)
   susiF.obj <-  update_cal_credible_band(susiF.obj, indx_lst)
+ # susiF.obj <-  update_cal_lfsr_func    (susiF.obj, lfsr_curve,indx_lst)
+
   susiF.obj <-  name_cs(susiF.obj,X)
   if(filter.cs)
   {
     susiF.obj <- check_cs(susiF.obj,min.purity=0.5,X=X)
   }
   susiF.obj <-  update_cal_indf(susiF.obj, Y, X, indx_lst)
-
+  susiF.obj <-  update_lfsr_effect(susiF.obj)
   susiF.obj$outing_grid <- outing_grid
   susiF.obj$purity      <-  cal_purity(l_cs= susiF.obj$cs, X=X)
   return(susiF.obj)
@@ -1475,7 +1479,17 @@ update_susiF_obj  <- function(susiF.obj, l, EM_pi, Bhat, Shat, indx_lst, lowc_wc
 # @export
 #
 
-update_susiF_obj.susiF <- function(susiF.obj, l, EM_pi, Bhat, Shat, indx_lst, lowc_wc=NULL, cal_wc_lsfr=FALSE,df=NULL,...)
+update_susiF_obj.susiF <- function(susiF.obj,
+                                   l,
+                                   EM_pi,
+                                   Bhat,
+                                   Shat,
+                                   indx_lst,
+                                   lowc_wc=NULL,
+                                   cal_wc_lsfr=FALSE,
+                                   df=NULL,
+                                   cov_lev=0.95,
+                                   ...)
 {
 
   if( l > length(susiF.obj$est_pi))
@@ -1517,9 +1531,11 @@ update_susiF_obj.susiF <- function(susiF.obj, l, EM_pi, Bhat, Shat, indx_lst, lo
 
   new_alpha <- cal_zeta(   lBF)
 
-  susiF.obj <- update_alpha(susiF.obj, l, new_alpha)
-  susiF.obj <- update_lBF  (susiF.obj, l, lBF)
-  #susiF.obj <- update_cal_cs(susiF.obj,                             cov_lev=cov_lev)
+  susiF.obj  <- update_alpha (susiF.obj, l, new_alpha)
+  susiF.obj  <- update_lBF   (susiF.obj, l, lBF)
+  susiF.obj <-  update_cal_cs(susiF.obj,  cov_lev= cov_lev, l=l)
+  susiF.obj <-  update_lfsr  (susiF.obj, l ,Bhat=Bhat,
+                              Shat= Shat, indx_lst=indx_lst)
   return(susiF.obj)
 }
 
@@ -1558,6 +1574,10 @@ update_cal_pip.susiF <- function (susiF.obj,...)
 }
 
 
+
+
+
+
 #' @title Update susiF by computing credible sets
 #
 #' @param susiF.obj a susiF object defined by  init_susiF_obj  function
@@ -1581,8 +1601,24 @@ update_cal_cs  <- function(susiF.obj, cov_lev=0.95,...)
 #' @export
 #' @keywords internal
 
-update_cal_cs.susiF <- function(susiF.obj, cov_lev=0.95,...)
+update_cal_cs.susiF <- function(susiF.obj, cov_lev=0.95, l,...)
 {
+  if( !missing(l)){
+    if(sum( is.na(unlist(susiF.obj$alpha[[l]]))))
+    {
+      stop("Error: some alpha value not updated, please update alpha value first")
+    }
+    temp        <- susiF.obj$alpha[[l]]
+
+    # check if temp has only 0 (i.e.  not yet updated)
+    #  if(sum(temp==0)==length(temp)){
+    temp_cumsum <- cumsum( temp[order(temp, decreasing =TRUE)])
+    max_indx_cs <- min(which( temp_cumsum >cov_lev ))
+    susiF.obj$cs[[l]]  <- order(temp, decreasing = TRUE)[1:max_indx_cs ]
+
+    return(susiF.obj)
+  }
+
   if(sum( is.na(unlist(susiF.obj$alpha))))
   {
     stop("Error: some alpha value not updated, please update alpha value first")
@@ -1590,9 +1626,12 @@ update_cal_cs.susiF <- function(susiF.obj, cov_lev=0.95,...)
   for ( l in 1:susiF.obj$L)
   {
     temp        <- susiF.obj$alpha[[l]]
-    temp_cumsum <- cumsum( temp[order(temp, decreasing =TRUE)])
-    max_indx_cs <- min(which( temp_cumsum >cov_lev ))
-    susiF.obj$cs[[l]]  <- order(temp, decreasing = TRUE)[1:max_indx_cs ]
+
+    # check if temp has only 0 (i.e.  not yet updated)
+    #  if(sum(temp==0)==length(temp)){
+      temp_cumsum <- cumsum( temp[order(temp, decreasing =TRUE)])
+      max_indx_cs <- min(which( temp_cumsum >cov_lev ))
+      susiF.obj$cs[[l]]  <- order(temp, decreasing = TRUE)[1:max_indx_cs ]
 
   }
 
@@ -1785,31 +1824,31 @@ update_cal_credible_band.susiF <- function(susiF.obj, indx_lst,...)
 }
 
 
-# @title Update susiF by computing posterior curves using wavelet coefficient with a low lfsr
+#' @title Update susiF by computing posterior curves using wavelet coefficient with a low lfsr
 #
-# @param susiF.obj a susiF object defined by init_susiF_obj function
+#' @param susiF.obj a susiF object defined by init_susiF_obj function
 #
-# @param lfsr_curve Maximum local false sign rate of the wavelet coefficients used to reconstruct lfsr_curves (see output)
+#' @param lfsr_curve Maximum local false sign rate of the wavelet coefficients used to reconstruct lfsr_curves (see output)
 #
-# @param indx_lst list generated by gen_wavelet_indx for the given level of resolution
+#' @param indx_lst list generated by gen_wavelet_indx for the given level of resolution
 #
-# @return susiF object
+#' @return susiF object
 #
-# @export
+#' @export
 update_cal_lfsr_func  <- function(susiF.obj, lfsr_curve,  indx_lst,...)
   UseMethod("update_cal_lfsr_func")
 
-# @rdname update_cal_lfsr_func
+#' @rdname update_cal_lfsr_func
 #
-# @method update_cal_lfsr_func susiF
+#' @method update_cal_lfsr_func susiF
 #
-# @export update_cal_lfsr_func.susiF
+#' @export update_cal_lfsr_func.susiF
 #
-# @importFrom wavethresh wr
+#' @importFrom wavethresh wr
 #
-# @importFrom wavethresh wd
+#' @importFrom wavethresh wd
 #
-# @export
+#' @export
 #
 
 update_cal_lfsr_func.susiF <- function(susiF.obj, lfsr_curve, indx_lst,...)
@@ -1848,6 +1887,32 @@ update_cal_lfsr_func.susiF <- function(susiF.obj, lfsr_curve, indx_lst,...)
 
 
 
+
+#
+#' @param susiF.obj a susiF object defined by init_susiF_obj function
+#' @return susiF object
+#' @export
+#' @keywords internal
+
+
+update_lfsr_effect  <- function    (susiF.obj ,...)
+  UseMethod("update_lfsr_effect")
+
+#' @rdname update_lfsr_effect
+#
+#' @method update_lfsr_effect susiF
+#
+#' @export update_lfsr_effect.susiF
+#
+#' @export
+#' @keywords internal
+
+update_lfsr_effect.susiF  <- function  (susiF.obj){
+    susiF.obj$lfsr <- lapply(1:length(susiF.obj$cs) ,
+                             function(l) min(susiF.obj$lfsr_wc[[l]])
+                             )
+    return( susiF.obj)
+}
 
 
 
@@ -1903,22 +1968,22 @@ update_lBF.susiF <- function    (susiF.obj,l, lBF,...)
 #@return susiF object
 #@export
 
-update_lfsr  <- function    (susiF.obj, l, Bhat, Shat, alpha, indx_lst,...)
+update_lfsr  <- function    (susiF.obj, l, Bhat, Shat, indx_lst,...)
   UseMethod("update_lfsr")
 
-# @rdname update_lfsr
+#' @rdname update_lfsr
 #
-# @method update_lfsr susiF
+#' @method update_lfsr susiF
 #
-# @export update_lfsr.susiF
+#' @export update_lfsr.susiF
 #
-# @export
+#' @export
 #
 
-update_lfsr.susiF <- function(susiF.obj, l, Bhat, Shat, alpha, indx_lst,...)
+update_lfsr.susiF <- function(susiF.obj, l, Bhat, Shat,   indx_lst,...)
 {
   clfsr_wc <-  cal_clfsr(get_G_prior(susiF.obj),  Bhat,Shat,indx_lst )
-  susiF.obj$lfsr_wc[[l]] <- cal_lfsr (clfsr_wc,alpha)
+  susiF.obj$lfsr_wc[[l]] <- cal_lfsr (clfsr_wc,susiF.obj$alpha[[l]])
   return(susiF.obj)
 }
 

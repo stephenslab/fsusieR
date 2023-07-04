@@ -25,7 +25,7 @@ susiF.workhorse(
   max_SNP_EM = 1000,
   max_step_EM = 100,
   cor_small = FALSE,
-  cor_small2 = FALSE
+  is.pois = FALSE
 )
 }
 \arguments{

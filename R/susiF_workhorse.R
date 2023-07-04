@@ -59,8 +59,8 @@ susiF.workhorse <- function(susiF.obj,
                             maxit,
                             tt,
                             parallel=FALSE,
-                            max_SNP_EM=1000,
-                            max_step_EM=100,
+                            max_SNP_EM=100,
+                            max_step_EM=1,
                             cor_small=FALSE,
                             is.pois=FALSE){
 
@@ -115,7 +115,8 @@ susiF.workhorse <- function(susiF.obj,
                                    Bhat      = Bhat,
                                    Shat      = Shat,
                                    indx_lst  = indx_lst,
-                                   lowc_wc   = lowc_wc
+                                   lowc_wc   = lowc_wc,
+                                   cov_lev   =  cov_lev
     )
     susiF.obj <- update_ELBO(susiF.obj,
                              get_objective( susiF.obj = susiF.obj,

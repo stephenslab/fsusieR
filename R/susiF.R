@@ -186,7 +186,8 @@ susiF <- function(Y, X, L = 2,
                   min.purity=0.5,
                   filter.cs =TRUE,
                   init_pi0_w= 1,
-                  nullweight ,
+                  lfsr_curve=0.05,
+                  nullweight= 10 ,
                   control_mixsqp =  list(verbose=FALSE,
                                          eps = 1e-6,
                                          numiter.em = 4
@@ -216,10 +217,7 @@ susiF <- function(Y, X, L = 2,
   {
     stop("Error: provide valid prior input")
   }
-  if(missing(nullweight))
-  {
-    nullweight <- 10#/(sqrt(nrow(X)))
-  }
+
   if(!cal_obj){
     tol <-10^-3
   }
@@ -362,6 +360,7 @@ susiF <- function(Y, X, L = 2,
                         X           = X,
                         indx_lst    = indx_lst,
                         filter.cs   = filter.cs,
+                        lfsr_curve  = lfsr_curve,
                         outing_grid = outing_grid
   )
   susiF.obj$runtime <- proc.time()-pt

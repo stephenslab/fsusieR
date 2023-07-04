@@ -10,6 +10,7 @@ lowc_wc=NULL
 plot(f1$sim_func, type="l", ylab="y")
 N=500
 P=10
+lfsr_curve=0.05
 nullweight = 10/sqrt(N)
 set.seed(23)
 G = matrix(sample(c(0, 1,2), size=N*P, replace=T), nrow=N, ncol=P) #Genotype
@@ -386,11 +387,6 @@ G_prior <- update_prior(G_prior,
 susiF_obj <-  update_susiF_obj(susiF_obj, 1, outEM, Bhat, Shat, indx_lst ,
                                lowc_wc=NULL)
 
-susiF_obj <-  out_prep(susiF_obj,Y, X=X, indx_lst=indx_lst,filter.cs = FALSE, outing_grid = 1:ncol(Y))
-
-plot( (unlist(susiF_obj$fitted_func[[1]])), type="l", col="green", ylim = c(-0.1,0.1))
-lines(f1$sim_func, col="red")
-
 
 
 test_that("SusiF performance should be",
@@ -491,4 +487,3 @@ test_that("Removing one wc coeef should lead to the followin results",
 
 out <- susiF(Y,X,L=2, prior="mixture_normal_per_scale", cal_obj = FALSE,quantile_trans = TRUE, filter.cs = FALSE)
 out$cs
-
