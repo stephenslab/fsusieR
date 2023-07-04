@@ -38,7 +38,7 @@ for ( o in 1:100){
 
 
   res <- EBmvFR (Y=noisy.data,X=X)
-  res2 <- EBmvFR2 (Y=noisy.data,X=X)
+
 
   est_lst [[o]] <- sqrt(res$sigma2)
   lst [[o]]     <- (1/  rsnr ) * var(f1)

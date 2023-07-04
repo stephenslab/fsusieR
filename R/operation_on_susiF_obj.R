@@ -261,10 +261,11 @@ estimate_residual_variance.susiF <- function(susiF.obj,Y,X,... )
 
 expand_susiF_obj <- function(susiF.obj,L_extra)
 {
-  L_extra <- ifelse ( max(susiF.obj$L_max - susiF.obj$L+L_extra,0 ) >0,#check if we are adding more effect that maximum specified by user
-                      L_extra,
-                      abs(susiF.obj$L_max - susiF.obj$L+L_extra)
-                      )
+  L_extra <- ifelse (  susiF.obj$L_max - (susiF.obj$L+L_extra) <0 ,#check if we are adding more effect that maximum specified by user
+                       abs(susiF.obj$L_max -(susiF.obj$L)),
+                       L_extra
+
+  )
   if( L_extra==0){
     return(susiF.obj)
   }else{
@@ -281,9 +282,9 @@ expand_susiF_obj <- function(susiF.obj,L_extra)
       susiF.obj$est_pi [[l]]          <-  susiF.obj$est_pi[[1]]
       susiF.obj$est_sd [[l]]          <-  susiF.obj$est_sd[[1]]
       susiF.obj$lBF[[l]]              <-  rep(NA, length( susiF.obj$lBF[[1]]))
-      susiF.obj$cred_band[[l]]        <- matrix(0, ncol = ncol(susiF.obj$cred_band[[1]] ), nrow = 2)
-      susiF.obj$KL                    <- rep(NA,susiF.obj$L)
-      susiF.obj$ELBO                  <- c()
+      susiF.obj$cred_band[[l]]        <-  matrix(0, ncol = ncol(susiF.obj$cred_band[[1]] ), nrow = 2)
+      susiF.obj$KL                    <-  rep(NA,susiF.obj$L)
+      susiF.obj$ELBO                  <-  c()
     }
     susiF.obj$n_expand <- susiF.obj$n_expand+1
     susiF.obj$greedy_backfit_update <- TRUE
@@ -936,7 +937,7 @@ merge_effect.susiF <- function( susiF.obj, tl, discard=TRUE,  ...){
 
   if(is.vector( tl)){
     #print( tl)
-    susiF.obj$fitted_wc[[tl[o, 2]]] <- 0* susiF.obj$fitted_wc[[tl[o, 2]]]
+    susiF.obj$fitted_wc[[tl[ 2]]] <- 0* susiF.obj$fitted_wc[[tl[  2]]]
     susiF.obj$fitted_wc[[tl[  1]]] <- susiF.obj$fitted_wc[[tl[  1]]] +   susiF.obj$fitted_wc[[tl[ 2]]]
     susiF.obj$fitted_wc2[[tl[ 1]]] <- susiF.obj$fitted_wc2[[tl[  1]]] +   susiF.obj$fitted_wc2[[tl[  2]]]
     #susiF.obj$fitted_wc[[tl[  2]]] <- 0* susiF.obj$fitted_wc[[tl[ 2]]]
