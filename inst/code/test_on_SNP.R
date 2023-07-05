@@ -1,13 +1,12 @@
 library(susiF.alpha)
 library(susieR)
 library(wavethresh)
-set.seed(1)
-data(N3finemapping)
+ data(N3finemapping)
 attach(N3finemapping)
 res <- list()
-
-N <- 50
-for ( o in 1:100){
+lev_res=3
+N <- 100
+for ( o in (length(res)+1):1000){
 
   L <- sample( 1:10, size=1)
   eff <- list()
@@ -32,11 +31,15 @@ for ( o in 1:100){
 
   Y <- noisy.data
   m1 <- susiF(Y,X, L=10)
-  res[[ o]] <- list(true_pos=true_pos,
-                    tt= m1$cs,
-                    true_cs = Reduce("+",sapply(1:length(m1$cs), function(k)
-                      ifelse( length(which(true_pos%in%m1$cs[[k]] ))==0, 1,0)
-                    )
-                    ))
+  res[[ o]] <- c(length(m1$cs), #number of CS
+                 length(which(true_pos%in% do.call(c, m1$cs))), #number of effect found
+                 Reduce("+",sapply(1:length(m1$cs), function(k)
+                   ifelse( length(which(true_pos%in%m1$cs[[k]] ))==0, 1,0)
+                 )
+                 ))
   print( o)
 }
+
+
+df_simu <- do.call(rbind, res)
+sum(df_simu[,3])/sum(df_simu[,2]+df_simu[,3])

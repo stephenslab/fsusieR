@@ -7,7 +7,7 @@
 \usage{
 update_cal_cs(susiF.obj, cov_lev = 0.95, ...)
 
-\method{update_cal_cs}{susiF}(susiF.obj, cov_lev = 0.95, ...)
+\method{update_cal_cs}{susiF}(susiF.obj, cov_lev = 0.95, l, ...)
 }
 \arguments{
 \item{susiF.obj}{a susiF object defined by  init_susiF_obj  function}

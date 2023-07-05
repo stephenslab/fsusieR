@@ -59,7 +59,7 @@ susiF.workhorse <- function(susiF.obj,
                             maxit,
                             tt,
                             parallel=FALSE,
-                            max_SNP_EM=100,
+                            max_SNP_EM=500,
                             max_step_EM=1,
                             cor_small=FALSE,
                             is.pois=FALSE){
