@@ -876,3 +876,118 @@ post_mat_sd.mixture_normal_per_scale <-  function( G_prior ,
   return(out)
 }
 
+#' @importFrom ashr ash
+#' @importFrom wavethresh wd
+#' @importFrom wavethresh ash
+TI_regression <- function( susiF.obj,Y,X, verbose=TRUE,
+                           filter.number = 10, family = "DaubLeAsymm" ){
+
+  if(verbose){
+    print( "Fine mapping done, refining effect estimates using cylce spinning wavelet transfrom")
+  }
+
+  dummy_station_wd <- wd(Y[1,], type="station",
+                         filter.number = filter.number ,
+                         family = family)
+
+  Y_f <- do.call(rbind, lapply(1:nrow(Y),
+                               function( i) wavethresh::wd(Y[i,],
+                                                           type="station",
+                                                           filter.number = filter.number ,
+                                                           family = family
+                               )$D))
+  Y_c <- do.call(rbind, lapply(1:nrow(Y),
+                               function( i)  wavethresh::wd(Y[i,],
+                                                            type="station",
+                                                            filter.number = filter.number ,
+                                                            family = family)$C))
+
+  refined_est <- list(wd=list(),
+                      wdC=list(),
+                      wd2=list(),
+                      fitted_func=list(),
+                      fitted_var=list(),
+                      idx_lead_cov = list()
+  )
+
+
+
+  for ( l in 1: length(susiF.obj$cs)){
+    refined_est$wd[[l]]  <- rep( 0, ncol(Y_f))
+    refined_est$wdC[[l]] <- rep( 0, ncol(Y_c))
+    refined_est$wd2[[l]] <- rep( 0, ncol(Y_f))
+    refined_est$idx_lead_cov[[l]]  <- which.max(susiF.obj$alpha[[l]])
+  }
+
+
+  if(  length(susiF.obj$cs)==1){
+    res <- cal_Bhat_Shat(Y_f, matrix(X[,refined_est$idx_lead_cov[[1]]],
+                                     ncol=1))
+    t_ash <- ash(c( res$Bhat),c(res$Shat))
+    refined_est$wd[[1]] <- t_ash$result$PosteriorMean
+    refined_est$wd2[[1]]<- t_ash$result$PosteriorSD^2
+
+    res <- cal_Bhat_Shat(Y_c, matrix(X[,refined_est$idx_lead_cov[[1]]],
+                                     ncol=1))
+    t_ash <- ash(c( res$Bhat),c(res$Shat))
+    refined_est$wdC[[l]] <- t_ash$result$PosteriorMean
+
+
+  }else{
+
+    for (k in 1:5){
+
+      for ( l in 1: length(susiF.obj$cs) ){
+        par_res<-  Y_f -Reduce("+",
+                               lapply( (1: length(refined_est$idx_lead_cov))[-l],
+                                       function(j)
+                                         X[,refined_est$idx_lead_cov[[j]]] %*%t( refined_est$wd[[j]] )
+                               )
+        )
+
+        res <- cal_Bhat_Shat(par_res, matrix(X[,refined_est$idx_lead_cov[[l]]], ncol=1))
+        t_ash <- ash(c( res$Bhat),c(res$Shat))
+        refined_est$wd[[l]] <- t_ash$result$PosteriorMean
+        refined_est$wd2[[l]]<- t_ash$result$PosteriorSD^2
+
+
+        par_resc<-  Y_c -Reduce("+",
+                                lapply( (1: length(refined_est$idx_lead_cov))[-l],
+                                        function(j)
+                                          X[,refined_est$idx_lead_cov[[j]]] %*%t( refined_est$wdC[[j]] )
+                                )
+        )
+
+        res <- cal_Bhat_Shat(par_resc, matrix(X[,refined_est$idx_lead_cov[[l]]], ncol=1))
+        t_ash <- ash(c( res$Bhat),c(res$Shat))
+        refined_est$wdC[[l]] <- t_ash$result$PosteriorMean
+
+
+      }
+
+    }
+  }
+  for( l in 1:length(susiF.obj$cs)){
+
+    dummy_station_wd$C <- refined_est$wdC[[l]]
+    dummy_station_wd$D <- refined_est$wd[[l]]
+    mywst <- convert(dummy_station_wd  )
+    nlevels <- nlevelsWT(wst)
+    refined_est$fitted_func[[l]]= av.basis(mywst, level = 6, ix1 = 0,
+                                           ix2 = 1, filter = mywst$filter)
+    mv.wd = wd.var(rep(0, ncol(Y)),   type = "station")
+    mv.wd$D <-  (refined_est$wd2[[l]])
+
+
+    refined_est$fitted_var[[l]]= AvBasis.var(convert.var(mv.wd))
+    susiF.obj$fitted_func[[l]] <-  refined_est$fitted_func[[l]]
+    up                         <-  susiF.obj$fitted_func[[l]]+ 3* sqrt(refined_est$fitted_var[[l]]) #*sqrt(susiF.obj$N-1)
+    low                        <-  susiF.obj$fitted_func[[l]]- 3*sqrt(refined_est$fitted_var[[l]]) #*sqrt(susiF.obj$N-1)
+    susiF.obj$cred_band[[l]]   <- rbind(up, low)
+
+  }
+
+  rm( refined_est)
+
+  return(susiF.obj)
+}

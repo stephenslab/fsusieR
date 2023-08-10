@@ -133,8 +133,11 @@ EM_pi <- function(G_prior,Bhat, Shat, indx_lst,
 cal_L_mixsq_s_per_scale <- function(G_prior,s, Bhat, Shat ,indx_lst,is.EBmvFR=FALSE)
 {
   m <-  (G_prior[[s]])
-  sdmat <-sqrt(outer(c(Shat[,indx_lst[[s]]]^2),
-                     get_sd_G_prior(G_prior)[[s]]^2,"+"))
+   sdmat <-sqrt(outer(c(Shat[,indx_lst[[s]]]^2),
+                      get_sd_G_prior(G_prior)[[s]]^2,"+"))
+
+
+
 
   L = (dnorm(
     outer(

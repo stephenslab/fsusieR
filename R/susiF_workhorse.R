@@ -70,8 +70,8 @@ susiF.workhorse <- function(susiF.obj,
   # numerical value to check breaking condition of while
   # numerical value to check breaking condition of while
   check <- 3*tol
-  init        <- TRUE
-  v1       <-  rep(1, dim(X)[1])
+  init  <- TRUE
+  v1    <-  rep(1, dim(X)[1])
 
 
   if (cor_small){
@@ -82,18 +82,21 @@ susiF.workhorse <- function(susiF.obj,
 
   if( susiF.obj$L_max==1)
   {
-    tt   <- cal_Bhat_Shat(update_Y,X,v1 ,
-                          lowc_wc =lowc_wc )
+    tt   <-cal_Bhat_Shat(Y       = update_Y,
+                         X       = X,
+                         v1      = v1 ,
+                         lowc_wc = lowc_wc )
     Bhat <- tt$Bhat
     Shat <- tt$Shat #UPDATE. could be nicer
     if(is.pois){
-      Shat <- update_Shat_pois(Shat=Shat,
-                               indx_lst=indx_lst,
-                               lowc_wc=low_wc
+      Shat <- update_Shat_pois(Shat     = Shat,
+                               indx_lst = indx_lst,
+                               lowc_wc  = low_wc
                                )
     }
     tpi  <- get_pi(susiF.obj,1)
-    G_prior <- update_prior(G_prior, tpi= tpi ) #allow EM to start close to previous solution (to double check)
+    G_prior <- update_prior(G_prior = G_prior,
+                            tpi     = tpi ) #allow EM to start close to previous solution (to double check)
 
     EM_out  <- EM_pi(G_prior        = G_prior,
                      Bhat           = Bhat,
@@ -118,7 +121,7 @@ susiF.workhorse <- function(susiF.obj,
                                    lowc_wc   = lowc_wc,
                                    cov_lev   =  cov_lev
     )
-    susiF.obj <- update_ELBO(susiF.obj,
+    susiF.obj <- update_ELBO(susiF.obj  = susiF.obj,
                              get_objective( susiF.obj = susiF.obj,
                                             Y         = Y_f,
                                             X         = X,
@@ -157,7 +160,7 @@ susiF.workhorse <- function(susiF.obj,
 
 
           EM_out <- gen_EM_out (tpi_k= get_pi_G_prior(G_prior),
-                                lBF  = log_BF  (G_prior,
+                                lBF  = log_BF  (G_prior  = G_prior,
                                                 Bhat     = tt$Bhat,
                                                 Shat     = tt$Shat,
                                                 lowc_wc  = lowc_wc,
@@ -170,17 +173,17 @@ susiF.workhorse <- function(susiF.obj,
         }else{
 
 
-          tt   <- cal_Bhat_Shat(update_Y,X,v1 ,
-                                lowc_wc =lowc_wc ,
-
-                                cor_small2     = cor_small2)
+          tt   <- cal_Bhat_Shat(Y = update_Y,
+                                X = X,
+                                v1 =v1 ,
+                                lowc_wc =lowc_wc )
 
           tpi <-  get_pi(susiF.obj,l)
           G_prior <- update_prior(G_prior, tpi= tpi ) #allow EM to start close to previous solution (to double check)
           if(is.pois){
-            tt$Shat <- update_Shat_pois(Shat=tt$Shat,
-                                     indx_lst=indx_lst,
-                                     lowc_wc=lowc_wc
+            tt$Shat <- update_Shat_pois(Shat     = tt$Shat,
+                                        indx_lst = indx_lst,
+                                        lowc_wc  = lowc_wc
             )
          #   print( tt$Shat)
           }
@@ -215,17 +218,25 @@ susiF.workhorse <- function(susiF.obj,
 
       }#end for l in 1:L  -----
 
+      # plot(susiF.obj$lBF[[1]])
+      #plot(susiF.obj$lBF[[2]])
 
+      #plot(susiF.obj$lBF[[3]])
+      # save(susiF.obj, file ="D:/Document/Serieux/Travail/Package/susiF.alpha/pb_object.RData")
+      # break
       ####Check greedy/backfit and stopping condition -----
-      susiF.obj <- greedy_backfit (susiF.obj,
+      susiF.obj <- greedy_backfit (susiF.obj  = susiF.obj,
                                    verbose    = verbose,
                                    cov_lev    = cov_lev,
                                    X          = X,
                                    min.purity = min.purity
       )
-      sigma2    <- estimate_residual_variance(susiF.obj,Y=Y_f,X)
+      sigma2    <- estimate_residual_variance(susiF.obj = susiF.obj,
+                                              Y         = Y_f,
+                                              X         = X)
       #print(sigma2)
-      susiF.obj <- update_residual_variance(susiF.obj, sigma2 = sigma2 )
+      susiF.obj <- update_residual_variance(susiF.obj = susiF.obj,
+                                            sigma2    = sigma2 )
       susiF.obj <- test_stop_cond(susiF.obj = susiF.obj,
                                   check     = check,
                                   cal_obj   = cal_obj,

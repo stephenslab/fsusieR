@@ -202,7 +202,10 @@ susiF <- function(Y, X, L = 2,
                   max_scale=10,
                   max_SNP_EM=1000,
                   max_step_EM=1,
-                  cor_small=FALSE
+                  cor_small=FALSE,
+                  filter.number = 10,
+                  family = "DaubLeAsymm",
+                  TI=TRUE
 
 )
 {
@@ -257,7 +260,8 @@ susiF <- function(Y, X, L = 2,
   X <- colScale(X)
   # centering input
   Y <- colScale(Y, scale=FALSE)
-  W <- DWT2(Y)
+  W <- DWT2(Y,filter.number = filter.number,
+            family = family)
   Y_f      <-  cbind( W$D,W$C)
 
   if(verbose){
@@ -334,6 +338,7 @@ susiF <- function(Y, X, L = 2,
 
 
 
+
   susiF.obj     <- susiF.workhorse(susiF.obj      = susiF.obj,
                                    W              = W,
                                    X              = X,
@@ -355,13 +360,16 @@ susiF <- function(Y, X, L = 2,
                                    cor_small      = cor_small )
 
   #preparing output
-  susiF.obj <- out_prep(susiF.obj   = susiF.obj,
-                        Y           = Y,
-                        X           = X,
-                        indx_lst    = indx_lst,
-                        filter.cs   = filter.cs,
-                        lfsr_curve  = lfsr_curve,
-                        outing_grid = outing_grid
+  susiF.obj <- out_prep(susiF.obj     = susiF.obj,
+                        Y             = Y,
+                        X             = X,
+                        indx_lst      = indx_lst,
+                        filter.cs     = filter.cs,
+                        lfsr_curve    = lfsr_curve,
+                        outing_grid   = outing_grid,
+                        filter.number = filter.number,
+                        family        = family,
+                        TI            = TI
   )
   susiF.obj$runtime <- proc.time()-pt
   return(susiF.obj)

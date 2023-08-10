@@ -35,6 +35,7 @@ cal_partial_resid  <- function( susiF.obj, l, X, D, C,  indx_lst,... )
 cal_partial_resid.susiF  <- function( susiF.obj, l, X, D, C,  indx_lst,... )
 {
   L <- susiF.obj$L
+
   if (L > 1){
     id_L <- (1:L)[ - ( (l%%L) +1) ]#Computing residuals R_{l+1} by removing all the effect except effect l+1
 
@@ -116,7 +117,6 @@ cal_partial_resid.susiF  <- function( susiF.obj, l, X, D, C,  indx_lst,... )
       update_Y  <- cbind(  update_D, update_C)
     }
   }
-
 
   return(update_Y)
 }
@@ -614,6 +614,7 @@ greedy_backfit.susiF <-  function(susiF.obj,
 
   dummy.cs <-  which_dummy_cs(susiF.obj,
                               min.purity = min.purity,
+                              median_crit=TRUE,
                               X=X)
 
 
@@ -1031,21 +1032,47 @@ out_prep <- function(susiF.obj,Y, X, indx_lst, filter.cs, lfsr_curve,outing_grid
 #' @export
 #' @keywords internal
 
-out_prep.susiF <- function(susiF.obj,Y, X, indx_lst, filter.cs, lfsr_curve, outing_grid,...)
+out_prep.susiF <- function(susiF.obj,
+                           Y,
+                           X,
+                           indx_lst,
+                           filter.cs,
+                           lfsr_curve,
+                           outing_grid,
+                           TI,
+                           filter.number = 10,
+                           family =  "DaubLeAsymm",
+                           ...)
 {
 
   susiF.obj <-  update_cal_pip(susiF.obj)
-  susiF.obj <-  update_cal_fit_func(susiF.obj, indx_lst)
-  susiF.obj <-  update_cal_credible_band(susiF.obj, indx_lst)
- # susiF.obj <-  update_cal_lfsr_func    (susiF.obj, lfsr_curve,indx_lst)
 
   susiF.obj <-  name_cs(susiF.obj,X)
+
+  susiF.obj <-  update_lfsr_effect(susiF.obj)
   if(filter.cs)
   {
     susiF.obj <- check_cs(susiF.obj,min.purity=0.5,X=X)
   }
-  susiF.obj <-  update_cal_indf(susiF.obj, Y, X, indx_lst)
-  susiF.obj <-  update_lfsr_effect(susiF.obj)
+  print( paste("TI is ", TI))
+  if( TI==FALSE){
+    susiF.obj <-  update_cal_indf(susiF.obj, Y, X, indx_lst)
+    susiF.obj <-  update_cal_fit_func(susiF.obj, indx_lst)
+    susiF.obj <-  update_cal_credible_band(susiF.obj, indx_lst)
+  }else{
+    susiF.obj <- TI_regression(susiF.obj=susiF.obj,
+                               Y=Y,
+                               X=X,
+                               filter.number = filter.number,
+                               family = family
+                               )
+  }
+
+ # susiF.obj <-  update_cal_lfsr_func    (susiF.obj, lfsr_curve,indx_lst)
+
+
+
+
   susiF.obj$outing_grid <- outing_grid
   susiF.obj$purity      <-  cal_purity(l_cs= susiF.obj$cs, X=X)
   return(susiF.obj)
@@ -1523,20 +1550,29 @@ update_susiF_obj.susiF <- function(susiF.obj,
                                               lowc_wc  = lowc_wc)^2
 
 
-  G_prior <- update_prior(get_G_prior(susiF.obj), tpi= EM_pi$tpi_k )
-  lBF<-   log_BF (G_prior,  Bhat = Bhat,
-                 Shat=Shat,
-                  indx_lst=indx_lst,
-                  lowc_wc=lowc_wc,
-                  df=df)
+  G_prior <- update_prior(G_prior = get_G_prior(susiF.obj),
+                          tpi     = EM_pi$tpi_k )
+  lBF     <- log_BF (G_prior  = G_prior,
+                     Bhat     = Bhat,
+                     Shat     = Shat,
+                     indx_lst = indx_lst,
+                     lowc_wc  = lowc_wc,
+                     df       = df)
 
   new_alpha <- cal_zeta(   lBF)
 
-  susiF.obj  <- update_alpha (susiF.obj, l, new_alpha)
-  susiF.obj  <- update_lBF   (susiF.obj, l, lBF)
-  susiF.obj <-  update_cal_cs(susiF.obj,  cov_lev= cov_lev, l=l)
-  susiF.obj <-  update_lfsr  (susiF.obj, l ,Bhat=Bhat,
-                              Shat= Shat, indx_lst=indx_lst)
+  susiF.obj  <- update_alpha (susiF.obj = susiF.obj,
+                              l         = l,
+                              alpha     = new_alpha)
+  susiF.obj  <- update_lBF   (susiF.obj = susiF.obj,
+                              l         = l,
+                              lBF       = lBF)
+  susiF.obj <-  update_cal_cs(susiF.obj=susiF.obj,  cov_lev= cov_lev, l=l)
+  susiF.obj <-  update_lfsr  (susiF.obj=susiF.obj,
+                              l=l ,
+                              Bhat=Bhat,
+                              Shat= Shat,
+                              indx_lst=indx_lst)
   return(susiF.obj)
 }
 
@@ -2147,12 +2183,13 @@ update_residual_variance.susiF <- function(susiF.obj,sigma2,...)
 #' @param susiF.obj a susif object defined by init_susiF_obj function
 #' @param min.purity minimal purity within a CS
 #' @param X matrix of covariates
+#' @param max_crit remove cs base on max absolute correlation instead of min absolute correlation, usefull in the
 #
 #' @return a list of index corresponding the the dummy effect
 #
 #' @export
 #' @keywords internal
-which_dummy_cs <- function(susiF.obj, min.purity=0.5,X,...)
+which_dummy_cs <- function(susiF.obj, min.purity=0.5,X,median_crit=FALSE,...)
   UseMethod("which_dummy_cs")
 
 
@@ -2164,11 +2201,37 @@ which_dummy_cs <- function(susiF.obj, min.purity=0.5,X,...)
 #' @export which_dummy_cs.susiF
 #' @export
 #' @keywords internal
-which_dummy_cs.susiF <- function(susiF.obj, min.purity=0.5,X,...){
+which_dummy_cs.susiF <- function(susiF.obj, min.purity=0.5,X,median_crit=FALSE,...){
+
   dummy.cs<- c()
-if( susiF.obj$L==1){
-  return(dummy.cs)
-}
+  if( susiF.obj$L==1){
+    return(dummy.cs)
+  }
+
+
+  f_crit <- function (susiF.obj, min.purity=0.5, l, median_crit=FALSE){
+    if( median_crit){
+      #if( length(susiF.obj$cs[[l]] )  < ncol(X)/10) {
+      #  is.dummy.cs <- FALSE
+      #   return(is.dummy.cs )
+      #}
+      if(length(susiF.obj$cs[[l]]) <5){
+        is.dummy.cs <- FALSE
+      }else{
+        tt <-  cor( X[,susiF.obj$cs[[l]]])
+
+        is.dummy.cs <-   median(abs( tt[lower.tri(tt, diag =FALSE)]))  <  min.purity
+      }
+
+
+    }else{
+      is.dummy.cs <-   min(abs(cor( X[,susiF.obj$cs[[l]]]))) <  min.purity
+    }
+
+    return( is.dummy.cs)
+  }
+
+
 
   if( inherits( susiF.obj$G_prior,"mixture_normal"))
   {
@@ -2185,7 +2248,7 @@ if( susiF.obj$L==1){
 
       }else{
 
-        if( min(abs(cor( X[,susiF.obj$cs[[l]]]))) <  min.purity){#check if the purity of cs l is lower that min.purity
+        if(   f_crit(susiF.obj = susiF.obj, min.purity=0.5, l, median_crit )){#check if the purity of cs l is lower that min.purity
 
           dummy.cs<-  c( dummy.cs,l)
 
@@ -2227,7 +2290,7 @@ if( susiF.obj$L==1){
 
       }else{
 
-        if( min(abs(cor( X[,susiF.obj$cs[[l]]]))) <  min.purity){#check if the purity of cs l is lower that min.purity
+        if(  f_crit(susiF.obj = susiF.obj, min.purity=0.5, l, median_crit )){#check if the purity of cs l is lower that min.purity
 
           dummy.cs<-  c( dummy.cs,l)
 
@@ -2254,4 +2317,5 @@ if( susiF.obj$L==1){
   }
 
 }
+
 
