@@ -1060,11 +1060,13 @@ out_prep.susiF <- function(susiF.obj,
     susiF.obj <-  update_cal_fit_func(susiF.obj, indx_lst)
     susiF.obj <-  update_cal_credible_band(susiF.obj, indx_lst)
   }else{
+
     susiF.obj <- TI_regression(susiF.obj=susiF.obj,
                                Y=Y,
                                X=X,
                                filter.number = filter.number,
                                family = family
+
                                )
   }
 

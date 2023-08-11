@@ -921,51 +921,172 @@ TI_regression <- function( susiF.obj,Y,X, verbose=TRUE,
 
 
   if(  length(susiF.obj$cs)==1){
-    res <- cal_Bhat_Shat(Y_f, matrix(X[,refined_est$idx_lead_cov[[1]]],
-                                     ncol=1))
-    t_ash <- ash(c( res$Bhat),c(res$Shat))
-    refined_est$wd[[1]] <- t_ash$result$PosteriorMean
-    refined_est$wd2[[1]]<- t_ash$result$PosteriorSD^2
 
-    res <- cal_Bhat_Shat(Y_c, matrix(X[,refined_est$idx_lead_cov[[1]]],
-                                     ncol=1))
-    t_ash <- ash(c( res$Bhat),c(res$Shat))
-    refined_est$wdC[[l]] <- t_ash$result$PosteriorMean
+
+    if( inherits(get_G_prior(susiF.obj),"mixture_normal_per_scale" )){
+      res <- cal_Bhat_Shat(Y_f, matrix(X[,refined_est$idx_lead_cov[[1]]],
+                                       ncol=1))
+      wd <- rep( 0 ,length(res$Bhat))
+      wd2 <- rep(0, length(res$Shat))
+      temp <-   lapply(1:nrow(dummy_station_wd$fl.dbase$first.last.d),
+                       function(s){
+                         level <- s
+                         n <- 2^nlevelsWT(dummy_station_wd)
+                         first.last.d <-dummy_station_wd$fl.dbase$first.last.d
+                         first.level <- first.last.d[level, 1]
+                         last.level <- first.last.d[level, 2]
+                         offset.level <- first.last.d[level, 3]
+                         first.level <- first.last.d[level, 1]
+                         idx <- (offset.level + 1 - first.level):(offset.level +n - first.level)
+                         t_ash <- ash(c( res$Bhat[idx]),c(res$Shat[idx]),  mixcompdist = "normal")
+
+                         wd [idx] <- t_ash$result$PosteriorMean
+                         wd2[idx] <- t_ash$result$PosteriorSD^2
+
+                         out  <- list( wd,
+                                       wd2)
+                       }
+      )
+
+
+      wd <- Reduce("+", lapply(1:length(temp), function(s) temp[[s]][[1]]))
+      wd2 <-  Reduce("+", lapply(1:length(temp), function(s) temp[[s]][[2]]))
+
+
+
+
+
+      refined_est$wd[[l]] <- wd
+      refined_est$wd2[[l]]<-  wd2
+
+
+      res <- cal_Bhat_Shat(Y_c, matrix(X[,refined_est$idx_lead_cov[[1]]],
+                                       ncol=1))
+      t_ash <- ash(c( res$Bhat),c(res$Shat))
+      refined_est$wdC[[l]] <- t_ash$result$PosteriorMean
+      refined_est$wdC[[l]] <-c( res$Bhat)
+    }
+    if(inherits(get_G_prior(susiF.obj),"mixture_normal" )){
+      res <- cal_Bhat_Shat(Y_f, matrix(X[,refined_est$idx_lead_cov[[1]]],
+                                       ncol=1))
+      t_ash <- ash(c( res$Bhat),c(res$Shat))
+      refined_est$wd[[1]] <- t_ash$result$PosteriorMean
+      refined_est$wd2[[1]]<- t_ash$result$PosteriorSD^2
+
+      res <- cal_Bhat_Shat(Y_c, matrix(X[,refined_est$idx_lead_cov[[1]]],
+                                       ncol=1))
+      t_ash <- ash(c( res$Bhat),c(res$Shat))
+      refined_est$wdC[[l]] <- t_ash$result$PosteriorMean
+      refined_est$wdC[[l]] <-c( res$Bhat)
+    }
 
 
   }else{
 
-    for (k in 1:5){
 
-      for ( l in 1: length(susiF.obj$cs) ){
-        par_res<-  Y_f -Reduce("+",
-                               lapply( (1: length(refined_est$idx_lead_cov))[-l],
-                                       function(j)
-                                         X[,refined_est$idx_lead_cov[[j]]] %*%t( refined_est$wd[[j]] )
-                               )
-        )
+    if( inherits(get_G_prior(susiF.obj),"mixture_normal_per_scale" )){
+      print("mixture_normal_per_scale" )
+      for (k in 1:5){
 
-        res <- cal_Bhat_Shat(par_res, matrix(X[,refined_est$idx_lead_cov[[l]]], ncol=1))
-        t_ash <- ash(c( res$Bhat),c(res$Shat))
-        refined_est$wd[[l]] <- t_ash$result$PosteriorMean
-        refined_est$wd2[[l]]<- t_ash$result$PosteriorSD^2
+        for ( l in 1: length(susiF.obj$cs) ){
+          par_res<-  Y_f -Reduce("+",
+                                 lapply( (1: length(refined_est$idx_lead_cov))[-l],
+                                         function(j)
+                                           X[,refined_est$idx_lead_cov[[j]]] %*%t( refined_est$wd[[j]] )
+                                 )
+          )
+
+          res <- cal_Bhat_Shat(par_res, matrix(X[,refined_est$idx_lead_cov[[l]]], ncol=1))
+          wd <- rep( 0 ,length(res$Bhat))
+          wd2 <- rep(0, length(res$Shat))
+          temp <-   lapply(1:nrow(dummy_station_wd$fl.dbase$first.last.d),
+                           function(s){
+                             level <- s
+                             n <- 2^nlevelsWT(dummy_station_wd)
+                             first.last.d <-dummy_station_wd$fl.dbase$first.last.d
+                             first.level <- first.last.d[level, 1]
+                             last.level <- first.last.d[level, 2]
+                             offset.level <- first.last.d[level, 3]
+                             first.level <- first.last.d[level, 1]
+                             idx <- (offset.level + 1 - first.level):(offset.level +n - first.level)
+                             t_ash <- ash(c( res$Bhat[idx]),c(res$Shat[idx]),  mixcompdist = "normal")
+
+                             wd [idx] <- t_ash$result$PosteriorMean
+                             wd2[idx] <- t_ash$result$PosteriorSD^2
+
+                             out  <- list( wd,
+                                           wd2)
+                           }
+          )
 
 
-        par_resc<-  Y_c -Reduce("+",
-                                lapply( (1: length(refined_est$idx_lead_cov))[-l],
-                                        function(j)
-                                          X[,refined_est$idx_lead_cov[[j]]] %*%t( refined_est$wdC[[j]] )
-                                )
-        )
+          wd <- Reduce("+", lapply(1:length(temp), function(s) temp[[s]][[1]]))
+          wd2 <-  Reduce("+", lapply(1:length(temp), function(s) temp[[s]][[2]]))
 
-        res <- cal_Bhat_Shat(par_resc, matrix(X[,refined_est$idx_lead_cov[[l]]], ncol=1))
-        t_ash <- ash(c( res$Bhat),c(res$Shat))
-        refined_est$wdC[[l]] <- t_ash$result$PosteriorMean
 
+
+          refined_est$wd[[l]] <- wd
+          refined_est$wd2[[l]]<-  wd2
+
+
+          par_resc<-  Y_c -Reduce("+",
+                                  lapply( (1: length(refined_est$idx_lead_cov))[-l],
+                                          function(j)
+                                            X[,refined_est$idx_lead_cov[[j]]] %*%t( refined_est$wdC[[j]] )
+                                  )
+          )
+
+
+
+          res <- cal_Bhat_Shat(par_resc, matrix(X[,refined_est$idx_lead_cov[[l]]], ncol=1))
+
+
+
+          t_ash <- ash(c( res$Bhat),c(res$Shat),  mixcompdist = "normal")
+          refined_est$wdC[[l]] <- t_ash$result$PosteriorMean
+          refined_est$wdC[[l]] <-c( res$Bhat)
+
+        }
 
       }
-
     }
+
+    if(inherits(get_G_prior(susiF.obj),"mixture_normal" )){
+      for (k in 1:5){
+
+        for ( l in 1: length(susiF.obj$cs) ){
+          par_res<-  Y_f -Reduce("+",
+                                 lapply( (1: length(refined_est$idx_lead_cov))[-l],
+                                         function(j)
+                                           X[,refined_est$idx_lead_cov[[j]]] %*%t( refined_est$wd[[j]] )
+                                 )
+          )
+
+          res <- cal_Bhat_Shat(par_res, matrix(X[,refined_est$idx_lead_cov[[l]]], ncol=1))
+          t_ash <- ash(c( res$Bhat),c(res$Shat))
+          refined_est$wd[[l]] <- t_ash$result$PosteriorMean
+          refined_est$wd2[[l]]<- t_ash$result$PosteriorSD^2
+
+
+          par_resc<-  Y_c -Reduce("+",
+                                  lapply( (1: length(refined_est$idx_lead_cov))[-l],
+                                          function(j)
+                                            X[,refined_est$idx_lead_cov[[j]]] %*%t( refined_est$wdC[[j]] )
+                                  )
+          )
+
+          res <- cal_Bhat_Shat(par_resc, matrix(X[,refined_est$idx_lead_cov[[l]]], ncol=1))
+          t_ash <- ash(c( res$Bhat),c(res$Shat))
+          refined_est$wdC[[l]] <- t_ash$result$PosteriorMean
+          refined_est$wdC[[l]] <-c( res$Bhat)
+
+        }
+
+      }
+    }
+
+
+
   }
   for( l in 1:length(susiF.obj$cs)){
 
@@ -973,8 +1094,7 @@ TI_regression <- function( susiF.obj,Y,X, verbose=TRUE,
     dummy_station_wd$D <- refined_est$wd[[l]]
     mywst <- convert(dummy_station_wd  )
     nlevels <- nlevelsWT(wst)
-    refined_est$fitted_func[[l]]= av.basis(mywst, level = 6, ix1 = 0,
-                                           ix2 = 1, filter = mywst$filter)
+    refined_est$fitted_func[[l]]= AvBasis(mywst)
     mv.wd = wd.var(rep(0, ncol(Y)),   type = "station")
     mv.wd$D <-  (refined_est$wd2[[l]])
 
@@ -991,3 +1111,5 @@ TI_regression <- function( susiF.obj,Y,X, verbose=TRUE,
 
   return(susiF.obj)
 }
+
+
