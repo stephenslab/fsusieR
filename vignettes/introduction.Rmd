@@ -197,3 +197,82 @@ Note that fSuSiE has two different priors available \textit{mixture_normal_per_s
  out2$runtime
 ```
  
+ 
+#### Handling function of any length and unevely space data
+
+Wavelets are primarly design to analyse function sampled on $2^J$  envely spaced position. However, this assumption is unrealistic in practice. For  handling function of any length we use the approach of Kovac and Silvermann (2005) that basically remaps the data on a grid of length $2^J$. \textbf{What is important to know for the user:}  
+* if you don't provide the sampling position (e.g. base pair measurement) in the pos argument, susiF considers that the columns of Y corresponds to evenly spaced sampling positions. For exemple when fine mapping DNA methylation (DNAm) data, if you are trying to fine map meQTL, the columns of the Y matrix corresponds different CpG . You \textbf{should} provide the genomic position of each of this CpG as a vector in the "pos" argument in the susiF function.
+
+
+* susiF provide the estimated effect on the remapped effect on the $2^J$ internal grid. 
+
+
+Example of how to analysis unevenly spaced data.
+The black lines corresponds to  one of the SNP  effect in our data, the red ticks corresponds to the sampling positions and the red dots correspond to what part of the effect we can observe.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+set.seed(2)
+data(N3finemapping)
+attach(N3finemapping)
+
+rsnr <- 0.5 #expected root signal noise ratio
+
+pos1 <- 25    #Position of the causal covariate for effect 1
+pos2 <- 75    #Position of the causal covariate for effect 2
+lev_res <- 9#length of the molecular phenotype (2^lev_res)
+f1 <-  simu_IBSS_per_level(lev_res )$sim_func  #first effect
+f2 <- simu_IBSS_per_level(lev_res )$sim_func  #second effect
+
+
+## suppose we observe these functions on 200 points
+sampling_pos <- sample( 1:length(f1), size=200)
+sampling_pos <-sampling_pos  [order(sampling_pos)]
+
+plot(f2, type="l", main="underlying function and the different sampling postion")
+ points(sampling_pos, f2[sampling_pos], col="red",pch=20)
+ points(sampling_pos, rep(0, length(sampling_pos)), col="red",pch=3)
+ abline(0,0)
+ 
+```
+
+Lets generate the data under these conditions
+
+
+```{r message=FALSE, warning=FALSE}
+  f1_obs <- f1[sampling_pos]
+  f2_obs <- f2[sampling_pos]
+noisy.data  <- list()
+X <- N3finemapping$X[,1:100]
+for ( i in 1:nrow(X))
+{
+
+  noise <- rnorm(length(f1_obs ), sd=  2)
+  noisy.data [[i]] <-  X[i,pos1]*f1_obs +X[i,pos2]*f2_obs + noise
+
+}
+noisy.data <- do.call(rbind, noisy.data)
+
+Y <- noisy.data
+
+```
+
+
+To account for it simply pass the sampling position in the pos argument
+
+
+
+```{r message=FALSE, warning=FALSE}
+ out <- susiF(Y,X,L=3 ,pos= sampling_pos)
+```
+To visualize the estimated effect with the correct x coordinate use the "$outing_grid" object from the susiF.obj 
+
+In this example effect 2 (in our simulation) is capture in the first CS. The black line the actual true effect. The red dots are the effect level at the sampling position, the thick blue line is the estimated effect and the dashed line are the 95% credible bands
+
+```{r}
+plot(   x=1:512,           y=f2,type="l")
+points( x=sampling_pos,    y=f2_obs, col="red",pch=20)
+lines(  x=out$outing_grid, y=out$fitted_func[[1]]    ,col='darkblue', lwd=2)
+lines(  x=out$outing_grid, y= out$cred_band[[1]][1,] ,col='darkblue',lty=2 )
+lines(  x=out$outing_grid, y= out$cred_band[[1]][2,] ,col='darkblue' ,lty=2 )
+```
+

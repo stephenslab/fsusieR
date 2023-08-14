@@ -447,7 +447,7 @@ test_that("The precision of the fitted curves should be   ",
                                     tpi= outEM$tpi_k )
 
             susiF_obj <- update_susiF_obj(susiF_obj, 1, outEM, Bhat, Shat, indx_lst )
-            expect_equal(  sum( abs(unlist(update_cal_fit_func(susiF_obj, indx_lst)$fitted_func) -f1$sim_func)), 0, tol=0.03)
+            expect_equal(  sum( abs(unlist(update_cal_fit_func(susiF_obj, indx_lst=indx_lst,TI=FALSE)$fitted_func) -f1$sim_func)), 0, tol=0.03)
 
           }
 )
@@ -462,7 +462,7 @@ G_prior <- update_prior(G_prior,
 
 susiF_obj <-  update_susiF_obj(susiF_obj, 1, outEM, Bhat, Shat, indx_lst ,
                                lowc_wc=NULL)
-susiF_obj <-  out_prep(susiF_obj,Y, X=X, indx_lst=indx_lst,filter.cs = FALSE, outing_grid = 1:ncol(Y) )
+susiF_obj <-  out_prep(susiF_obj,Y=Y, X=X, indx_lst=indx_lst,filter.cs = FALSE,TI=TRUE outing_grid = 1:ncol(Y) )
 
 plot( unlist(susiF_obj$fitted_func) , type="l", col="green")
 lines( susiF_obj$cred_band [[1]][1,])

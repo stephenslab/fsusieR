@@ -30,7 +30,10 @@ susiF(
   max_scale = 10,
   max_SNP_EM = 1000,
   max_step_EM = 1,
-  cor_small = FALSE
+  cor_small = FALSE,
+  filter.number = 10,
+  family = "DaubLeAsymm",
+  TI = TRUE
 )
 }
 \arguments{
@@ -109,6 +112,10 @@ for more details). From the ash function:  multiplier by which the default grid 
 Set 10 true by default.}
 
 \item{max_step_EM}{max_step_EM}
+
+\item{filter.number}{see documentation of wd from wavethresh package}
+
+\item{family}{see documentation of wd from wavethresh package}
 }
 \description{
 Implementation of the SuSiF method

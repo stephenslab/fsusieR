@@ -11,7 +11,19 @@
 
 out_prep(susiF.obj, Y, X, indx_lst, filter.cs, lfsr_curve, outing_grid, ...)
 
-\method{out_prep}{susiF}(susiF.obj, Y, X, indx_lst, filter.cs, lfsr_curve, outing_grid, ...)
+\method{out_prep}{susiF}(
+  susiF.obj,
+  Y,
+  X,
+  indx_lst,
+  filter.cs,
+  lfsr_curve,
+  outing_grid,
+  TI,
+  filter.number = 10,
+  family = "DaubLeAsymm",
+  ...
+)
 }
 \arguments{
 \item{X}{matrix of size N by p}

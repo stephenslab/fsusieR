@@ -68,7 +68,8 @@
 #'@param max_scale numeric, define the maximum of wavelet coefficients used in the analysis (2^max_scale).
 #'        Set 10 true by default.
 #'@param max_step_EM max_step_EM
-#'
+#'@param filter.number see documentation of wd from wavethresh package
+#'@param family see documentation of wd from wavethresh package
 #' @examples
 #'
 #'library(ashr)
@@ -260,8 +261,9 @@ susiF <- function(Y, X, L = 2,
   X <- colScale(X)
   # centering input
   Y <- colScale(Y, scale=FALSE)
-  W <- DWT2(Y,filter.number = filter.number,
-            family = family)
+  W <- DWT2(Y,
+            filter.number = filter.number,
+            family        = family)
   Y_f      <-  cbind( W$D,W$C)
 
   if(verbose){
@@ -360,6 +362,7 @@ susiF <- function(Y, X, L = 2,
                                    cor_small      = cor_small )
 
   #preparing output
+
   susiF.obj <- out_prep(susiF.obj     = susiF.obj,
                         Y             = Y,
                         X             = X,

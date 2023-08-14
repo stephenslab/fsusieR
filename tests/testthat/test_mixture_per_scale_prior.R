@@ -369,7 +369,7 @@ test_that("The precision of the fitted curves should be   ",
                                     tpi= outEM$tpi_k )
 
             susiF_obj <- update_susiF_obj(susiF_obj, 1, outEM, Bhat, Shat, indx_lst )
-            expect_equal(  sum( abs(unlist(update_cal_fit_func(susiF_obj, indx_lst)$fitted_funcfitted_func[[1]]) -f1$sim_func)), 0, tol=0.01)
+            expect_equal(  sum( abs(unlist(update_cal_fit_func(susiF_obj, indx_lst=indx_lst, TI=FALSE)$fitted_funcfitted_func[[1]]) -f1$sim_func)), 0, tol=0.01)
 
 
           }
