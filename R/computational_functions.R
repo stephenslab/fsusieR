@@ -880,7 +880,7 @@ post_mat_sd.mixture_normal_per_scale <-  function( G_prior ,
 #' @importFrom wavethresh wd
 #' @importFrom wavethresh ash
 TI_regression <- function( susiF.obj,Y,X, verbose=TRUE,
-                           filter.number = 10, family = "DaubLeAsymm" ){
+                           filter.number = 10, family = "DaubLeAsymm"  ){
 
   if(verbose){
     print( "Fine mapping done, refining effect estimates using cylce spinning wavelet transfrom")
@@ -964,7 +964,7 @@ TI_regression <- function( susiF.obj,Y,X, verbose=TRUE,
                                        ncol=1))
       t_ash <- ash(c( res$Bhat),c(res$Shat))
       refined_est$wdC[[l]] <- t_ash$result$PosteriorMean
-      refined_est$wdC[[l]] <-c( res$Bhat)
+
     }
     if(inherits(get_G_prior(susiF.obj),"mixture_normal" )){
       res <- cal_Bhat_Shat(Y_f, matrix(X[,refined_est$idx_lead_cov[[1]]],
@@ -977,7 +977,7 @@ TI_regression <- function( susiF.obj,Y,X, verbose=TRUE,
                                        ncol=1))
       t_ash <- ash(c( res$Bhat),c(res$Shat))
       refined_est$wdC[[l]] <- t_ash$result$PosteriorMean
-      refined_est$wdC[[l]] <-c( res$Bhat)
+
     }
 
 
@@ -1036,15 +1036,10 @@ TI_regression <- function( susiF.obj,Y,X, verbose=TRUE,
                                   )
           )
 
-
-
           res <- cal_Bhat_Shat(par_resc, matrix(X[,refined_est$idx_lead_cov[[l]]], ncol=1))
-
-
-
-          t_ash <- ash(c( res$Bhat),c(res$Shat),  mixcompdist = "normal")
+          t_ash <- ash(c( res$Bhat),c(res$Shat))
           refined_est$wdC[[l]] <- t_ash$result$PosteriorMean
-          refined_est$wdC[[l]] <-c( res$Bhat)
+
 
         }
 
@@ -1078,7 +1073,7 @@ TI_regression <- function( susiF.obj,Y,X, verbose=TRUE,
           res <- cal_Bhat_Shat(par_resc, matrix(X[,refined_est$idx_lead_cov[[l]]], ncol=1))
           t_ash <- ash(c( res$Bhat),c(res$Shat))
           refined_est$wdC[[l]] <- t_ash$result$PosteriorMean
-          refined_est$wdC[[l]] <-c( res$Bhat)
+
 
         }
 
@@ -1094,12 +1089,14 @@ TI_regression <- function( susiF.obj,Y,X, verbose=TRUE,
     dummy_station_wd$D <- refined_est$wd[[l]]
     mywst <- convert(dummy_station_wd  )
     nlevels <- nlevelsWT(wst)
-    refined_est$fitted_func[[l]]= AvBasis(mywst)
+    refined_est$fitted_func[[l]]= av.basis(mywst, level = 6, ix1 = 0,
+                                           ix2 = 1, filter = mywst$filter) *1/(susiF.obj$csd_X[ which.max(susiF.obj$alpha[[l]])] )
     mv.wd = wd.var(rep(0, ncol(Y)),   type = "station")
     mv.wd$D <-  (refined_est$wd2[[l]])
 
 
-    refined_est$fitted_var[[l]]= AvBasis.var(convert.var(mv.wd))
+    refined_est$fitted_var[[l]]= AvBasis.var(convert.var(mv.wd))*(1/(susiF.obj$csd_X[ which.max(susiF.obj$alpha[[l]])] )^2)
+
     susiF.obj$fitted_func[[l]] <-  refined_est$fitted_func[[l]]
     up                         <-  susiF.obj$fitted_func[[l]]+ 3* sqrt(refined_est$fitted_var[[l]]) #*sqrt(susiF.obj$N-1)
     low                        <-  susiF.obj$fitted_func[[l]]- 3*sqrt(refined_est$fitted_var[[l]]) #*sqrt(susiF.obj$N-1)
@@ -1111,5 +1108,4 @@ TI_regression <- function( susiF.obj,Y,X, verbose=TRUE,
 
   return(susiF.obj)
 }
-
 
