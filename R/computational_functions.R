@@ -879,20 +879,50 @@ post_mat_sd.mixture_normal_per_scale <-  function( G_prior ,
 
 
 
+#'@title Compute refined estimate using translation invariant wavelet transform
+#'
+#' @description e Compute refined estimate using translation invariant wavelet transform
+#'
+#' @param susiF.obj  a susiF object
+#'
+#' @param Y  matrix of responses
+#'
+#' @param X matrix containing the covariates
+#' @param verbose logical
+#' @param filter.number see wd description in wavethresh package description
+#' @param family  see wd description in wavethresh package description
+#' @export
 
+
+TI_regression <- function (susiF.obj,Y,X, verbose ,
+                           filter.number , family   ,...)
+  UseMethod("TI_regression")
+
+
+#' @rdname TI_regression
+#'
+#' @method TI_regression susiF
+#'
+#' @export TI_regression.susiF
+#'
+#'
 #' @importFrom ashr ash
-#
 #' @importFrom wavethresh wd
-TI_regression <- function( susiF.obj,Y,X, verbose=TRUE,
+#' @importFrom wavethresh convert
+#' @importFrom wavethresh nlevelsWT
+#' @importFrom wavethresh av.basis
+#' @export
+#'
+TI_regression.susiF <- function( susiF.obj,Y,X, verbose=TRUE,
                            filter.number = 10, family = "DaubLeAsymm"  ){
 
   if(verbose){
-    print( "Fine mapping done, refining effect estimates using cylce spinning wavelet transfrom")
+    print( "Fine mapping done, refining effect estimates using cylce spinning wavelet transform")
   }
 
-  dummy_station_wd <- wd(Y[1,], type="station",
-                         filter.number = filter.number ,
-                         family = family)
+  dummy_station_wd <- wavethresh::wd(Y[1,], type="station",
+                                     filter.number = filter.number ,
+                                     family = family)
 
 
   Y_f <- do.call(rbind, lapply(1:nrow(Y),
@@ -936,7 +966,7 @@ TI_regression <- function( susiF.obj,Y,X, verbose=TRUE,
       temp <-   lapply(1:nrow(dummy_station_wd$fl.dbase$first.last.d),
                        function(s){
                          level <- s
-                         n <- 2^nlevelsWT(dummy_station_wd)
+                         n <- 2^wavethresh::nlevelsWT(dummy_station_wd)
                          first.last.d <-dummy_station_wd$fl.dbase$first.last.d
                          first.level <- first.last.d[level, 1]
                          last.level <- first.last.d[level, 2]
@@ -1007,7 +1037,7 @@ TI_regression <- function( susiF.obj,Y,X, verbose=TRUE,
           temp <-   lapply(1:nrow(dummy_station_wd$fl.dbase$first.last.d),
                            function(s){
                              level <- s
-                             n <- 2^nlevelsWT(dummy_station_wd)
+                             n <- 2^wavethresh::nlevelsWT(dummy_station_wd)
                              first.last.d <-dummy_station_wd$fl.dbase$first.last.d
                              first.level <- first.last.d[level, 1]
                              last.level <- first.last.d[level, 2]
@@ -1092,9 +1122,9 @@ TI_regression <- function( susiF.obj,Y,X, verbose=TRUE,
 
     dummy_station_wd$C <- refined_est$wdC[[l]]
     dummy_station_wd$D <- refined_est$wd[[l]]
-    mywst <- convert(dummy_station_wd  )
+    mywst <- wavethresh::convert(dummy_station_wd  )
     nlevels <- nlevelsWT(wst)
-    refined_est$fitted_func[[l]]= av.basis(mywst, level = (dummy_station_wd$nlevels-1), ix1 = 0,
+    refined_est$fitted_func[[l]]=  wavethresh::av.basis(mywst, level = (dummy_station_wd$nlevels-1), ix1 = 0,
                                            ix2 = 1, filter = mywst$filter) *1/(susiF.obj$csd_X[ which.max(susiF.obj$alpha[[l]])] )
     mv.wd = wd.var(rep(0, ncol(Y)),   type = "station")
     mv.wd$D <-  (refined_est$wd2[[l]])

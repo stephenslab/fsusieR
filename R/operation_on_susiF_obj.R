@@ -2229,7 +2229,6 @@ which_dummy_cs.susiF <- function(susiF.obj, min.purity=0.5,X,median_crit=FALSE,.
     return(dummy.cs)
   }
 
-
   f_crit <- function (susiF.obj, min.purity=0.5, l, median_crit=FALSE){
     if( median_crit){
       #if( length(susiF.obj$cs[[l]] )  < ncol(X)/10) {
@@ -2251,6 +2250,8 @@ which_dummy_cs.susiF <- function(susiF.obj, min.purity=0.5,X,median_crit=FALSE,.
 
     return( is.dummy.cs)
   }
+
+
 
 
 
