@@ -1123,7 +1123,7 @@ TI_regression.susiF <- function( susiF.obj,Y,X, verbose=TRUE,
     dummy_station_wd$C <- refined_est$wdC[[l]]
     dummy_station_wd$D <- refined_est$wd[[l]]
     mywst <- wavethresh::convert(dummy_station_wd  )
-    nlevels <- nlevelsWT(wst)
+    nlevels <-wavethresh::nlevelsWT(mywst)
     refined_est$fitted_func[[l]]=  wavethresh::av.basis(mywst, level = (dummy_station_wd$nlevels-1), ix1 = 0,
                                            ix2 = 1, filter = mywst$filter) *1/(susiF.obj$csd_X[ which.max(susiF.obj$alpha[[l]])] )
     mv.wd = wd.var(rep(0, ncol(Y)),   type = "station")
