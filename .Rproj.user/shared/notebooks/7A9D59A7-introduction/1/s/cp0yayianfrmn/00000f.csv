@@ -1,3 +1,0 @@
-"0"," par(mfrow=c(1,2))"
-"0"," "
-"0"," plot( f1, type=""l"", main=""Estimated effect 1"", xlab="""")"
