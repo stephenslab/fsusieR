@@ -1042,6 +1042,7 @@ out_prep.susiF <- function(susiF.obj,
                            TI,
                            filter.number = 10,
                            family =  "DaubLeAsymm",
+                           HMM=FALSE,
                            ...)
 {
 
@@ -1060,6 +1061,7 @@ out_prep.susiF <- function(susiF.obj,
                                       X=X,
                                       indx_lst= indx_lst,
                                       TI=TI,
+                                      HMM= HMM,
                                       filter.number = filter.number,
                                       family        = family)
 
@@ -1639,6 +1641,7 @@ update_cal_cs.susiF <- function(susiF.obj, cov_lev=0.95, l,...)
   if( !missing(l)){
     if(sum( is.na(unlist(susiF.obj$alpha[[l]]))))
     {
+
       stop("Error: some alpha value not updated, please update alpha value first")
     }
     temp        <- susiF.obj$alpha[[l]]
@@ -1779,6 +1782,7 @@ update_cal_fit_func.susiF <- function(susiF.obj,
                                       X,
                                       indx_lst,
                                       TI=TRUE,
+                                      HMM=FALSE,
                                       filter.number = 10,
                                       family = "DaubLeAsymm" ,...)
 {
@@ -1797,32 +1801,36 @@ update_cal_fit_func.susiF <- function(susiF.obj,
 
     )
   }else{
+     if (HMM){
+
+     }else{
+       temp <- wavethresh::wd(rep(0, susiF.obj$n_wac))
+
+       if(inherits(get_G_prior(susiF.obj),"mixture_normal_per_scale" ))
+       {
+         for ( l in 1:susiF.obj$L)
+         {
+           temp$D                     <- (susiF.obj$alpha[[l]])%*%sweep( susiF.obj$fitted_wc[[l]][,-indx_lst[[length(indx_lst)]]],
+                                                                         1,
+                                                                         1/(susiF.obj$csd_X ), "*")
+           temp$C[length(temp$C)]     <- (susiF.obj$alpha[[l]])%*% (susiF.obj$fitted_wc[[l]][,indx_lst[[length(indx_lst)]]]*( 1/(susiF.obj$csd_X )))
+           susiF.obj$fitted_func[[l]] <-  wavethresh::wr(temp)
+         }
+       }
+       if(inherits(get_G_prior(susiF.obj),"mixture_normal" ))
+       {
+         for ( l in 1:susiF.obj$L)
+         {
+           temp$D                     <- (susiF.obj$alpha[[l]])%*%sweep(susiF.obj$fitted_wc[[l]][,-dim(susiF.obj$fitted_wc[[l]])[2]],
+                                                                        1,
+                                                                        1/(susiF.obj$csd_X ), "*")
+           temp$C[length(temp$C)]     <- (susiF.obj$alpha[[l]])%*% (susiF.obj$fitted_wc[[l]][,dim(susiF.obj$fitted_wc[[l]])[2]]*( 1/(susiF.obj$csd_X )) )
+           susiF.obj$fitted_func[[l]] <- wr(temp)
+         }
+       }
+     }
 
 
-    temp <- wavethresh::wd(rep(0, susiF.obj$n_wac))
-
-    if(inherits(get_G_prior(susiF.obj),"mixture_normal_per_scale" ))
-    {
-      for ( l in 1:susiF.obj$L)
-      {
-        temp$D                     <- (susiF.obj$alpha[[l]])%*%sweep( susiF.obj$fitted_wc[[l]][,-indx_lst[[length(indx_lst)]]],
-                                                                      1,
-                                                                      1/(susiF.obj$csd_X ), "*")
-        temp$C[length(temp$C)]     <- (susiF.obj$alpha[[l]])%*% (susiF.obj$fitted_wc[[l]][,indx_lst[[length(indx_lst)]]]*( 1/(susiF.obj$csd_X )))
-        susiF.obj$fitted_func[[l]] <-  wavethresh::wr(temp)
-      }
-    }
-    if(inherits(get_G_prior(susiF.obj),"mixture_normal" ))
-    {
-      for ( l in 1:susiF.obj$L)
-      {
-        temp$D                     <- (susiF.obj$alpha[[l]])%*%sweep(susiF.obj$fitted_wc[[l]][,-dim(susiF.obj$fitted_wc[[l]])[2]],
-                                                                     1,
-                                                                     1/(susiF.obj$csd_X ), "*")
-        temp$C[length(temp$C)]     <- (susiF.obj$alpha[[l]])%*% (susiF.obj$fitted_wc[[l]][,dim(susiF.obj$fitted_wc[[l]])[2]]*( 1/(susiF.obj$csd_X )) )
-        susiF.obj$fitted_func[[l]] <- wr(temp)
-      }
-    }
   }
 
   return(susiF.obj)

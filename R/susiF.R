@@ -206,13 +206,19 @@ susiF <- function(Y, X, L = 2,
                   cor_small=FALSE,
                   filter.number = 10,
                   family = "DaubLeAsymm",
-                  TI=TRUE
+                  TI=TRUE,
+                  HMM =FALSE
 
 )
 {
 
   if(max_SNP_EM<10){
     stop("Argument max_SNP_EM has to be larger than 10")
+  }
+
+
+  if( TI==TRUE & HMM ==TRUE){
+    stop("Please choose on type of postprocessing whether Translation invariant wavelets (TI) or Hidden Markov model (HMM)")
   }
 
   ####Cleaning input -----
@@ -372,7 +378,8 @@ susiF <- function(Y, X, L = 2,
                         outing_grid   = outing_grid,
                         filter.number = filter.number,
                         family        = family,
-                        TI            = TI
+                        TI            = TI,
+                        HMM           = HMM
   )
   susiF.obj$runtime <- proc.time()-pt
   return(susiF.obj)
