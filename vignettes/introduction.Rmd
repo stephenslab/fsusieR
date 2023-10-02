@@ -73,7 +73,7 @@ legend(x=100,
        y=3,
        lty = rep(1,3),
       legend= c("effect 1", "effect 2" ),
-       col=c("black","blue","yellow"))
+       col=c( "blue","green"))
 
 ```
 So the underlying causal variants are variant 25  and variant 75. The plot above shows the functional effect of the two variants. Below, we generate the  observed curves (effect +noise)
@@ -275,4 +275,29 @@ lines(  x=out$outing_grid, y=out$fitted_func[[1]]    ,col='darkblue', lwd=2)
 lines(  x=out$outing_grid, y= out$cred_band[[1]][1,] ,col='darkblue',lty=2 )
 lines(  x=out$outing_grid, y= out$cred_band[[1]][2,] ,col='darkblue' ,lty=2 )
 ```
+
+
+
+
+### Prediction
+
+You can also check the predictive power of susiF by checking the fitted from the output susiF
+
+
+Here the comparison betwe
+```{r}
+true_sig  <- matrix( X[ ,pos1], ncol=1)%*%t(f1_obs) +matrix( X[ ,pos2], ncol=1)%*%t(f2_obs)             
+
+
+plot(out$ind_fitted_func,  true_sig) 
+abline(a=0,b=1)
+```
+
+Note that these prediction can different substantially from the observed noisy curves
+```{r}
+
+plot(out$ind_fitted_func,  Y) 
+abline(a=0,b=1)
+```
+
 

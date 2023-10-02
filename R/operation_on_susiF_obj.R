@@ -1046,6 +1046,7 @@ out_prep.susiF <- function(susiF.obj,
                            ...)
 {
 
+
   susiF.obj <-  update_cal_pip(susiF.obj)
 
   susiF.obj <-  name_cs(susiF.obj,X)
@@ -1056,6 +1057,10 @@ out_prep.susiF <- function(susiF.obj,
     susiF.obj <- check_cs(susiF.obj,min.purity=0.5,X=X)
   }
 
+
+  if( HMM==FALSE){
+    susiF.obj <-  update_cal_lfsr_func    (susiF.obj, lfsr_curve,indx_lst)
+  }
     susiF.obj <-  update_cal_fit_func(susiF.obj,
                                       Y=Y,
                                       X=X,
@@ -1065,8 +1070,15 @@ out_prep.susiF <- function(susiF.obj,
                                       filter.number = filter.number,
                                       family        = family)
 
-  # susiF.obj <-  update_cal_indf(susiF.obj, Y, X, indx_lst)
-  # susiF.obj <-  update_cal_lfsr_func    (susiF.obj, lfsr_curve,indx_lst)
+    if(  HMM==FALSE){
+      susiF.obj <-  update_cal_indf(susiF.obj = susiF.obj ,
+                                    Y         = Y,
+                                    X         = X,
+                                    indx_lst  = indx_lst,
+                                    TI        = TI)
+    }
+  #
+  #
 
 
 
@@ -1684,7 +1696,7 @@ update_cal_cs.susiF <- function(susiF.obj, cov_lev=0.95, l,...)
 #@export
 #
 
-update_cal_indf <- function(susiF.obj, Y, X, indx_lst,...)
+update_cal_indf <- function(susiF.obj, Y, X, indx_lst, TI=FALSE,...)
   UseMethod("update_cal_indf")
 
 # @rdname update_cal_indf
@@ -1700,47 +1712,71 @@ update_cal_indf <- function(susiF.obj, Y, X, indx_lst,...)
 # @export
 #
 
-update_cal_indf.susiF <- function(susiF.obj, Y, X, indx_lst,...)
+update_cal_indf.susiF <- function(susiF.obj, Y, X, indx_lst, TI=FALSE,...)
 {
-  mean_Y          <- attr(Y, "scaled:center")
-  if(sum( is.na(unlist(susiF.obj$alpha))))
-  {
-    stop("Error: some alpha value not updated, please update alpha value first")
-  }
-  temp <- wavethresh::wd(rep(0, susiF.obj$n_wac)) #create dummy wd object
+
+  if( TI){
+
+    idx_lead_cov <- list()
+
+    for (l in 1:length(susiF.obj$alpha)){
+      idx_lead_cov[[l]]  <- which.max(susiF.obj$alpha[[l]])
+    }
+    mean_Y          <- attr(Y, "scaled:center")
+    susiF.obj$ind_fitted_func <- matrix(mean_Y,
+                                        byrow=TRUE,
+                                        nrow=nrow(Y),
+                                        ncol=ncol(Y))+Reduce("+",
+                                        lapply(1:length(susiF.obj$alpha),
+                                               function(l)
+                                                 matrix( X[,idx_lead_cov[[l]]] , ncol=1)%*%  t(susiF.obj$fitted_func[[l]] )*(attr(X, "scaled:scale")[idx_lead_cov[[l]]])
+                                               )
+                                        )
+
+    return( susiF.obj)
+  }else{
+    mean_Y          <- attr(Y, "scaled:center")
+    if(sum( is.na(unlist(susiF.obj$alpha))))
+    {
+      stop("Error: some alpha value not updated, please update alpha value first")
+    }
+    temp <- wavethresh::wd(rep(0, susiF.obj$n_wac)) #create dummy wd object
 
 
-  if(inherits(get_G_prior(susiF.obj),"mixture_normal_per_scale" ))
-  {
-    for ( i in 1:susiF.obj$N)
+    if(inherits(get_G_prior(susiF.obj),"mixture_normal_per_scale" ))
     {
-      susiF.obj$ind_fitted_func[i,]  <- mean_Y#fitted_baseline future implementation
-      for ( l in 1:susiF.obj$L)
+      for ( i in 1:susiF.obj$N)
       {
-        #add wavelet coefficient
-        temp$D                         <-    ( susiF.obj$alpha[[l]] *sweep(X, MARGIN=2, 1/(attr(X, "scaled:scale") ), '*')[i,])%*%susiF.obj$fitted_wc[[l]][,-indx_lst[[length(indx_lst)]]]
-        temp$C[length(temp$C)]         <-    ( susiF.obj$alpha[[l]] *sweep(X, MARGIN=2, 1/(attr(X, "scaled:scale") ), '*')[i,])%*%susiF.obj$fitted_wc[[l]][,indx_lst[[length(indx_lst)]]]
-        #transform back
-        susiF.obj$ind_fitted_func[i,]  <-  susiF.obj$ind_fitted_func[i,]+wavethresh::wr(temp)
+        susiF.obj$ind_fitted_func[i,]  <- mean_Y#fitted_baseline future implementation
+        for ( l in 1:susiF.obj$L)
+        {
+          #add wavelet coefficient
+          temp$D                         <-    ( susiF.obj$alpha[[l]] * X [i,])%*%susiF.obj$fitted_wc[[l]][,-indx_lst[[length(indx_lst)]]]
+          temp$C[length(temp$C)]         <-    ( susiF.obj$alpha[[l]] * X [i,])%*%susiF.obj$fitted_wc[[l]][,indx_lst[[length(indx_lst)]]]
+          #transform back
+          susiF.obj$ind_fitted_func[i,]  <-  susiF.obj$ind_fitted_func[i,]+wavethresh::wr(temp)
+        }
       }
     }
-  }
-  if(inherits(get_G_prior(susiF.obj),"mixture_normal" ))
-  {
-    for ( i in 1:susiF.obj$N)
+    if(inherits(get_G_prior(susiF.obj),"mixture_normal" ))
     {
-      susiF.obj$ind_fitted_func[i,]  <- mean_Y#fitted_baseline
-      for ( l in 1:susiF.obj$L)
+      for ( i in 1:susiF.obj$N)
       {
-        #add wavelet coefficient
-        temp$D                         <-    (susiF.obj$alpha[[l]] *sweep(X, MARGIN=2, attr(X, "scaled:scale"), '*')[i,])%*%susiF.obj$fitted_wc[[l]][,-dim(susiF.obj$fitted_wc[[l]])[2]]
-        temp$C[length(temp$C)]         <-    (susiF.obj$alpha[[l]] *sweep(X, MARGIN=2, attr(X, "scaled:scale"), '*')[i,]) %*%susiF.obj$fitted_wc[[l]][,dim(susiF.obj$fitted_wc[[l]])[2]]
-        #transform back
-        susiF.obj$ind_fitted_func[i,]  <-  susiF.obj$ind_fitted_func[i,]+wavethresh::wr(temp)
+        susiF.obj$ind_fitted_func[i,]  <- mean_Y#fitted_baseline
+        for ( l in 1:susiF.obj$L)
+        {
+          #add wavelet coefficient
+          temp$D                         <-    (susiF.obj$alpha[[l]] * X [i,])%*%susiF.obj$fitted_wc[[l]][,-dim(susiF.obj$fitted_wc[[l]])[2]]
+          temp$C[length(temp$C)]         <-    (susiF.obj$alpha[[l]] * X [i,]) %*%susiF.obj$fitted_wc[[l]][,dim(susiF.obj$fitted_wc[[l]])[2]]
+          #transform back
+          susiF.obj$ind_fitted_func[i,]  <-  susiF.obj$ind_fitted_func[i,]+wavethresh::wr(temp)
+        }
       }
     }
+    return( susiF.obj)
   }
-  return( susiF.obj)
+
+
 }
 
 
@@ -1760,7 +1796,7 @@ update_cal_indf.susiF <- function(susiF.obj, Y, X, indx_lst,...)
 #
 #' @export
 #' @keywords internal
-update_cal_fit_func  <- function(susiF.obj,Y,X,indx_lst, TI,filter.number = 10,
+update_cal_fit_func  <- function(susiF.obj,Y,X,indx_lst, TI,HMM,filter.number = 10,
                                  family = "DaubLeAsymm", ...)
   UseMethod("update_cal_fit_func")
 
@@ -1788,11 +1824,12 @@ update_cal_fit_func.susiF <- function(susiF.obj,
 {
 
 
+
   if(sum( is.na(unlist(susiF.obj$alpha))))
   {
     stop("Error: some alpha value not updated, please update alpha value first")
   }
-  if (TI){
+  if (TI==TRUE){
     susiF.obj <- TI_regression(susiF.obj=susiF.obj,
                                Y=Y,
                                X=X,
@@ -1801,8 +1838,11 @@ update_cal_fit_func.susiF <- function(susiF.obj,
 
     )
   }else{
-     if (HMM){
-
+     if (HMM==TRUE){
+       susiF.obj <- HMM_regression(susiF.obj=susiF.obj,
+                                  Y=Y,
+                                  X=X
+       )
      }else{
        temp <- wavethresh::wd(rep(0, susiF.obj$n_wac))
 

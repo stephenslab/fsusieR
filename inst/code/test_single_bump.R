@@ -1,15 +1,16 @@
 rm(list=ls())
+devtools::load_all(".")
 library(susiF.alpha)
 library(ashr)
 library(wavethresh)
 set.seed(1)
 #Example using curves simulated under the Mixture normal per scale prior
-sd_noise <- 0.5 #expected root signal noise ratio
+sd_noise <- 1 #expected root signal noise ratio
 N <- 100    #Number of individuals
 P <- 10     #Number of covariates/SNP
 pos1 <- 1   #Position of the causal covariate for effect 1
 pos2 <- 5   #Position of the causal covariate for effect 2
-lev_res <-8#length of the molecular phenotype (2^lev_res)
+lev_res <-7#length of the molecular phenotype (2^lev_res)
 f1 <-  rep(0, 2^lev_res)
 f1[ 20:25] <-2
 f1[ 50:55] <-1
@@ -39,7 +40,7 @@ noisy.data <- do.call(rbind, noisy.data)
 Y <- noisy.data
 out <- susiF(Y,X,L=2 , prior = 'mixture_normal_per_scale', filter.number =8  )
 
-out2 <- susiF(Y,X,L=2 , prior = 'mixture_normal_per_scale', TI=FALSE,filter.number =8  )
+out2 <- susiF(Y,X,L=2 , prior = 'mixture_normal_per_scale', filter.number =8  )
 
 
 X <- colScale(X)
@@ -55,16 +56,21 @@ idx <- do.call( c, lapply( 1:length(susiF.obj$cs),
                            }
 )
 )
+
+temp_Y <- Y
+res <- cal_Bhat_Shat(temp_Y,X )
 source("D:/Document/Serieux/Travail/Package/susiF.alpha/inst/code/fit_hmm.R" )
+
+
 
 temp_Y <- Y
 fitted_trend <- list()
 for ( k in 1:10){
   for (j in 1:length(idx)){
     res <- cal_Bhat_Shat(temp_Y,X )
-    #plot(res$Bhat[idx[j],])
-    s =fit_hmm(x=res$Bhat[idx[j],],sd=res$Shat[idx[j],],50, smooth =TRUE)
-    #plot(predict(s))
+
+    s =fit_hmm(x=res$Bhat[idx[j],],sd=res$Shat[idx[j],],halfK=100 )
+
     fitted_trend[[j]] <- s$x_post
     if( j ==length(idx)){
       idx_var <- (1:length(idx)) [- (1)]
@@ -83,7 +89,7 @@ for ( k in 1:10){
   }
 
 }
-temp_Y <- Y
+
 res <- cal_Bhat_Shat(temp_Y,X )
 fitted_trend <- lapply(1:length(idx), function(l)
                             fitted_trend[[l]]/susiF.obj$csd_X[idx[l]]
@@ -93,11 +99,37 @@ plot( f1, type="l", main="Estimated effect 1, sd=1",
       xlab="" ,lwd=2   )
 
 
-lines( out$fitted_func[[2]] ,col='blue',lwd=1.5   )
+lines( fitted_trend[[1]] ,col='blue',lwd=1.5   )
 
-lines(fitted_trend[[2]],col='red' ,lwd=1.5 )
-source("D:/Document/Serieux/Travail/Package/susiF.alpha/inst/code/fit_hmm.R" )
-tt <- fit_hmm(x=res$Bhat[idx[2],],sd=res$Shat[idx[2],],50, smooth = FALSE)
+
+plot( f2, type="l", main="Estimated effect 1, sd=1",
+      xlab="" ,lwd=2   )
+
+lines( fitted_trend[[2]] ,col='blue',lwd=1.5   )
+
+susiF.obj$ind_fitted_func
+truth <- matrix(X[,pos1], ncol=1)%*%t(f1)+matrix(X[,pos2], ncol=1)%*%t(f2)
+t2 <-matrix( X[,pos1] , ncol=1)%*%  t(susiF.obj$fitted_func[[1]] )+matrix( X[,pos2] , ncol=1)%*%  t(susiF.obj$fitted_func[[2]] )
+t2 <- t2+matrix(mean_Y,
+                byrow=TRUE,
+                nrow=nrow(Y),
+                ncol=ncol(Y))
+plot( t2, truth)
+plot( susiF.obj$ind_fitted_func, truth)
+
+
+
+
+
+
+
+
+
+
+
+lines(fitted_trend[[1]],col='red' ,lwd=1.5 )
+source("D:/Document/Serieux/Travail/Package/susiF.alpha/inst/code/scaled_hmm.R" )
+tt <- fit_hmm(x=res$Bhat[idx[1],],sd=res$Shat[idx[1],],50 )
 lines(apply(tt$prob[,-1],1, sum), lwd=1.5, col="darkgreen")
 
  lines( tt$x_post/ susiF.obj$csd_X[idx[2]], lwd=2, col="green")
@@ -120,9 +152,12 @@ legend(x= 80,
 library(smashr)
 plot( f2, type="l", main="Estimated effect 1, sd=1",
       xlab="" ,lwd=2   )
-lines(fitted_trend[[1]],col='blue' ,lwd=1.5 )
-lines(smash(x=res$Bhat[idx[1],] , sigma=res$Shat[idx[1],] )/ susiF.obj$csd_X[idx[2]],col='red',lwd=2)
-tt <- fit_hmm(x=res$Bhat[idx[1],],sd=res$Shat[idx[1],],100,mult=2 ,smooth = FALSE)
+lines(fitted_trend[[2]]/ susiF.obj$csd_X[idx[2]],col='blue' ,lwd=1.5 )
+lines(smash(x=res$Bhat[idx[2],] , sigma=res$Shat[idx[2],] )/ susiF.obj$csd_X[idx[2]],col='red',lwd=2)
+tt <- fit_hmm(x=res$Bhat[idx[2],],
+              sd=res$Shat[idx[2],],50,
+              mult=2 ,prefilter=FALSE,
+              smooth = FALSE)
 lines( tt$x_post/ susiF.obj$csd_X[idx[2]], lwd=2, col="green")
 
 legend(x= 60,
@@ -151,15 +186,15 @@ legend(x= 80,
        bty = "n"
 )
 
-plot( f2, type="l", main="Estimated effect 2, sd=1", xlab="",lwd=1.5  )
+plot( f1, type="l", main="Estimated effect 2, sd=1", xlab="",lwd=1.5  )
 
 
 lines( out$fitted_func[[1]] ,col='blue' ,lwd=1.5)
 
-lines(fitted_trend[[1]],col='red' ,lwd=1.5)
-source("D:/Document/Serieux/Travail/Package/susiF.alpha/inst/code/fit_hmm.R" )
+lines(fitted_trend[[1]]/ susiF.obj$csd_X[idx[1]],col='red' ,lwd=1.5)
+source("D:/Document/Serieux/Travail/Package/susiF.alpha/inst/code/scaled_hmm.R" )
 
-tt <- fit_hmm(res$Bhat[idx[1],],res$Shat[idx[1],],100, smooth = TRUE)
+tt <- fit_hmm(res$Bhat[idx[1],],res$Shat[idx[1],],100, smooth =FALSE)
 lines(apply(tt$prob[,-1],1, sum), lwd=2, col="darkgreen")
 lines( tt$prob%*%tt$mu/ susiF.obj$csd_X[idx[2]], lwd=2, col="green")
 lines( tt$x_post/ susiF.obj$csd_X[idx[2]], lwd=2, col="green")

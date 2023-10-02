@@ -70,6 +70,9 @@
 #'@param max_step_EM max_step_EM
 #'@param filter.number see documentation of wd from wavethresh package
 #'@param family see documentation of wd from wavethresh package
+#'@param  post_processing character, use "TI" for translation invariant wavelet estimates,
+#'"HMM" for hidden Markov model (usefull for estiamting non-zero regions),
+#' "none" for simple wavelet estiamte (not recommended)
 #' @examples
 #'
 #'library(ashr)
@@ -206,8 +209,7 @@ susiF <- function(Y, X, L = 2,
                   cor_small=FALSE,
                   filter.number = 10,
                   family = "DaubLeAsymm",
-                  TI=TRUE,
-                  HMM =FALSE
+                  post_processing="TI"
 
 )
 {
@@ -217,8 +219,18 @@ susiF <- function(Y, X, L = 2,
   }
 
 
-  if( TI==TRUE & HMM ==TRUE){
-    stop("Please choose on type of postprocessing whether Translation invariant wavelets (TI) or Hidden Markov model (HMM)")
+
+ if(post_processing=="TI"){
+   TI  <- TRUE
+   HMM <- FALSE
+ }
+  if(post_processing=="HMM"){
+    TI  <- FALSE
+    HMM <- TRUE
+  }
+  if(post_processing=="none"){
+    TI  <- FALSE
+    HMM <- FALSE
   }
 
   ####Cleaning input -----

@@ -6,13 +6,13 @@
 
 
 fit_hmm <- function (x,sd,
-                     halfK=20,
+                     halfK=50,
                      mult=2,
                      smooth=FALSE,
                      thresh=0.00001,
                      prefilter=TRUE,
                      thresh_prefilter=1e-3,
-                     maxiter=10){
+                     maxiter=5){
 
 
   K = 2*halfK-1
@@ -223,7 +223,7 @@ fit_hmm <- function (x,sd,
 
 
   iter =1
-  plot( X)
+ # plot( X)
 
   while( iter <maxiter){
 
@@ -398,13 +398,12 @@ fit_hmm <- function (x,sd,
     P <- P*col_s
     P[is.na(P)] <- 0
     iter =iter +1
-    lines( x_post, col=iter)
+    #lines( x_post, col=iter)
 
 
-    print( sum(log(G_t[-1])))
+    #print( sum(log(G_t[-1])))
   }
   out <- list( prob =prob,
-               fitted= prob%*%mu,
                x_post = x_post,
                mu= mu)
 

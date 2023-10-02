@@ -462,7 +462,12 @@ G_prior <- update_prior(G_prior,
 
 susiF_obj <-  update_susiF_obj(susiF_obj, 1, outEM, Bhat, Shat, indx_lst ,
                                lowc_wc=NULL)
-susiF_obj <-  out_prep(susiF_obj,Y=Y, X=X, indx_lst=indx_lst,filter.cs = FALSE,TI=TRUE outing_grid = 1:ncol(Y) )
+susiF_obj <-  out_prep(susiF_obj,Y=Y,
+                       X=X,
+                       indx_lst=indx_lst,
+                       filter.cs = FALSE,
+                       TI=TRUE,
+                       outing_grid = 1:ncol(Y), lfsr_curve = 0.05 )
 
 plot( unlist(susiF_obj$fitted_func) , type="l", col="green")
 lines( susiF_obj$cred_band [[1]][1,])
