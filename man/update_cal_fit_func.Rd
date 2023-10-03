@@ -15,6 +15,7 @@ update_cal_fit_func(
   X,
   indx_lst,
   TI,
+  HMM,
   filter.number = 10,
   family = "DaubLeAsymm",
   ...
@@ -26,6 +27,7 @@ update_cal_fit_func(
   X,
   indx_lst,
   TI = TRUE,
+  HMM = FALSE,
   filter.number = 10,
   family = "DaubLeAsymm",
   ...

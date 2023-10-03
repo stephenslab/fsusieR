@@ -815,11 +815,12 @@ fit_hmm <- function (x,sd,
 #' @param Y  matrix of responses
 #'
 #' @param X matrix containing the covariates
-#'  @param maxit
+#' @param verbose logical
+#'  @param maxit  max number of iteration
 #' @export
 
 
-HMM_regression<- function (susiF.obj,Y,X, maxit,...)
+HMM_regression<- function (susiF.obj,Y,X, verbose=TRUE, maxit,...)
   UseMethod("HMM_regression")
 
 
@@ -833,13 +834,14 @@ HMM_regression<- function (susiF.obj,Y,X, maxit,...)
 #'
 
 
-HMM_regression.susiF <- function( susiF.obj,Y,X , maxit=5   ){
+HMM_regression.susiF <- function( susiF.obj,Y,X , verbose=TRUE, maxit=5   ){
 
-
+  if(verbose){
+    print( "Fine mapping done, refining effect estimates using HMM regression")
+  }
   idx <- do.call( c, lapply( 1:length(susiF.obj$cs),
                              function(l){
-                               tp_id <-  which.max( susiF.obj$pip[susiF.obj$cs[[l]]])
-                               susiF.obj$cs[[l]][tp_id]
+                               tp_id <-  which.max(susiF.obj$alpha[[l]])
                              }
   )
   )
@@ -847,7 +849,19 @@ HMM_regression.susiF <- function( susiF.obj,Y,X , maxit=5   ){
   temp_Y <- Y
   fitted_trend <- list()
   fitted_lfdr   <- list()
-  for ( k in 1:maxit){
+
+  if(  length(susiF.obj$cs)==1){
+
+
+    res <- cal_Bhat_Shat(temp_Y,X )
+
+    s = fit_hmm(x=res$Bhat[idx[1],],sd=res$Shat[idx[1],],halfK=100 )
+    fitted_lfdr [[1]] <- s$prob[,1]
+    fitted_trend[[1]] <- s$x_post
+
+
+  }else{
+    for ( k in 1:maxit){
     for (l in 1:length(idx)){
       res <- cal_Bhat_Shat(temp_Y,X )
 
@@ -872,9 +886,14 @@ HMM_regression.susiF <- function( susiF.obj,Y,X , maxit=5   ){
 
   }
 
+
+  }
+
+
   fitted_trend <- lapply(1:length(idx), function(l)
     fitted_trend[[l]]/susiF.obj$csd_X[idx[l]]
   )
+
 
 
   susiF.obj$fitted_func <- fitted_trend

@@ -33,7 +33,7 @@ susiF(
   cor_small = FALSE,
   filter.number = 10,
   family = "DaubLeAsymm",
-  TI = TRUE
+  post_processing = "TI"
 )
 }
 \arguments{
@@ -116,6 +116,10 @@ Set 10 true by default.}
 \item{filter.number}{see documentation of wd from wavethresh package}
 
 \item{family}{see documentation of wd from wavethresh package}
+
+\item{post_processing}{character, use "TI" for translation invariant wavelet estimates,
+"HMM" for hidden Markov model (usefull for estimating non-zero regions),
+"none" for simple wavelet estiamte (not recommended)}
 }
 \description{
 Implementation of the SuSiF method

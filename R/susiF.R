@@ -17,7 +17,9 @@
 #' @param pos vector of length J, corresponding to position/time pf
 #' the observed column in Y, if missing, suppose that the observation
 #' are evenly spaced
-#'
+#'@param  post_processing character, use "TI" for translation invariant wavelet estimates,
+#'"HMM" for hidden Markov model (usefull for estimating non-zero regions),
+#' "none" for simple wavelet estiamte (not recommended)
 #' @param prior specify the prior used in susiF. The two available choices are
 #' available "mixture_normal_per_scale", "mixture_normal". Default "mixture_normal_per_scale",
 #' if this susiF is too slow, consider using  "mixture_normal" (up to 40% faster), but this may result in
@@ -70,9 +72,6 @@
 #'@param max_step_EM max_step_EM
 #'@param filter.number see documentation of wd from wavethresh package
 #'@param family see documentation of wd from wavethresh package
-#'@param  post_processing character, use "TI" for translation invariant wavelet estimates,
-#'"HMM" for hidden Markov model (usefull for estiamting non-zero regions),
-#' "none" for simple wavelet estiamte (not recommended)
 #' @examples
 #'
 #'library(ashr)
