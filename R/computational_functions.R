@@ -438,9 +438,9 @@ fit_hmm <- function (x,sd,
     K <- length(mu)
   }
 
-  P <- diag(0.999,K) #this ensure that the HMM can only "transit via null state"
-  P[1,-1] <- 0.001
-  P[-1,1] <- 0.001
+  P <- diag(0.9,K) #this ensure that the HMM can only "transit via null state"
+  P[1,-1] <- 0.1
+  P[-1,1] <- 0.1
 
 
 
@@ -617,7 +617,7 @@ fit_hmm <- function (x,sd,
 
   iter =1
   # plot( X)
-
+  prob <-  prob[ ,idx_comp]
   while( iter <maxiter){
 
 
@@ -627,20 +627,8 @@ fit_hmm <- function (x,sd,
 
     data0 <-  set_data(X[1],sd[1])
 
-    pi <- (rep(1/K,K))
-
-    alpha_hat[1, ] = pi  *c(dnorm(X[1], mean=0, sd=sd[1]),
-                            sapply( 2:K, function( k) exp(ashr::calc_loglik(ash_obj[[k]],
-                                                                      data0)
-                            )
-                            )
-    )
-    alpha_tilde[1, ] = pi  *c(dnorm(X[1], mean=0, sd=sd[1]),
-                              sapply( 2:K, function( k) exp(ashr::calc_loglik(ash_obj[[k]],
-                                                                        data0)
-                              )
-                              )
-    )
+    alpha_hat[1, ] <- prob[1, ]
+    alpha_hat[1, ] <- prob[1, ]
 
 
 
@@ -653,7 +641,7 @@ fit_hmm <- function (x,sd,
 
 
 
-      alpha_tilde[t+1, ] = m  *c(dnorm(X[t], mean=0, sd=sd[t]),
+      alpha_tilde[t+1, ] = m  *c(dnorm(X[t+1], mean=0, sd=sd[t+1]),
                                  sapply( 2:K, function( k) exp(ashr::calc_loglik(ash_obj[[k]],
                                                                            data0)
                                  )
@@ -817,10 +805,11 @@ fit_hmm <- function (x,sd,
 #' @param X matrix containing the covariates
 #' @param verbose logical
 #'  @param maxit  max number of iteration
+#'  @param fit_indval logical if set to true compute fitted value (default value TRUE)
 #' @export
 
 
-HMM_regression<- function (susiF.obj,Y,X, verbose=TRUE, maxit,...)
+HMM_regression<- function (susiF.obj,Y,X, verbose=TRUE, maxit,fit_indval=TRUE,...)
   UseMethod("HMM_regression")
 
 
@@ -834,7 +823,13 @@ HMM_regression<- function (susiF.obj,Y,X, verbose=TRUE, maxit,...)
 #'
 
 
-HMM_regression.susiF <- function( susiF.obj,Y,X , verbose=TRUE, maxit=5   ){
+HMM_regression.susiF <- function( susiF.obj,
+                                  Y,
+                                  X ,
+                                  verbose=TRUE,
+                                  maxit=5 ,
+                                  fit_indval=TRUE
+                                  ){
 
   if(verbose){
     print( "Fine mapping done, refining effect estimates using HMM regression")
@@ -899,7 +894,9 @@ HMM_regression.susiF <- function( susiF.obj,Y,X , verbose=TRUE, maxit=5   ){
   susiF.obj$fitted_func <- fitted_trend
   susiF.obj$lfsr_func   <- fitted_lfdr
 
-  mean_Y          <- attr(Y, "scaled:center")
+
+ if( fit_indval ){
+   mean_Y          <- attr(Y, "scaled:center")
   susiF.obj$ind_fitted_func <- matrix(mean_Y,
                                       byrow=TRUE,
                                       nrow=nrow(Y),
@@ -909,6 +906,8 @@ HMM_regression.susiF <- function( susiF.obj,Y,X , verbose=TRUE, maxit=5   ){
                                                                     matrix( X[,idx[[l]]] , ncol=1)%*%  t(susiF.obj$fitted_func[[l]] )*(attr(X, "scaled:scale")[idx[[l]]])
                                                            )
                                       )
+
+ }
 
   return(susiF.obj)
 }

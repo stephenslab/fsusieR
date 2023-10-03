@@ -1057,10 +1057,6 @@ out_prep.susiF <- function(susiF.obj,
     susiF.obj <- check_cs(susiF.obj,min.purity=0.5,X=X)
   }
 
-
-  if( HMM==FALSE){
-    susiF.obj <-  update_cal_lfsr_func    (susiF.obj, lfsr_curve,indx_lst)
-  }
     susiF.obj <-  update_cal_fit_func(susiF.obj,
                                       Y=Y,
                                       X=X,
@@ -1076,6 +1072,8 @@ out_prep.susiF <- function(susiF.obj,
                                     X         = X,
                                     indx_lst  = indx_lst,
                                     TI        = TI)
+      susiF.obj <-  update_cal_lfsr_func    (susiF.obj, lfsr_curve,indx_lst)
+
     }
   #
   #

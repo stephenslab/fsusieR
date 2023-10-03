@@ -5,9 +5,9 @@
 \alias{HMM_regression.susiF}
 \title{Compute refined estimate using HMM regression}
 \usage{
-HMM_regression(susiF.obj, Y, X, verbose = TRUE, maxit, ...)
+HMM_regression(susiF.obj, Y, X, verbose = TRUE, maxit, fit_indval = TRUE, ...)
 
-\method{HMM_regression}{susiF}(susiF.obj, Y, X, verbose = TRUE, maxit = 5)
+\method{HMM_regression}{susiF}(susiF.obj, Y, X, verbose = TRUE, maxit = 5, fit_indval = TRUE)
 }
 \arguments{
 \item{susiF.obj}{a susiF object}
@@ -17,7 +17,8 @@ HMM_regression(susiF.obj, Y, X, verbose = TRUE, maxit, ...)
 \item{X}{matrix containing the covariates}
 
 \item{verbose}{logical
-@param maxit  max number of iteration}
+@param maxit  max number of iteration
+@param fit_indval logical if set to true compute fitted value (default value TRUE)}
 }
 \description{
 Compute refined estimate using HMM regression
