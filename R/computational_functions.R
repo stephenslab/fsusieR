@@ -850,7 +850,7 @@ HMM_regression.susiF <- function( susiF.obj,
 
     res <- cal_Bhat_Shat(temp_Y,X )
 
-    s = fit_hmm(x=res$Bhat[idx[1],],sd=res$Shat[idx[1],],halfK=100 )
+    s = fit_hmm(x=res$Bhat[idx[1],],sd=res$Shat[idx[1],],halfK=50 )
     fitted_lfdr [[1]] <- s$prob[,1]
     fitted_trend[[1]] <- s$x_post
 
@@ -860,7 +860,7 @@ HMM_regression.susiF <- function( susiF.obj,
     for (l in 1:length(idx)){
       res <- cal_Bhat_Shat(temp_Y,X )
 
-      s = fit_hmm(x=res$Bhat[idx[l],],sd=res$Shat[idx[l],],halfK=100 )
+      s = fit_hmm(x=res$Bhat[idx[l],],sd=res$Shat[idx[l],],halfK=50 )
       fitted_lfdr [[l]] <- s$prob[,1]
       fitted_trend[[l]] <- s$x_post
       if( l ==length(idx)){
@@ -1537,7 +1537,7 @@ TI_regression.susiF <- function( susiF.obj,Y,X, verbose=TRUE,
 
     if( inherits(get_G_prior(susiF.obj),"mixture_normal_per_scale" )){
 
-      for (k in 1:5){
+      for (k in 1:3){
 
         for ( l in 1: length(susiF.obj$cs) ){
           par_res<-  Y_f -Reduce("+",
