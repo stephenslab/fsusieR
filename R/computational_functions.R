@@ -396,7 +396,7 @@ fit_ash_level <- function (Bhat, Shat, s, indx_lst, lowc_wc,...)
   return(out)
 }
 
-
+#' @importFrom ashr calc_loglik
 
 fit_hmm <- function (x,sd,
                      halfK=50,
@@ -462,7 +462,7 @@ fit_hmm <- function (x,sd,
 
 
 
-  # Forward algorithm -----
+  # Forward algorithm
   for(t in 1:(length(X)-1)){
     m = alpha_hat[t,] %*% P
 
@@ -482,7 +482,7 @@ fit_hmm <- function (x,sd,
     beta_tilde [ length(X),k] = 1
   }
 
-  # Backwards algorithm-----
+  # Backwards algorithm
   for(t in ( length(X)-1):1){
 
 
@@ -517,7 +517,7 @@ fit_hmm <- function (x,sd,
 
 
 
-  #Baum_Welch-----
+  #Baum_Welch
   #Baum_Welch <-  function(X,sd,mu,P, prob, alpha, beta ){
 
   list_z_nz <- list() # transition from 0 to non zero state
@@ -630,13 +630,13 @@ fit_hmm <- function (x,sd,
     pi <- (rep(1/K,K))
 
     alpha_hat[1, ] = pi  *c(dnorm(X[1], mean=0, sd=sd[1]),
-                            sapply( 2:K, function( k) exp(calc_loglik(ash_obj[[k]],
+                            sapply( 2:K, function( k) exp(ashr::calc_loglik(ash_obj[[k]],
                                                                       data0)
                             )
                             )
     )
     alpha_tilde[1, ] = pi  *c(dnorm(X[1], mean=0, sd=sd[1]),
-                              sapply( 2:K, function( k) exp(calc_loglik(ash_obj[[k]],
+                              sapply( 2:K, function( k) exp(ashr::calc_loglik(ash_obj[[k]],
                                                                         data0)
                               )
                               )
@@ -654,7 +654,7 @@ fit_hmm <- function (x,sd,
 
 
       alpha_tilde[t+1, ] = m  *c(dnorm(X[t], mean=0, sd=sd[t]),
-                                 sapply( 2:K, function( k) exp(calc_loglik(ash_obj[[k]],
+                                 sapply( 2:K, function( k) exp(ashr::calc_loglik(ash_obj[[k]],
                                                                            data0)
                                  )
                                  )
@@ -678,7 +678,7 @@ fit_hmm <- function (x,sd,
 
       data0 <-  set_data(X[t+1],sd[t+1])
       emissio_p <- c(dnorm(X[t+1], mean=0, sd=sd[t+1]),
-                     sapply( 2:K, function( k) exp(calc_loglik(ash_obj[[k]],
+                     sapply( 2:K, function( k) exp(ashr::calc_loglik(ash_obj[[k]],
                                                                data0)
                      )
                      )
@@ -723,7 +723,7 @@ fit_hmm <- function (x,sd,
 
     }
 
-    #Baum_Welch-----
+    #Baum_Welch
     #Baum_Welch <-  function(X,sd,mu,P, prob, alpha, beta ){
 
     list_z_nz <- list() # transition from 0 to non zero state
@@ -791,7 +791,7 @@ fit_hmm <- function (x,sd,
     P <- P*col_s
     P[is.na(P)] <- 0
     iter =iter +1
-    lines( x_post, col=iter)
+    #lines( x_post, col=iter)
 
 
     #print( sum(log(G_t[-1])))
@@ -868,7 +868,7 @@ HMM_regression.susiF <- function( susiF.obj,Y,X , verbose=TRUE, maxit=5   ){
       s = fit_hmm(x=res$Bhat[idx[l],],sd=res$Shat[idx[l],],halfK=100 )
       fitted_lfdr [[l]] <- s$prob[,1]
       fitted_trend[[l]] <- s$x_post
-      if( j ==length(idx)){
+      if( l ==length(idx)){
         idx_var <- (1:length(idx)) [- (1)]
       }else{
         idx_var <- (1:length(idx))[- (l+1)]
