@@ -68,8 +68,6 @@ fitted_trend <- list()
 
 
 
-x=res$Bhat[idx[1],]
-sd=res$Shat[idx[1],]
 est_prob <- list()
 for ( k in 1:2){
   for (j in 1:length(idx)){

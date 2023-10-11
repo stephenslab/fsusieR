@@ -1,12 +1,10 @@
 ##unit test HMM
 
-low variance
 
 
-sharp transition
+# sharp transition and low variance
+library(testthat)
 
-
-rm(list=ls())
 devtools::load_all(".")
 source("D:/Document/Serieux/Travail/Package/susiF.alpha/inst/code/fit_hmm.R", echo=TRUE)
 
@@ -47,7 +45,7 @@ for ( i in 1:N)
 }
 noisy.data <- do.call(rbind, noisy.data)
 Y <- noisy.data
-Y[,10:20] <- 0*Y[,10:20]
+
 out <- susiF(Y,X,L=2 , prior = 'mixture_normal_per_scale', filter.number =8  )
 
 
@@ -55,7 +53,7 @@ X <- colScale(X)
 # centering input
 Y <- colScale(Y, scale=FALSE)
 susiF.obj <- out
-L_points=20
+
 
 idx <- do.call( c, lapply( 1:length(susiF.obj$cs),
                            function(l){
@@ -70,4 +68,134 @@ res <- cal_Bhat_Shat(temp_Y,X )
 
 
 
-s =fit_hmm(x=res$Bhat[idx[1],],sd=res$Shat[idx[1],],halfK=50 )
+
+
+
+
+est_prob <- list()
+for ( k in 1:2){
+  for (j in 1:length(idx)){
+    res <- cal_Bhat_Shat(temp_Y,X )
+
+    s =fit_hmm(x=res$Bhat[idx[j],],sd=res$Shat[idx[j],],halfK=50 )
+
+    est_prob[[j]] <-  s$prob[,1]
+
+    fitted_trend[[j]] <- s$x_post
+    if( j ==length(idx)){
+      idx_var <- (1:length(idx)) [- (1)]
+    }else{
+      idx_var <- (1:length(idx))[- (j+1)]
+    }
+
+
+    temp_Y <- Y - Reduce("+", lapply( idx_var, function( j){
+      X[,idx[j] ]%*%t(fitted_trend[[j]])
+    }
+
+    )
+    )
+
+  }
+
+}
+
+fitted_trend <- lapply(1:length(idx), function(l)
+  fitted_trend[[l]]/susiF.obj$csd_X[idx[l]]
+)
+
+
+test_that("performance in low variance and sharp transition should be",{
+  expect_gt( cor(f1, fitted_trend[[2]] ), 0.9999992  )
+  expect_gt( cor(f2, fitted_trend[[1]] ), 0.9999  )
+  expect_equal(which(est_prob[[2]]<0.05),70)
+  expect_equal(which(est_prob[[1]]<0.05),13:103)
+
+}
+
+)
+
+
+
+
+
+### test when constant obs
+Y[,10:20] <- 0*Y[,10:20]# low variance
+
+
+
+
+out <- susiF(Y,X,L=2 , prior = 'mixture_normal_per_scale', filter.number =8  )
+
+
+X <- colScale(X)
+# centering input
+Y <- colScale(Y, scale=FALSE)
+susiF.obj <- out
+
+
+idx <- do.call( c, lapply( 1:length(susiF.obj$cs),
+                           function(l){
+                             tp_id <-  which.max( susiF.obj$pip[susiF.obj$cs[[l]]])
+                             susiF.obj$cs[[l]][tp_id]
+                           }
+)
+)
+
+temp_Y <- Y
+res <- cal_Bhat_Shat(temp_Y,X )
+
+
+
+
+
+
+
+est_prob <- list()
+for ( k in 1:2){
+  for (j in 1:length(idx)){
+    res <- cal_Bhat_Shat(temp_Y,X )
+
+    s =fit_hmm(x=res$Bhat[idx[j],],sd=res$Shat[idx[j],],halfK=50 )
+
+    est_prob[[j]] <-  s$prob[,1]
+
+    fitted_trend[[j]] <- s$x_post
+    if( j ==length(idx)){
+      idx_var <- (1:length(idx)) [- (1)]
+    }else{
+      idx_var <- (1:length(idx))[- (j+1)]
+    }
+
+
+    temp_Y <- Y - Reduce("+", lapply( idx_var, function( j){
+      X[,idx[j] ]%*%t(fitted_trend[[j]])
+    }
+
+    )
+    )
+
+  }
+
+}
+
+fitted_trend <- lapply(1:length(idx), function(l)
+  fitted_trend[[l]]/susiF.obj$csd_X[idx[l]]
+)
+
+
+
+
+
+f2_tilde <- f2
+f2_tilde[10:20]<-0*f2_tilde[10:20]
+test_that("performance in low variance and sharp transition should be",{
+  expect_gt( cor(f1, fitted_trend[[2]] ), 0.9999992  )
+  expect_gt( cor(f2_tilde, fitted_trend[[1]] ), 0.9999  )
+  expect_equal(which(est_prob[[2]]<0.05),70)
+  expect_equal(which(est_prob[[1]]<0.05),21:103)
+
+}
+
+)
+
