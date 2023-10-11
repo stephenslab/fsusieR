@@ -1,19 +1,22 @@
-#x=res$Bhat[idx[2],]
-#sd=res$Shat[idx[2],]
-#halfK=20
-#mult=2
-#thresh=0.00001
-
 
 fit_hmm <- function (x,sd,
                      halfK=50,
-                     mult=2,
+                     mult=1.1,
                      smooth=FALSE,
                      thresh=0.00001,
                      prefilter=TRUE,
-                     thresh_prefilter=1e-3,
-                     maxiter=5){
+                     thresh_prefilter=1e-30,
+                     maxiter=5,
+                     min_sd=1e-10,
+                     thresh_sd=1e-30,
+                     epsilon=1e-6
+                     ){
 
+
+  if( length(which(sd< thresh_sd))>0){
+    sd[ which(sd< thresh_sd)] <- min_sd
+
+  }
 
   K = 2*halfK-1
   sd=  sd
@@ -45,21 +48,21 @@ fit_hmm <- function (x,sd,
     K <- length(mu)
   }
 
-  P <- diag(0.999,K) #this ensure that the HMM can only "transit via null state"
-  P[1,-1] <- 0.001
-  P[-1,1] <- 0.001
+  P <- diag(0.9,K)+ matrix(epsilon, ncol=K, nrow=K) #this ensure that the HMM can only "transit via null state"
+  P[1,-1] <- 0.1
+  P[-1,1] <- 0.1
 
 
 
   pi = rep( 1/length(mu), length(mu)) #same initial guess
 
   emit = function(k,x,t){
-    dnorm(x,mean=mu[k],sd=sd[t]  )
+    dnorm(x,mean=mu[k],sd=sd[t]   )
   }
 
 
-  alpha_hat = matrix(nrow = length(X),ncol=K)
-  alpha_tilde = matrix(nrow = length(X),ncol=K)
+  alpha_hat = matrix(  nrow = length(X),ncol=K)
+  alpha_tilde = matrix(  nrow = length(X),ncol=K)
   G_t <- rep(NA, length(X))
   for(k in 1:K){
     alpha_hat[1, ] = pi* emit(1:K,x=X[1],t=1)
@@ -68,13 +71,11 @@ fit_hmm <- function (x,sd,
 
 
 
-
-  # Forward algorithm -----
+  # Forward algorithm
   for(t in 1:(length(X)-1)){
     m = alpha_hat[t,] %*% P
 
     alpha_tilde[t+1, ] = m *emit(1:K,x=X[t+1], t= t+1 )
-
     G_t[t+1] <- sum( alpha_tilde[t+1,])
     alpha_hat[t+1,] <-  alpha_tilde[t+1,]/ ( G_t[t+1])
   }
@@ -89,32 +90,19 @@ fit_hmm <- function (x,sd,
     beta_tilde [ length(X),k] = 1
   }
 
-  # Backwards algorithm-----
+  # Backwards algorithm
   for(t in ( length(X)-1):1){
-
-
-
     emissio_p <- emit(1:K,X[t+1],t=t+1)
-
-
-
-
-
     beta_tilde [t, ] = apply( sweep( P,2, beta_hat[t+1,]*emissio_p ,"*" ),1,sum)
-
-
     C_t[t] <- max(beta_tilde[t,])
     beta_hat[t,] <-  beta_tilde [t, ] /C_t[t]
   }
 
 
-
-
   ab = alpha_hat*beta_hat
   prob = ab/rowSums(ab)
 
-
-  #image(prob)#plot(apply(prob[,-1],1, sum), type='l')
+   image(prob)#plot(apply(prob[,-1],1, sum), type='l')
   #plot(x)
   #lines(1-prob[,1])
 
@@ -124,7 +112,7 @@ fit_hmm <- function (x,sd,
 
 
 
-  #Baum_Welch-----
+  #Baum_Welch
   #Baum_Welch <-  function(X,sd,mu,P, prob, alpha, beta ){
 
   list_z_nz <- list() # transition from 0 to non zero state
@@ -215,16 +203,18 @@ fit_hmm <- function (x,sd,
 
   }
   P <-P[idx_comp, idx_comp]
+  P <- P + matrix(epsilon, ncol= ncol(P),nrow=nrow(P))
   K <- length( idx_comp)
   mu <- mu[idx_comp]
 
-
+  col_s <- 1/ apply(P,1,sum)
+  P <- P*col_s
 
 
 
   iter =1
- # plot( X)
-
+  # plot( X)
+  prob <-  prob[ ,idx_comp]
   while( iter <maxiter){
 
 
@@ -234,20 +224,8 @@ fit_hmm <- function (x,sd,
 
     data0 <-  set_data(X[1],sd[1])
 
-    pi <- (rep(1/K,K))
-
-    alpha_hat[1, ] = pi  *c(dnorm(X[1], mean=0, sd=sd[1]),
-                            sapply( 2:K, function( k) exp(calc_loglik(ash_obj[[k]],
-                                                                      data0)
-                            )
-                            )
-    )
-    alpha_tilde[1, ] = pi  *c(dnorm(X[1], mean=0, sd=sd[1]),
-                              sapply( 2:K, function( k) exp(calc_loglik(ash_obj[[k]],
-                                                                        data0)
-                              )
-                              )
-    )
+    alpha_hat[1, ] <- prob[1, ]
+    alpha_hat[1, ] <- prob[1, ]
 
 
 
@@ -260,9 +238,9 @@ fit_hmm <- function (x,sd,
 
 
 
-      alpha_tilde[t+1, ] = m  *c(dnorm(X[t], mean=0, sd=sd[t]),
-                                 sapply( 2:K, function( k) exp(calc_loglik(ash_obj[[k]],
-                                                                           data0)
+      alpha_tilde[t+1, ] = m  *c(dnorm(X[t+1], mean=0, sd=sd[t+1]),
+                                 sapply( 2:K, function( k) exp(ashr::calc_loglik(ash_obj[[k]],
+                                                                                 data0)
                                  )
                                  )
       )
@@ -285,8 +263,8 @@ fit_hmm <- function (x,sd,
 
       data0 <-  set_data(X[t+1],sd[t+1])
       emissio_p <- c(dnorm(X[t+1], mean=0, sd=sd[t+1]),
-                     sapply( 2:K, function( k) exp(calc_loglik(ash_obj[[k]],
-                                                               data0)
+                     sapply( 2:K, function( k) exp(ashr::calc_loglik(ash_obj[[k]],
+                                                                     data0)
                      )
                      )
       )
@@ -330,7 +308,7 @@ fit_hmm <- function (x,sd,
 
     }
 
-    #Baum_Welch-----
+    #Baum_Welch
     #Baum_Welch <-  function(X,sd,mu,P, prob, alpha, beta ){
 
     list_z_nz <- list() # transition from 0 to non zero state
@@ -388,7 +366,7 @@ fit_hmm <- function (x,sd,
     z_nz  <- apply(do.call( cbind,list_z_nz),1 ,sum) /expect_number_obs_state[1]
     nz_z  <- apply(do.call( cbind,list_nz_z ),1 ,sum) /  expect_number_obs_state[-1]
 
-    P <- matrix(0, ncol= length(diag_P),nrow=length(diag_P))
+    P <- matrix(epsilon, ncol= length(diag_P),nrow=length(diag_P))
     P <- P + diag(c( diag_P ) )
     P[1,-1] <- z_nz
     P[-1,1]<- nz_z

@@ -1,11 +1,13 @@
 rm(list=ls())
 devtools::load_all(".")
+source("D:/Document/Serieux/Travail/Package/susiF.alpha/inst/code/fit_hmm.R", echo=TRUE)
+
 library(susiF.alpha)
 library(ashr)
 library(wavethresh)
 set.seed(1)
 #Example using curves simulated under the Mixture normal per scale prior
-sd_noise <- 1 #expected root signal noise ratio
+sd_noise <- 0.1 #expected root signal noise ratio
 N <- 100    #Number of individuals
 P <- 10     #Number of covariates/SNP
 pos1 <- 1   #Position of the causal covariate for effect 1
@@ -16,13 +18,13 @@ f1[ 20:25] <-2
 f1[ 50:55] <-1
 f1[ 20:25] <-2
 
-f1 <-  simu_IBSS_per_level(lev_res )$sim_func
+f1 <-  0*simu_IBSS_per_level(lev_res )$sim_func
 f1[60:length(f1)] <-0
-f1[ 70:85] <- -1
+f1[ 70] <- -1
 #first effect)
 f2 <-  0.1*DJ.EX(128)$blocks
-plot( f1, type ="l", ylab="effect", col="blue")
-lines(f2, col="red")
+plot( f2, type ="l", ylab="effect", col="blue")
+lines(f1, col="red")
 beta0       <- 0
 beta1       <- 1
 beta2       <- 1
@@ -38,10 +40,9 @@ for ( i in 1:N)
 }
 noisy.data <- do.call(rbind, noisy.data)
 Y <- noisy.data
+
 out <- susiF(Y,X,L=2 , prior = 'mixture_normal_per_scale', filter.number =8  )
-
-out2 <- susiF(Y,X,L=2 , prior = 'mixture_normal_per_scale', filter.number =8  )
-
+lines(out$fitted_func[[1]])
 
 X <- colScale(X)
 # centering input
@@ -59,17 +60,24 @@ idx <- do.call( c, lapply( 1:length(susiF.obj$cs),
 
 temp_Y <- Y
 res <- cal_Bhat_Shat(temp_Y,X )
-source("D:/Document/Serieux/Travail/Package/susiF.alpha/inst/code/fit_hmm.R" )
 
 
 
 temp_Y <- Y
 fitted_trend <- list()
-for ( k in 1:10){
+
+
+
+x=res$Bhat[idx[1],]
+sd=res$Shat[idx[1],]
+est_prob <- list()
+for ( k in 1:2){
   for (j in 1:length(idx)){
     res <- cal_Bhat_Shat(temp_Y,X )
 
-    s =fit_hmm(x=res$Bhat[idx[j],],sd=res$Shat[idx[j],],halfK=100 )
+    s =fit_hmm(x=res$Bhat[idx[j],],sd=res$Shat[idx[j],],halfK=50 )
+
+    est_prob[[j]] <-  s$prob[,1]
 
     fitted_trend[[j]] <- s$x_post
     if( j ==length(idx)){
@@ -96,16 +104,22 @@ fitted_trend <- lapply(1:length(idx), function(l)
                           )
 
 plot( f1, type="l", main="Estimated effect 1, sd=1",
-      xlab="" ,lwd=2   )
+      xlab="" ,lwd=2,ylim= c(-1,1.4)   )
 
 
-lines( fitted_trend[[1]] ,col='blue',lwd=1.5   )
-
+lines( fitted_trend[[2]] ,col='blue',lwd=1.5   )
+lines( est_prob[[2]]  ,col='green',lwd=1.5   )
 
 plot( f2, type="l", main="Estimated effect 1, sd=1",
       xlab="" ,lwd=2   )
 
-lines( fitted_trend[[2]] ,col='blue',lwd=1.5   )
+lines( fitted_trend[[1]] ,col='blue',lwd=1.5   )
+lines( est_prob[[1]]  ,col='green',lwd=1.5   )
+
+
+
+
+
 
 susiF.obj$ind_fitted_func
 truth <- matrix(X[,pos1], ncol=1)%*%t(f1)+matrix(X[,pos2], ncol=1)%*%t(f2)
