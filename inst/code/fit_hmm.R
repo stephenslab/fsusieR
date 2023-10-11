@@ -102,7 +102,7 @@ fit_hmm <- function (x,sd,
   ab = alpha_hat*beta_hat
   prob = ab/rowSums(ab)
 
-   image(prob)#plot(apply(prob[,-1],1, sum), type='l')
+  #  image(prob)#plot(apply(prob[,-1],1, sum), type='l')
   #plot(x)
   #lines(1-prob[,1])
 

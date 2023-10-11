@@ -832,7 +832,7 @@ HMM_regression.susiF <- function( susiF.obj,
                                   Y,
                                   X ,
                                   verbose=TRUE,
-                                  maxit=5 ,
+                                  maxit=3 ,
                                   fit_indval=TRUE
                                   ){
 
@@ -848,7 +848,7 @@ HMM_regression.susiF <- function( susiF.obj,
 
   temp_Y <- Y
   fitted_trend <- list()
-  fitted_lfdr   <- list()
+  fitted_lfsr   <- list()
 
   if(  length(susiF.obj$cs)==1){
 
@@ -856,7 +856,7 @@ HMM_regression.susiF <- function( susiF.obj,
     res <- cal_Bhat_Shat(temp_Y,X )
 
     s = fit_hmm(x=res$Bhat[idx[1],],sd=res$Shat[idx[1],],halfK=50 )
-    fitted_lfdr [[1]] <- s$prob[,1]
+    fitted_lfsr [[1]] <- s$lfsr
     fitted_trend[[1]] <- s$x_post
 
 
@@ -866,7 +866,7 @@ HMM_regression.susiF <- function( susiF.obj,
       res <- cal_Bhat_Shat(temp_Y,X )
 
       s = fit_hmm(x=res$Bhat[idx[l],],sd=res$Shat[idx[l],],halfK=50 )
-      fitted_lfdr [[l]] <- s$prob[,1]
+      fitted_lfsr [[l]] <- s$lfsr
       fitted_trend[[l]] <- s$x_post
       if( l ==length(idx)){
         idx_var <- (1:length(idx)) [- (1)]
@@ -894,11 +894,11 @@ HMM_regression.susiF <- function( susiF.obj,
     fitted_trend[[l]]/susiF.obj$csd_X[idx[l]]
   )
 
-
+print( fitted_lfsr )
 
   susiF.obj$fitted_func <- fitted_trend
-  susiF.obj$lfsr_func   <- fitted_lfdr
-
+  susiF.obj$lfsr_func   <- fitted_lfsr
+print( susiF.obj$lfsr_func )
 
  if( fit_indval ){
    mean_Y          <- attr(Y, "scaled:center")

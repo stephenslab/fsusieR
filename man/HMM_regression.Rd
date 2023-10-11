@@ -7,7 +7,7 @@
 \usage{
 HMM_regression(susiF.obj, Y, X, verbose = TRUE, maxit, fit_indval = TRUE, ...)
 
-\method{HMM_regression}{susiF}(susiF.obj, Y, X, verbose = TRUE, maxit = 5, fit_indval = TRUE)
+\method{HMM_regression}{susiF}(susiF.obj, Y, X, verbose = TRUE, maxit = 3, fit_indval = TRUE)
 }
 \arguments{
 \item{susiF.obj}{a susiF object}
