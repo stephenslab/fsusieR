@@ -1,13 +1,12 @@
 rm(list=ls())
 devtools::load_all(".")
-source("D:/Document/Serieux/Travail/Package/susiF.alpha/inst/code/fit_hmm.R", echo=TRUE)
 
 library(susiF.alpha)
 library(ashr)
 library(wavethresh)
 set.seed(1)
 #Example using curves simulated under the Mixture normal per scale prior
-sd_noise <- 0.1 #expected root signal noise ratio
+sd_noise <-  0.1 #expected root signal noise ratio
 N <- 100    #Number of individuals
 P <- 10     #Number of covariates/SNP
 pos1 <- 1   #Position of the causal covariate for effect 1
@@ -69,13 +68,16 @@ fitted_trend <- list()
 
 
 est_prob <- list()
+
+est_lfsr <- list()
 for ( k in 1:2){
   for (j in 1:length(idx)){
     res <- cal_Bhat_Shat(temp_Y,X )
 
-    s =fit_hmm(x=res$Bhat[idx[j],],sd=res$Shat[idx[j],],halfK=50 )
+    s =fit_hmm(x=res$Bhat[idx[j],],sd=res$Shat[idx[j],],halfK=50,mult = 1.051 )
 
     est_prob[[j]] <-  s$prob[,1]
+    est_lfsr[[j]] <-  s$lfsr
 
     fitted_trend[[j]] <- s$x_post
     if( j ==length(idx)){
@@ -107,19 +109,19 @@ plot( f1, type="l", main="Estimated effect 1, sd=1",
 
 lines( fitted_trend[[2]] ,col='blue',lwd=1.5   )
 lines( est_prob[[2]]  ,col='green',lwd=1.5   )
-
+lines( est_lfsr[[2]]  ,col='red',lwd=1.5   )
 plot( f2, type="l", main="Estimated effect 1, sd=1",
       xlab="" ,lwd=2   )
 
 lines( fitted_trend[[1]] ,col='blue',lwd=1.5   )
 lines( est_prob[[1]]  ,col='green',lwd=1.5   )
+lines( est_lfsr[[1]]  ,col='red',lwd=1.5   )
+
+
+abline(h=0.05)
 
 
 
-
-
-
-susiF.obj$ind_fitted_func
 truth <- matrix(X[,pos1], ncol=1)%*%t(f1)+matrix(X[,pos2], ncol=1)%*%t(f2)
 t2 <-matrix( X[,pos1] , ncol=1)%*%  t(susiF.obj$fitted_func[[1]] )+matrix( X[,pos2] , ncol=1)%*%  t(susiF.obj$fitted_func[[2]] )
 t2 <- t2+matrix(mean_Y,

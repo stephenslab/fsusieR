@@ -381,8 +381,22 @@ fit_hmm <- function (x,sd,
 
     #print( sum(log(G_t[-1])))
   }
+  null_ash <- ash(x,sd,
+                  weight=prob[,1],
+                  mode=0,
+                  mixcompdist = "normal"
+  )
+
+
+  lfsr_est <-prob[,1]
+  for ( k in 2: K){
+    lfsr_est <- lfsr_est + prob[,k]*ash_obj[[k]]$result$lfsr
+  }
+
+
   out <- list( prob =prob,
                x_post = x_post,
+               lfsr =  lfsr_est,
                mu= mu)
 
 

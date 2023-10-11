@@ -501,7 +501,7 @@ fit_hmm <- function (x,sd,
   ab = alpha_hat*beta_hat
   prob = ab/rowSums(ab)
 
-  image(prob)#plot(apply(prob[,-1],1, sum), type='l')
+  #image(prob)#plot(apply(prob[,-1],1, sum), type='l')
   #plot(x)
   #lines(1-prob[,1])
 
@@ -780,9 +780,19 @@ fit_hmm <- function (x,sd,
 
     #print( sum(log(G_t[-1])))
   }
+
+
+  lfsr_est <-prob[,1]
+  for ( k in 2: K){
+    lfsr_est <- lfsr_est + prob[,k]*ash_obj[[k]]$result$lfsr
+  }
+
+
   out <- list( prob =prob,
                x_post = x_post,
+               lfsr =  lfsr_est,
                mu= mu)
+
 
 
 
