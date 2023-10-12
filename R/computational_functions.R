@@ -894,7 +894,6 @@ HMM_regression.susiF <- function( susiF.obj,
     fitted_trend[[l]]/susiF.obj$csd_X[idx[l]]
   )
 
-print( fitted_lfsr )
 
   susiF.obj$fitted_func <- fitted_trend
   susiF.obj$lfsr_func   <- fitted_lfsr
