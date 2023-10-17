@@ -897,7 +897,6 @@ HMM_regression.susiF <- function( susiF.obj,
 
   susiF.obj$fitted_func <- fitted_trend
   susiF.obj$lfsr_func   <- fitted_lfsr
-print( susiF.obj$lfsr_func )
 
  if( fit_indval ){
    mean_Y          <- attr(Y, "scaled:center")
