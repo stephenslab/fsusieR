@@ -1014,13 +1014,12 @@ name_cs.susiF <- function(susiF.obj,X,...){
 #
 #' @param filter.cs logical, if TRUE filter the credible set (removing low purity cs and cs with estimated prior equal to 0)
 #
-#' @param lfsr_curve Maximum local false sign rate of the wavelet coefficients used to reconstruct lfsr_curves (see output)
 #' @param outing_grid grid use to fit fsusie
 #' @return susiF object
 #
 #' @export
 #' @keywords internal
-out_prep <- function(susiF.obj,Y, X, indx_lst, filter.cs, lfsr_curve,outing_grid,...)
+out_prep <- function(susiF.obj,Y, X, indx_lst, filter.cs, outing_grid,...)
   UseMethod("out_prep")
 
 #' @rdname out_prep
@@ -1037,7 +1036,7 @@ out_prep.susiF <- function(susiF.obj,
                            X,
                            indx_lst,
                            filter.cs,
-                           lfsr_curve,
+
                            outing_grid,
                            TI,
                            filter.number = 10,
@@ -1072,7 +1071,7 @@ out_prep.susiF <- function(susiF.obj,
                                     X         = X,
                                     indx_lst  = indx_lst,
                                     TI        = TI)
-      susiF.obj <-  update_cal_lfsr_func    (susiF.obj, lfsr_curve,indx_lst)
+
 
     }
   #
@@ -1090,21 +1089,170 @@ out_prep.susiF <- function(susiF.obj,
 
 
 
-#' @title Plot susiF object
-#
+
+#' @title Plot specific effect from susiF object
+#' @description  Plot specific effect from susiF object
 #' @param susiF.obj output of the susiF function
-#
-#' @param cred.band logical, if TRUE, plot credible bands. Set as FALSE by default
-#' @param effect numeric, if specified plot on effect in particular
+#' @param effect  the index of the effect to be plotted
+#' @param cred.band logical, if TRUE, plot credible bands if susiF.obj fitted with wavelets regression. Set as TRUE by default
+#' @param  lfsr.curve logical, if TRUE, plot estimated lfsr of the effect at each base pair  if susiF.obj fitted with HMM regression. Set as TRUE by default
 #' @param size_line numeric, width of the plotted lines
 #' @param size_point numeric, size of the point
 #' @param pos_SNP vector, containing the base pair of the SNPs
 #' @param point_shape vector, containing the shape of dots
-#' @param start_end_region vector of length 2 containing the start and the end
-#'  of the region
 #' @param pip_only logical, if TRUE only ouput the PIP plot
 #' @param title character
-#' @param func_only  output only plot for the fitted curves
+#' @param \dots Other arguments..
+#'
+#' @importFrom ggplot2 ggplot
+#' @importFrom ggplot2 aes_string
+#' @importFrom ggplot2 geom_line
+#' @importFrom ggplot2 facet_wrap
+#' @importFrom ggplot2 facet_grid
+#' @importFrom ggplot2 geom_point
+#' @importFrom ggplot2 geom_hline
+#' @importFrom ggplot2 theme
+#' @importFrom ggplot2 element_blank
+#' @importFrom ggplot2 scale_color_manual
+#' @importFrom ggplot2 xlab
+#' @importFrom ggplot2 ylab
+#' @importFrom ggplot2 geom_ribbon
+#' @importFrom ggplot2 scale_fill_manual
+#
+#' @export
+#
+plot_effect_susiF <- function( susiF.obj,
+                               effect=1,
+                               title="",
+                               cred.band = TRUE,
+                               lfsr.curve=TRUE,
+                               size_line=2,
+                               size_point=4,
+                               pos_SNP,
+                               pip_only=FALSE,
+                               point_shape, ...){
+  if(missing(pos_SNP)){
+    pos_SNP<-  1:length(susiF.obj$pip)
+  }
+  if( missing(point_shape)){
+    point_shape <- rep( 19, length(pos_SNP))
+  }
+  color = c("black", "dodgerblue2", "green4", "#6A3D9A", "#FF7F00",
+            "gold1", "skyblue2", "#FB9A99", "palegreen2", "#CAB2D6",
+            "#FDBF6F", "gray70", "khaki2", "maroon", "orchid1", "deeppink1",
+            "blue1", "steelblue4", "darkturquoise", "green1", "yellow4",
+            "yellow3", "darkorange4", "brown")
+  L <- susiF.obj$L
+  n_wac <- susiF.obj$n_wac
+  y <- susiF.obj$pip
+  col_y <- rep(0, length(y))
+
+  if (effect > L) {
+    stop(paste("the specified effect should be lower or equal to ",
+               L))
+  }
+
+  fun_plot <- susiF.obj$fitted_func[[effect]]
+  fun_plot <- c(rep(0, n_wac), fun_plot)
+
+
+  if (cred.band& is.null(susiF.obj$lfsr_func)) {
+    cred_band <- data.frame(t(susiF.obj$cred_band[[effect]]))
+    cred_band <- rbind(data.frame(up = rep(0, n_wac),
+                                  low = rep(0, n_wac)), cred_band)
+    x <- rep(susiF.obj$outing_grid, (1 + 1))
+    CS <- rep(c(0, effect), each = n_wac)
+
+    df <- data.frame(fun_plot = fun_plot,
+                     CS = as.factor(CS),
+                     x = x,
+                     upr = cred_band$up,
+                     lwr = cred_band$low)
+    df <- df[-which(df$CS==0),]
+    P2 <- ggplot(df, aes_string(y = "fun_plot", x = "x", col = "CS")) +
+      geom_hline(yintercept = 0 , size=size_line)+
+      geom_line(size = size_line) +
+      geom_ribbon(aes_string(ymin = "lwr",ymax = "upr",fill = "CS",
+                             col =  "CS"),alpha = 0.3) +
+      scale_color_manual("Credible set", values = color[effect+1]) +
+      scale_fill_manual("Credible set", values =color[effect+1]) +
+      xlab("postion") + ylab("Estimated effect")
+    P2
+    return(P2)
+  }
+  else {
+
+
+
+    if (lfsr.curve& !is.null(susiF.obj$lfsr_func)){
+      lfsr_curve <- do.call(c , susiF.obj$lfsr_func)
+
+      fun_plot <- do.call(c, susiF.obj$fitted_func)
+      fun_plot <- c(rep(0, n_wac), fun_plot)
+
+      x <- rep(susiF.obj$outing_grid, (susiF.obj$L + 1))
+      CS <- rep(0:L, each = n_wac)
+      df <- data.frame(fun_plot = fun_plot,
+                       CS = as.factor(CS),
+                       x = x
+      )
+      df <- df[-which(df$CS==0),]
+      df$   lfsr_curve <-    lfsr_curve
+
+      df <- df[ which(df$CS==effect),]
+
+
+      P2 <- ggplot(df, aes_string(y = "fun_plot",
+                                  x = "x",
+                                  col = "CS")) +
+        geom_line(linewidth = size_line) +
+        geom_line(aes(y=lfsr_curve, x=x ))+
+        geom_hline(yintercept = 0.05)+
+        scale_color_manual("Credible set",
+                           values = color[effect+1]) +
+        facet_grid(CS~., scales = "free")+
+        xlab("postion") + ylab("Estimated effect")
+      return(P2)
+    }else{
+
+      fun_plot <- susiF.obj$fitted_func[[effect]]
+      fun_plot <- c(rep(0, n_wac), fun_plot)
+      x <- rep(susiF.obj$outing_grid, (1 + 1))
+      CS <- rep(c(0, effect), each = n_wac)
+      df <- data.frame(fun_plot = fun_plot, CS = as.factor(CS),
+                       x = x)
+      df <- df[-which(df$CS==0),]
+      P2 <- ggplot(df, aes_string(y = "fun_plot", x = "x", col = "CS")) +
+        geom_hline(yintercept = 0 , size=size_line)+
+        geom_line(size = size_line) +
+
+        scale_color_manual("Credible set", values = color[effect+1]) +
+        scale_fill_manual("Credible set", values =color[effect+1]) +
+        xlab("postion") + ylab("Estimated effect")
+      return(P2)
+    }
+
+
+
+
+  }
+}
+
+
+
+
+#' @title Plot susiF object
+#
+#' @param susiF.obj output of the susiF function
+#
+#' @param cred.band logical, if TRUE, plot credible bands if susiF.obj fitted with wavelets regression. Set as TRUE by default
+#' @param  lfsr.curve logical, if TRUE, plot estimated lfsr of the effect at each base pair  if susiF.obj fitted with HMM regression. Set as TRUE by default
+#' @param size_line numeric, width of the plotted lines
+#' @param size_point numeric, size of the point
+#' @param pos_SNP vector, containing the base pair of the SNPs
+#' @param point_shape vector, containing the shape of dots
+#' @param pip_only logical, if TRUE only ouput the PIP plot
+#' @param title character
 #' @param \dots Other arguments..
 #'
 #' @importFrom ggplot2 ggplot
@@ -1126,13 +1274,11 @@ out_prep.susiF <- function(susiF.obj,
 #
 plot_susiF  = function (susiF.obj, title="",
                         cred.band = TRUE,
-                        effect,
+                        lfsr.curve=TRUE,
                         size_line=2,
                         size_point=4,
                         pos_SNP,
-                        start_end_region=c(0,1),
                         pip_only=FALSE,
-                        func_only=FALSE,
                         point_shape, ...)
 {
 
@@ -1142,6 +1288,8 @@ plot_susiF  = function (susiF.obj, title="",
   if( missing(point_shape)){
     point_shape <- rep( 19, length(pos_SNP))
   }
+
+
   color = c("black", "dodgerblue2", "green4", "#6A3D9A", "#FF7F00",
             "gold1", "skyblue2", "#FB9A99", "palegreen2", "#CAB2D6",
             "#FDBF6F", "gray70", "khaki2", "maroon", "orchid1", "deeppink1",
@@ -1151,65 +1299,96 @@ plot_susiF  = function (susiF.obj, title="",
   n_wac <- susiF.obj$n_wac
   y <- susiF.obj$pip
   col_y <- rep(0, length(y))
-  if (missing(effect)) {
-    for (l in 1:L) {
-      col_y[which(1:length(y) %in% susiF.obj$cs[[l]])] <- l
-    }
-    CS <-  factor(col_y,
-                  levels=0:L,
-                  labels = c("Not in CS", 1:L))
+
+  for (l in 1:L) {
+    col_y[which(1:length(y) %in% susiF.obj$cs[[l]])] <- l
+  }
+  CS <-  factor(col_y,
+                levels=0:L,
+                labels = c("Not in CS", 1:L))
 
 
-    df <-  data.frame(y = y, CS = CS)
+  df <-  data.frame(y = y, CS = CS)
 
 
-    P1 <- ggplot(df, aes_string(y = "y",
-                                x ="pos_SNP",
-                         col = "CS")) +
-      geom_point(size = size_point,
-                 shape=point_shape) +
-      theme(axis.ticks.x = element_blank(),
-            axis.text.x = element_blank()) +
-      scale_color_manual("Credible set",
-                         values = color) +
-      xlab("SNP index") +
-      ylab("Posterior Inclusion Probability (PIP)")
+  P1 <- ggplot(df, aes_string(y = "y",
+                              x ="pos_SNP",
+                              col = "CS")) +
+    geom_point(size = size_point,
+               shape=point_shape) +
+    theme(axis.ticks.x = element_blank(),
+          axis.text.x = element_blank()) +
+    scale_color_manual("Credible set",
+                       values = color) +
+    xlab("SNP index") +
+    ylab("Posterior Inclusion Probability (PIP)")
 
-    fun_plot <- do.call(c, susiF.obj$fitted_func)
-    fun_plot <- c(rep(0, n_wac), fun_plot)
+  fun_plot <- do.call(c, susiF.obj$fitted_func)
+  fun_plot <- c(rep(0, n_wac), fun_plot)
 
-    if(pip_only){
-      return(P1)
-    }
-    if (cred.band) {
-      cred_band <- data.frame(t(do.call(cbind,
-                                        susiF.obj$cred_band)
-                                )
-                              )
-      cred_band <- rbind(data.frame(up = rep(0, n_wac),
-                                    low = rep(0, n_wac)),
-                         cred_band)
-      x  <- rep(susiF.obj$outing_grid, (susiF.obj$L + 1))
+  if(pip_only){
+    return(P1)
+  }
+
+
+  if (cred.band& is.null(susiF.obj$lfsr_func)) {
+    cred_band <- data.frame(t(do.call(cbind,
+                                      susiF.obj$cred_band)
+    )
+    )
+    cred_band <- rbind(data.frame(up = rep(0, n_wac),
+                                  low = rep(0, n_wac)),
+                       cred_band)
+
+    x  <- rep(susiF.obj$outing_grid, (susiF.obj$L + 1))
+    CS <- rep(0:L, each = n_wac)
+    df <- data.frame(fun_plot = fun_plot,
+                     CS = as.factor(CS),
+                     x = x,
+                     upr = cred_band$up,
+                     lwr = cred_band$low)
+    df <- df[-which(df$CS==0),]
+    P2 <- ggplot(df, aes_string(y = "fun_plot",
+                                x = "x",
+                                col = "CS")) +
+      geom_line(linewidth = size_line) +
+      geom_ribbon(aes_string(ymin = "lwr",ymax = "upr",fill = "CS",
+                             col = "CS"),alpha = 0.3) +
+      scale_color_manual("Credible set", values = color[-1]) +
+      scale_fill_manual("Credible set", values = color[-1]) +
+      facet_grid(CS~.) +
+      xlab("postion") + ylab("Estimated effect")
+    out <- gridExtra::grid.arrange(P1, P2, ncol = 1)
+  }
+  else {
+
+
+    if (lfsr.curve& !is.null(susiF.obj$lfsr_func)){
+      lfsr_curve <- do.call(c , susiF.obj$lfsr_func)
+
+
+
+      x <- rep(susiF.obj$outing_grid, (susiF.obj$L + 1))
       CS <- rep(0:L, each = n_wac)
       df <- data.frame(fun_plot = fun_plot,
                        CS = as.factor(CS),
-                       x = x,
-                       upr = cred_band$up,
-                       lwr = cred_band$low)
+                       x = x
+      )
       df <- df[-which(df$CS==0),]
+      df$   lfsr_curve <-    lfsr_curve
       P2 <- ggplot(df, aes_string(y = "fun_plot",
                                   x = "x",
                                   col = "CS")) +
-            geom_line(size = size_line) +
-           geom_ribbon(aes_string(ymin = "lwr",ymax = "upr",fill = "CS",
-                                  col = "CS"),alpha = 0.3) +
-        scale_color_manual("Credible set", values = color[-1]) +
-        scale_fill_manual("Credible set", values = color[-1]) +
-        facet_grid(CS~.) +
+        geom_line(linewidth = size_line) +
+        geom_line(aes(y=lfsr_curve, x=x, col="black"))+
+        geom_hline(yintercept = 0.05)+
+        scale_color_manual("Credible set",
+                           values = color[-1]) +
+        facet_grid(CS~., scales = "free")+
         xlab("postion") + ylab("Estimated effect")
-      out <- gridExtra::grid.arrange(P1, P2, ncol = 1)
-    }
-    else {
+    }else{
+
+
       x <- rep(susiF.obj$outing_grid, (susiF.obj$L + 1))
       CS <- rep(0:L, each = n_wac)
       df <- data.frame(fun_plot = fun_plot,
@@ -1224,63 +1403,17 @@ plot_susiF  = function (susiF.obj, title="",
         geom_hline(yintercept=0, linetype='dashed', col = 'grey', size = 1.5)+
         facet_grid(CS~., scales = "free")+
         xlab("postion") + ylab("Estimated effect")
+    }
 
-    }
-    if(func_only){
-      return(P2)
-    }
+
+
   }
-  else {
-    if (effect > L) {
-      stop(paste("the specified effect should be lower or equal to ",
-                 L))
-    }
-    fun_plot <- susiF.obj$fitted_func[[effect]]
-    fun_plot <- c(rep(0, n_wac), fun_plot)
-    if (cred.band) {
-      cred_band <- data.frame(t(susiF.obj$cred_band[[effect]]))
-      cred_band <- rbind(data.frame(up = rep(0, n_wac),
-                                    low = rep(0, n_wac)), cred_band)
-      x <- rep(susiF.obj$outing_grid, (1 + 1))
-      CS <- rep(c(0, effect), each = n_wac)
 
-      df <- data.frame(fun_plot = fun_plot,
-                       CS = as.factor(CS),
-                       x = x,
-                       upr = cred_band$up,
-                       lwr = cred_band$low)
-      P2 <- ggplot(df, aes_string(y = "fun_plot", x = "x", col = "CS")) +
-        geom_line(size = 2) +
-        geom_ribbon(aes_string(ymin = "lwr",ymax = "upr",fill = "CS",
-                               col = "CS"),alpha = 0.3) +
-        scale_color_manual("Credible set", values = color) +
-        scale_fill_manual("Credible set", values = color) +
-        xlab("postion") + ylab("Estimated effect")
-      out <- P2
-      return(P2)
-    }
-    else {
-      x <- rep(susiF.obj$outing_grid, (1 + 1))
-      CS <- rep(c(0, effect), each = n_wac)
-      df <- data.frame(fun_plot = fun_plot, CS = as.factor(CS),
-                       x = x)
 
-      P2 <- ggplot(df, aes_string(y   = "fun_plot",
-                                  x   = "x",
-                                  col = "CS")) +
 
-        geom_line(size = 2) + scale_color_manual("Credible set",
-                                                 values = color) + xlab("postion") + ylab("Estimated effect")
-      out <- P2
-      return(P2)
-    }
-  }
-  # out
-  # return(out)
 
   return(out <- gridExtra::grid.arrange(P1,P2,ncol=2,top =title))
 }
-
 
 
 
@@ -1841,6 +1974,7 @@ update_cal_fit_func.susiF <- function(susiF.obj,
                                   Y=Y,
                                   X=X
        )
+       susiF.obj$cred_band <- NULL
      }else{
        temp <- wavethresh::wd(rep(0, susiF.obj$n_wac))
 
@@ -1924,68 +2058,6 @@ update_cal_credible_band.susiF <- function(susiF.obj, indx_lst,...)
 
 
 
-  return(susiF.obj)
-}
-
-
-#' @title Update susiF by computing posterior curves using wavelet coefficient with a low lfsr
-#
-#' @param susiF.obj a susiF object defined by init_susiF_obj function
-#
-#' @param lfsr_curve Maximum local false sign rate of the wavelet coefficients used to reconstruct lfsr_curves (see output)
-#
-#' @param indx_lst list generated by gen_wavelet_indx for the given level of resolution
-#
-#' @return susiF object
-#
-#' @export
-update_cal_lfsr_func  <- function(susiF.obj, lfsr_curve,  indx_lst,...)
-  UseMethod("update_cal_lfsr_func")
-
-#' @rdname update_cal_lfsr_func
-#
-#' @method update_cal_lfsr_func susiF
-#
-#' @export update_cal_lfsr_func.susiF
-#
-#' @importFrom wavethresh wr
-#
-#' @importFrom wavethresh wd
-#
-#' @export
-#
-
-update_cal_lfsr_func.susiF <- function(susiF.obj, lfsr_curve, indx_lst,...)
-{
-
-  if(sum( is.na(unlist(susiF.obj$alpha))))
-  {
-    stop("Error: some alpha value not updated, please update alpha value first")
-  }
-  temp <- wavethresh::wd(rep(0, susiF.obj$n_wac))
-
-  if(inherits(get_G_prior(susiF.obj),"mixture_normal_per_scale" ))
-  {
-    for ( l in 1:susiF.obj$L)
-    {
-      wc_to_select <- ifelse(susiF.obj$lfsr_wc[[l]] < lfsr_curve,1,0)
-      t_wc <- susiF.obj$fitted_wc[[l]]%*% diag(wc_to_select)
-      temp$D                     <- (susiF.obj$alpha[[l]])%*%t_wc[,-indx_lst[[length(indx_lst)]]]
-      temp$C[length(temp$C)]     <- (susiF.obj$alpha[[l]])%*%t_wc[,indx_lst[[length(indx_lst)]]]
-      susiF.obj$lfsr_func[[l]] <-  wavethresh::wr(temp)
-    }
-  }
-  if(inherits(get_G_prior(susiF.obj),"mixture_normal" ))
-  {
-    for ( l in 1:susiF.obj$L)
-    {
-      wc_to_select <- ifelse(susiF.obj$lfsr_wc[[l]] < lfsr_curve,1,0)
-      t_wc <- susiF.obj$fitted_wc[[l]]%*% diag(wc_to_select)
-      temp$D                     <- (susiF.obj$alpha[[l]])%*%t_wc[,-dim(susiF.obj$fitted_wc[[l]])[2]]
-      temp$C[length(temp$C)]     <- (susiF.obj$alpha[[l]])%*%t_wc[,dim(susiF.obj$fitted_wc[[l]])[2]]
-      susiF.obj$lfsr_func[[l]] <- wr(temp)
-    }
-  }
   return(susiF.obj)
 }
 

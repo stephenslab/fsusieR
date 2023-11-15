@@ -9,7 +9,7 @@
 \usage{
 \method{out_prep}{EBmvFR}(EBmvFR.obj, X, indx_lst, outing_grid, ...)
 
-out_prep(susiF.obj, Y, X, indx_lst, filter.cs, lfsr_curve, outing_grid, ...)
+out_prep(susiF.obj, Y, X, indx_lst, filter.cs, outing_grid, ...)
 
 \method{out_prep}{susiF}(
   susiF.obj,
@@ -17,7 +17,6 @@ out_prep(susiF.obj, Y, X, indx_lst, filter.cs, lfsr_curve, outing_grid, ...)
   X,
   indx_lst,
   filter.cs,
-  lfsr_curve,
   outing_grid,
   TI,
   filter.number = 10,
@@ -38,8 +37,6 @@ out_prep(susiF.obj, Y, X, indx_lst, filter.cs, lfsr_curve, outing_grid, ...)
 \item{Y}{functional phenotype, matrix of size N by size J. The underlying algorithm uses wavelets that assume that J is of the form J^2. If J is not a power of 2, susiF internally remaps the data into a grid of length 2^J}
 
 \item{filter.cs}{logical, if TRUE filter the credible set (removing low purity cs and cs with estimated prior equal to 0)}
-
-\item{lfsr_curve}{Maximum local false sign rate of the wavelet coefficients used to reconstruct lfsr_curves (see output)}
 }
 \value{
 susiF object

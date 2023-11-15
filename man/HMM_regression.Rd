@@ -7,7 +7,7 @@
 \usage{
 HMM_regression(susiF.obj, Y, X, verbose = TRUE, maxit, fit_indval = TRUE, ...)
 
-\method{HMM_regression}{susiF}(susiF.obj, Y, X, verbose = TRUE, maxit = 3, fit_indval = TRUE)
+\method{HMM_regression}{susiF}(susiF.obj, Y, X, verbose = TRUE, fit_indval = TRUE)
 }
 \arguments{
 \item{susiF.obj}{a susiF object}
@@ -17,7 +17,6 @@ HMM_regression(susiF.obj, Y, X, verbose = TRUE, maxit, fit_indval = TRUE, ...)
 \item{X}{matrix containing the covariates}
 
 \item{verbose}{logical
-@param maxit  max number of iteration
 @param fit_indval logical if set to true compute fitted value (default value TRUE)}
 }
 \description{

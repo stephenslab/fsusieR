@@ -17,7 +17,6 @@ susiF(
   min.purity = 0.5,
   filter.cs = TRUE,
   init_pi0_w = 1,
-  lfsr_curve = 0.05,
   nullweight = 10,
   control_mixsqp = list(verbose = FALSE, eps = 1e-06, numiter.em = 4),
   thresh_lowcount = 0,

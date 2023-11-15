@@ -407,11 +407,17 @@ fit_hmm <- function (x,sd,
                      thresh_prefilter=1e-30,
                      maxiter=3,
                      max_zscore=20,
+                     thresh_sd=1e-30,
                      epsilon=1e-6
 ){
 
 
-  if( length(which(abs(x/sd)> max_zscore))>0){
+  # deal with case where very close to zero sds
+  if( length(which(sd< thresh_sd))>0){
+    sd[ which(sd< thresh_sd)] <- thresh_sd
+  }
+
+  if( length(which(abs(x/sd)> max_zscore))>0){ #avoid underflow  a z-score of 20=> pv< e-90
 
 
     sd[which(abs(x/sd)> max_zscore)] <- abs(x[which(abs(x/sd)> max_zscore)])/ max_zscore
@@ -810,7 +816,6 @@ fit_hmm <- function (x,sd,
 #'
 #' @param X matrix containing the covariates
 #' @param verbose logical
-#'  @param maxit  max number of iteration
 #'  @param fit_indval logical if set to true compute fitted value (default value TRUE)
 #' @export
 
@@ -833,9 +838,8 @@ HMM_regression.susiF <- function( susiF.obj,
                                   Y,
                                   X ,
                                   verbose=TRUE,
-                                  maxit=10 ,
                                   fit_indval=TRUE
-                                  ){
+){
 
   if(verbose){
     print( "Fine mapping done, refining effect estimates using HMM regression")
@@ -847,49 +851,37 @@ HMM_regression.susiF <- function( susiF.obj,
   )
   )
 
-  temp_Y <- Y
+
+
+  sub_X  <- X[, idx]
+  fitted_trend  <- list()
+  fitted_lfsr   <- list()
+  tt <- lapply( 1: ncol(Y),
+                function(j)
+                  summary(lm(Y[,j]~sub_X))$coefficients[-1,c(1,2)])
+
+
+
   fitted_trend <- list()
   fitted_lfsr   <- list()
+  shift <-0
+  for ( l in 1: length(idx)){
 
-  if(  length(susiF.obj$cs)==1){
-
-
-    res <- cal_Bhat_Shat(temp_Y,X )
-
-    s = fit_hmm(x=res$Bhat[idx[1],],sd=res$Shat[idx[1],],halfK=50 )
-    fitted_lfsr [[1]] <- s$lfsr
-    fitted_trend[[1]] <- s$x_post
-
-
-  }else{
-    for ( k in 1:maxit){
-    for (l in 1:length(idx)){
-      res <- cal_Bhat_Shat(temp_Y,X )
-
-      s = fit_hmm(x=res$Bhat[idx[l],],sd=res$Shat[idx[l],],halfK=50 )
+    #print( l)
+    if(dim(table (sub_X[,l]) ) ==1){
+      fitted_lfsr [[l]] <- rep(1 , ncol(Y))
+      fitted_trend[[l]] <- rep(0 , ncol(Y))
+      shift <-shift +1
+    }else{
+      est  <- do.call(c, lapply( 1: length(tt) ,function (j) tt[[j]][(l-shift ),1]))
+      sds  <- do.call(c, lapply( 1: length(tt) ,function (j) tt[[j]][(l-shift ),2]))
+      s = fit_hmm(x=est ,sd=sds ,halfK=20 )
       fitted_lfsr [[l]] <- s$lfsr
       fitted_trend[[l]] <- s$x_post
-      if( l ==length(idx)){
-        idx_var <- (1:length(idx)) [- (1)]
-      }else{
-        idx_var <- (1:length(idx))[- (l+1)]
-      }
-
-
-      temp_Y <- Y - Reduce("+", lapply( idx_var, function( j){
-        X[,idx[l] ]%*%t(fitted_trend[[l]])
-      }
-
-      )
-      )
-
     }
 
-  }
-
 
   }
-
 
   fitted_trend <- lapply(1:length(idx), function(l)
     fitted_trend[[l]]/susiF.obj$csd_X[idx[l]]
@@ -899,19 +891,21 @@ HMM_regression.susiF <- function( susiF.obj,
   susiF.obj$fitted_func <- fitted_trend
   susiF.obj$lfsr_func   <- fitted_lfsr
 
- if( fit_indval ){
-   mean_Y          <- attr(Y, "scaled:center")
-  susiF.obj$ind_fitted_func <- matrix(mean_Y,
-                                      byrow=TRUE,
-                                      nrow=nrow(Y),
-                                      ncol=ncol(Y))+Reduce("+",
-                                                           lapply(1:length(susiF.obj$alpha),
-                                                                  function(l)
-                                                                    matrix( X[,idx[[l]]] , ncol=1)%*%  t(susiF.obj$fitted_func[[l]] )*(attr(X, "scaled:scale")[idx[[l]]])
-                                                           )
-                                      )
+  if( fit_indval ){
 
- }
+    mean_Y <- attr(Y, "scaled:center")
+    susiF.obj$ind_fitted_func <- matrix(mean_Y,
+                                        byrow=TRUE,
+                                        nrow=nrow(Y),
+                                        ncol=ncol(Y))+Reduce("+",
+                                                             lapply(1:length(susiF.obj$alpha),
+                                                                    function(l)
+                                                                      matrix( X[,idx[[l]]] , ncol=1)%*%
+                                                                      t(susiF.obj$fitted_func[[l]] )*(attr(X, "scaled:scale")[idx[[l]]])
+                                                             )
+                                        )
+
+  }
 
   return(susiF.obj)
 }
