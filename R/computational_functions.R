@@ -400,20 +400,21 @@ fit_ash_level <- function (Bhat, Shat, s, indx_lst, lowc_wc,...)
 
 fit_hmm <- function (x,sd,
                      halfK=50,
-                     mult=1.1,
+                     mult=1.5,
                      smooth=FALSE,
                      thresh=0.00001,
                      prefilter=TRUE,
                      thresh_prefilter=1e-30,
-                     maxiter=5,
-                     min_sd=1e-10,
-                     thresh_sd=1e-30,
+                     maxiter=3,
+                     max_zscore=20,
                      epsilon=1e-6
 ){
 
 
-  if( length(which(sd< thresh_sd))>0){
-    sd[ which(sd< thresh_sd)] <- min_sd
+  if( length(which(abs(x/sd)> max_zscore))>0){
+
+
+    sd[which(abs(x/sd)> max_zscore)] <- abs(x[which(abs(x/sd)> max_zscore)])/ max_zscore
 
   }
 
@@ -438,7 +439,7 @@ fit_hmm <- function (x,sd,
       } )),
 
       2,
-      mean)
+      mean,na.rm=TRUE)
     temp_idx <- which(tt > thresh_prefilter)
     if( 1 %!in% temp_idx){
       temp_idx <- c(1,temp_idx)
@@ -759,7 +760,7 @@ fit_hmm <- function (x,sd,
 
 
 
-    #Formula from Baum Welch update Wikipedi pagfe
+    #Formula from Baum Welch update Wikipedi page
 
     diag_P <- apply(do.call( cbind,list_self),1 ,sum) /expect_number_obs_state
     z_nz  <- apply(do.call( cbind,list_z_nz),1 ,sum) /expect_number_obs_state[1]
@@ -832,7 +833,7 @@ HMM_regression.susiF <- function( susiF.obj,
                                   Y,
                                   X ,
                                   verbose=TRUE,
-                                  maxit=3 ,
+                                  maxit=10 ,
                                   fit_indval=TRUE
                                   ){
 
