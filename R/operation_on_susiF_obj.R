@@ -1118,6 +1118,7 @@ out_prep.susiF <- function(susiF.obj,
 #' @importFrom ggplot2 ylab
 #' @importFrom ggplot2 geom_ribbon
 #' @importFrom ggplot2 scale_fill_manual
+#' @importFrom ggplot2 aes
 #
 #' @export
 #
@@ -1269,6 +1270,7 @@ plot_effect_susiF <- function( susiF.obj,
 #' @importFrom ggplot2 ylab
 #' @importFrom ggplot2 geom_ribbon
 #' @importFrom ggplot2 scale_fill_manual
+#' @importFrom ggplot2 aes
 #
 #' @export
 #
@@ -1832,13 +1834,11 @@ update_cal_indf <- function(susiF.obj, Y, X, indx_lst, TI=FALSE,...)
 #
 # @export update_cal_indf.susiF
 #
-# @importFrom wavethresh wr
-#
-# @importFrom wavethresh wd
 #
 # @export
 #
-
+#' @importFrom wavethresh wr
+#' @importFrom wavethresh wd
 update_cal_indf.susiF <- function(susiF.obj, Y, X, indx_lst, TI=FALSE,...)
 {
 

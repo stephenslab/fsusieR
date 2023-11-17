@@ -160,7 +160,11 @@ cal_purity <- function(l_cs,X){
 #' the second column corresponds to the start of the region  and the third to the end of the affected region
 #'
 #' @param susiF.obj at fitted susiF.obj object
+#'
+#' @importFrom stats complete.cases
+#' 
 #' @export
+#' 
 affected_reg <- function( susiF.obj){
   outing_grid <- susiF.obj$outing_grid
 
@@ -199,7 +203,8 @@ affected_reg <- function( susiF.obj){
 
 #From Lu and Stephens
 #p is  a log p to avoid underflow
-
+#
+#' @importFrom stats pt
 effective.effect=function(betahat,se,df){
 
   p = 2 * pt(abs(betahat/se  ), df=n ,

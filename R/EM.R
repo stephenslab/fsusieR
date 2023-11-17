@@ -125,11 +125,10 @@ EM_pi <- function(G_prior,Bhat, Shat, indx_lst,
 #
 # @return L see L argument mixsqp package mixsqp function
 #
-# @importFrom stats dnorm
 #
 # @export
 #
-#
+#' @importFrom stats dnorm
 cal_L_mixsq_s_per_scale <- function(G_prior,s, Bhat, Shat ,indx_lst,is.EBmvFR=FALSE)
 {
   m <-  (G_prior[[s]])

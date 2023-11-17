@@ -143,9 +143,13 @@
 #'#### Findout which regions are affected by the different CS
 #'
 #'affected_reg(susiF.obj = out)
-#'#This corresponds to the regions where the credible bands are "crossing zero"/i.e. the effects are likely not to be 0 in this region.
-#'
-#'#You can also access the information directly in the output of susiF  as follow
+#' 
+#' # This corresponds to the regions where the credible bands are
+#' # "crossing zero"/i.e. the effects are likely not to be 0 in this
+#' # region.
+#' #
+#' # You can also access the information directly in the output of
+#' # susiF as follows.
 #'par(mfrow=c(1,2))
 #'
 #'

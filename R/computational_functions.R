@@ -307,8 +307,6 @@ cal_zeta <- function(lBF)
 #
 # @return vector of 2 containing the regression coefficient and standard error
 #
-# @importFrom stats var
-#
 # @export
 #
 fit_lm <- function( l,j,Y,X,v1, lowc_wc =NULL ,...)  ## Speed Gain
@@ -828,12 +826,12 @@ HMM_regression<- function (susiF.obj,Y,X, verbose=TRUE, maxit,fit_indval=TRUE,..
 #'
 #' @method HMM_regression susiF
 #'
+#' @importFrom stats lm
+#' 
 #' @export HMM_regression.susiF
 #'
 #' @export
 #'
-
-
 HMM_regression.susiF <- function( susiF.obj,
                                   Y,
                                   X ,
