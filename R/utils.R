@@ -205,6 +205,7 @@ affected_reg <- function( susiF.obj){
 #p is  a log p to avoid underflow
 #
 #' @importFrom stats pt
+#' @importFrom stats qnorm
 effective.effect=function(betahat,se,df){
 
   p = 2 * pt(abs(betahat/se  ), df=n ,

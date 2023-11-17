@@ -1,7 +1,7 @@
 Encoding: UTF-8
 Type: Package
 Package: susiF.alpha
-Version: 0.1.225
+Version: 0.1.226
 Date: 2023-11-17
 Title: Sum of Single Functions
 Authors@R: person("William R. P.","Denault",role = c("aut","cre"),
@@ -21,8 +21,7 @@ Imports:
     ggplot2,
     gridExtra,
     graphics,
-    LaplacesDemon,
-    wavethresh
+    LaplacesDemon
 Suggests:
     susieR,
     knitr,
