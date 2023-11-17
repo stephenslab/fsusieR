@@ -1,7 +1,7 @@
 Encoding: UTF-8
 Type: Package
 Package: susiF.alpha
-Version: 0.1.223
+Version: 0.1.224
 Date: 2023-11-17
 Title: Sum of Single Functions
 Authors@R: person("William R. P.","Denault",role = c("aut","cre"),
@@ -26,7 +26,8 @@ Suggests:
     susieR,
     knitr,
     rmarkdown,
-    testthat
+    testthat,
+    coloc
 License: BSD_3_clause + file LICENSE
 LazyData: true
 LazyDataCompression: xz
