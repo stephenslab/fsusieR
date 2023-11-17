@@ -1205,7 +1205,7 @@ plot_effect_susiF <- function( susiF.obj,
       P2 <- ggplot(df, aes_string(y = "fun_plot",
                                   x = "x",
                                   col = "CS")) +
-        geom_line(linewidth = size_line) +
+        geom_line(size = size_line) +
         geom_line(aes(y=lfsr_curve, x=x ))+
         geom_hline(yintercept = 0.05)+
         scale_color_manual("Credible set",
@@ -1351,7 +1351,7 @@ plot_susiF  = function (susiF.obj, title="",
     P2 <- ggplot(df, aes_string(y = "fun_plot",
                                 x = "x",
                                 col = "CS")) +
-      geom_line(linewidth = size_line) +
+      geom_line(size = size_line) +
       geom_ribbon(aes_string(ymin = "lwr",ymax = "upr",fill = "CS",
                              col = "CS"),alpha = 0.3) +
       scale_color_manual("Credible set", values = color[-1]) +
@@ -1379,7 +1379,7 @@ plot_susiF  = function (susiF.obj, title="",
       P2 <- ggplot(df, aes_string(y = "fun_plot",
                                   x = "x",
                                   col = "CS")) +
-        geom_line(linewidth = size_line) +
+        geom_line(size = size_line) +
         geom_line(aes(y=lfsr_curve, x=x, col="black"))+
         geom_hline(yintercept = 0.05)+
         scale_color_manual("Credible set",
