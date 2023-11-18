@@ -7,7 +7,7 @@
 \usage{
 update_lfsr_effect(susiF.obj, ...)
 
-\method{update_lfsr_effect}{susiF}(susiF.obj)
+\method{update_lfsr_effect}{susiF}(susiF.obj, ...)
 }
 \arguments{
 \item{susiF.obj}{a susiF object defined by init_susiF_obj function}
