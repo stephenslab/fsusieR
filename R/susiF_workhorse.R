@@ -14,7 +14,7 @@
 #' @param verbose If \code{verbose = TRUE}, the algorithm's progress,
 #' and a summary of the optimization settings are printed to the
 #' console.
-#' @param low_wc  vector of index of which wavelet coefficients display pathologic distribution
+#' @param lowc_wc  vector of index of which wavelet coefficients display pathologic distribution
 #'
 #' @param tol a small, non-negative number specifying the convergence
 #' tolerance for the IBSS fitting procedure. The fitting procedure
@@ -40,13 +40,16 @@
 #' @param tt output of the cal_Bhat_Shat function
 #'
 #' @param max_step_EM max_step_EM
+#' @param parallel if true use parallel computation
+#' @param max_SNP_EM check susiF  description
+#' @param cor_small check susiF  description
+#' @param is.pois check susiF  description
 #'
 #' @export
 susiF.workhorse <- function(susiF.obj,
                             W,
                             X,
                             tol,
-                            low_wc,
                             init_pi0_w ,
                             control_mixsqp ,
                             indx_lst,
@@ -91,7 +94,7 @@ susiF.workhorse <- function(susiF.obj,
     if(is.pois){
       Shat <- update_Shat_pois(Shat     = Shat,
                                indx_lst = indx_lst,
-                               lowc_wc  = low_wc
+                               lowc_wc  = lowc_wc
                                )
     }
     tpi  <- get_pi(susiF.obj,1)

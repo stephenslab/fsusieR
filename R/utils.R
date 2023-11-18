@@ -74,6 +74,12 @@ fast_var <- function (x)
 
 #' @importFrom matrixStats colSds
 #from https://www.r-bloggers.com/2016/02/a-faster-scale-function/
+#' @param x a matrix
+#' @param center logical if true center column
+#' @param scale logical if true scale column
+#' @param add_attr logical  https://www.r-bloggers.com/2016/02/a-faster-scale-function/
+#' @param rows logical  https://www.r-bloggers.com/2016/02/a-faster-scale-function/
+#' @param  cols logical  https://www.r-bloggers.com/2016/02/a-faster-scale-function/
 #' @export
 colScale = function(x,
                     center = TRUE,
@@ -132,6 +138,11 @@ gen_EM_out <- function(tpi_k , lBF){
 
 }
 
+
+#' @description
+#' Compute purity
+#' @param l_cs the list of Credible sets
+#' @param X the regression matrix
 #' @export
 #' @keywords internal
 cal_purity <- function(l_cs,X){
@@ -202,7 +213,7 @@ affected_reg <- function( susiF.obj){
 
 effective.effect=function(betahat,se,df){
 
-  p = 2 * pt(abs(betahat/se  ), df=n ,
+  p = 2 * pt(abs(betahat/se  ), df=df ,
              lower.tail = FALSE)
 
   sign(betahat)*stats::qnorm(p / 2, sd=se ,lower.tail=FALSE)

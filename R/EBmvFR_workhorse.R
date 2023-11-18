@@ -29,7 +29,7 @@
 #' @param  cal_obj logical if set as TRUE compute ELBO for convergence monitoring
 #' @param nullweight numeric value for penalizing likelihood at point mass 0
 #' (useful in small sample size)
-#'
+#' @param  max_step_EM see susiF function
 #' @export
 
 EBmvFR.workhorse <- function(EBmvFR.obj,

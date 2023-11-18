@@ -184,27 +184,39 @@ plot_susiF(out, pip_only=TRUE)
  affected_reg(susiF.obj = out)
   
 ```
- 
- 
-#### A note on the priors available
-Note that fSuSiE has two different priors available \textit{mixture_normal_per_scale} and \textit{mixture_normal}. The default value is \textit{mixture_normal_per_scale}, which has slightly higher performance (power, estimation accuracy) than the  \textit{mixture_normal}. However,  \textit{mixture_normal} is up to 40% faster than the \textit{mixture_normal_per_scale}. You may consider using this option before performing genome-wide fine mapping. 
- 
 
-```{r }
- out1 <- susiF(Y,X,L=3 , prior = 'mixture_normal_per_scale',verbose=FALSE)
- out1$runtime
- out2 <- susiF(Y,X,L=3 , prior = 'mixture_normal',verbose=FALSE)
- out2$runtime
+
+### Prediction
+
+You can also check the predictive power of susiF by checking the fitted from the output susiF
+
+
+Here the comparison betwe
+```{r}
+true_sig  <- matrix( X[ ,pos1], ncol=1)%*%t(f1_obs) +matrix( X[ ,pos2], ncol=1)%*%t(f2_obs)             
+
+
+plot(out$ind_fitted_func,  true_sig,
+     xlab= "predicted value", ylab="true value") 
+abline(a=0,b=1)
 ```
- 
- 
+
+Note that these prediction can different substantially from the observed noisy curves
+```{r}
+
+plot(out$ind_fitted_func,  Y,
+     xlab= "predicted value", ylab="Noisy observation value") 
+abline(a=0,b=1)
+```
+
+
 #### Handling function of any length and unevely space data
 
 Wavelets are primarly design to analyse function sampled on $2^J$  envely spaced position. However, this assumption is unrealistic in practice. For  handling function of any length we use the approach of Kovac and Silvermann (2005) that basically remaps the data on a grid of length $2^J$. \textbf{What is important to know for the user:}  
 * if you don't provide the sampling position (e.g. base pair measurement) in the pos argument, susiF considers that the columns of Y corresponds to evenly spaced sampling positions. For exemple when fine mapping DNA methylation (DNAm) data, if you are trying to fine map meQTL, the columns of the Y matrix corresponds different CpG . You \textbf{should} provide the genomic position of each of this CpG as a vector in the "pos" argument in the susiF function.
 
 
-* susiF provide the estimated effect on the remapped effect on the $2^J$ internal grid. 
+* susiF provide the estimated effect on the remapped effect on a $2^J$   grid. 
 
 
 Example of how to analysis unevenly spaced data.
@@ -278,26 +290,17 @@ lines(  x=out$outing_grid, y= out$cred_band[[1]][2,] ,col='darkblue' ,lty=2 )
 
 
 
+ 
+ 
+#### A note on the priors available
+Note that fSuSiE has two different priors available \textit{mixture_normal_per_scale} and \textit{mixture_normal}. The default value is \textit{mixture_normal_per_scale}, which has slightly higher performance (power, estimation accuracy) than the  \textit{mixture_normal}. However,  \textit{mixture_normal} is up to 40% faster than the \textit{mixture_normal_per_scale}. You may consider using this option before performing genome-wide fine mapping. 
+ 
 
-### Prediction
-
-You can also check the predictive power of susiF by checking the fitted from the output susiF
-
-
-Here the comparison betwe
-```{r}
-true_sig  <- matrix( X[ ,pos1], ncol=1)%*%t(f1_obs) +matrix( X[ ,pos2], ncol=1)%*%t(f2_obs)             
-
-
-plot(out$ind_fitted_func,  true_sig) 
-abline(a=0,b=1)
+```{r }
+ out1 <- susiF(Y,X,L=3 , prior = 'mixture_normal_per_scale',verbose=FALSE)
+ out1$runtime
+ out2 <- susiF(Y,X,L=3 , prior = 'mixture_normal',verbose=FALSE)
+ out2$runtime
 ```
-
-Note that these prediction can different substantially from the observed noisy curves
-```{r}
-
-plot(out$ind_fitted_func,  Y) 
-abline(a=0,b=1)
-```
-
-
+ 
+ 

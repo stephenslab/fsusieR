@@ -7,7 +7,7 @@
 \alias{update_residual_variance.susiF}
 \title{Update residual variance}
 \usage{
-\method{update_residual_variance}{EBmvFR}(EBmvFR.obj, sigma2 = sigma2)
+\method{update_residual_variance}{EBmvFR}(EBmvFR.obj, sigma2, ...)
 
 update_residual_variance(susiF.obj, sigma2, ...)
 

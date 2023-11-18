@@ -9,7 +9,6 @@ susiF.workhorse(
   W,
   X,
   tol,
-  low_wc,
   init_pi0_w,
   control_mixsqp,
   indx_lst,
@@ -42,8 +41,6 @@ will halt when the difference in the variational lower bound, or
 \dQuote{ELBO} (the objective function to be maximized), is less
 than \code{tol}.}
 
-\item{low_wc}{vector of index of which wavelet coefficients display pathologic distribution}
-
 \item{init_pi0_w}{starting value of weight on null compoenent in mixsqp
 (between 0 and 1)}
 
@@ -71,7 +68,15 @@ expected level of coverage of the cs if not specified set to 0.95}
 
 \item{tt}{output of the cal_Bhat_Shat function}
 
+\item{parallel}{if true use parallel computation}
+
+\item{max_SNP_EM}{check susiF  description}
+
 \item{max_step_EM}{max_step_EM}
+
+\item{cor_small}{check susiF  description}
+
+\item{is.pois}{check susiF  description}
 }
 \description{
 Implementation of the SuSiF method

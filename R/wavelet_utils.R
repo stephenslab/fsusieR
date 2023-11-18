@@ -143,7 +143,7 @@ gen_wavelet_indx <- function(lev_res)
 
 }
 
-wavelet_reg <-  function(Y, design_mat,pos=NULL,   thresh_lowcount=0){
+wavelet_reg <-  function(Y, X, verbose=TRUE,  pos=NULL,   thresh_lowcount=0){
   if (is.null(pos))
   {
     pos <- 1:dim(Y)[2]

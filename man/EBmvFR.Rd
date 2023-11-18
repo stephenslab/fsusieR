@@ -77,6 +77,10 @@ on wavelet coefficients}
 \item{gridmult}{numeric used to control the number of components used in the mixture prior (see ashr package
 for more details). From the ash function:  multiplier by which the default grid values for mixsd differ from one another.
  (Smaller values produce finer grids.). Increasing this value may reduce computational time}
+
+\item{max_step_EM}{see susiF function}
+
+\item{max_SNP_EM}{see susiF function}
 }
 \description{
 Empirical Bayes multivariate functional regression

@@ -13,7 +13,8 @@ TI_regression(susiF.obj, Y, X, verbose, filter.number, family, ...)
   X,
   verbose = TRUE,
   filter.number = 10,
-  family = "DaubLeAsymm"
+  family = "DaubLeAsymm",
+  ...
 )
 }
 \arguments{
@@ -28,6 +29,8 @@ TI_regression(susiF.obj, Y, X, verbose, filter.number, family, ...)
 \item{filter.number}{see wd description in wavethresh package description}
 
 \item{family}{see wd description in wavethresh package description}
+
+\item{\dots}{Other arguments.}
 }
 \description{
 e Compute refined estimate using translation invariant wavelet transform

@@ -265,7 +265,7 @@ test_stop_cond.EBmvFR <- function(EBmvFR.obj, check, cal_obj, Y, X, D, C, indx_l
 #' @export
 #' @keywords internal
 
-out_prep.EBmvFR <- function(EBmvFR.obj,  X, indx_lst,   outing_grid,...)
+out_prep.EBmvFR <- function(EBmvFR.obj,  X, indx_lst,  filter.cs, outing_grid,...)
 {
 
 
@@ -440,7 +440,7 @@ update_prior.EBmvFR <- function( EBmvFR.obj,
 #' @export
 #' @keywords internal
 
- update_residual_variance.EBmvFR <- function(EBmvFR.obj, sigma2 = sigma2 ){
+ update_residual_variance.EBmvFR <- function(EBmvFR.obj, sigma2  ,... ){
    EBmvFR.obj$sigma2 <- sigma2
    return(EBmvFR.obj)
  }

@@ -53,6 +53,8 @@ and a summary of the optimization settings are printed to the
 console.}
 
 \item{maxit}{Maximum number of IBSS iterations.}
+
+\item{max_step_EM}{see susiF function}
 }
 \description{
 Empirical Bayes multivariate functional regression

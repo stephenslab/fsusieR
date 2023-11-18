@@ -7,7 +7,7 @@
 \usage{
 HMM_regression(susiF.obj, Y, X, verbose = TRUE, maxit, fit_indval = TRUE, ...)
 
-\method{HMM_regression}{susiF}(susiF.obj, Y, X, verbose = TRUE, fit_indval = TRUE)
+\method{HMM_regression}{susiF}(susiF.obj, Y, X, verbose = TRUE, maxit, fit_indval = TRUE, ...)
 }
 \arguments{
 \item{susiF.obj}{a susiF object}
@@ -18,6 +18,8 @@ HMM_regression(susiF.obj, Y, X, verbose = TRUE, maxit, fit_indval = TRUE, ...)
 
 \item{verbose}{logical
 @param fit_indval logical if set to true compute fitted value (default value TRUE)}
+
+\item{\dots}{Other arguments.}
 }
 \description{
 Compute refined estimate using HMM regression
