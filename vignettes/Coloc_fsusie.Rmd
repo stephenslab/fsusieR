@@ -1,7 +1,11 @@
 ---
-title: "Coloc_fsusie"
-output: html_document
-date: "2023-01-28"
+title: "Using fSuSiE for colocalization"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Accounting for covariate in functional fine-mapping}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
 ---
 
 ```{r setup, include=FALSE}

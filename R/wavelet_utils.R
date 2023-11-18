@@ -72,9 +72,12 @@ interpolKS <-  function (y, bp)
 #\item{family}{ used for the wavelet transform}
 #\item{filter.number}{ }
 #
-# @importFrom wavethresh accessC
-# @importFrom wavethresh wd
 # @export
+#
+#' @importFrom stats complete.cases
+#' @importFrom wavethresh accessC
+#' @importFrom wavethresh wd
+#'
 DWT2 <- function (data, filter.number = 10, family = "DaubLeAsymm" )
 {
 
@@ -143,7 +146,11 @@ gen_wavelet_indx <- function(lev_res)
 
 }
 
+#' @importFrom stats lm
 wavelet_reg <-  function(Y, X, verbose=TRUE,  pos=NULL,   thresh_lowcount=0){
+
+
+
   if (is.null(pos))
   {
     pos <- 1:dim(Y)[2]
@@ -250,6 +257,7 @@ wavelet_reg <-  function(Y, X, verbose=TRUE,  pos=NULL,   thresh_lowcount=0){
 #' @param Y  Matrix of observed curves
 #' @param pos sampling position
 #' @param verbose logical
+#' @importFrom stats complete.cases
 #' @export
 remap_data <- function(Y,pos, verbose=TRUE, max_scale=10){
 

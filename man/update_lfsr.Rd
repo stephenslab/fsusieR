@@ -27,5 +27,7 @@ susiF object
 }
 \description{
 Update susiF local False Sign Rate
+
+Update susiF lfsr.
 }
 \keyword{internal}

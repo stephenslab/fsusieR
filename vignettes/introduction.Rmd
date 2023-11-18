@@ -1,9 +1,10 @@
 ---
-title: "Introduction"
-author: "William R.P. Denault"
+title: Introduction to fSuSiE
+author: William R.P. Denault
+date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{introduction}
+  %\VignetteIndexEntry{Introduction to fSuSiE}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -18,24 +19,42 @@ knitr::opts_chunk$set(
   fig.cap = "&nbsp;",
   dpi = 120
   )
-
- 
 ```
 
 # fSuSiE
- In this package, we implement a  Bayesian variable selection method called the "Functional Sum of Single Effects" ({\em fSuSiE}) model that extends the {\em SuSiE} model of Wang et al.^[this vignette is based on the original SuSiE vignette by [Gao Wang](https://stephenslab.github.io/susieR/articles/finemapping.html) ]  to functional phenotypes that can span over large genomic regions. The methods implemented here are particularly well-suited to settings where some of the X variables are highly correlated, and the true effects are highly sparse (e.g. <20 non-zero effects in the vector b). One example of this is genetic fine-mapping molecular measurements from sequencing assays (ChIP-seq, ATAC-seq ), as well as DNA methylation. However, the methods should also be useful more generally (e.g., detecting changes in time series).
+
+In this package, we implement a Bayesian variable selection method
+called the "Functional Sum of Single Effects" ({\em fSuSiE}) model
+that extends the {\em SuSiE} model of Wang et
+al.^[this vignette is based on the original SuSiE vignette by [Gao Wang](https://stephenslab.github.io/susieR/articles/finemapping.html)
+] to functional phenotypes that can span over large genomic
+regions. The methods implemented here are particularly well-suited to
+settings where some of the X variables are highly correlated, and the
+true effects are highly sparse (e.g. <20 non-zero effects in the
+vector b). One example of this is genetic fine-mapping molecular
+measurements from sequencing assays (ChIP-seq, ATAC-seq ), as well as
+DNA methylation. However, the methods should also be useful more
+generally (e.g., detecting changes in time series).
 
 ###Model Description 
+
 fSuSiE fits the following linear regression ${Y} = {XB} + {E}$, where ${Y}$ is a N x T matrix containing the observed curves, ${X}$ is the N × p matrix of single nucleotide polymorphisms (SNP) in the region to be fine-mapped. ${B}$ is a p × T matrix whose element $b_{jt}$ is the effect of SNP $j$ on the trait at location t, and ${E}$ is a matrix of error terms which initially, we consider being normally-distributed with variance $\sigma^2$. Analogous to regular fine-mapping, the matrix ${B}$ is expected to be sparse, i.e., most rows will be zero. Non-zero rows correspond to SNPs that do affect the trait. The goal is to identify the non-zero rows of  ${B}$. We extended  {\em SuSiE} to functional traits by writing ${B}= \sum_l^L {B}^{(l)}$, where each "single-effect" matrix ${B}^{(l)}$ has only one non-zero row, corresponding to a single causal SNP. We devised a fast variational inference procedure~\cite{blei_variational_2017} for fitting this model by first projecting the data in the wavelet space and then using an adaptation of the efficient iterative Bayesian stepwise selection (IBSS) approach proposed by Wang and colleagues.
 
+The output of the fitting procedure is a number of "Credible Sets"
+(CSs), which are each designed to have a high probability of
+containing a variable with a non-zero effect, while at the same time
+being as small as possible. You can think of the CSs as being a set of
+"highly correlated" variables that are each associated with the
+response: you can be confident that one of the variables has a
+non-zero coefficient, but they are too correlated to be sure which
+one.
 
+The package is developed by William R.P. Denault from the Stephens Lab
+at the University of Chicago.
 
-The output of the fitting procedure is a number of "Credible Sets" (CSs), which are each designed to have a high probability of containing a variable with a non-zero effect, while at the same time being as small as possible. You can think of the CSs as being a set of "highly correlated" variables that are each associated with the response: you can be confident that one of the variables has a non-zero coefficient, but they are too correlated to be sure which one.
-
-The package is developed by William R.P. Denault from the Stephens Lab at the University of Chicago.
-
-Please post issues to ask questions, get our support or provide us feedback; please send pull requests if you have helped fix bugs or make improvements to the source code.
-
+Please post issues to ask questions, get our support or provide us
+feedback; please send pull requests if you have helped fix bugs or
+make improvements to the source code.
 
 ### Using fSuSiE
 

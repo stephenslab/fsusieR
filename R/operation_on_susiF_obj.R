@@ -1118,6 +1118,7 @@ out_prep.susiF <- function(susiF.obj,
 #' @importFrom ggplot2 ylab
 #' @importFrom ggplot2 geom_ribbon
 #' @importFrom ggplot2 scale_fill_manual
+#' @importFrom ggplot2 aes
 #
 #' @export
 #
@@ -1205,7 +1206,7 @@ plot_effect_susiF <- function( susiF.obj,
       P2 <- ggplot(df, aes_string(y = "fun_plot",
                                   x = "x",
                                   col = "CS")) +
-        geom_line(linewidth = size_line) +
+        geom_line(size = size_line) +
         geom_line(aes(y=lfsr_curve, x=x ))+
         geom_hline(yintercept = 0.05)+
         scale_color_manual("Credible set",
@@ -1269,6 +1270,7 @@ plot_effect_susiF <- function( susiF.obj,
 #' @importFrom ggplot2 ylab
 #' @importFrom ggplot2 geom_ribbon
 #' @importFrom ggplot2 scale_fill_manual
+#' @importFrom ggplot2 aes
 #
 #' @export
 #
@@ -1351,7 +1353,7 @@ plot_susiF  = function (susiF.obj, title="",
     P2 <- ggplot(df, aes_string(y = "fun_plot",
                                 x = "x",
                                 col = "CS")) +
-      geom_line(linewidth = size_line) +
+      geom_line(size = size_line) +
       geom_ribbon(aes_string(ymin = "lwr",ymax = "upr",fill = "CS",
                              col = "CS"),alpha = 0.3) +
       scale_color_manual("Credible set", values = color[-1]) +
@@ -1379,7 +1381,7 @@ plot_susiF  = function (susiF.obj, title="",
       P2 <- ggplot(df, aes_string(y = "fun_plot",
                                   x = "x",
                                   col = "CS")) +
-        geom_line(linewidth = size_line) +
+        geom_line(size = size_line) +
         geom_line(aes(y=lfsr_curve, x=x, col="black"))+
         geom_hline(yintercept = 0.05)+
         scale_color_manual("Credible set",
@@ -1751,11 +1753,6 @@ update_cal_pip.susiF <- function (susiF.obj,...)
   return(susiF.obj)
 }
 
-
-
-
-
-
 #' @title Update susiF by computing credible sets
 #
 #' @param susiF.obj a susiF object defined by  init_susiF_obj  function
@@ -1766,7 +1763,7 @@ update_cal_pip.susiF <- function (susiF.obj,...)
 #
 #' @export
 #' @keywords internal
-
+#'
 update_cal_cs  <- function(susiF.obj, cov_lev=0.95,...)
   UseMethod("update_cal_cs")
 
@@ -1777,8 +1774,9 @@ update_cal_cs  <- function(susiF.obj, cov_lev=0.95,...)
 #' @export update_cal_cs.susiF
 #
 #' @export
+#'
 #' @keywords internal
-
+#'
 update_cal_cs.susiF <- function(susiF.obj, cov_lev=0.95, l,...)
 {
   if( !missing(l)){
@@ -1836,13 +1834,11 @@ update_cal_indf <- function(susiF.obj, Y, X, indx_lst, TI=FALSE,...)
 #
 # @export update_cal_indf.susiF
 #
-# @importFrom wavethresh wr
-#
-# @importFrom wavethresh wd
 #
 # @export
 #
-
+#' @importFrom wavethresh wr
+#' @importFrom wavethresh wd
 update_cal_indf.susiF <- function(susiF.obj, Y, X, indx_lst, TI=FALSE,...)
 {
 
@@ -2064,13 +2060,16 @@ update_cal_credible_band.susiF <- function(susiF.obj, indx_lst,...)
 
 
 
-#
+#' @title Update susiF lfsr effect
+#'
 #' @param susiF.obj a susiF object defined by init_susiF_obj function
+#'
 #' @return susiF object
+#'
 #' @export
+#'
 #' @keywords internal
-
-
+#'
 update_lfsr_effect  <- function    (susiF.obj ,...)
   UseMethod("update_lfsr_effect")
 
@@ -2081,9 +2080,11 @@ update_lfsr_effect  <- function    (susiF.obj ,...)
 #' @export update_lfsr_effect.susiF
 #
 #' @export
+#'
 #' @keywords internal
 
 update_lfsr_effect.susiF  <- function  (susiF.obj ,...){
+
     susiF.obj$lfsr <- lapply(1:length(susiF.obj$cs) ,
                              function(l) min(susiF.obj$lfsr_wc[[l]])
                              )
@@ -2146,9 +2147,11 @@ update_lBF.susiF <- function    (susiF.obj,l, lBF,...)
 #' @keywords internal
 
 
-update_lfsr  <- function    (susiF.obj, l, Bhat, Shat, indx_lst,...)
+update_lfsr <- function    (susiF.obj, l, Bhat, Shat, indx_lst,...)
   UseMethod("update_lfsr")
 
+#' @title Update susiF lfsr.
+#'
 #' @rdname update_lfsr
 #
 #' @method update_lfsr susiF
@@ -2157,26 +2160,24 @@ update_lfsr  <- function    (susiF.obj, l, Bhat, Shat, indx_lst,...)
 #
 #' @export
 #
-
-update_lfsr.susiF <- function(susiF.obj, l, Bhat, Shat,   indx_lst,...)
-{
+update_lfsr.susiF <- function (susiF.obj, l, Bhat, Shat, indx_lst, ...) {
   clfsr_wc <-  cal_clfsr(get_G_prior(susiF.obj),  Bhat,Shat,indx_lst )
   susiF.obj$lfsr_wc[[l]] <- cal_lfsr (clfsr_wc,susiF.obj$alpha[[l]])
   return(susiF.obj)
 }
 
-
-
-
 #' @title Update susiF log Bayes factor
 #
 #' @param susiF.obj a susiF object defined by init_susiF_obj function
+#'
 #' @param  ELBO new ELBO value
+#'
 #' @return susiF object
+#'
 #' @export
+#'
 #' @keywords internal
-
-
+#'
 update_ELBO  <- function    (susiF.obj,ELBO ,...)
   UseMethod("update_ELBO")
 

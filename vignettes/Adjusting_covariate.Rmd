@@ -1,6 +1,7 @@
 ---
 title: "Accounting for covariate in functional fine-mapping"
 author: "William R.P. Denault"
+date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{Accounting for covariate in functional fine-mapping}
@@ -14,10 +15,15 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Adjustement for functional fine-mapping
 
-In order to reduce the number of false positives in fine-mapping analysis, it is often 
-important to account for potential counfounders. As most of the tools in the SuSiE suite
-don't account for confounders while performing fine-mapping, it is important to  account for counfounders prior to the analysis. Similar problem arise with fSuSiE. While it is relatively straightforward to adjust univariate phenotypes. It is more complicated to adjust curves for confounding. Thus we implemented a user friendly function that performs this preprocessing step.
-
+In order to reduce the number of false positives in fine-mapping
+analysis, it is often important to account for potential
+counfounders. As most of the tools in the SuSiE suite don't account
+for confounders while performing fine-mapping, it is important to
+account for counfounders prior to the analysis. Similar problem arise
+with fSuSiE. While it is relatively straightforward to adjust
+univariate phenotypes. It is more complicated to adjust curves for
+confounding. Thus we implemented a user friendly function that
+performs this preprocessing step.
 
 ### Generating the data
 ```{r}
