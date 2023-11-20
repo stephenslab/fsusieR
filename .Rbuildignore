@@ -2,6 +2,6 @@
 ^\.Rproj\.user$
 ^susiF\.alpha\.Rproj$
 ^\.gitattributes$
-^doc$
+^docs$
 ^pb_susie\.RData$
 ^_pkgdown\.yml$
