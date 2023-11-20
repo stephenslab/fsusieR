@@ -880,7 +880,7 @@ HMM_regression.susiF <- function( susiF.obj,
     est  <- do.call(c, lapply( 1: length(tt) ,function (j) tt[[j]][ lp  ,1]))
 
     sds  <- do.call(c, lapply( 1: length(tt) ,function (j) tt[[j]][lp,2]))
-    s = susiF.alpha:::fit_hmm(x=est ,sd=sds ,halfK=20 )
+    s = fit_hmm(x=est ,sd=sds ,halfK=20 )
     fitted_lfsr [[idx_cs]] <- s$lfsr
     fitted_trend[[idx_cs]] <- s$x_post
 
