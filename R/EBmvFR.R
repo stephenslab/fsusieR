@@ -293,7 +293,8 @@ EBmvFR <- function(Y, X,
                                    maxit          = maxit,
                                    max_step_EM    = max_step_EM)
   #preparing output
-  EBmvFR.obj <- out_prep(EBmvFR.obj  = EBmvFR.obj,
+  EBmvFR.obj <- out_prep(obj         = EBmvFR.obj,
+                         Y           = Y,
                          X           = X,
                          indx_lst    = indx_lst,
                          outing_grid = outing_grid

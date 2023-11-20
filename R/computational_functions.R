@@ -809,18 +809,20 @@ fit_hmm <- function (x,sd,
 #' @description    Compute refined estimate using HMM regression
 #'
 #' @param susiF.obj  a susiF object
-#'
 #' @param Y  matrix of responses
-#'
 #' @param X matrix containing the covariates
 #' @param verbose logical
-#'  @param fit_indval logical if set to true compute fitted value (default value TRUE)
+#' @param fit_indval logical if set to true compute fitted value (default value TRUE)
 #'
 #' @param \dots Other arguments.
 #' @export
 
 
-HMM_regression<- function (susiF.obj,Y,X, verbose=TRUE, maxit,fit_indval=TRUE,...)
+HMM_regression<- function (susiF.obj,
+                           Y,
+                           X,
+                           verbose=TRUE,
+                           fit_indval=TRUE,...)
   UseMethod("HMM_regression")
 
 
@@ -829,7 +831,7 @@ HMM_regression<- function (susiF.obj,Y,X, verbose=TRUE, maxit,fit_indval=TRUE,..
 #' @method HMM_regression susiF
 #'
 #' @importFrom stats lm
-#' 
+#'
 #' @export HMM_regression.susiF
 #'
 #' @export
@@ -838,7 +840,6 @@ HMM_regression.susiF <- function( susiF.obj,
                                   Y,
                                   X ,
                                   verbose=TRUE,
-                                  maxit,
                                   fit_indval=TRUE ,...
 ){
 
@@ -880,7 +881,7 @@ HMM_regression.susiF <- function( susiF.obj,
     est  <- do.call(c, lapply( 1: length(tt) ,function (j) tt[[j]][ lp  ,1]))
 
     sds  <- do.call(c, lapply( 1: length(tt) ,function (j) tt[[j]][lp,2]))
-    s = susiF.alpha:::fit_hmm(x=est ,sd=sds ,halfK=20 )
+    s =  fit_hmm(x=est ,sd=sds ,halfK=20 )
     fitted_lfsr [[idx_cs]] <- s$lfsr
     fitted_trend[[idx_cs]] <- s$x_post
 

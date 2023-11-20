@@ -110,7 +110,13 @@ for more details). From the ash function:  multiplier by which the default grid 
 \item{max_scale}{numeric, define the maximum of wavelet coefficients used in the analysis (2^max_scale).
 Set 10 true by default.}
 
+\item{max_SNP_EM}{maximum number of SNP used for learning the prior. By default set to 1000. Reducing this may help reducing
+the computational time. We advice to keep it at least larger than 50}
+
 \item{max_step_EM}{max_step_EM}
+
+\item{cor_small}{logical set to FALSE by default. If TRUE used Bayes factor from Valen E Johnson JRSSB 2005 instead of Wakefeild approximation for Gen Epi 2009
+the Bayes factor from Valen E Johnson JRSSB 2005 tend to have better coverage in small sample size. We advise using this parameter if n<50}
 
 \item{filter.number}{see documentation of wd from wavethresh package}
 

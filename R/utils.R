@@ -71,9 +71,11 @@ fast_var <- function (x)
   .Call(stats:::C_cov, x, x, 5, FALSE)
 }
 
-
+#' @title  Scaling function from r-blogger
+#'
+#' @description from https://www.r-bloggers.com/2016/02/a-faster-scale-function/
 #' @importFrom matrixStats colSds
-#from https://www.r-bloggers.com/2016/02/a-faster-scale-function/
+#
 #' @param x a matrix
 #' @param center logical if true center column
 #' @param scale logical if true scale column
@@ -138,9 +140,9 @@ gen_EM_out <- function(tpi_k , lBF){
 
 }
 
-
-#' @description
-#' Compute purity
+#' @title  Compute purity of a list of CS
+#'
+#' @description Compute purity
 #' @param l_cs the list of Credible sets
 #' @param X the regression matrix
 #' @export
@@ -173,9 +175,9 @@ cal_purity <- function(l_cs,X){
 #' @param susiF.obj at fitted susiF.obj object
 #'
 #' @importFrom stats complete.cases
-#' 
+#'
 #' @export
-#' 
+#'
 affected_reg <- function( susiF.obj){
   outing_grid <- susiF.obj$outing_grid
 

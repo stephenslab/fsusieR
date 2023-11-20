@@ -41,10 +41,10 @@ cal_post_effect <- function(EBmvFR.obj,j, temp,indx_lst){
 #' @export
 #' @keywords internal
 
-cal_partial_resid.EBmvFR  <- function( EBmvFR.obj, l, X, D, C,  indx_lst,... )
+cal_partial_resid.EBmvFR  <- function(  obj, l, X, D, C,  indx_lst,... )
 {
 
-
+  EBmvFR.obj <- obj
 
   update_D  <-  D -   X[,-l]%*%EBmvFR.obj$fitted_wc[[1]][-l,-indx_lst[[length(indx_lst)]]]
   update_C  <-  C  -  as.vector(X[,-l]%*%EBmvFR.obj$fitted_wc[[1]][-l,indx_lst[[length(indx_lst)]]])
@@ -67,18 +67,19 @@ cal_partial_resid.EBmvFR  <- function( EBmvFR.obj, l, X, D, C,  indx_lst,... )
 #
 #' @export
 #
-estimate_residual_variance.EBmvFR <- function(EBmvFR.obj,Y,X,... )
+estimate_residual_variance.EBmvFR <- function(obj,Y,X,... )
 {
+  EBmvFR.obj <- obj
   out <-  (1/(prod(dim(Y))))*get_ER2 (EBmvFR.obj,Y, X  )
   #TODO: not correct, need to correct bottom part
   return(out)
 }
 
 
-fit_effect.EBmvFR <- function(EBmvFR.obj, j,X,D, C,  indx_lst,lowc_wc){
+fit_effect.EBmvFR <- function( EBmvFR.obj, j,X,D, C,  indx_lst,lowc_wc){
 
   Y <- cal_partial_resid(
-    EBmvFR.obj = EBmvFR.obj,
+     obj = EBmvFR.obj,
     l         = j,
     X         = X,
     D         = D,
@@ -119,7 +120,10 @@ get_G_prior.EBmvFR <- function( EBmvFR.obj){
 #' @export
 #' @keywords internal
 
-get_ER2.EBmvFR = function (  EBmvFR.obj,Y, X,  ...) {
+get_ER2.EBmvFR = function (   obj,Y, X,  ...) {
+
+
+  EBmvFR.obj <- obj
   postF  <- EBmvFR.obj$fitted_wc[[1]]# J by N matrix
   postF2 <- EBmvFR.obj$fitted_wc2[[1]] # Posterior second moment.
 
@@ -198,11 +202,11 @@ init_EBmvFR_obj <- function( G_prior, Y,X,... )
 #
 #' @export
 #' @keywords internal
-test_stop_cond.EBmvFR <- function(EBmvFR.obj, check, cal_obj, Y, X, D, C, indx_lst,...)
+test_stop_cond.EBmvFR <- function(obj, check, cal_obj, Y, X, D, C, indx_lst,...)
 {
 
 
-
+     EBmvFR.obj <- obj
 
     if( cal_obj){
 
@@ -265,9 +269,9 @@ test_stop_cond.EBmvFR <- function(EBmvFR.obj, check, cal_obj, Y, X, D, C, indx_l
 #' @export
 #' @keywords internal
 
-out_prep.EBmvFR <- function(EBmvFR.obj,  X, indx_lst,  filter.cs, outing_grid,...)
+out_prep.EBmvFR <- function( obj,  Y,  X, indx_lst,    outing_grid,...)
 {
-
+  EBmvFR.obj <- obj
 
   EBmvFR.obj             <-  update_cal_fit_func(EBmvFR.obj, indx_lst)
   EBmvFR.obj             <-  update_cal_indf    (EBmvFR.obj, X)
@@ -300,9 +304,9 @@ update_pi_hist <- function(EBmvFR.obj,tpi ){
 #' @export
 #' @keywords internal
 
-update_cal_fit_func.EBmvFR <- function(EBmvFR.obj, indx_lst,...)
+update_cal_fit_func.EBmvFR <- function(obj, indx_lst,...)
 {
-
+  EBmvFR.obj <- obj
   temp <- wavethresh::wd(rep(0, EBmvFR.obj$n_wac))
 
 
@@ -440,7 +444,8 @@ update_prior.EBmvFR <- function( EBmvFR.obj,
 #' @export
 #' @keywords internal
 
- update_residual_variance.EBmvFR <- function(EBmvFR.obj, sigma2  ,... ){
+ update_residual_variance.EBmvFR <- function( obj, sigma2  ,... ){
+   EBmvFR.obj <- obj
    EBmvFR.obj$sigma2 <- sigma2
    return(EBmvFR.obj)
  }

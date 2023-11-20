@@ -257,6 +257,8 @@ wavelet_reg <-  function(Y, X, verbose=TRUE,  pos=NULL,   thresh_lowcount=0){
 #' @param Y  Matrix of observed curves
 #' @param pos sampling position
 #' @param verbose logical
+#'@param max_scale numeric, define the maximum of wavelet coefficients used in the analysis (2^max_scale).
+#'        Set 10 true by default.
 #' @importFrom stats complete.cases
 #' @export
 remap_data <- function(Y,pos, verbose=TRUE, max_scale=10){

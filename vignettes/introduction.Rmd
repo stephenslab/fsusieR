@@ -209,8 +209,7 @@ plot_susiF(out, pip_only=TRUE)
 
 You can also check the predictive power of susiF by checking the fitted from the output susiF
 
-
-Here the comparison betwe
+ 
 ```{r}
 true_sig  <- matrix( X[ ,pos1], ncol=1)%*%t(f1_obs) +matrix( X[ ,pos2], ncol=1)%*%t(f2_obs)             
 
@@ -314,7 +313,7 @@ lines(  x=out$outing_grid, y= out$cred_band[[1]][2,] ,col='darkblue' ,lty=2 )
 #### A note on the priors available
 Note that fSuSiE has two different priors available \textit{mixture_normal_per_scale} and \textit{mixture_normal}. The default value is \textit{mixture_normal_per_scale}, which has slightly higher performance (power, estimation accuracy) than the  \textit{mixture_normal}. However,  \textit{mixture_normal} is up to 40% faster than the \textit{mixture_normal_per_scale}. You may consider using this option before performing genome-wide fine mapping. 
  
-
+Here a comparison between their running time
 ```{r }
  out1 <- susiF(Y,X,L=3 , prior = 'mixture_normal_per_scale',verbose=FALSE)
  out1$runtime

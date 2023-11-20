@@ -91,7 +91,7 @@ EBmvFR.workhorse <- function(EBmvFR.obj,
                                 lowc_wc        = lowc_wc,
                                 nullweight     = nullweight   )
 
-    EBmvFR.obj <- test_stop_cond(EBmvFR.obj = EBmvFR.obj,
+    EBmvFR.obj <- test_stop_cond( obj = EBmvFR.obj,
                                  check      = check,
                                  cal_obj    = cal_obj,
                                  Y          = Y_f,

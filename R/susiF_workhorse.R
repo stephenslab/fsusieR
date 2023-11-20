@@ -147,7 +147,7 @@ susiF.workhorse <- function(susiF.obj,
 
         #print(susiF.obj$alpha[[l]])
         update_Y  <-  cal_partial_resid(
-          susiF.obj = susiF.obj,
+           obj      = susiF.obj,
           l         = (l-1)  ,
           X         = X,
           D         = W$D,
@@ -228,19 +228,19 @@ susiF.workhorse <- function(susiF.obj,
       # save(susiF.obj, file ="D:/Document/Serieux/Travail/Package/susiF.alpha/pb_object.RData")
       # break
       ####Check greedy/backfit and stopping condition -----
-      susiF.obj <- greedy_backfit (susiF.obj  = susiF.obj,
+      susiF.obj <- greedy_backfit (susiF.obj,
                                    verbose    = verbose,
                                    cov_lev    = cov_lev,
                                    X          = X,
                                    min.purity = min.purity
       )
-      sigma2    <- estimate_residual_variance(susiF.obj = susiF.obj,
+      sigma2    <- estimate_residual_variance(susiF.obj,
                                               Y         = Y_f,
                                               X         = X)
       #print(sigma2)
-      susiF.obj <- update_residual_variance(susiF.obj = susiF.obj,
+      susiF.obj <- update_residual_variance( obj      = susiF.obj,
                                             sigma2    = sigma2 )
-      susiF.obj <- test_stop_cond(susiF.obj = susiF.obj,
+      susiF.obj <- test_stop_cond( obj      = susiF.obj,
                                   check     = check,
                                   cal_obj   = cal_obj,
                                   Y         = Y_f,

@@ -3,7 +3,7 @@
 
 #' @title Compute partial residual for effect l
 #
-#' @param susiF.obj a susiF object defined by init_susiF_obj function
+#' @param  obj a susiF object defined by init_susiF_obj function
 #
 #' @param l integer larger or equal to 1. Corresponds to the effect to be accessed
 #
@@ -19,7 +19,7 @@
 #
 #' @export
 #' @keywords internal
-cal_partial_resid  <- function( susiF.obj, l, X, D, C,  indx_lst,... )
+cal_partial_resid  <- function( obj, l, X, D, C,  indx_lst,... )
   UseMethod("cal_partial_resid")
 
 
@@ -32,8 +32,10 @@ cal_partial_resid  <- function( susiF.obj, l, X, D, C,  indx_lst,... )
 #' @export
 #' @keywords internal
 
-cal_partial_resid.susiF  <- function( susiF.obj, l, X, D, C,  indx_lst,... )
+cal_partial_resid.susiF  <- function( obj, l, X, D, C,  indx_lst,... )
 {
+
+  susiF.obj <- obj
   L <- susiF.obj$L
 
   if (L > 1){
@@ -221,7 +223,7 @@ discard_cs.susiF <- function(susiF.obj, cs, out_prep=FALSE,  ...)
 
 #' @title Update residual variance
 #
-#' @param susiF.obj a susiF object defined by init_susiF_obj function
+#' @param  obj a susiF object defined by init_susiF_obj function
 #
 #' @param Y wavelet transformed  functional phenotype, matrix of size N by size J.
 #
@@ -232,7 +234,7 @@ discard_cs.susiF <- function(susiF.obj, cs, out_prep=FALSE,  ...)
 #
 #' @export
 #' @keywords internal
-estimate_residual_variance <- function(susiF.obj,Y,X,... )
+estimate_residual_variance <- function( obj,Y,X,... )
   UseMethod("estimate_residual_variance")
 
 #' @rdname estimate_residual_variance
@@ -243,9 +245,10 @@ estimate_residual_variance <- function(susiF.obj,Y,X,... )
 #
 #' @export
 #
-estimate_residual_variance.susiF <- function(susiF.obj,Y,X,... )
+estimate_residual_variance.susiF <- function( obj,Y,X,... )
 {
-  out <-  (1/(prod(dim(Y))))*get_ER2 (susiF.obj,Y, X  )
+  susiF.obj <- obj
+  out <-  (1/(prod(dim(Y))))*get_ER2 (  susiF.obj,Y, X  )
   return(out)
 }
 
@@ -410,7 +413,7 @@ get_lBF.susiF <- function(susiF.obj, l,...)
 #
 #' @return estimated residual variance
 #' @export
-get_ER2 <- function(susiF.obj,Y,X,... )
+get_ER2 <- function( obj,Y,X,... )
   UseMethod("get_ER2")
 
 
@@ -423,7 +426,10 @@ get_ER2 <- function(susiF.obj,Y,X,... )
 #' @export
 #' @keywords internal
 
-get_ER2.susiF = function (  susiF.obj,Y, X,  ...) {
+get_ER2.susiF = function (  obj,Y, X,  ...) {
+
+
+  susiF.obj <- obj
   postF <- get_post_F(susiF.obj )# J by N matrix
   #Xr_L = t(X%*% postF)
   postF2 <- get_post_F2(susiF.obj ) # Posterior second moment.
@@ -1004,7 +1010,7 @@ name_cs.susiF <- function(susiF.obj,X,...){
 
 #' @title Preparing output of main susiF function
 #
-#' @param susiF.obj a susiF object defined by init_susiF_obj function
+#' @param  obj a susiF object defined by init_susiF_obj function
 #
 #' @param Y functional phenotype, matrix of size N by size J. The underlying algorithm uses wavelets that assume that J is of the form J^2. If J is not a power of 2, susiF internally remaps the data into a grid of length 2^J
 #
@@ -1019,7 +1025,7 @@ name_cs.susiF <- function(susiF.obj,X,...){
 #
 #' @export
 #' @keywords internal
-out_prep <- function(susiF.obj,Y, X, indx_lst, filter.cs, outing_grid,...)
+out_prep <- function( obj, Y, X, indx_lst, outing_grid,...)
   UseMethod("out_prep")
 
 #' @rdname out_prep
@@ -1031,20 +1037,19 @@ out_prep <- function(susiF.obj,Y, X, indx_lst, filter.cs, outing_grid,...)
 #' @export
 #' @keywords internal
 
-out_prep.susiF <- function(susiF.obj,
+out_prep.susiF <- function(obj ,
                            Y,
                            X,
                            indx_lst,
-                           filter.cs,
-
                            outing_grid,
+                           filter.cs,
                            TI,
                            filter.number = 10,
                            family =  "DaubLeAsymm",
                            HMM=FALSE,
                            ...)
 {
-
+  susiF.obj<-obj
 
   susiF.obj <-  update_cal_pip(susiF.obj)
 
@@ -1422,7 +1427,7 @@ plot_susiF  = function (susiF.obj, title="",
 
 #' @title Check tolerance for stopping criterion
 #
-#' @param susiF.obj a susiF object defined by init_susiF_obj function
+#' @param obj a susiF object defined by init_susiF_obj function
 #' @param check numeric, dynamic value for testing outing of th while loop
 #' @param cal_obj logical, if set to TRUE compute ELBO
 #
@@ -1437,7 +1442,7 @@ plot_susiF  = function (susiF.obj, title="",
 #' @return a matrix of size N by size J of partial residuals
 #' @export
 #' @keywords internal
-test_stop_cond <- function(susiF.obj,
+test_stop_cond <- function( obj,
                            check,
                            cal_obj,
                            Y,
@@ -1456,9 +1461,9 @@ test_stop_cond <- function(susiF.obj,
 #
 #' @export
 #' @keywords internal
-test_stop_cond.susiF <- function(susiF.obj, check, cal_obj, Y, X, D, C, indx_lst,...)
+test_stop_cond.susiF <- function( obj, check, cal_obj, Y, X, D, C, indx_lst,...)
 {
-
+  susiF.obj <- obj
   if( susiF.obj$L==1)
   {
     susiF.obj$check <- 0
@@ -1910,7 +1915,7 @@ update_cal_indf.susiF <- function(susiF.obj, Y, X, indx_lst, TI=FALSE,...)
 
 #' @title Update susiF by computing posterior curves
 #
-#' @param susiF.obj a susiF object defined by init_susiF_obj function
+#' @param  obj a susiF/EBmvFR object defined by init_susiF_obj function
 #' @param Y  functional phenotype, matrix of size N by size J. The underlying algorithm uses wavelet which assume that J is of the form J^2. If J not a power of 2, susif internally remaps the data into grid of length 2^J
 #
 #' @param X matrix of size n by p in
@@ -1923,8 +1928,7 @@ update_cal_indf.susiF <- function(susiF.obj, Y, X, indx_lst, TI=FALSE,...)
 #
 #' @export
 #' @keywords internal
-update_cal_fit_func  <- function(susiF.obj,Y,X,indx_lst, TI,HMM,filter.number = 10,
-                                 family = "DaubLeAsymm", ...)
+update_cal_fit_func  <- function( obj, indx_lst,  ...)
   UseMethod("update_cal_fit_func")
 
 #' @rdname update_cal_fit_func
@@ -1940,17 +1944,17 @@ update_cal_fit_func  <- function(susiF.obj,Y,X,indx_lst, TI,HMM,filter.number = 
 #' @export
 #' @keywords internal
 
-update_cal_fit_func.susiF <- function(susiF.obj,
+update_cal_fit_func.susiF <- function(obj,
+                                      indx_lst,
                                       Y,
                                       X,
-                                      indx_lst,
                                       TI=TRUE,
                                       HMM=FALSE,
                                       filter.number = 10,
                                       family = "DaubLeAsymm" ,...)
 {
 
-
+  susiF.obj <- obj
 
   if(sum( is.na(unlist(susiF.obj$alpha))))
   {
@@ -2294,12 +2298,12 @@ update_pi.susiF <- function( susiF.obj, l, tpi,...)
 
 #' @title Update residual variance
 #' @description  See title
-#' @param susiF.obj a susiF object
+#' @param  obj a susiF object
 #' @param sigma2 the new value for residual variance
 #' @export
 #' @keywords internal
 
-update_residual_variance  <- function(susiF.obj,sigma2,...)
+update_residual_variance  <- function( obj,sigma2,...)
   UseMethod("update_residual_variance")
 
 #' @rdname update_residual_variance
@@ -2311,8 +2315,9 @@ update_residual_variance  <- function(susiF.obj,sigma2,...)
 #' @export
 #' @keywords internal
 
-update_residual_variance.susiF <- function(susiF.obj,sigma2,...)
+update_residual_variance.susiF <- function( obj,sigma2,...)
 {
+  susiF.obj <- obj
   susiF.obj$sigma2 <- sigma2
   return(susiF.obj)
 }

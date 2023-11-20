@@ -12,6 +12,9 @@ remap_data(Y, pos, verbose = TRUE, max_scale = 10)
 \item{pos}{sampling position}
 
 \item{verbose}{logical}
+
+\item{max_scale}{numeric, define the maximum of wavelet coefficients used in the analysis (2^max_scale).
+Set 10 true by default.}
 }
 \description{
 Ramp matrix of unevenly space data (or non power of two)

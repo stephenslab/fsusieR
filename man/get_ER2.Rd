@@ -7,11 +7,11 @@
 \alias{get_ER2.susiF}
 \title{Compute Epected sum of square}
 \usage{
-\method{get_ER2}{EBmvFR}(EBmvFR.obj, Y, X, ...)
+\method{get_ER2}{EBmvFR}(obj, Y, X, ...)
 
-get_ER2(susiF.obj, Y, X, ...)
+get_ER2(obj, Y, X, ...)
 
-\method{get_ER2}{susiF}(susiF.obj, Y, X, ...)
+\method{get_ER2}{susiF}(obj, Y, X, ...)
 }
 \arguments{
 \item{Y}{wavelet transformed  functional phenotype, matrix of size N by size J.}

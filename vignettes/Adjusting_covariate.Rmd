@@ -21,7 +21,7 @@ counfounders. As most of the tools in the SuSiE suite don't account
 for confounders while performing fine-mapping, it is important to
 account for counfounders prior to the analysis. Similar problem arise
 with fSuSiE. While it is relatively straightforward to adjust
-univariate phenotypes. It is more complicated to adjust curves for
+univariate phenotypes. It is more complicated to adjust curves/profile for
 confounding. Thus we implemented a user friendly function that
 performs this preprocessing step.
 

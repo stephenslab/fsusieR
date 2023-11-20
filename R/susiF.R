@@ -72,6 +72,10 @@
 #'@param max_step_EM max_step_EM
 #'@param filter.number see documentation of wd from wavethresh package
 #'@param family see documentation of wd from wavethresh package
+#'@param max_SNP_EM maximum number of SNP used for learning the prior. By default set to 1000. Reducing this may help reducing
+#'the computational time. We advice to keep it at least larger than 50
+#'@param cor_small logical set to FALSE by default. If TRUE used Bayes factor from Valen E Johnson JRSSB 2005 instead of Wakefeild approximation for Gen Epi 2009
+#' the Bayes factor from Valen E Johnson JRSSB 2005 tend to have better coverage in small sample size. We advise using this parameter if n<50
 #' @examples
 #'
 #'library(ashr)
@@ -143,7 +147,7 @@
 #'#### Findout which regions are affected by the different CS
 #'
 #'affected_reg(susiF.obj = out)
-#' 
+#'
 #' # This corresponds to the regions where the credible bands are
 #' # "crossing zero"/i.e. the effects are likely not to be 0 in this
 #' # region.
@@ -382,7 +386,7 @@ susiF <- function(Y, X, L = 2,
 
   #preparing output
 
-  susiF.obj <- out_prep(susiF.obj     = susiF.obj,
+  susiF.obj <- out_prep(obj           = susiF.obj,
                         Y             = Y,
                         X             = X,
                         indx_lst      = indx_lst,

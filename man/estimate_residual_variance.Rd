@@ -7,18 +7,18 @@
 \alias{estimate_residual_variance.susiF}
 \title{Update residual variance}
 \usage{
-\method{estimate_residual_variance}{EBmvFR}(EBmvFR.obj, Y, X, ...)
+\method{estimate_residual_variance}{EBmvFR}(obj, Y, X, ...)
 
-estimate_residual_variance(susiF.obj, Y, X, ...)
+estimate_residual_variance(obj, Y, X, ...)
 
-\method{estimate_residual_variance}{susiF}(susiF.obj, Y, X, ...)
+\method{estimate_residual_variance}{susiF}(obj, Y, X, ...)
 }
 \arguments{
+\item{obj}{a susiF object defined by init_susiF_obj function}
+
 \item{Y}{wavelet transformed  functional phenotype, matrix of size N by size J.}
 
 \item{X}{matrix of size N by p}
-
-\item{susiF.obj}{a susiF object defined by init_susiF_obj function}
 }
 \value{
 estimated residual variance
