@@ -4,3 +4,4 @@
 ^\.gitattributes$
 ^doc$
 ^pb_susie\.RData$
+^_pkgdown\.yml$
