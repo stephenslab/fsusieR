@@ -3,7 +3,7 @@ title: "Using fSuSiE for colocalization"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Accounting for covariate in functional fine-mapping}
+  %\VignetteIndexEntry{Using fSuSiE for colocalization}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
