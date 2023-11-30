@@ -130,6 +130,11 @@ DWT2 <- function (data, filter.number = 10, family = "DaubLeAsymm" )
 #'
 gen_wavelet_indx <- function(lev_res)
 {
+
+  if( lev_res>15){
+    stop("lev_res is larger than 15 please use a smaller level of resolution")
+  }
+
   indx_lst <- list()
   indx_lst[[1]] <- 2^lev_res -1 #coefficient
   for ( s in 1:(lev_res-1))
