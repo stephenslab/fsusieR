@@ -1,7 +1,7 @@
 Encoding: UTF-8
 Type: Package
 Package: susiF.alpha
-Version: 0.1.229
+Version: 0.1.230
 Date: 2023-11-21
 Title: Sum of Single Functions
 Authors@R: person("William R. P.","Denault",role = c("aut","cre"),
