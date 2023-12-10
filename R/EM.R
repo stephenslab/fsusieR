@@ -178,6 +178,15 @@ cal_L_mixsq_s_per_scale <- function(G_prior,s, Bhat, Shat ,indx_lst,is.EBmvFR=FA
 L_mixsq <- function(G_prior,Bhat, Shat, indx_lst,...)
   UseMethod("L_mixsq")
 
+#' @rdname L_mixsq
+#'
+#' @method L_mixsq mixture_normal
+#'
+#' @export L_mixsq.mixture_normal
+#'
+#' @export
+#' @keywords internal
+#'
 L_mixsq.mixture_normal <- function(G_prior,
                                    Bhat,
                                    Shat,

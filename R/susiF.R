@@ -22,8 +22,7 @@
 #' "none" for simple wavelet estiamte (not recommended)
 #' @param prior specify the prior used in susiF. The two available choices are
 #' available "mixture_normal_per_scale", "mixture_normal". Default "mixture_normal_per_scale",
-#' if this susiF is too slow, consider using  "mixture_normal" (up to 40% faster), but this may result in
-#' oversmoothing the estimated curves.
+#' if this susiF is too slow, consider using  "mixture_normal"  using  "mixture_normal" which  is up to 40% faster but may lead to slight power loss
 #'
 #' @param verbose If \code{verbose = TRUE}, the algorithm's progress,
 #' and a summary of the optimization settings are printed to the

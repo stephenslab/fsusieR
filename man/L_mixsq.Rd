@@ -2,10 +2,13 @@
 % Please edit documentation in R/EM.R
 \name{L_mixsq}
 \alias{L_mixsq}
+\alias{L_mixsq.mixture_normal}
 \alias{L_mixsq.mixture_normal_per_scale}
 \title{Compute likelihood matrix for mixsqp}
 \usage{
 L_mixsq(G_prior, Bhat, Shat, indx_lst, ...)
+
+\method{L_mixsq}{mixture_normal}(G_prior, Bhat, Shat, indx_lst, is.EBmvFR = FALSE, ...)
 
 \method{L_mixsq}{mixture_normal_per_scale}(G_prior, Bhat, Shat, indx_lst, is.EBmvFR = FALSE, ...)
 }
