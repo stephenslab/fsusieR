@@ -46,7 +46,8 @@ EM_pi <- function(G_prior,Bhat, Shat, indx_lst,
 
   #static parameters
 
-
+## Deal with overfitted cases
+  Shat[ Shat<=0 ] <- 1e-32
   lBF <- log_BF(G_prior,
                 Bhat,Shat,
                 indx_lst=indx_lst,

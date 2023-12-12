@@ -956,7 +956,8 @@ log_BF <- function (G_prior, Bhat, Shat,lowc_wc,indx_lst, df=NULL,...)
 #' @keywords internal
 log_BF.mixture_normal <- function (G_prior, Bhat, Shat,lowc_wc,indx_lst, df=NULL, ...) {
 
-
+  ## Deal with overfitted cases
+  Shat[ Shat<=0 ] <- 1e-32
   if (is.null(df)){
 
     t_col_post <- function (t,lowc_wc) {
@@ -1065,6 +1066,9 @@ log_BF.mixture_normal_per_scale <- function (G_prior,
                                              df=NULL,
                                              ...) {
 
+
+  ## Deal with overfitted cases
+  Shat[ Shat<=0 ] <- 1e-32
   if (is.null(df)){
     t_col_post <- function (t) {
       t_s_post <- function (s) {
