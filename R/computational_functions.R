@@ -873,19 +873,28 @@ HMM_regression.susiF <- function( susiF.obj,
  }
 
 
+ if (length(idx) ==1){
+   est  <- do.call(c, lapply( 1: length(tt) ,function (j) tt[[j]][ 1]))
+   sds  <- do.call(c, lapply( 1: length(tt) ,function (j) tt[[j]][ 2]))
 
-  for (  lp in 1: nrow (tt[[1]]))
-  {
+   s =  fit_hmm(x=est ,sd=sds ,halfK=20 )
+   fitted_lfsr [[1]] <- s$lfsr
+   fitted_trend[[1]] <- s$x_post
+ }else{
+   for (  lp in 1: length(idx))
+   {
 
-    idx_cs <-  which( colnames(sub_X) %in% rownames(tt[[1]])[lp] )
-    est  <- do.call(c, lapply( 1: length(tt) ,function (j) tt[[j]][ lp  ,1]))
+     idx_cs <-  which( colnames(sub_X) %in% rownames(tt[[1]])[lp] )
+     est  <- do.call(c, lapply( 1: length(tt) ,function (j) tt[[j]][ lp  ,1]))
 
-    sds  <- do.call(c, lapply( 1: length(tt) ,function (j) tt[[j]][lp,2]))
-    s =  fit_hmm(x=est ,sd=sds ,halfK=20 )
-    fitted_lfsr [[idx_cs]] <- s$lfsr
-    fitted_trend[[idx_cs]] <- s$x_post
+     sds  <- do.call(c, lapply( 1: length(tt) ,function (j) tt[[j]][lp,2]))
+     s =  fit_hmm(x=est ,sd=sds ,halfK=20 )
+     fitted_lfsr [[idx_cs]] <- s$lfsr
+     fitted_trend[[idx_cs]] <- s$x_post
 
-  }
+   }
+
+ }
 
 
   fitted_trend <- lapply(1:length(idx), function(l)
