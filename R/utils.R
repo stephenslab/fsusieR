@@ -220,15 +220,18 @@ affected_reg <- function( susiF.obj){
 #' @importFrom stats pt
 #' @importFrom stats qnorm
 effective.effect=function(betahat,se,df){
+  lp =log(  2)  + pt(abs(betahat/se  ), df=df ,
+                     lower.tail = FALSE,
+                     log.p=TRUE)
 
-  p = 2 * pt(abs(betahat/se  ), df=df ,
-             lower.tail = FALSE)
-
-  sign(betahat)*stats::qnorm(p / 2, sd=se ,lower.tail=FALSE)
-
+  sign(betahat)*stats::qnorm( lp- log(  2),
+                              sd=se ,
+                              lower.tail=FALSE,
+                              log.p=TRUE )
 
 }
-
+# from the ashr package
+pval2se = function(bhat,p){z = qnorm(1-p/2); s = abs(bhat/z); return(s)}
 
 
 

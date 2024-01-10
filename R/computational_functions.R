@@ -854,14 +854,24 @@ HMM_regression.susiF <- function( susiF.obj,
   )
 
 
-
+  N <- nrow(X)
   sub_X <- data.frame (X[, idx])
   fitted_trend  <- list()
   fitted_lfsr   <- list()
+
+
   tt <- lapply( 1: ncol(Y),
-                function(j)
-                  summary(lm(Y[,j]~-1+.,data=sub_X))$coefficients[ ,c(1,2)]
+                function(j){
+
+                  summary(lm(Y[,j]~-1+.,data=sub_X))$coefficients[ ,c(1,2,4 )]
+
+
+                }
+
+
   )
+
+
 
   fitted_trend <- list()
   fitted_lfsr   <- list()
@@ -876,8 +886,11 @@ HMM_regression.susiF <- function( susiF.obj,
  if (length(idx) ==1){
    est  <- do.call(c, lapply( 1: length(tt) ,function (j) tt[[j]][ 1]))
    sds  <- do.call(c, lapply( 1: length(tt) ,function (j) tt[[j]][ 2]))
+   pvs  <- do.call(c, lapply( 1: length(tt) ,function (j) tt[[j]][ 3]))
 
-   s =  fit_hmm(x=est ,sd=sds ,halfK=20 )
+   tsds <- pval2se(est,pvs) # t -likelihood correction usefull to contrl lfsr in small sample size
+   tsds[ which( tsds==0)]<- sds[ which( tsds==0)]
+   s =  fit_hmm(x=est ,sd=tsds ,halfK=20 )
    fitted_lfsr [[1]] <- s$lfsr
    fitted_trend[[1]] <- s$x_post
  }else{
@@ -888,7 +901,10 @@ HMM_regression.susiF <- function( susiF.obj,
      est  <- do.call(c, lapply( 1: length(tt) ,function (j) tt[[j]][ lp  ,1]))
 
      sds  <- do.call(c, lapply( 1: length(tt) ,function (j) tt[[j]][lp,2]))
-     s =  fit_hmm(x=est ,sd=sds ,halfK=20 )
+     pvs  <- do.call(c, lapply( 1: length(tt) ,function (j) tt[[j]][lp,3]))
+     tsds <- pval2se(est,pvs) # t -likelihood correction usefull to contrl lfsr in small sample size
+     tsds[ which( tsds==0)]<- sds[ which( tsds==0)]
+     s =  fit_hmm(x=est ,sd=tsds ,halfK=20 )
      fitted_lfsr [[idx_cs]] <- s$lfsr
      fitted_trend[[idx_cs]] <- s$x_post
 
