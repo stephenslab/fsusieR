@@ -119,7 +119,7 @@
 #'
 #'
 #'plot( noisy.data[1,], type = "l", col=(G[1, pos1]*3+1),
-#'      main="Observed curves \n colored by the causal effect", ylim= c(-40,40), xlab="")
+#'      main "Observed curves \n   colored by the causal effect" , ylim= c(-40,40), xlab="")
 #'for ( i in 2:N)
 #'{
 #'  lines( noisy.data[i,], type = "l", col=(G[i, pos1]*3+1))
@@ -188,7 +188,7 @@
 #'
 susiF <- function(Y, X, L = 2,
                   pos = NULL,
-                  prior = "mixture_normal_per_scale",
+                  prior = c("mixture_normal_per_scale","mixture_normal"),
                   verbose = TRUE,
                   maxit = 100,
                   tol = 1e-3,
@@ -214,7 +214,7 @@ susiF <- function(Y, X, L = 2,
                   cor_small=FALSE,
                   filter.number = 10,
                   family = "DaubLeAsymm",
-                  post_processing="TI"
+                  post_processing=c("TI","HMM","none")
 
 )
 {
@@ -224,6 +224,9 @@ susiF <- function(Y, X, L = 2,
   }
 
 
+
+  prior           <- match.arg(prior)
+  post_processing <- match.arg( post_processing)
 
  if(post_processing=="TI"){
    TI  <- TRUE
@@ -240,10 +243,7 @@ susiF <- function(Y, X, L = 2,
 
   ####Cleaning input -----
   pt <- proc.time()
-  if( prior %!in% c("normal", "mixture_normal", "mixture_normal_per_scale"))
-  {
-    stop("Error: provide valid prior input")
-  }
+
 
   if(!cal_obj){
     tol <-10^-3
