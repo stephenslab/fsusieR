@@ -414,6 +414,11 @@ fit_hmm <- function (x,sd,
   if( length(which(sd< thresh_sd))>0){
     sd[ which(sd< thresh_sd)] <- thresh_sd
   }
+  if (sum(is.na(sd))>0){
+    x [ which( is.na(sd))]<- 0
+    sd[ which( is.na(x))]<- 1
+  }
+
 
   if( length(which(abs(x/sd)> max_zscore))>0){ #avoid underflow  a z-score of 20=> pv< e-90
 
