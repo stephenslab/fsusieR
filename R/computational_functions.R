@@ -889,7 +889,13 @@ HMM_regression.susiF <- function( susiF.obj,
    pvs  <- do.call(c, lapply( 1: length(tt) ,function (j) tt[[j]][ 3]))
 
    tsds <- pval2se(est,pvs) # t -likelihood correction usefull to contrl lfsr in small sample size
-   tsds[ which( tsds==0)]<- sds[ which( tsds==0)]
+   tsds[ which( tsds==0)]   <- sds[ which( tsds==0)]
+   if (sum(is.na(tsds))>0){
+     est [ which( is.na(tsds))]<- 0
+     tsds[ which( is.na(tsds))]<- 1
+   }
+
+
    s =  fit_hmm(x=est ,sd=tsds ,halfK=20 )
    fitted_lfsr [[1]] <- s$lfsr
    fitted_trend[[1]] <- s$x_post
@@ -904,6 +910,10 @@ HMM_regression.susiF <- function( susiF.obj,
      pvs  <- do.call(c, lapply( 1: length(tt) ,function (j) tt[[j]][lp,3]))
      tsds <- pval2se(est,pvs) # t -likelihood correction usefull to contrl lfsr in small sample size
      tsds[ which( tsds==0)]<- sds[ which( tsds==0)]
+     if (sum(is.na(tsds))>0){
+       est [ which( is.na(tsds))]<- 0
+       tsds[ which( is.na(tsds))]<- 1
+     }
      s =  fit_hmm(x=est ,sd=tsds ,halfK=20 )
      fitted_lfsr [[idx_cs]] <- s$lfsr
      fitted_trend[[idx_cs]] <- s$x_post
