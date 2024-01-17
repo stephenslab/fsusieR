@@ -24,7 +24,8 @@ susiF.workhorse(
   max_SNP_EM = 500,
   max_step_EM = 1,
   cor_small = FALSE,
-  is.pois = FALSE
+  is.pois = FALSE,
+  e = 0.001
 )
 }
 \arguments{
@@ -76,7 +77,8 @@ expected level of coverage of the cs if not specified set to 0.95}
 
 \item{cor_small}{check susiF  description}
 
-\item{is.pois}{check susiF  description}
+\item{is.pois}{check susiF  description
+@param e threshold value to avoid computing posterior that have low alpha value. Set it to 0 to compute the entire posterio. default value is 0.001}
 }
 \description{
 Implementation of the SuSiF method

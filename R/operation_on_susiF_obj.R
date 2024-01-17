@@ -1055,7 +1055,7 @@ out_prep.susiF <- function(obj ,
 
   susiF.obj <-  name_cs(susiF.obj,X)
 
-  susiF.obj <-  update_lfsr_effect(susiF.obj)
+ # susiF.obj <-  update_lfsr_effect(susiF.obj)
   if(filter.cs)
   {
     susiF.obj <- check_cs(susiF.obj,min.purity=0.5,X=X)
@@ -1643,7 +1643,7 @@ update_alpha_hist.susiF <-  function(susiF.obj , discard=FALSE,... )
 # @export
 
 
-update_susiF_obj  <- function(susiF.obj, l, EM_pi, Bhat, Shat, indx_lst, lowc_wc=NULL, cal_wc_lsfr=FALSE,df=NULL,...)
+update_susiF_obj  <- function(susiF.obj, l, EM_pi, Bhat, Shat, indx_lst, lowc_wc=NULL, cal_wc_lsfr=FALSE,df=NULL,e=0.001,...)
       UseMethod("update_susiF_obj")
 
 # @rdname update_susiF_obj
@@ -1665,6 +1665,7 @@ update_susiF_obj.susiF <- function(susiF.obj,
                                    cal_wc_lsfr=FALSE,
                                    df=NULL,
                                    cov_lev=0.95,
+                                   e=0.001,
                                    ...)
 {
 
@@ -1689,38 +1690,37 @@ update_susiF_obj.susiF <- function(susiF.obj,
   susiF.obj$fitted_wc[[l]]   <- post_mat_mean(get_G_prior(susiF.obj) ,
                                               Bhat,
                                               Shat,
+                                              lBF      = EM_pi$lBF,
                                               indx_lst = indx_lst,
-                                              lowc_wc  = lowc_wc)
+                                              lowc_wc  = lowc_wc,
+                                              e        = e)
   susiF.obj$fitted_wc2[[l]]  <- post_mat_sd  (get_G_prior(susiF.obj) ,
                                               Bhat,
                                               Shat,
+                                              lBF      = EM_pi$lBF,
                                               indx_lst = indx_lst,
-                                              lowc_wc  = lowc_wc)^2
+                                              lowc_wc  = lowc_wc,
+                                              e        = e)^2
 
 
   G_prior <- update_prior(G_prior = get_G_prior(susiF.obj),
                           tpi     = EM_pi$tpi_k )
-  lBF     <- log_BF (G_prior  = G_prior,
-                     Bhat     = Bhat,
-                     Shat     = Shat,
-                     indx_lst = indx_lst,
-                     lowc_wc  = lowc_wc,
-                     df       = df)
 
-  new_alpha <- cal_zeta(   lBF)
+
+  new_alpha <- cal_zeta(  EM_pi$lBF)
 
   susiF.obj  <- update_alpha (susiF.obj = susiF.obj,
                               l         = l,
                               alpha     = new_alpha)
   susiF.obj  <- update_lBF   (susiF.obj = susiF.obj,
                               l         = l,
-                              lBF       = lBF)
+                              lBF       = EM_pi$lBF)
   susiF.obj <-  update_cal_cs(susiF.obj=susiF.obj,  cov_lev= cov_lev, l=l)
-  susiF.obj <-  update_lfsr  (susiF.obj=susiF.obj,
-                              l=l ,
-                              Bhat=Bhat,
-                              Shat= Shat,
-                              indx_lst=indx_lst)
+  # susiF.obj <-  update_lfsr  (susiF.obj=susiF.obj,
+  #                             l=l ,
+  #                            Bhat=Bhat,
+  #                            Shat= Shat,
+  #                            indx_lst=indx_lst)
   return(susiF.obj)
 }
 

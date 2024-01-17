@@ -84,9 +84,9 @@ init_prior.default <- function(Y,
 
 
       set.seed(1)
-      betahat <- c(max(abs(temp$Bhat[,-lowc_wc])), sample(temp$Bhat[,-lowc_wc], size = min( prod(dim(temp$Bhat[,-lowc_wc])), 50000)) )
+      betahat <- c(max(abs(temp$Bhat[,-lowc_wc])), sample(temp$Bhat[,-lowc_wc], size = min( prod(dim(temp$Bhat[,-lowc_wc])), 5000)) )
       set.seed(1)
-        sdhat <-c(0.01 , sample(temp$Shat[,-lowc_wc], size = min( prod(dim(temp$Shat[,-lowc_wc])), 50000)) )
+        sdhat <-c(0.01 , sample(temp$Shat[,-lowc_wc], size = min( prod(dim(temp$Shat[,-lowc_wc])), 5000)) )
 
       t_ash <-  ashr::ash(betahat, sdhat,#ash can take quite some space
                           mixcompdist ="normal",
@@ -105,9 +105,9 @@ init_prior.default <- function(Y,
 
 
       set.seed(1)
-      betahat <- c(max(abs(temp$Bhat)), sample(temp$Bhat, size = min( prod(dim(temp$Bhat)), 50000)) )
+      betahat <- c(max(abs(temp$Bhat)), sample(temp$Bhat, size = min( prod(dim(temp$Bhat)), 5000)) )
       set.seed(1)
-       sdhat <- c(0.01, sample(temp$Shat, size = min( prod(dim(temp$Shat)), 50000)) )
+       sdhat <- c(0.01, sample(temp$Shat, size = min( prod(dim(temp$Shat)), 5000)) )
 
       t_ash <-  ashr::ash(betahat, sdhat,#ash can take quite some space
                           mixcompdist ="normal",

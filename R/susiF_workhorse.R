@@ -44,7 +44,8 @@
 #' @param max_SNP_EM check susiF  description
 #' @param cor_small check susiF  description
 #' @param is.pois check susiF  description
-#'
+#'  @param e threshold value to avoid computing posterior that have low alpha value. Set it to 0 to compute the entire posterio. default value is 0.001
+
 #' @export
 susiF.workhorse <- function(susiF.obj,
                             W,
@@ -65,7 +66,8 @@ susiF.workhorse <- function(susiF.obj,
                             max_SNP_EM=500,
                             max_step_EM=1,
                             cor_small=FALSE,
-                            is.pois=FALSE){
+                            is.pois=FALSE,
+                            e = 0.001){
 
   G_prior  <- get_G_prior(susiF.obj )
   Y_f      <-  cbind( W$D,W$C)
@@ -122,7 +124,8 @@ susiF.workhorse <- function(susiF.obj,
                                    Shat      = Shat,
                                    indx_lst  = indx_lst,
                                    lowc_wc   = lowc_wc,
-                                   cov_lev   =  cov_lev
+                                   cov_lev   =  cov_lev,
+                                   e         = e
     )
     susiF.obj <- update_ELBO(susiF.obj  = susiF.obj,
                              get_objective( susiF.obj = susiF.obj,

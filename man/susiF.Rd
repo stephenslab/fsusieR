@@ -9,7 +9,7 @@ susiF(
   X,
   L = 2,
   pos = NULL,
-  prior = "mixture_normal_per_scale",
+  prior = c("mixture_normal_per_scale", "mixture_normal"),
   verbose = TRUE,
   maxit = 100,
   tol = 0.001,
@@ -32,7 +32,8 @@ susiF(
   cor_small = FALSE,
   filter.number = 10,
   family = "DaubLeAsymm",
-  post_processing = "TI"
+  post_processing = c("TI", "HMM", "none"),
+  e = 0.001
 )
 }
 \arguments{
@@ -51,7 +52,7 @@ are evenly spaced}
 
 \item{prior}{specify the prior used in susiF. The two available choices are
 available "mixture_normal_per_scale", "mixture_normal". Default "mixture_normal_per_scale",
-if this susiF is too slow, consider using  "mixture_normal"  using  "mixture_normal" which  is up to 40% faster but may lead to slight power loss}
+if this susiF is too slow, consider using  "mixture_normal"  using  "mixture_normal" which  is up to 40\% faster but may lead to slight power loss}
 
 \item{verbose}{If \code{verbose = TRUE}, the algorithm's progress,
 and a summary of the optimization settings are printed to the
@@ -124,6 +125,8 @@ the Bayes factor from Valen E Johnson JRSSB 2005 tend to have better coverage in
 \item{post_processing}{character, use "TI" for translation invariant wavelet estimates,
 "HMM" for hidden Markov model (usefull for estimating non-zero regions),
 "none" for simple wavelet estiamte (not recommended)}
+
+\item{e}{threshold value to avoid computing posterior that have low alpha value. Set it to 0 to compute the entire posterior. default value is 0.001}
 }
 \description{
 Implementation of the SuSiF method
@@ -132,13 +135,12 @@ Implementation of the SuSiF method
 Implementation of the SuSiF method
 }
 \examples{
-
 library(ashr)
 library(wavethresh)
 set.seed(1)
 #Example using curves simulated under the Mixture normal per scale prior
 rsnr <- 0.2 #expected root signal noise ratio
-N <- 100    #Number of individuals
+N <- 1000    #Number of individuals
 P <- 10     #Number of covariates/SNP
 pos1 <- 1   #Position of the causal covariate for effect 1
 pos2 <- 5   #Position of the causal covariate for effect 2
@@ -175,7 +177,7 @@ noisy.data <- do.call(rbind, noisy.data)
 
 
 plot( noisy.data[1,], type = "l", col=(G[1, pos1]*3+1),
-     main="Observed curves \n colored by the causal effect", ylim= c(-40,40), xlab="")
+     main ="Observed curves \n   colored by the causal effect" , ylim= c(-40,40), xlab="")
 for ( i in 2:N)
 {
  lines( noisy.data[i,], type = "l", col=(G[i, pos1]*3+1))

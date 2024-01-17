@@ -17,12 +17,14 @@
 #' @param pos vector of length J, corresponding to position/time pf
 #' the observed column in Y, if missing, suppose that the observation
 #' are evenly spaced
-#'@param  post_processing character, use "TI" for translation invariant wavelet estimates,
-#'"HMM" for hidden Markov model (usefull for estimating non-zero regions),
+#'
+#' @param  post_processing character, use "TI" for translation invariant wavelet estimates,
+#' "HMM" for hidden Markov model (usefull for estimating non-zero regions),
 #' "none" for simple wavelet estiamte (not recommended)
+#'
 #' @param prior specify the prior used in susiF. The two available choices are
 #' available "mixture_normal_per_scale", "mixture_normal". Default "mixture_normal_per_scale",
-#' if this susiF is too slow, consider using  "mixture_normal"  using  "mixture_normal" which  is up to 40% faster but may lead to slight power loss
+#' if this susiF is too slow, consider using  "mixture_normal"  using  "mixture_normal" which  is up to 40\% faster but may lead to slight power loss
 #'
 #' @param verbose If \code{verbose = TRUE}, the algorithm's progress,
 #' and a summary of the optimization settings are printed to the
@@ -41,17 +43,25 @@
 #' expected level of coverage of the cs if not specified set to 0.95
 #'
 #' @param min.purity minimum purity for estimated credible sets
+#'
 #' @param filter.cs logical, if TRUE filter the credible set (removing low purity
 #' cs and cs with estimated prior equal to 0). Set as TRUE by default.
+#'
 #' @param init_pi0_w starting value of weight on null compoenent in mixsqp
 #'  (between 0 and 1)
+#'
 #' @param control_mixsqp list of parameter for mixsqp function see  mixsqp package
+#'
 #' @param  cal_obj logical if set as TRUE compute ELBO for convergence monitoring
+#'
 #' @param quantile_trans logical if set as TRUE perform normal quantile transform
 #' on wavelet coefficients
+#'
 #' @param L_start number of effect initialized at the start of the algorithm
+#'
 #' @param nullweight numeric value for penalizing likelihood at point mass 0 (should be between 0 and 1)
 #' (usefull in small sample size)
+#'
 #' @param thresh_lowcount numeric, used to check the wavelet coefficients have
 #'  problematic distribution (very low dispersion even after standardization).
 #'  Basically check if the median of the absolute value of the distribution of
@@ -59,31 +69,46 @@
 #'   this wavelet coefficient (setting its estimate effect to 0 and estimate sd to 1).
 #'   Set to 0 by default. It can be useful when analyzing sparse data from sequence
 #'    based assay or small samples.
+#'
 #' @param greedy logical, if TRUE allows greedy search for extra effect
 #'  (up to L specified by the user). Set as TRUE by default
+#'
 #' @param backfit logical, if TRUE allow discarding effect via backfitting.
 #'  Set as true by default as TRUE. We advise keeping it as TRUE
+#'
 #' @param gridmult numeric used to control the number of components used in the mixture prior (see ashr package
 #'  for more details). From the ash function:  multiplier by which the default grid values for mixsd differ from one another.
 #'   (Smaller values produce finer grids.). Increasing this value may reduce computational time
-#'@param max_scale numeric, define the maximum of wavelet coefficients used in the analysis (2^max_scale).
-#'        Set 10 true by default.
-#'@param max_step_EM max_step_EM
-#'@param filter.number see documentation of wd from wavethresh package
-#'@param family see documentation of wd from wavethresh package
-#'@param max_SNP_EM maximum number of SNP used for learning the prior. By default set to 1000. Reducing this may help reducing
-#'the computational time. We advice to keep it at least larger than 50
-#'@param cor_small logical set to FALSE by default. If TRUE used Bayes factor from Valen E Johnson JRSSB 2005 instead of Wakefeild approximation for Gen Epi 2009
-#' the Bayes factor from Valen E Johnson JRSSB 2005 tend to have better coverage in small sample size. We advise using this parameter if n<50
-#' @examples
 #'
+#' @param max_scale numeric, define the maximum of wavelet coefficients used in the analysis (2^max_scale).
+#'        Set 10 true by default.
+#'
+#' @param max_step_EM max_step_EM
+#'
+#' @param filter.number see documentation of wd from wavethresh package
+#'
+#' @param family see documentation of wd from wavethresh package
+#'
+#' @param max_SNP_EM maximum number of SNP used for learning the prior. By default set to 1000. Reducing this may help reducing
+#'the computational time. We advice to keep it at least larger than 50
+#'
+#' @param cor_small logical set to FALSE by default. If TRUE used Bayes factor from Valen E Johnson JRSSB 2005 instead of Wakefeild approximation for Gen Epi 2009
+#' the Bayes factor from Valen E Johnson JRSSB 2005 tend to have better coverage in small sample size. We advise using this parameter if n<50
+#'
+#' @param e threshold value to avoid computing posterior that have low alpha value. Set it to 0 to compute the entire posterior. default value is 0.001
+#'
+#' @importFrom stats var
+#'
+#' @export
+#'
+#' @examples
 #'library(ashr)
 #'library(wavethresh)
 #'set.seed(1)
 #'#Example using curves simulated under the Mixture normal per scale prior
 #'rsnr <- 0.2 #expected root signal noise ratio
 #'N <- 100    #Number of individuals
-#'P <- 10     #Number of covariates/SNP
+#'P <- 100     #Number of covariates/SNP
 #'pos1 <- 1   #Position of the causal covariate for effect 1
 #'pos2 <- 5   #Position of the causal covariate for effect 2
 #'lev_res <- 7#length of the molecular phenotype (2^lev_res)
@@ -119,7 +144,7 @@
 #'
 #'
 #'plot( noisy.data[1,], type = "l", col=(G[1, pos1]*3+1),
-#'      main "Observed curves \n   colored by the causal effect" , ylim= c(-40,40), xlab="")
+#'      main ="Observed curves \n   colored by the causal effect" , ylim= c(-40,40), xlab="")
 #'for ( i in 2:N)
 #'{
 #'  lines( noisy.data[i,], type = "l", col=(G[i, pos1]*3+1))
@@ -182,10 +207,8 @@
 #'
 #'par(mfrow=c(1,1))
 #'
-#' @importFrom stats var
-#'
-#' @export
-#'
+
+
 susiF <- function(Y, X, L = 2,
                   pos = NULL,
                   prior = c("mixture_normal_per_scale","mixture_normal"),
@@ -214,7 +237,8 @@ susiF <- function(Y, X, L = 2,
                   cor_small=FALSE,
                   filter.number = 10,
                   family = "DaubLeAsymm",
-                  post_processing=c("TI","HMM","none")
+                  post_processing=c("TI","HMM","none"),
+                  e = 0.001
 
 )
 {
@@ -381,7 +405,8 @@ susiF <- function(Y, X, L = 2,
                                    tt             = tt,
                                    max_SNP_EM     = max_SNP_EM,
                                    max_step_EM    = max_step_EM,
-                                   cor_small      = cor_small )
+                                   cor_small      = cor_small,
+                                   e              = e)
 
   #preparing output
 
