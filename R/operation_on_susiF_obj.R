@@ -1330,12 +1330,13 @@ plot_susiF  = function (susiF.obj, title="",
     xlab("SNP index") +
     ylab("Posterior Inclusion Probability (PIP)")
 
-  fun_plot <- do.call(c, susiF.obj$fitted_func)
-  fun_plot <- c(rep(0, n_wac), fun_plot)
 
   if(pip_only){
     return(P1)
   }
+
+  fun_plot <- do.call(c, susiF.obj$fitted_func)
+  fun_plot <- c(rep(0, n_wac), fun_plot)
   n_wac <- susiF.obj$n_wac
 
   if (cred.band& is.null(susiF.obj$lfsr_func)) {
