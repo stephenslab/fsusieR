@@ -1303,7 +1303,7 @@ plot_susiF  = function (susiF.obj, title="",
             "blue1", "steelblue4", "darkturquoise", "green1", "yellow4",
             "yellow3", "darkorange4", "brown")
   L <- susiF.obj$L
-  n_wac <- susiF.obj$n_wac
+
   y <- susiF.obj$pip
   col_y <- rep(0, length(y))
 
@@ -1336,7 +1336,7 @@ plot_susiF  = function (susiF.obj, title="",
   if(pip_only){
     return(P1)
   }
-
+  n_wac <- susiF.obj$n_wac
 
   if (cred.band& is.null(susiF.obj$lfsr_func)) {
     cred_band <- data.frame(t(do.call(cbind,
