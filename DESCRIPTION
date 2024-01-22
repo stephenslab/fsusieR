@@ -32,7 +32,6 @@ License: BSD_3_clause + file LICENSE
 LazyData: true
 LazyDataCompression: xz
 NeedsCompilation: yes
-RoxygenNote: 7.2.3
+RoxygenNote: 7.3.0
 ByteCompile: yes
 VignetteBuilder: knitr
-
