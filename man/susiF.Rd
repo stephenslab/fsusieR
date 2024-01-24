@@ -140,8 +140,8 @@ library(wavethresh)
 set.seed(1)
 #Example using curves simulated under the Mixture normal per scale prior
 rsnr <- 0.2 #expected root signal noise ratio
-N <- 1000    #Number of individuals
-P <- 10     #Number of covariates/SNP
+N <- 100    #Number of individuals
+P <- 100     #Number of covariates/SNP
 pos1 <- 1   #Position of the causal covariate for effect 1
 pos2 <- 5   #Position of the causal covariate for effect 2
 lev_res <- 7#length of the molecular phenotype (2^lev_res)

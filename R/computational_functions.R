@@ -398,7 +398,7 @@ fit_ash_level <- function (Bhat, Shat, s, indx_lst, lowc_wc,...)
 
 fit_hmm <- function (x,sd,
                      halfK=50,
-                     mult=1.5,
+                     mult=2,
                      smooth=FALSE,
                      thresh=0.00001,
                      prefilter=TRUE,
