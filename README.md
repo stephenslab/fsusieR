@@ -1,4 +1,4 @@
-# susiF.alpha
+# fsusieR
 
 R package implementing the Sum of Single Functions ("SuSiF") method.
 
@@ -8,7 +8,7 @@ Install and load the package:
 
 ```r
 # install.packages("remotes")
-remotes::install_github("stephenslab/susiF.alpha")
+remotes::install_github("stephenslab/fsusieR")
 ```
 
 If this doesn't work, try to install the package instead by
@@ -17,7 +17,7 @@ your computer (this is assuming that your R working directory is a
 directory containing the git repository):
 
 ```r
-remotes::install_local("susiF.alpha")
+remotes::install_local("fsusieR")
 ```
 
 ## Other notes
