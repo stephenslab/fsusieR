@@ -1,14 +1,14 @@
 Encoding: UTF-8
 Type: Package
-Package: susiF.alpha
-Version: 0.1.236
+Package: fsusieR
+Version: 0.2.0
 Date: 2023-11-21
 Title: Sum of Single Functions
 Authors@R: person("William R. P.","Denault",role = c("aut","cre"),
                   email = "wdenault@uchicago.edu")
-URL: https://github.com/stephenslab/susiF.alpha
-BugReports: https://github.com/stephenslab/susiF.alpha
-Description: Implementation of the Sum of Single Functions ("FSuSiE")
+URL: https://github.com/stephenslab/fsusieR
+BugReports: https://github.com/stephenslab/fsusieR
+Description: Implementation of the Sum of Single Functions ("fSuSiE")
     method.
 Depends:
     R (>= 3.5.0)
