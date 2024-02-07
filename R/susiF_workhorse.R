@@ -150,7 +150,7 @@ susiF.workhorse <- function(susiF.obj,
 
         #print(susiF.obj$alpha[[l]])
         update_Y  <-  cal_partial_resid(
-           obj      = susiF.obj,
+          susiF.obj = susiF.obj,
           l         = (l-1)  ,
           X         = X,
           D         = W$D,
@@ -241,9 +241,9 @@ susiF.workhorse <- function(susiF.obj,
                                               Y         = Y_f,
                                               X         = X)
       #print(sigma2)
-      susiF.obj <- update_residual_variance( obj      = susiF.obj,
+      susiF.obj <- update_residual_variance(susiF.obj     = susiF.obj,
                                             sigma2    = sigma2 )
-      susiF.obj <- test_stop_cond( obj      = susiF.obj,
+      susiF.obj <- test_stop_cond(susiF.obj      = susiF.obj,
                                   check     = check,
                                   cal_obj   = cal_obj,
                                   Y         = Y_f,

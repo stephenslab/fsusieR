@@ -116,7 +116,3 @@ lines( (tt1$x_post ) , lwd=2, col="red")
 
 lines( ( tt2$x_post  ) , lwd=2, col="green")
 
-
-data <- set_data(0,0.2)
-calc_loglik(beta.ash,data)
-beta.ash$fitted_g
