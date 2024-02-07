@@ -2,7 +2,7 @@ library(testthat)
 library(ashr)
 library(wavethresh)
 library(mixsqp)
-library(susiF.alpha)
+library(fsusieR)
 set.seed(2)
 f1 <- simu_IBSS_per_level(lev_res=9, alpha=1, prop_decay =1.5)
 lowc_wc=NULL
