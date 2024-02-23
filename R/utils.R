@@ -231,7 +231,11 @@ effective.effect=function(betahat,se,df){
 
 }
 # from the ashr package
-pval2se = function(bhat,p){z = qnorm(1-p/2); s = abs(bhat/z); return(s)}
+pval2se = function(bhat,p){
+  z = qnorm(1-p/2)
+s = abs(bhat/z)
+print("r")
+return(s)}
 
 
 

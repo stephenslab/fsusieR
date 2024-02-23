@@ -2288,9 +2288,9 @@ update_pi.susiF <- function( susiF.obj, l, tpi,...)
           pi_mixture_normal \n pi_mixture_normal_per_scale")
   }
   susiF.obj$est_pi[[l]] <- tpi
-  out <- susiF.obj
-  class(out) <- "susiF"
-  return(out)
+ 
+   
+  return(susiF.obj)
 }
 
 
