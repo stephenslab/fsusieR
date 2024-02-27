@@ -746,6 +746,7 @@ fit_hmm <- function (x,sd,
 
 
       n_c <-  (sum(tt_z_nz) +sum(tt_nz_z )+ sum(tt_self)  )
+      print(n_c)
       if( n_c==0){
         list_z_nz[[t]] <- tt_z_nz*0  # transition from 0 to non zero state
         list_nz_z[[t]] <- tt_nz_z*0    # transition from  non zero state  to 0
@@ -842,7 +843,7 @@ HMM_regression<- function (susiF.obj,
 #' @export
 #'
 HMM_regression.susiF <- function( susiF.obj,
-                                  Y,
+                                  Y ,
                                   X ,
                                   verbose=TRUE,
                                   fit_indval=TRUE ,...

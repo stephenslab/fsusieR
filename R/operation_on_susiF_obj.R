@@ -1058,15 +1058,18 @@ out_prep.susiF <- function(susiF.obj ,
  # susiF.obj <-  update_lfsr_effect(susiF.obj)
   if(filter.cs)
   {
-    susiF.obj <- check_cs(susiF.obj,min.purity=0.5,X=X)
+    susiF.obj <- check_cs(susiF.obj,
+                          min.purity = 0.5,
+                          X          = X
+                          )
   }
 
     susiF.obj <-  update_cal_fit_func(susiF.obj,
-                                      Y=Y,
-                                      X=X,
-                                      indx_lst= indx_lst,
-                                      TI=TI,
-                                      HMM= HMM,
+                                      Y             = Y,
+                                      X             = X,
+                                      indx_lst      = indx_lst,
+                                      TI            = TI,
+                                      HMM           = HMM,
                                       filter.number = filter.number,
                                       family        = family)
 

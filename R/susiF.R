@@ -246,8 +246,7 @@ susiF <- function(Y, X, L = 2,
   if(max_SNP_EM<10){
     stop("Argument max_SNP_EM has to be larger than 10")
   }
-
-
+ 
 
   prior           <- match.arg(prior)
   post_processing <- match.arg( post_processing)
@@ -319,8 +318,7 @@ susiF <- function(Y, X, L = 2,
   if(verbose){
     print("Data transform")
   }
-
-  #X <- matrix(X)
+ 
   ### Definition of some static parameters ---
 
   indx_lst <-  gen_wavelet_indx(log2(length( outing_grid)))

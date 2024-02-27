@@ -234,7 +234,7 @@ effective.effect=function(betahat,se,df){
 pval2se = function(bhat,p){
   z = qnorm(1-p/2)
 s = abs(bhat/z)
-print("r")
+ 
 return(s)}
 
 
