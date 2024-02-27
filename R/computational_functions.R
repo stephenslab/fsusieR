@@ -418,6 +418,11 @@ fit_hmm <- function (x,sd,
     x [ which( is.na(sd))]<- 0
     sd[ which( is.na(x))]<- 1
   }
+  if(sum(!is.finite(sd))>0){
+    x [which(!is.finite(sd))]=0
+    sd[which(!is.finite(sd))]=1
+    
+  }
 
 
   if( length(which(abs(x/sd)> max_zscore))>0){ #avoid underflow  a z-score of 20=> pv< e-90
@@ -550,6 +555,8 @@ fit_hmm <- function (x,sd,
 
 
     n_c <-  (sum(tt_z_nz) +sum(tt_nz_z )+ sum(tt_self)  )
+    
+  
     if( n_c==0){
       list_z_nz[[t]] <- tt_z_nz*0  # transition from 0 to non zero state
       list_nz_z[[t]] <- tt_nz_z*0    # transition from  non zero state  to 0
@@ -746,7 +753,7 @@ fit_hmm <- function (x,sd,
 
 
       n_c <-  (sum(tt_z_nz) +sum(tt_nz_z )+ sum(tt_self)  )
-      print(n_c)
+      
       if( n_c==0){
         list_z_nz[[t]] <- tt_z_nz*0  # transition from 0 to non zero state
         list_nz_z[[t]] <- tt_nz_z*0    # transition from  non zero state  to 0
