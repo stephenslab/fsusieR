@@ -6,7 +6,6 @@
 library(testthat)
 
 devtools::load_all(".")
-source("D:/Document/Serieux/Travail/Package/susiF.alpha/inst/code/fit_hmm.R", echo=TRUE)
 
 library(susiF.alpha)
 library(ashr)
@@ -71,7 +70,7 @@ res <- cal_Bhat_Shat(temp_Y,X )
 
 
 
-
+fitted_trend <- list()
 est_prob <- list()
 for ( k in 1:2){
   for (j in 1:length(idx)){

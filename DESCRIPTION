@@ -1,7 +1,7 @@
 Encoding: UTF-8
 Type: Package
 Package: fsusieR
-Version: 0.2.01
+Version: 0.2.02
 Date: 2023-11-21
 Title: Sum of Single Functions
 Authors@R: person("William R. P.","Denault",role = c("aut","cre"),

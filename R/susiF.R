@@ -329,7 +329,8 @@ susiF <- function(Y, X, L = 2,
     print( paste("Discarding ", length(lowc_wc), "wavelet coefficients out of ", ncol(Y_f)))
   }
   if(length(lowc_wc)> (ncol(Y_f )-3)){
-    stop("almost all the wavelet coefficients are null/low variance, consider using univariate fine mapping")
+   print("almost all the wavelet coefficients are null/low variance, consider using univariate fine mapping")
+    return(NULL)
   }
 
 
