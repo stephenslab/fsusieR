@@ -54,6 +54,7 @@
 #'  value is 0.001
 #'
 #' @export
+#' 
 susiF.workhorse <- function(susiF.obj,
                             W,
                             X,
@@ -124,7 +125,7 @@ susiF.workhorse <- function(susiF.obj,
 
     )
 
-    susiF.obj <-  update_susiF_obj(susiF.obj = susiF.obj ,
+    susiF.obj <-  update_susiF_obj(obj = susiF.obj ,
                                    l         = 1,
                                    EM_pi     = EM_out,
                                    Bhat      = Bhat,
@@ -134,8 +135,8 @@ susiF.workhorse <- function(susiF.obj,
                                    cov_lev   =  cov_lev,
                                    e         = e
     )
-    susiF.obj <- update_ELBO(susiF.obj  = susiF.obj,
-                             get_objective( susiF.obj = susiF.obj,
+    susiF.obj <- update_ELBO(obj  = susiF.obj,
+                             get_objective(obj = susiF.obj,
                                             Y         = Y_f,
                                             X         = X,
                                             D         = W$D,
@@ -157,7 +158,7 @@ susiF.workhorse <- function(susiF.obj,
 
         #print(susiF.obj$alpha[[l]])
         update_Y  <-  cal_partial_resid(
-          susiF.obj = susiF.obj,
+          obj = susiF.obj,
           l         = (l-1)  ,
           X         = X,
           D         = W$D,
@@ -218,7 +219,7 @@ susiF.workhorse <- function(susiF.obj,
 
         #print(h)
         # print(EM_out$lBF[1:10])
-        susiF.obj <-  update_susiF_obj(susiF.obj   = susiF.obj ,
+        susiF.obj <-  update_susiF_obj(obj   = susiF.obj ,
                                        l           = l,
                                        EM_pi       = EM_out,
                                        Bhat        = tt$Bhat,
@@ -248,9 +249,9 @@ susiF.workhorse <- function(susiF.obj,
                                               Y         = Y_f,
                                               X         = X)
       #print(sigma2)
-      susiF.obj <- update_residual_variance(susiF.obj     = susiF.obj,
+      susiF.obj <- update_residual_variance(obj     = susiF.obj,
                                             sigma2    = sigma2 )
-      susiF.obj <- test_stop_cond(susiF.obj      = susiF.obj,
+      susiF.obj <- test_stop_cond(obj      = susiF.obj,
                                   check     = check,
                                   cal_obj   = cal_obj,
                                   Y         = Y_f,

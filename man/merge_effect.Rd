@@ -5,12 +5,12 @@
 \alias{merge_effect.susiF}
 \title{Merging effect function}
 \usage{
-merge_effect(susiF.obj, tl, ...)
+merge_effect(obj, tl, ...)
 
-\method{merge_effect}{susiF}(susiF.obj, tl, discard = TRUE, ...)
+\method{merge_effect}{susiF}(obj, tl, discard = TRUE, ...)
 }
 \arguments{
-\item{susiF.obj}{a susiF object defined by init_susiF_obj function}
+\item{obj}{a susiF object defined by init_susiF_obj function}
 
 \item{tl}{see  \code{\link{greedy_backfit}}}
 

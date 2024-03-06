@@ -5,12 +5,12 @@
 \alias{update_lfsr_effect.susiF}
 \title{Update susiF lfsr effect}
 \usage{
-update_lfsr_effect(susiF.obj, ...)
+update_lfsr_effect(obj, ...)
 
-\method{update_lfsr_effect}{susiF}(susiF.obj, ...)
+\method{update_lfsr_effect}{susiF}(obj, ...)
 }
 \arguments{
-\item{susiF.obj}{a susiF object defined by init_susiF_obj function}
+\item{obj}{a susiF object defined by init_susiF_obj function}
 }
 \value{
 susiF object

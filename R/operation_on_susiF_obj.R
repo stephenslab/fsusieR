@@ -3,7 +3,7 @@
 
 #' @title Compute partial residual for effect l
 #
-#' @param  susiF.obj a susiF object defined by init_susiF_obj function
+#' @param obj a susiF object defined by init_susiF_obj function
 #
 #' @param l integer larger or equal to 1. Corresponds to the effect to be accessed
 #
@@ -18,10 +18,11 @@
 #' @return a matrix of size N by size J of partial residuals
 #
 #' @export
+#' 
 #' @keywords internal
-cal_partial_resid  <- function( susiF.obj, l, X, D, C,  indx_lst,... )
+#' 
+cal_partial_resid  <- function (obj, l, X, D, C, indx_lst, ...)
   UseMethod("cal_partial_resid")
-
 
 #' @rdname cal_partial_resid
 #
@@ -30,47 +31,45 @@ cal_partial_resid  <- function( susiF.obj, l, X, D, C,  indx_lst,... )
 #' @export cal_partial_resid.susiF
 #
 #' @export
+#' 
 #' @keywords internal
-
-cal_partial_resid.susiF  <- function( susiF.obj, l, X, D, C,  indx_lst,... )
-{
-
-
-  L <- susiF.obj$L
+#'
+cal_partial_resid.susiF  <- function (obj, l, X, D, C,  indx_lst,... ) {
+  L <- obj$L
 
   if (L > 1){
     id_L <- (1:L)[ - ( (l%%L) +1) ]#Computing residuals R_{l+1} by removing all the effect except effect l+1
 
-    if(inherits(get_G_prior(susiF.obj),"mixture_normal_per_scale" ))
+    if(inherits(get_G_prior(obj),"mixture_normal_per_scale" ))
     {
-      update_D  <-  D - Reduce("+", lapply  ( id_L, function(l) X%*%sweep(susiF.obj$fitted_wc[[l]][,-indx_lst[[length(indx_lst)]]],
+      update_D  <-  D - Reduce("+", lapply  ( id_L, function(l) X%*%sweep(obj$fitted_wc[[l]][,-indx_lst[[length(indx_lst)]]],
                                                                           1,
-                                                                          susiF.obj$alpha[[l]],
+                                                                          obj$alpha[[l]],
                                                                           "*"
                                                                           )
                                               )
                                 )
-      update_C  <-  C  - Reduce("+", lapply  ( id_L, function(l) X%*%(susiF.obj$fitted_wc[[l]][,indx_lst[[length(indx_lst)]]]*susiF.obj$alpha[[l]]
+      update_C  <-  C  - Reduce("+", lapply  ( id_L, function(l) X%*%(obj$fitted_wc[[l]][,indx_lst[[length(indx_lst)]]]*obj$alpha[[l]]
                                                                           )
                                                )
                                 )
       update_Y  <- cbind(  update_D, update_C)
 
     }
-    if(inherits(get_G_prior(susiF.obj),"mixture_normal" ))
+    if(inherits(get_G_prior(obj),"mixture_normal" ))
     {
 
 
 
 
-      update_D  <-  D - Reduce("+", lapply  ( id_L, function(l) X%*%sweep(susiF.obj$fitted_wc[[l]][,-dim(susiF.obj$fitted_wc[[l]])[2]],
+      update_D  <-  D - Reduce("+", lapply  ( id_L, function(l) X%*%sweep(obj$fitted_wc[[l]][,-dim(obj$fitted_wc[[l]])[2]],
                                                                           1,
-                                                                          susiF.obj$alpha[[l]],
+                                                                          obj$alpha[[l]],
                                                                           "*"
                                                                           )
                                               )
                               )
-      update_C  <-  C  - Reduce("+", lapply  ( id_L, function(l) X%*%(susiF.obj$fitted_wc[[l]][,dim(susiF.obj$fitted_wc[[l]])[2]]*susiF.obj$alpha[[l]]
+      update_C  <-  C  - Reduce("+", lapply  ( id_L, function(l) X%*%(obj$fitted_wc[[l]][,dim(obj$fitted_wc[[l]])[2]]*obj$alpha[[l]]
 
                                                                           )
                                               )
@@ -81,36 +80,36 @@ cal_partial_resid.susiF  <- function( susiF.obj, l, X, D, C,  indx_lst,... )
   }else{
     id_L <- 1
 
-    if(inherits(get_G_prior(susiF.obj),"mixture_normal_per_scale" ))
+    if(inherits(get_G_prior(obj),"mixture_normal_per_scale" ))
     {
-      update_D  <-  D - Reduce("+", lapply  ( id_L, function(l) X%*%sweep(susiF.obj$fitted_wc[[l]][,-indx_lst[[length(indx_lst)]]],
+      update_D  <-  D - Reduce("+", lapply  ( id_L, function(l) X%*%sweep(obj$fitted_wc[[l]][,-indx_lst[[length(indx_lst)]]],
                                                                           1,
-                                                                          susiF.obj$alpha[[l]],
+                                                                          obj$alpha[[l]],
                                                                           "*"
                                                                         )
                                             )
                                 )
-        update_C  <-  C  - Reduce("+", lapply  ( id_L, function(l) X%*%(susiF.obj$fitted_wc[[l]][,indx_lst[[length(indx_lst)]]]*susiF.obj$alpha[[l]]
+        update_C  <-  C  - Reduce("+", lapply  ( id_L, function(l) X%*%(obj$fitted_wc[[l]][,indx_lst[[length(indx_lst)]]]*obj$alpha[[l]]
                                                                          )
                                             )
                                )
 
       update_Y  <- cbind(  update_D, update_C)
     }
-    if(inherits(get_G_prior(susiF.obj),"mixture_normal" ))
+    if(inherits(get_G_prior(obj),"mixture_normal" ))
     {
 
 
 
 
-      update_D  <-  D - Reduce("+", lapply  ( id_L, function(l) X%*%sweep(susiF.obj$fitted_wc[[l]][,-dim(susiF.obj$fitted_wc[[l]])[2]],
+      update_D  <-  D - Reduce("+", lapply  ( id_L, function(l) X%*%sweep(obj$fitted_wc[[l]][,-dim(obj$fitted_wc[[l]])[2]],
                                                                           1,
-                                                                          susiF.obj$alpha[[l]],
+                                                                          obj$alpha[[l]],
                                                                           "*"
                                                                    )
                                            )
                                )
-      update_C  <-  C  - Reduce("+", lapply  ( id_L, function(l) X%*%(susiF.obj$fitted_wc[[l]][,dim(susiF.obj$fitted_wc[[l]])[2]]*susiF.obj$alpha[[l]]
+      update_C  <-  C  - Reduce("+", lapply  ( id_L, function(l) X%*%(obj$fitted_wc[[l]][,dim(obj$fitted_wc[[l]])[2]]*obj$alpha[[l]]
 
                                                )
                                         )
@@ -125,7 +124,7 @@ cal_partial_resid.susiF  <- function( susiF.obj, l, X, D, C,  indx_lst,... )
 
 #' @title Check purity credible sets
 #
-#' @param susiF.obj a susif object defined by init_susiF_obj function
+#' @param obj a susif object defined by init_susiF_obj function
 #' @param min.purity minimal purity within a CS
 #' @param X matrix of covariates
 #
@@ -134,7 +133,7 @@ cal_partial_resid.susiF  <- function( susiF.obj, l, X, D, C,  indx_lst,... )
 #' @export
 #' @keywords internal
 
-check_cs <- function(susiF.obj, min.purity=0.5,X,...)
+check_cs <- function(obj, min.purity=0.5,X,...)
   UseMethod("check_cs")
 
 #' @rdname check_cs
@@ -147,20 +146,20 @@ check_cs <- function(susiF.obj, min.purity=0.5,X,...)
 #' @keywords internal
 
 
-check_cs.susiF <- function(susiF.obj, min.purity=0.5,X,  ...)
+check_cs.susiF <- function(obj, min.purity=0.5,X,  ...)
 {
-  dummy.cs <- which_dummy_cs(susiF.obj, min.purity=min.purity,X)
+  dummy.cs <- which_dummy_cs(obj, min.purity=min.purity,X)
 
     if( length(dummy.cs)==0)
     {
-      return(susiF.obj)
+      return(obj)
     }else{
-      if(length(dummy.cs)==susiF.obj$L) #avoid returning empty results
+      if(length(dummy.cs)==obj$L) #avoid returning empty results
       {
         dummy.cs <- dummy.cs[-length(dummy.cs)]
       }
-      susiF.obj <- discard_cs( susiF.obj,cs=dummy.cs, out_prep= TRUE)
-      return(susiF.obj)
+      obj <- discard_cs( obj,cs=dummy.cs, out_prep= TRUE)
+      return(obj)
     }
 
 
@@ -169,7 +168,7 @@ check_cs.susiF <- function(susiF.obj, min.purity=0.5,X,  ...)
 
 #' @title Discard credible sets
 #
-#' @param susiF.obj a susif object defined by init_susiF_obj function
+#' @param obj a susif object defined by init_susiF_obj function
 #
 #' @param cs vector of integer containing the credible sets to discard
 #
@@ -180,7 +179,7 @@ check_cs.susiF <- function(susiF.obj, min.purity=0.5,X,  ...)
 #' @export
 #' @keywords internal
 
-discard_cs <- function(susiF.obj, cs,out_prep,...)
+discard_cs <- function(obj, cs,out_prep,...)
   UseMethod("discard_cs")
 
 #' @rdname discard_cs
@@ -192,38 +191,38 @@ discard_cs <- function(susiF.obj, cs,out_prep,...)
 #' @export
 #' @keywords internal
 
-discard_cs.susiF <- function(susiF.obj, cs, out_prep=FALSE,  ...)
+discard_cs.susiF <- function(obj, cs, out_prep=FALSE,  ...)
 {
-    if( length(cs)==susiF.obj$L){
+    if( length(cs)==obj$L){
         cs <- cs[-1]
         if(length(cs)==0){
-          return(susiF.obj)
+          return(obj)
         }
       }
-  susiF.obj$alpha       <-  susiF.obj$alpha[ -cs]
-  susiF.obj$lBF         <-  susiF.obj$lBF[ -cs]
-  susiF.obj$fitted_wc   <-  susiF.obj$fitted_wc[ -cs]
-  susiF.obj$fitted_wc2  <-  susiF.obj$fitted_wc2[ -cs]
-  susiF.obj$cs          <-  susiF.obj$cs[ -cs]
+  obj$alpha       <-  obj$alpha[ -cs]
+  obj$lBF         <-  obj$lBF[ -cs]
+  obj$fitted_wc   <-  obj$fitted_wc[ -cs]
+  obj$fitted_wc2  <-  obj$fitted_wc2[ -cs]
+  obj$cs          <-  obj$cs[ -cs]
   if(out_prep){
-    susiF.obj$fitted_func <-  susiF.obj$fitted_func[ -cs]
+    obj$fitted_func <-  obj$fitted_func[ -cs]
   }else{
-    susiF.obj$greedy_backfit_update <- TRUE
-    susiF.obj$KL                    <- susiF.obj$KL[ -cs]
-    susiF.obj$ELBO                  <- -Inf
+    obj$greedy_backfit_update <- TRUE
+    obj$KL                    <- obj$KL[ -cs]
+    obj$ELBO                  <- -Inf
   }
 
-  susiF.obj$est_sd      <-  susiF.obj$est_sd[ -cs]
-  susiF.obj$est_pi      <-  susiF.obj$est_pi[ -cs]
-  susiF.obj$cred_band   <-  susiF.obj$cred_band[ -cs]
-  susiF.obj$lfsr_wc     <-  susiF.obj$lfsr_wc [ -cs]
-  susiF.obj$L           <-  susiF.obj$L -length(cs)
-  return(susiF.obj)
+  obj$est_sd      <-  obj$est_sd[ -cs]
+  obj$est_pi      <-  obj$est_pi[ -cs]
+  obj$cred_band   <-  obj$cred_band[ -cs]
+  obj$lfsr_wc     <-  obj$lfsr_wc [ -cs]
+  obj$L           <-  obj$L -length(cs)
+  return(obj)
 }
 
 #' @title Update residual variance
 #
-#' @param  susiF.obj a susiF object defined by init_susiF_obj function
+#' @param  obj a susiF object defined by init_susiF_obj function
 #
 #' @param Y wavelet transformed  functional phenotype, matrix of size N by size J.
 #
@@ -234,7 +233,7 @@ discard_cs.susiF <- function(susiF.obj, cs, out_prep=FALSE,  ...)
 #
 #' @export
 #' @keywords internal
-estimate_residual_variance <- function( susiF.obj,Y,X,... )
+estimate_residual_variance <- function( obj,Y,X,... )
   UseMethod("estimate_residual_variance")
 
 #' @rdname estimate_residual_variance
@@ -245,62 +244,62 @@ estimate_residual_variance <- function( susiF.obj,Y,X,... )
 #
 #' @export
 #
-estimate_residual_variance.susiF <- function( susiF.obj,Y,X,... )
+estimate_residual_variance.susiF <- function( obj,Y,X,... )
 {
 
-  out <-  (1/(prod(dim(Y))))*get_ER2 (  susiF.obj,Y, X  )
+  out <-  (1/(prod(dim(Y))))*get_ER2 (  obj,Y, X  )
   return(out)
 }
 
-# @title Expand susiF.obj by adding L_extra effect
+# @title Expand obj by adding L_extra effect
 #
-# @param susiF.obj a susiF.obj
+# @param obj a obj
 #
 # @param L_extra numeric a number of effect to add
 #
-# @return a susiF.obj a L_extra effect. Note the the number of effect of the susiF.obj cannot exceed the number the user upper bound
+# @return a obj a L_extra effect. Note the the number of effect of the obj cannot exceed the number the user upper bound
 # @export
 # @keywords internal
 
-expand_susiF_obj <- function(susiF.obj,L_extra)
+expand_susiF_obj <- function(obj,L_extra)
 {
-  L_extra <- ifelse (  susiF.obj$L_max - (susiF.obj$L+L_extra) <0 ,#check if we are adding more effect that maximum specified by user
-                       abs(susiF.obj$L_max -(susiF.obj$L)),
+  L_extra <- ifelse (  obj$L_max - (obj$L+L_extra) <0 ,#check if we are adding more effect that maximum specified by user
+                       abs(obj$L_max -(obj$L)),
                        L_extra
 
   )
   if( L_extra==0){
-    return(susiF.obj)
+    return(obj)
   }else{
-    L_old <- susiF.obj$L
-    L_new <- susiF.obj$L+L_extra
-    susiF.obj$L <- ifelse(L_new<(susiF.obj$P+1),L_new,susiF.obj$P)
+    L_old <- obj$L
+    L_new <- obj$L+L_extra
+    obj$L <- ifelse(L_new<(obj$P+1),L_new,obj$P)
 
-    for ( l in (L_old+1):susiF.obj$L )
+    for ( l in (L_old+1):obj$L )
     {
-      susiF.obj$fitted_wc[[l]]        <-  0*susiF.obj$fitted_wc[[1]]
-      susiF.obj$fitted_wc2[[l]]       <-  0*susiF.obj$fitted_wc2[[1]] +1
-      susiF.obj$alpha [[l]]           <-  rep(0, length(susiF.obj$alpha [[1]]))
-      susiF.obj$cs[[l]]               <-  list()
-      susiF.obj$est_pi [[l]]          <-  susiF.obj$est_pi[[1]]
-      susiF.obj$est_sd [[l]]          <-  susiF.obj$est_sd[[1]]
-      susiF.obj$lBF[[l]]              <-  rep(NA, length( susiF.obj$lBF[[1]]))
-      susiF.obj$cred_band[[l]]        <-  matrix(0, ncol = ncol(susiF.obj$cred_band[[1]] ), nrow = 2)
-      susiF.obj$KL                    <-  rep(NA,susiF.obj$L)
-      susiF.obj$ELBO                  <-  c()
+      obj$fitted_wc[[l]]        <-  0*obj$fitted_wc[[1]]
+      obj$fitted_wc2[[l]]       <-  0*obj$fitted_wc2[[1]] +1
+      obj$alpha [[l]]           <-  rep(0, length(obj$alpha [[1]]))
+      obj$cs[[l]]               <-  list()
+      obj$est_pi [[l]]          <-  obj$est_pi[[1]]
+      obj$est_sd [[l]]          <-  obj$est_sd[[1]]
+      obj$lBF[[l]]              <-  rep(NA, length( obj$lBF[[1]]))
+      obj$cred_band[[l]]        <-  matrix(0, ncol = ncol(obj$cred_band[[1]] ), nrow = 2)
+      obj$KL                    <-  rep(NA,obj$L)
+      obj$ELBO                  <-  c()
     }
-    susiF.obj$n_expand <- susiF.obj$n_expand+1
-    susiF.obj$greedy_backfit_update <- TRUE
-    return(susiF.obj)
+    obj$n_expand <- obj$n_expand+1
+    obj$greedy_backfit_update <- TRUE
+    return(obj)
   }
 
 }
 #' @title Access fitted effect l
-#' @param  susiF.obj a fitted objected
+#' @param  obj a fitted objected
 #' @param l effect of interest
 #' @param \dots Other arguments.
 #' @export
-get_fitted_effect <- function(susiF.obj,l,... )
+get_fitted_effect <- function(obj,l,... )
   UseMethod("get_fitted_effect")
 
 
@@ -312,14 +311,14 @@ get_fitted_effect <- function(susiF.obj,l,... )
 #
 #' @export
 #
-get_fitted_effect.susiF <- function(susiF.obj, l, ...){
-  return( unlist(susiF.obj$fitted_func[[l]]))
+get_fitted_effect.susiF <- function(obj, l, ...){
+  return( unlist(obj$fitted_func[[l]]))
 }
 
 #
 # @title Access susiF mixture proportion of effect l
 #
-# @param susiF.obj a susiF object defined by init_susiF_obj function
+# @param obj a susiF object defined by init_susiF_obj function
 #
 # @param l integer larger or equal to 1. Corresponds to the effect to be accessed
 #
@@ -327,7 +326,7 @@ get_fitted_effect.susiF <- function(susiF.obj, l, ...){
 #
 # @export
 #
-get_pi  <- function(susiF.obj, l,...)
+get_pi  <- function(obj, l,...)
   UseMethod("get_pi")
 
 # @rdname get_pi
@@ -338,10 +337,10 @@ get_pi  <- function(susiF.obj, l,...)
 #
 # @export
 #
-get_pi.susiF <- function(susiF.obj, l,...)
+get_pi.susiF <- function(obj, l,...)
 {
 
-  if( l >  length(susiF.obj$est_pi))
+  if( l >  length(obj$est_pi))
   {
     stop("Error trying to access mixture proportion")
   }
@@ -349,7 +348,7 @@ get_pi.susiF <- function(susiF.obj, l,...)
   {
     stop("Error l should be larger ")
   }
-  out <- susiF.obj$est_pi[[l]]
+  out <- obj$est_pi[[l]]
   return(out)
 }
 
@@ -359,7 +358,7 @@ get_pi.susiF <- function(susiF.obj, l,...)
 
 # @title Access susiF log Bayes factors of effect l
 #
-# @param susiF.obj a susiF object defined by init_susiF_obj function
+# @param obj a susiF object defined by init_susiF_obj function
 #
 # @param l integer larger or equal to 1. Corresponds to the effect to be accessed
 #
@@ -367,7 +366,7 @@ get_pi.susiF <- function(susiF.obj, l,...)
 #
 # @export
 #
-get_lBF  <- function(susiF.obj, l,...)
+get_lBF  <- function(obj, l,...)
   UseMethod("get_lBF")
 
 # @rdname get_lBF
@@ -378,10 +377,10 @@ get_lBF  <- function(susiF.obj, l,...)
 #
 # @export
 #
-get_lBF.susiF <- function(susiF.obj, l,...)
+get_lBF.susiF <- function(obj, l,...)
 {
 
-  if( l >   susiF.obj$L)
+  if( l >   obj$L)
   {
     stop("Error trying to access mixture proportion")
   }
@@ -389,7 +388,7 @@ get_lBF.susiF <- function(susiF.obj, l,...)
   {
     stop("Error l should be larger ")
   }
-  out <- susiF.obj$lBF[[l]]
+  out <- obj$lBF[[l]]
   return(out)
 }
 
@@ -404,7 +403,7 @@ get_lBF.susiF <- function(susiF.obj, l,...)
 
 #' @title Compute Epected sum of square
 #
-#' @param susiF.obj a susiF object defined by init_susiF_obj function
+#' @param obj a susiF object defined by init_susiF_obj function
 #
 #' @param Y wavelet transformed  functional phenotype, matrix of size N by size J.
 #
@@ -429,10 +428,10 @@ get_ER2 <- function( obj,Y,X,... )
 get_ER2.susiF = function (  obj,Y, X,  ...) {
 
 
-  susiF.obj <- obj
-  postF <- get_post_F(susiF.obj )# J by N matrix
+  obj <- obj
+  postF <- get_post_F(obj )# J by N matrix
   #Xr_L = t(X%*% postF)
-  postF2 <- get_post_F2(susiF.obj ) # Posterior second moment.
+  postF2 <- get_post_F2(obj ) # Posterior second moment.
 
   return(sum(t((Y - X%*%postF ))%*%(Y - X%*%postF ) )  -sum(t(postF)%*%postF) + sum(    postF2))
 }
@@ -442,14 +441,14 @@ get_ER2.susiF = function (  obj,Y, X,  ...) {
 #
 #' @title Access susiF internal prior
 #
-#' @param susiF.obj a susiF object defined by init_susiF_obj function
+#' @param obj a susiF object defined by init_susiF_obj function
 #
 #' @return G_prior object
 #
 #' @export
 #' @keywords internal
 #
-get_G_prior  <- function(susiF.obj,...)
+get_G_prior  <- function(obj,...)
   UseMethod("get_G_prior")
 
 
@@ -462,9 +461,9 @@ get_G_prior  <- function(susiF.obj,...)
 #
 #' @export
 #' @keywords internal
-get_G_prior.susiF <- function(susiF.obj,...)
+get_G_prior.susiF <- function(obj,...)
 {
-  out <- susiF.obj$G_prior
+  out <- obj$G_prior
   return(out)
 }
 
@@ -474,14 +473,14 @@ get_G_prior.susiF <- function(susiF.obj,...)
 
 # @title Compute posterior mean of the fitted effect
 #
-# @param susiF.obj a susiF object defined by init_susiF_obj function
+# @param obj a susiF object defined by init_susiF_obj function
 #
 # @param l , optional effect to update
 #
 # @return  A J by T matrix of posterior wavelet coefficient,
 # \item{if l  missing}{return sum of the  effect  posterior mean }
 # \item{if l not missing}{return effect specific posterior mean}
-get_post_F <- function(susiF.obj,l,...)
+get_post_F <- function(obj,l,...)
   UseMethod("get_post_F")
 
 # @rdname get_post_F
@@ -493,13 +492,13 @@ get_post_F <- function(susiF.obj,l,...)
 # @export
 #
 
-get_post_F.susiF <- function(susiF.obj,l,...)
+get_post_F.susiF <- function(obj,l,...)
 {
   if(missing(l))
   {
-    out <-  Reduce("+",lapply(1:susiF.obj$L, FUN=function(l) susiF.obj$alpha[[l]] * susiF.obj$fitted_wc[[l]]))
+    out <-  Reduce("+",lapply(1:obj$L, FUN=function(l) obj$alpha[[l]] * obj$fitted_wc[[l]]))
   }else{
-    out <-   susiF.obj$alpha[[l]] * susiF.obj$fitted_wc[[l]]
+    out <-   obj$alpha[[l]] * obj$fitted_wc[[l]]
   }
 
   return(out)
@@ -509,14 +508,14 @@ get_post_F.susiF <- function(susiF.obj,l,...)
 
 # @title Compute posterior second moment
 #
-# @param susiF.obj a susiF object defined by init_susiF_obj function
+# @param obj a susiF object defined by init_susiF_obj function
 # @param l , optional effect to update
 #
 # @return  A J by T matrix of posterior wavelet coefficient,
 # \item{if l  missing}{return sum of the effects  posterior second moment }
 # \item{if l not missing}{return effect specific posterior second moment}
 
-get_post_F2 <- function(susiF.obj,l,...)
+get_post_F2 <- function(obj,l,...)
   UseMethod("get_post_F2")
 
 # @rdname get_post_F2
@@ -527,13 +526,13 @@ get_post_F2 <- function(susiF.obj,l,...)
 #
 # @export
 #
-get_post_F2.susiF <- function(susiF.obj, l,...)
+get_post_F2.susiF <- function(obj, l,...)
 {
   if(missing(l))
   {
-    out <-  Reduce("+",lapply(1:susiF.obj$L, FUN=function(l) susiF.obj$alpha[[l]] *(susiF.obj$fitted_wc2[[l]]+ susiF.obj$fitted_wc [[l]]^2)))
+    out <-  Reduce("+",lapply(1:obj$L, FUN=function(l) obj$alpha[[l]] *(obj$fitted_wc2[[l]]+ obj$fitted_wc [[l]]^2)))
   }else{
-    out <-   susiF.obj$alpha[[l]] *( susiF.obj$fitted_wc2[[l]]+ susiF.obj$fitted_wc[[l]]^2)
+    out <-   obj$alpha[[l]] *( obj$fitted_wc2[[l]]+ obj$fitted_wc[[l]]^2)
   }
 
   return(out)
@@ -543,7 +542,7 @@ get_post_F2.susiF <- function(susiF.obj, l,...)
 
 # @title Update alpha  susiF mixture proportion of effect l
 #
-# @param susiF.obj a susiF object defined by init_susiF_obj function
+# @param obj a susiF object defined by init_susiF_obj function
 #
 # @param l integer larger or equal to 1. Corresponds to the effect to be accessed
 #
@@ -553,7 +552,7 @@ get_post_F2.susiF <- function(susiF.obj, l,...)
 # @export
 #
 #
-get_alpha  <-  function(susiF.obj, l,...  )
+get_alpha  <-  function(obj, l,...  )
   UseMethod("get_alpha")
 
 # @rdname get_alpha
@@ -565,15 +564,15 @@ get_alpha  <-  function(susiF.obj, l,...  )
 # @export
 #
 
-get_alpha.susiF <-  function(susiF.obj, l,...  )
+get_alpha.susiF <-  function(obj, l,...  )
 {
-  out <- susiF.obj$alpha[[l]]
+  out <- obj$alpha[[l]]
   return( out)
 }
 
 #' @title Update  susiF via greedy search or backfit
 #
-#' @param susiF.obj a susiF object defined by init_susiF_obj function
+#' @param obj a susiF object defined by init_susiF_obj function
 #' @param X matrix of size n by p contains the covariates
 #' @param min.purity minimum purity for estimated credible sets
 #' @param verbose If \code{verbose = TRUE}, the algorithm's progress,
@@ -586,7 +585,7 @@ get_alpha.susiF <-  function(susiF.obj, l,...  )
 #' @keywords internal
 #
 #
-greedy_backfit  <-  function(susiF.obj,
+greedy_backfit  <-  function(obj,
                              verbose,
                              cov_lev,
                              X,
@@ -601,7 +600,7 @@ greedy_backfit  <-  function(susiF.obj,
 #
 #' @export
 #' @keywords internal
-greedy_backfit.susiF <-  function(susiF.obj,
+greedy_backfit.susiF <-  function(obj,
                                   verbose,
                                   cov_lev,
                                   X,
@@ -609,42 +608,42 @@ greedy_backfit.susiF <-  function(susiF.obj,
 {
 
 
-  susiF.obj <- update_alpha_hist(susiF.obj)
-  if(!(susiF.obj$greedy)&!(susiF.obj$backfit))
+  obj <- update_alpha_hist(obj)
+  if(!(obj$greedy)&!(obj$backfit))
   {
-    return(susiF.obj)
+    return(obj)
   }
-  susiF.obj <- update_cal_cs(susiF.obj,
+  obj <- update_cal_cs(obj,
                              cov_lev=cov_lev)
 
 
-  dummy.cs <-  which_dummy_cs(susiF.obj,
+  dummy.cs <-  which_dummy_cs(obj,
                               min.purity = min.purity,
                               median_crit=TRUE,
                               X=X)
 
 
-  if(susiF.obj$backfit & (length(dummy.cs)>0)){
+  if(obj$backfit & (length(dummy.cs)>0)){
 
-    susiF.obj$greedy <- FALSE
-    if(length(dummy.cs)== susiF.obj$L){
+    obj$greedy <- FALSE
+    if(length(dummy.cs)== obj$L){
       dummy.cs <- dummy.cs[-1]
-      susiF.obj$backfit <- FALSE
+      obj$backfit <- FALSE
     }
     if( length(dummy.cs)==0  )
     {
-      susiF.obj$backfit <- FALSE
+      obj$backfit <- FALSE
     }else{
-      temp_L <- susiF.obj$L
+      temp_L <- obj$L
 
 
-      susiF.obj <- discard_cs(susiF.obj,
+      obj <- discard_cs(obj,
                               cs= dummy.cs,
                               out_prep= FALSE
       )
 
-      if( length(susiF.obj$cs)>1){
-        A <- cal_cor_cs(susiF.obj, X)$cs_cor
+      if( length(obj$cs)>1){
+        A <- cal_cor_cs(obj, X)$cs_cor
         tl <- which(A>0.99, arr.ind = TRUE)
         tl <-  tl[- which( tl[,1]==tl[,2]),]
 
@@ -653,34 +652,34 @@ greedy_backfit.susiF <-  function(susiF.obj,
         }else{
 
           tl <-  tl[which(tl[,1] < tl[,2]),]
-          susiF.obj <- merge_effect(susiF.obj, tl)
+          obj <- merge_effect(obj, tl)
 
         }
       }
       if(verbose){
-        print( paste( "Discarding ",(temp_L- susiF.obj$L), " effects"))
+        print( paste( "Discarding ",(temp_L- obj$L), " effects"))
       }
     }
-    return(susiF.obj)
+    return(obj)
 
   }##Conditions for stopping greedy search
-  if(  (susiF.obj$L>susiF.obj$L_max))
+  if(  (obj$L>obj$L_max))
   {
 
-    susiF.obj$greedy <- FALSE
+    obj$greedy <- FALSE
 
 
 
-    susiF.obj <- discard_cs(susiF.obj,
-                            cs= (susiF.obj$L_max+1):susiF.obj$L,
+    obj <- discard_cs(obj,
+                            cs= (obj$L_max+1):obj$L,
                             out_prep= FALSE
     )
 
 
 
 
-    if( length(susiF.obj$cs)>1){
-      A <- cal_cor_cs(susiF.obj, X)$cs_cor
+    if( length(obj$cs)>1){
+      A <- cal_cor_cs(obj, X)$cs_cor
       tl <- which(A>0.99, arr.ind = TRUE)
       tl <-  tl[- which( tl[,1]==tl[,2]),]
 
@@ -689,26 +688,26 @@ greedy_backfit.susiF <-  function(susiF.obj,
       }else{
 
         tl <-  tl[which(tl[,1] < tl[,2]),]
-        susiF.obj <- merge_effect(susiF.obj, tl)
+        obj <- merge_effect(obj, tl)
 
       }
     }
     if(verbose){
-      print( paste( "Discarding ",(susiF.obj$L_max- susiF.obj$L), " effects"))
+      print( paste( "Discarding ",(obj$L_max- obj$L), " effects"))
       print( "Greedy search and backfitting done")
     }
 
   }
 
-  if( length(dummy.cs)==0& !( susiF.obj$greedy))
+  if( length(dummy.cs)==0& !( obj$greedy))
   {
-    susiF.obj$backfit <- FALSE
+    obj$backfit <- FALSE
   }
 
-  if(!(susiF.obj$greedy )&!(susiF.obj$backfit ) ){
+  if(!(obj$greedy )&!(obj$backfit ) ){
 
-    if( length(susiF.obj$cs)>1){
-      A <- cal_cor_cs(susiF.obj, X)$cs_cor
+    if( length(obj$cs)>1){
+      A <- cal_cor_cs(obj, X)$cs_cor
       tl <- which(A>0.99, arr.ind = TRUE)
       tl <-  tl[- which( tl[,1]==tl[,2]),]
 
@@ -717,28 +716,28 @@ greedy_backfit.susiF <-  function(susiF.obj,
       }else{
 
         tl <-  tl[which(tl[,1] < tl[,2]),]
-        susiF.obj <- merge_effect(susiF.obj, tl)
+        obj <- merge_effect(obj, tl)
 
       }
     }
 
     if(verbose){
-      print( paste( "Discarding ",(susiF.obj$L_max- susiF.obj$L), " effects"))
+      print( paste( "Discarding ",(obj$L_max- obj$L), " effects"))
      print( "Greedy search and backfitting done")
     }
-    susiF.obj <- update_alpha_hist(susiF.obj,discard = TRUE)
-    susiF.obj$greedy_backfit_update <- FALSE
+    obj <- update_alpha_hist(obj,discard = TRUE)
+    obj$greedy_backfit_update <- FALSE
 
-    return(susiF.obj)
+    return(obj)
   }
-  if(susiF.obj$greedy & (length(dummy.cs)==0)){
+  if(obj$greedy & (length(dummy.cs)==0)){
 
-    tt <- susiF.obj$L_max -susiF.obj$L
+    tt <- obj$L_max -obj$L
     temp <- min( ifelse(tt>0,tt,0 ) , 7)
 
     if(temp==0){
-      if( length(susiF.obj$cs)>1){
-        A <- cal_cor_cs(susiF.obj, X)$cs_cor
+      if( length(obj$cs)>1){
+        A <- cal_cor_cs(obj, X)$cs_cor
         tl <- which(A>0.99, arr.ind = TRUE)
         tl <-  tl[- which( tl[,1]==tl[,2]),]
 
@@ -747,20 +746,20 @@ greedy_backfit.susiF <-  function(susiF.obj,
         }else{
 
           tl <-  tl[which(tl[,1] < tl[,2]),]
-          susiF.obj <- merge_effect(susiF.obj, tl)
+          obj <- merge_effect(obj, tl)
 
         }
       }
 
       if(verbose){
-        print( paste( "Discarding ",(susiF.obj$L_max- susiF.obj$L), " effects"))
+        print( paste( "Discarding ",(obj$L_max- obj$L), " effects"))
         print( "Greedy search and backfitting done")
       }
-      susiF.obj <- update_alpha_hist(susiF.obj,discard = TRUE)
-      susiF.obj$greedy_backfit_update <- FALSE
-      susiF.obj$backfit <- FALSE
-      susiF.obj$greedy <- FALSE
-      return(susiF.obj)
+      obj <- update_alpha_hist(obj,discard = TRUE)
+      obj$greedy_backfit_update <- FALSE
+      obj$backfit <- FALSE
+      obj$greedy <- FALSE
+      return(obj)
     }
 
 
@@ -770,8 +769,8 @@ greedy_backfit.susiF <-  function(susiF.obj,
 
 
 
-    if( length(susiF.obj$cs)>1){
-      A <- cal_cor_cs(susiF.obj, X)$cs_cor
+    if( length(obj$cs)>1){
+      A <- cal_cor_cs(obj, X)$cs_cor
       tl <- which(A>0.99, arr.ind = TRUE)
       tl <-  tl[- which( tl[,1]==tl[,2]),]
 
@@ -780,7 +779,7 @@ greedy_backfit.susiF <-  function(susiF.obj,
       }else{
 
         tl <-  tl[which(tl[,1] < tl[,2]),]
-        susiF.obj <- merge_effect(susiF.obj, tl, discard=FALSE)
+        obj <- merge_effect(obj, tl, discard=FALSE)
 
       }
     }
@@ -788,8 +787,8 @@ greedy_backfit.susiF <-  function(susiF.obj,
 
 
 
-    susiF.obj <- expand_susiF_obj(susiF.obj,L_extra = temp)
-    return(susiF.obj)
+    obj <- expand_susiF_obj(obj,L_extra = temp)
+    return(obj)
   }
 
 }
@@ -878,7 +877,7 @@ init_susiF_obj <- function(L_max, G_prior, Y,X,L_start,greedy,backfit,... )
     lBF[[l]]              <-  rep(NA, ncol(X))
     cred_band[[l]]        <-  matrix(0, ncol = dim(Y)[2], nrow = 2)
   }
-  susiF.obj <- list( fitted_wc       = fitted_wc,
+  obj <- list( fitted_wc       = fitted_wc,
                fitted_wc2      = fitted_wc2,
                lBF             = lBF,
                KL              = KL,
@@ -906,15 +905,15 @@ init_susiF_obj <- function(L_max, G_prior, Y,X,L_start,greedy,backfit,... )
                d               = d,
                lfsr_wc         = lfsr_wc)
 
-  class(susiF.obj) <- "susiF"
-  return(susiF.obj)
+  class(obj) <- "susiF"
+  return(obj)
 }
 
 
 
 #' @title Merging effect function
 #
-#' @param susiF.obj a susiF object defined by init_susiF_obj function
+#' @param obj a susiF object defined by init_susiF_obj function
 #
 #' @param tl see  \code{\link{greedy_backfit}}
 #
@@ -925,7 +924,7 @@ init_susiF_obj <- function(L_max, G_prior, Y,X,L_start,greedy,backfit,... )
 #' @return  a susiF object
 #' @export
 #' @keywords internal
-merge_effect <- function( susiF.obj, tl,...)
+merge_effect <- function( obj, tl,...)
   UseMethod("merge_effect")
 
 #' @rdname merge_effect
@@ -937,17 +936,17 @@ merge_effect <- function( susiF.obj, tl,...)
 #' @export
 #' @keywords internal
 
-merge_effect.susiF <- function( susiF.obj, tl, discard=TRUE,  ...){
+merge_effect.susiF <- function( obj, tl, discard=TRUE,  ...){
 
 
 
 
   if(is.vector( tl)){
     #print( tl)
-    susiF.obj$fitted_wc[[tl[ 2]]] <- 0* susiF.obj$fitted_wc[[tl[  2]]]
-    susiF.obj$fitted_wc[[tl[  1]]] <- susiF.obj$fitted_wc[[tl[  1]]] +   susiF.obj$fitted_wc[[tl[ 2]]]
-    susiF.obj$fitted_wc2[[tl[ 1]]] <- susiF.obj$fitted_wc2[[tl[  1]]] +   susiF.obj$fitted_wc2[[tl[  2]]]
-    #susiF.obj$fitted_wc[[tl[  2]]] <- 0* susiF.obj$fitted_wc[[tl[ 2]]]
+    obj$fitted_wc[[tl[ 2]]] <- 0* obj$fitted_wc[[tl[  2]]]
+    obj$fitted_wc[[tl[  1]]] <- obj$fitted_wc[[tl[  1]]] +   obj$fitted_wc[[tl[ 2]]]
+    obj$fitted_wc2[[tl[ 1]]] <- obj$fitted_wc2[[tl[  1]]] +   obj$fitted_wc2[[tl[  2]]]
+    #obj$fitted_wc[[tl[  2]]] <- 0* obj$fitted_wc[[tl[ 2]]]
     tindx <-  tl[  2]
   }else{
     tl <- tl[order(tl[,1], tl[,2], decreasing = TRUE),]
@@ -956,10 +955,10 @@ merge_effect.susiF <- function( susiF.obj, tl, discard=TRUE,  ...){
     for ( o in 1:dim(tl)[1]){
 
       if ( tl[o, 2]%!in%tindx){
-        susiF.obj$fitted_wc[[tl[o, 2]]] <- 0* susiF.obj$fitted_wc[[tl[o, 2]]]
-        susiF.obj$fitted_wc[[tl[o, 1]]] <-susiF.obj$fitted_wc[[tl[o, 1]]] +   susiF.obj$fitted_wc[[tl[o, 2]]]
-        susiF.obj$fitted_wc2[[tl[o, 1]]] <-susiF.obj$fitted_wc2[[tl[o, 1]]] +   susiF.obj$fitted_wc2[[tl[o, 2]]]
-       # susiF.obj$fitted_wc[[tl[o, 2]]] <- 0* susiF.obj$fitted_wc[[tl[o, 2]]]
+        obj$fitted_wc[[tl[o, 2]]] <- 0* obj$fitted_wc[[tl[o, 2]]]
+        obj$fitted_wc[[tl[o, 1]]] <-obj$fitted_wc[[tl[o, 1]]] +   obj$fitted_wc[[tl[o, 2]]]
+        obj$fitted_wc2[[tl[o, 1]]] <-obj$fitted_wc2[[tl[o, 1]]] +   obj$fitted_wc2[[tl[o, 2]]]
+       # obj$fitted_wc[[tl[o, 2]]] <- 0* obj$fitted_wc[[tl[o, 2]]]
         tindx <- c(tindx, tl[o, 2])
       }
 
@@ -969,21 +968,21 @@ merge_effect.susiF <- function( susiF.obj, tl, discard=TRUE,  ...){
 
   }
   if(discard){
-   susiF.obj<-  discard_cs(susiF.obj,cs=tindx, out_prep=FALSE)
+   obj<-  discard_cs(obj,cs=tindx, out_prep=FALSE)
   }
 
-  return( susiF.obj)
+  return( obj)
 }
 
 
 
 # @title Updates CS names for output
 #
-# @param susiF.obj a susiF object defined by init_susiF_obj function
+# @param obj a susiF object defined by init_susiF_obj function
 #
 # @param X matrix of size N by p
 
-name_cs <- function(susiF.obj,X,...)
+name_cs <- function(obj,X,...)
   UseMethod("name_cs")
 
 # @rdname name_cs
@@ -995,22 +994,22 @@ name_cs <- function(susiF.obj,X,...)
 # @export
 #
 
-name_cs.susiF <- function(susiF.obj,X,...){
+name_cs.susiF <- function(obj,X,...){
 
   if( length(colnames(X))==ncol(X)){
 
-    for (l in 1: length(susiF.obj$cs)){
-      names(susiF.obj$cs[[l]]) <- colnames(X)[susiF.obj$cs[[l]]]
+    for (l in 1: length(obj$cs)){
+      names(obj$cs[[l]]) <- colnames(X)[obj$cs[[l]]]
     }
 
   }
-  return(susiF.obj)
+  return(obj)
 }
 
 
 #' @title Preparing output of main susiF function
 #
-#' @param  susiF.obj a susiF object defined by init_susiF_obj function
+#' @param  obj a susiF object defined by init_susiF_obj function
 #
 #' @param Y functional phenotype, matrix of size N by size J. The underlying algorithm uses wavelets that assume that J is of the form J^2. If J is not a power of 2, susiF internally remaps the data into a grid of length 2^J
 #
@@ -1025,7 +1024,7 @@ name_cs.susiF <- function(susiF.obj,X,...){
 #
 #' @export
 #' @keywords internal
-out_prep <- function( susiF.obj, Y, X, indx_lst, outing_grid,...)
+out_prep <- function( obj, Y, X, indx_lst, outing_grid,...)
   UseMethod("out_prep")
 
 #' @rdname out_prep
@@ -1037,7 +1036,7 @@ out_prep <- function( susiF.obj, Y, X, indx_lst, outing_grid,...)
 #' @export
 #' @keywords internal
 
-out_prep.susiF <- function(susiF.obj ,
+out_prep.susiF <- function(obj ,
                            Y,
                            X,
                            indx_lst,
@@ -1051,20 +1050,20 @@ out_prep.susiF <- function(susiF.obj ,
 {
 
 
-  susiF.obj <-  update_cal_pip(susiF.obj)
+  obj <-  update_cal_pip(obj)
 
-  susiF.obj <-  name_cs(susiF.obj,X)
+  obj <-  name_cs(obj,X)
 
- # susiF.obj <-  update_lfsr_effect(susiF.obj)
+ # obj <-  update_lfsr_effect(obj)
   if(filter.cs)
   {
-    susiF.obj <- check_cs(susiF.obj,
+    obj <- check_cs(obj,
                           min.purity = 0.5,
                           X          = X
                           )
   }
 
-    susiF.obj <-  update_cal_fit_func(susiF.obj,
+    obj <-  update_cal_fit_func(obj,
                                       Y             = Y,
                                       X             = X,
                                       indx_lst      = indx_lst,
@@ -1074,7 +1073,7 @@ out_prep.susiF <- function(susiF.obj ,
                                       family        = family)
 
     if(  HMM==FALSE){
-      susiF.obj <-  update_cal_indf(susiF.obj = susiF.obj ,
+      obj <-  update_cal_indf(obj = obj ,
                                     Y         = Y,
                                     X         = X,
                                     indx_lst  = indx_lst,
@@ -1088,9 +1087,9 @@ out_prep.susiF <- function(susiF.obj ,
 
 
 
-  susiF.obj$outing_grid <- outing_grid
-  susiF.obj$purity      <-  cal_purity(l_cs= susiF.obj$cs, X=X)
-  return(susiF.obj)
+  obj$outing_grid <- outing_grid
+  obj$purity      <-  cal_purity(l_cs= obj$cs, X=X)
+  return(obj)
 }
 
 
@@ -1100,10 +1099,10 @@ out_prep.susiF <- function(susiF.obj ,
 
 #' @title Plot specific effect from susiF object
 #' @description  Plot specific effect from susiF object
-#' @param susiF.obj output of the susiF function
+#' @param obj output of the susiF function
 #' @param effect  the index of the effect to be plotted
-#' @param cred.band logical, if TRUE, plot credible bands if susiF.obj fitted with wavelets regression. Set as TRUE by default
-#' @param  lfsr.curve logical, if TRUE, plot estimated lfsr of the effect at each base pair  if susiF.obj fitted with HMM regression. Set as TRUE by default
+#' @param cred.band logical, if TRUE, plot credible bands if obj fitted with wavelets regression. Set as TRUE by default
+#' @param  lfsr.curve logical, if TRUE, plot estimated lfsr of the effect at each base pair  if obj fitted with HMM regression. Set as TRUE by default
 #' @param size_line numeric, width of the plotted lines
 #' @param size_point numeric, size of the point
 #' @param pos_SNP vector, containing the base pair of the SNPs
@@ -1130,7 +1129,7 @@ out_prep.susiF <- function(susiF.obj ,
 #
 #' @export
 #
-plot_effect_susiF <- function( susiF.obj,
+plot_effect_susiF <- function( obj,
                                effect=1,
                                title="",
                                cred.band = TRUE,
@@ -1141,7 +1140,7 @@ plot_effect_susiF <- function( susiF.obj,
                                pip_only=FALSE,
                                point_shape, ...){
   if(missing(pos_SNP)){
-    pos_SNP<-  1:length(susiF.obj$pip)
+    pos_SNP<-  1:length(obj$pip)
   }
   if( missing(point_shape)){
     point_shape <- rep( 19, length(pos_SNP))
@@ -1151,9 +1150,9 @@ plot_effect_susiF <- function( susiF.obj,
             "#FDBF6F", "gray70", "khaki2", "maroon", "orchid1", "deeppink1",
             "blue1", "steelblue4", "darkturquoise", "green1", "yellow4",
             "yellow3", "darkorange4", "brown")
-  L <- susiF.obj$L
-  n_wac <- susiF.obj$n_wac
-  y <- susiF.obj$pip
+  L <- obj$L
+  n_wac <- obj$n_wac
+  y <- obj$pip
   col_y <- rep(0, length(y))
 
   if (effect > L) {
@@ -1161,15 +1160,15 @@ plot_effect_susiF <- function( susiF.obj,
                L))
   }
 
-  fun_plot <- susiF.obj$fitted_func[[effect]]
+  fun_plot <- obj$fitted_func[[effect]]
   fun_plot <- c(rep(0, n_wac), fun_plot)
 
 
-  if (cred.band& is.null(susiF.obj$lfsr_func)) {
-    cred_band <- data.frame(t(susiF.obj$cred_band[[effect]]))
+  if (cred.band& is.null(obj$lfsr_func)) {
+    cred_band <- data.frame(t(obj$cred_band[[effect]]))
     cred_band <- rbind(data.frame(up = rep(0, n_wac),
                                   low = rep(0, n_wac)), cred_band)
-    x <- rep(susiF.obj$outing_grid, (1 + 1))
+    x <- rep(obj$outing_grid, (1 + 1))
     CS <- rep(c(0, effect), each = n_wac)
 
     df <- data.frame(fun_plot = fun_plot,
@@ -1193,13 +1192,13 @@ plot_effect_susiF <- function( susiF.obj,
 
 
 
-    if (lfsr.curve& !is.null(susiF.obj$lfsr_func)){
-      lfsr_curve <- do.call(c , susiF.obj$lfsr_func)
+    if (lfsr.curve& !is.null(obj$lfsr_func)){
+      lfsr_curve <- do.call(c , obj$lfsr_func)
 
-      fun_plot <- do.call(c, susiF.obj$fitted_func)
+      fun_plot <- do.call(c, obj$fitted_func)
       fun_plot <- c(rep(0, n_wac), fun_plot)
 
-      x <- rep(susiF.obj$outing_grid, (susiF.obj$L + 1))
+      x <- rep(obj$outing_grid, (obj$L + 1))
       CS <- rep(0:L, each = n_wac)
       df <- data.frame(fun_plot = fun_plot,
                        CS = as.factor(CS),
@@ -1224,9 +1223,9 @@ plot_effect_susiF <- function( susiF.obj,
       return(P2)
     }else{
 
-      fun_plot <- susiF.obj$fitted_func[[effect]]
+      fun_plot <- obj$fitted_func[[effect]]
       fun_plot <- c(rep(0, n_wac), fun_plot)
-      x <- rep(susiF.obj$outing_grid, (1 + 1))
+      x <- rep(obj$outing_grid, (1 + 1))
       CS <- rep(c(0, effect), each = n_wac)
       df <- data.frame(fun_plot = fun_plot, CS = as.factor(CS),
                        x = x)
@@ -1252,10 +1251,10 @@ plot_effect_susiF <- function( susiF.obj,
 
 #' @title Plot susiF object
 #
-#' @param susiF.obj output of the susiF function
+#' @param obj output of the susiF function
 #
-#' @param cred.band logical, if TRUE, plot credible bands if susiF.obj fitted with wavelets regression. Set as TRUE by default
-#' @param  lfsr.curve logical, if TRUE, plot estimated lfsr of the effect at each base pair  if susiF.obj fitted with HMM regression. Set as TRUE by default
+#' @param cred.band logical, if TRUE, plot credible bands if obj fitted with wavelets regression. Set as TRUE by default
+#' @param  lfsr.curve logical, if TRUE, plot estimated lfsr of the effect at each base pair  if obj fitted with HMM regression. Set as TRUE by default
 #' @param size_line numeric, width of the plotted lines
 #' @param size_point numeric, size of the point
 #' @param pos_SNP vector, containing the base pair of the SNPs
@@ -1282,7 +1281,7 @@ plot_effect_susiF <- function( susiF.obj,
 #
 #' @export
 #
-plot_susiF  = function (susiF.obj, title="",
+plot_susiF  = function (obj, title="",
                         cred.band = TRUE,
                         lfsr.curve=TRUE,
                         size_line=2,
@@ -1293,7 +1292,7 @@ plot_susiF  = function (susiF.obj, title="",
 {
 
   if(missing(pos_SNP)){
-    pos_SNP<-  1:length(susiF.obj$pip)
+    pos_SNP<-  1:length(obj$pip)
   }
   if( missing(point_shape)){
     point_shape <- rep( 19, length(pos_SNP))
@@ -1305,13 +1304,13 @@ plot_susiF  = function (susiF.obj, title="",
             "#FDBF6F", "gray70", "khaki2", "maroon", "orchid1", "deeppink1",
             "blue1", "steelblue4", "darkturquoise", "green1", "yellow4",
             "yellow3", "darkorange4", "brown")
-  L <- susiF.obj$L
+  L <- obj$L
 
-  y <- susiF.obj$pip
+  y <- obj$pip
   col_y <- rep(0, length(y))
 
   for (l in 1:L) {
-    col_y[which(1:length(y) %in% susiF.obj$cs[[l]])] <- l
+    col_y[which(1:length(y) %in% obj$cs[[l]])] <- l
   }
   CS <-  factor(col_y,
                 levels=0:L,
@@ -1338,21 +1337,21 @@ plot_susiF  = function (susiF.obj, title="",
     return(P1)
   }
 
-  fun_plot <- do.call(c, susiF.obj$fitted_func)
-  n_wac <- susiF.obj$n_wac
+  fun_plot <- do.call(c, obj$fitted_func)
+  n_wac <- obj$n_wac
   fun_plot <- c(rep(0, n_wac), fun_plot)
 
 
-  if (cred.band& is.null(susiF.obj$lfsr_func)) {
+  if (cred.band& is.null(obj$lfsr_func)) {
     cred_band <- data.frame(t(do.call(cbind,
-                                      susiF.obj$cred_band)
+                                      obj$cred_band)
     )
     )
     cred_band <- rbind(data.frame(up = rep(0, n_wac),
                                   low = rep(0, n_wac)),
                        cred_band)
 
-    x  <- rep(susiF.obj$outing_grid, (susiF.obj$L + 1))
+    x  <- rep(obj$outing_grid, (obj$L + 1))
     CS <- rep(0:L, each = n_wac)
     df <- data.frame(fun_plot = fun_plot,
                      CS = as.factor(CS),
@@ -1375,12 +1374,12 @@ plot_susiF  = function (susiF.obj, title="",
   else {
 
 
-    if (lfsr.curve& !is.null(susiF.obj$lfsr_func)){
-      lfsr_curve <- do.call(c , susiF.obj$lfsr_func)
+    if (lfsr.curve& !is.null(obj$lfsr_func)){
+      lfsr_curve <- do.call(c , obj$lfsr_func)
 
 
 
-      x <- rep(susiF.obj$outing_grid, (susiF.obj$L + 1))
+      x <- rep(obj$outing_grid, (obj$L + 1))
       CS <- rep(0:L, each = n_wac)
       df <- data.frame(fun_plot = fun_plot,
                        CS = as.factor(CS),
@@ -1401,7 +1400,7 @@ plot_susiF  = function (susiF.obj, title="",
     }else{
 
 
-      x <- rep(susiF.obj$outing_grid, (susiF.obj$L + 1))
+      x <- rep(obj$outing_grid, (obj$L + 1))
       CS <- rep(0:L, each = n_wac)
       df <- data.frame(fun_plot = fun_plot,
                        CS = as.factor(CS),
@@ -1432,7 +1431,7 @@ plot_susiF  = function (susiF.obj, title="",
 
 #' @title Check tolerance for stopping criterion
 #
-#' @param susiF.obj a susiF object defined by init_susiF_obj function
+#' @param obj a susiF object defined by init_susiF_obj function
 #' @param check numeric, dynamic value for testing outing of th while loop
 #' @param cal_obj logical, if set to TRUE compute ELBO
 #
@@ -1447,7 +1446,7 @@ plot_susiF  = function (susiF.obj, title="",
 #' @return a matrix of size N by size J of partial residuals
 #' @export
 #' @keywords internal
-test_stop_cond <- function(susiF.obj,
+test_stop_cond <- function(obj,
                            check,
                            cal_obj,
                            Y,
@@ -1466,26 +1465,26 @@ test_stop_cond <- function(susiF.obj,
 #
 #' @export
 #' @keywords internal
-test_stop_cond.susiF <- function(susiF.obj, check, cal_obj, Y, X, D, C, indx_lst,...)
+test_stop_cond.susiF <- function(obj, check, cal_obj, Y, X, D, C, indx_lst,...)
 {
 
-  if( susiF.obj$L==1)
+  if( obj$L==1)
   {
-    susiF.obj$check <- 0
-    return(susiF.obj)
+    obj$check <- 0
+    return(obj)
   }
 
-  if(!(susiF.obj$greedy_backfit_update)) #if not just updated check for stopping while loop
+  if(!(obj$greedy_backfit_update)) #if not just updated check for stopping while loop
   {
     if( cal_obj){
 
-      susiF.obj <- update_KL(susiF.obj,
+      obj <- update_KL(obj,
                              X,
                              D= D,
                              C= C , indx_lst)
 
-      susiF.obj <- update_ELBO(susiF.obj,
-                               get_objective( susiF.obj = susiF.obj,
+      obj <- update_ELBO(obj,
+                               get_objective( obj = obj,
                                               Y         = Y,
                                               X         = X,
                                               D         = D,
@@ -1494,56 +1493,56 @@ test_stop_cond.susiF <- function(susiF.obj, check, cal_obj, Y, X, D, C, indx_lst
                                )
       )
 
-      if(length(susiF.obj$ELBO)>1    )#update parameter convergence,
+      if(length(obj$ELBO)>1    )#update parameter convergence,
       {
-        check <- abs(diff(susiF.obj$ELBO)[(length( susiF.obj$ELBO )-1)])
-        susiF.obj$check <- check
-        return(susiF.obj)
+        check <- abs(diff(obj$ELBO)[(length( obj$ELBO )-1)])
+        obj$check <- check
+        return(obj)
       }else{
-        susiF.obj$check <- check
-        return(susiF.obj)
+        obj$check <- check
+        return(obj)
       }
     }
     else{
-      len <- length( susiF.obj$alpha_hist)
+      len <- length( obj$alpha_hist)
       if( len>1)#update parameter convergence, no ELBO for the moment
       {
         check <-0
 
-        T1 <- do.call( rbind, susiF.obj$alpha_hist[[len ]])
-        T1 <- T1[1:susiF.obj$L,] #might be longer than L because alpha computed before discarding effect
-        T2 <- do.call( rbind, susiF.obj$alpha_hist[[(len-1) ]])
+        T1 <- do.call( rbind, obj$alpha_hist[[len ]])
+        T1 <- T1[1:obj$L,] #might be longer than L because alpha computed before discarding effect
+        T2 <- do.call( rbind, obj$alpha_hist[[(len-1) ]])
 
 
-        if(!(susiF.obj$L==nrow(T2))){
-          return(susiF.obj)
+        if(!(obj$L==nrow(T2))){
+          return(obj)
         }
-        T2 <- T2[1:susiF.obj$L,]
-        if(susiF.obj$L==1){
+        T2 <- T2[1:obj$L,]
+        if(obj$L==1){
           T2 <- T2[1,]
         }
 
         if((nrow(T1)>nrow(T2))){
-          susiF.obj$check <- 1
-          return(susiF.obj)
+          obj$check <- 1
+          return(obj)
         }
         if( (nrow(T2)>nrow(T1))){
-          T2 <- T2[1:susiF.obj$L,]
+          T2 <- T2[1:obj$L,]
         }
 
 
         check <- sum(abs(T1-T2))/nrow(X)
-        susiF.obj$check <- check
-        return(susiF.obj)
+        obj$check <- check
+        return(obj)
         #print(check)
       }else{
-        susiF.obj$check <- check
-        return(susiF.obj)
+        obj$check <- check
+        return(obj)
       }
     }
   }else{
-    susiF.obj$check <- check
-    return(susiF.obj)
+    obj$check <- check
+    return(obj)
   }
 
 }
@@ -1554,7 +1553,7 @@ test_stop_cond.susiF <- function(susiF.obj, check, cal_obj, Y, X, D, C, indx_lst
 
 #' @title Update alpha   susiF mixture proportion of effect l
 #
-#' @param susiF.obj a susiF object defined by init_susiF_obj function
+#' @param obj a susiF object defined by init_susiF_obj function
 #
 #' @param l integer larger or equal to 1. Corresponds to the effect to be accessed
 #
@@ -1565,7 +1564,7 @@ test_stop_cond.susiF <- function(susiF.obj, check, cal_obj, Y, X, D, C, indx_lst
 #' @export
 #' @keywords internal
 
-update_alpha  <-  function(susiF.obj, l, alpha,... )
+update_alpha  <-  function(obj, l, alpha,... )
   UseMethod("update_alpha")
 
 
@@ -1577,15 +1576,15 @@ update_alpha  <-  function(susiF.obj, l, alpha,... )
 #
 #' @export
 #' @keywords internal
-update_alpha.susiF <-  function(susiF.obj, l, alpha,... )
+update_alpha.susiF <-  function(obj, l, alpha,... )
 {
-  susiF.obj$alpha[[l]] <- alpha
-   return( susiF.obj)
+  obj$alpha[[l]] <- alpha
+   return( obj)
 }
 
 #' @title Update alpha_hist   susiF object
 #
-#' @param susiF.obj a susiF object defined by init_susiF_obj function
+#' @param obj a susiF object defined by init_susiF_obj function
 #
 #' @param  discard logical set to FALSE by default, if true remove element of history longer than L
 #
@@ -1594,7 +1593,7 @@ update_alpha.susiF <-  function(susiF.obj, l, alpha,... )
 #' @export
 #' @keywords internal
 
-update_alpha_hist  <-  function(susiF.obj, discard,... )
+update_alpha_hist  <-  function(obj, discard,... )
   UseMethod("update_alpha_hist")
 
 
@@ -1606,20 +1605,20 @@ update_alpha_hist  <-  function(susiF.obj, discard,... )
 #
 #' @export
 #' @keywords internal
-update_alpha_hist.susiF <-  function(susiF.obj , discard=FALSE,... )
+update_alpha_hist.susiF <-  function(obj , discard=FALSE,... )
 {
     if(!discard){
-        susiF.obj$alpha_hist[[ (length(susiF.obj$alpha_hist)+1)  ]] <- susiF.obj$alpha
+        obj$alpha_hist[[ (length(obj$alpha_hist)+1)  ]] <- obj$alpha
     }
   if(discard){
-    if((length(susiF.obj$alpha_hist[[length(susiF.obj$alpha_hist)]]) >susiF.obj$L)){
+    if((length(obj$alpha_hist[[length(obj$alpha_hist)]]) >obj$L)){
 
-      tt <- susiF.obj$alpha_hist[[ (length(susiF.obj$alpha_hist) ) ]][1:susiF.obj$L]
-      susiF.obj$alpha_hist[[ (length(susiF.obj$alpha_hist))  ]] <- tt
+      tt <- obj$alpha_hist[[ (length(obj$alpha_hist) ) ]][1:obj$L]
+      obj$alpha_hist[[ (length(obj$alpha_hist))  ]] <- tt
     }
   }
 
-  return( susiF.obj)
+  return( obj)
 }
 
 
@@ -1627,7 +1626,7 @@ update_alpha_hist.susiF <-  function(susiF.obj , discard=FALSE,... )
 #
 # @description Update  susiF object using the output of EM_pi
 #
-# @param susiF.obj a susiF object defined by init_susiF_obj function
+# @param obj a susiF object defined by init_susiF_obj function
 #
 # @param l integer larger or equal to 1. Corresponds to the effect to be accessed
 #
@@ -1648,7 +1647,7 @@ update_alpha_hist.susiF <-  function(susiF.obj , discard=FALSE,... )
 # @export
 
 
-update_susiF_obj  <- function(susiF.obj, l, EM_pi, Bhat, Shat, indx_lst, lowc_wc=NULL, cal_wc_lsfr=FALSE,df=NULL,e=0.001,...)
+update_susiF_obj  <- function(obj, l, EM_pi, Bhat, Shat, indx_lst, lowc_wc=NULL, cal_wc_lsfr=FALSE,df=NULL,e=0.001,...)
       UseMethod("update_susiF_obj")
 
 # @rdname update_susiF_obj
@@ -1660,7 +1659,7 @@ update_susiF_obj  <- function(susiF.obj, l, EM_pi, Bhat, Shat, indx_lst, lowc_wc
 # @export
 #
 
-update_susiF_obj.susiF <- function(susiF.obj,
+update_susiF_obj.susiF <- function(obj,
                                    l,
                                    EM_pi,
                                    Bhat,
@@ -1674,7 +1673,7 @@ update_susiF_obj.susiF <- function(susiF.obj,
                                    ...)
 {
 
-  if( l > length(susiF.obj$est_pi))
+  if( l > length(obj$est_pi))
   {
     stop("Error trying to access mixture proportion")
   }
@@ -1686,20 +1685,20 @@ update_susiF_obj.susiF <- function(susiF.obj,
   {
     stop("Error EM_pi should be of the class EM_pi")
   }
-  susiF.obj         <-   update_pi(susiF.obj = susiF.obj ,
+  obj         <-   update_pi(obj = obj ,
                                    l = l ,
                                    tpi =  EM_pi$tpi_k)
-  susiF.obj$G_prior <-   update_prior(get_G_prior(susiF.obj) , EM_pi$tpi_k  )
+  obj$G_prior <-   update_prior(get_G_prior(obj) , EM_pi$tpi_k  )
 
 
-  susiF.obj$fitted_wc[[l]]   <- post_mat_mean(get_G_prior(susiF.obj) ,
+  obj$fitted_wc[[l]]   <- post_mat_mean(get_G_prior(obj) ,
                                               Bhat,
                                               Shat,
                                               lBF      = EM_pi$lBF,
                                               indx_lst = indx_lst,
                                               lowc_wc  = lowc_wc,
                                               e        = e)
-  susiF.obj$fitted_wc2[[l]]  <- post_mat_sd  (get_G_prior(susiF.obj) ,
+  obj$fitted_wc2[[l]]  <- post_mat_sd  (get_G_prior(obj) ,
                                               Bhat,
                                               Shat,
                                               lBF      = EM_pi$lBF,
@@ -1708,35 +1707,35 @@ update_susiF_obj.susiF <- function(susiF.obj,
                                               e        = e)^2
 
 
-  G_prior <- update_prior(G_prior = get_G_prior(susiF.obj),
+  G_prior <- update_prior(G_prior = get_G_prior(obj),
                           tpi     = EM_pi$tpi_k )
 
 
   new_alpha <- cal_zeta(  EM_pi$lBF)
 
-  susiF.obj  <- update_alpha (susiF.obj = susiF.obj,
+  obj  <- update_alpha (obj = obj,
                               l         = l,
                               alpha     = new_alpha)
-  susiF.obj  <- update_lBF   (susiF.obj = susiF.obj,
+  obj  <- update_lBF   (obj = obj,
                               l         = l,
                               lBF       = EM_pi$lBF)
-  susiF.obj <-  update_cal_cs(susiF.obj=susiF.obj,  cov_lev= cov_lev, l=l)
-  # susiF.obj <-  update_lfsr  (susiF.obj=susiF.obj,
+  obj <-  update_cal_cs(obj=obj,  cov_lev= cov_lev, l=l)
+  # obj <-  update_lfsr  (obj=obj,
   #                             l=l ,
   #                            Bhat=Bhat,
   #                            Shat= Shat,
   #                            indx_lst=indx_lst)
-  return(susiF.obj)
+  return(obj)
 }
 
 #' @title Update susiF by computing PiP
 #
-#' @param susiF.obj a susiF object defined by  init_susiF_obj  function
+#' @param obj a susiF object defined by  init_susiF_obj  function
 #' @return susiF object
 #' @export
 #' @keywords internal
 
-update_cal_pip  <- function (susiF.obj,...)
+update_cal_pip  <- function (obj,...)
   UseMethod("update_cal_pip")
 
 #' @rdname update_cal_pip
@@ -1748,24 +1747,24 @@ update_cal_pip  <- function (susiF.obj,...)
 #' @export
 #' @keywords internal
 
-update_cal_pip.susiF <- function (susiF.obj,...)
+update_cal_pip.susiF <- function (obj,...)
 {
-  if(sum( is.na(unlist(susiF.obj$alpha))))
+  if(sum( is.na(unlist(obj$alpha))))
   {
     stop("Error: some alpha value not updated, please update alpha value first")
   }
   tpip <- list()
-  for ( l in 1:susiF.obj$L)
+  for ( l in 1:obj$L)
   {
-    tpip[[l]] <- rep(1, lengths(susiF.obj$alpha)[[l]])-susiF.obj$alpha[[l]]
+    tpip[[l]] <- rep(1, lengths(obj$alpha)[[l]])-obj$alpha[[l]]
   }
-  susiF.obj$pip <- 1-  apply( do.call(rbind,tpip),2, prod)
-  return(susiF.obj)
+  obj$pip <- 1-  apply( do.call(rbind,tpip),2, prod)
+  return(obj)
 }
 
 #' @title Update susiF by computing credible sets
 #
-#' @param susiF.obj a susiF object defined by  init_susiF_obj  function
+#' @param obj a susiF object defined by  init_susiF_obj  function
 #
 #' @param cov_lev numeric between 0 and 1, corresponding to the expected level of coverage of the cs if not specified set to 0.95
 #
@@ -1774,7 +1773,7 @@ update_cal_pip.susiF <- function (susiF.obj,...)
 #' @export
 #' @keywords internal
 #'
-update_cal_cs  <- function(susiF.obj, cov_lev=0.95,...)
+update_cal_cs  <- function(obj, cov_lev=0.95,...)
   UseMethod("update_cal_cs")
 
 #' @rdname update_cal_cs
@@ -1787,47 +1786,47 @@ update_cal_cs  <- function(susiF.obj, cov_lev=0.95,...)
 #'
 #' @keywords internal
 #'
-update_cal_cs.susiF <- function(susiF.obj, cov_lev=0.95, l,...)
+update_cal_cs.susiF <- function(obj, cov_lev=0.95, l,...)
 {
   if( !missing(l)){
-    if(sum( is.na(unlist(susiF.obj$alpha[[l]]))))
+    if(sum( is.na(unlist(obj$alpha[[l]]))))
     {
 
       stop("Error: some alpha value not updated, please update alpha value first")
     }
-    temp        <- susiF.obj$alpha[[l]]
+    temp        <- obj$alpha[[l]]
 
     # check if temp has only 0 (i.e.  not yet updated)
     #  if(sum(temp==0)==length(temp)){
     temp_cumsum <- cumsum( temp[order(temp, decreasing =TRUE)])
     max_indx_cs <- min(which( temp_cumsum >cov_lev ))
-    susiF.obj$cs[[l]]  <- order(temp, decreasing = TRUE)[1:max_indx_cs ]
+    obj$cs[[l]]  <- order(temp, decreasing = TRUE)[1:max_indx_cs ]
 
-    return(susiF.obj)
+    return(obj)
   }
 
-  if(sum( is.na(unlist(susiF.obj$alpha))))
+  if(sum( is.na(unlist(obj$alpha))))
   {
     stop("Error: some alpha value not updated, please update alpha value first")
   }
-  for ( l in 1:susiF.obj$L)
+  for ( l in 1:obj$L)
   {
-    temp        <- susiF.obj$alpha[[l]]
+    temp        <- obj$alpha[[l]]
 
     # check if temp has only 0 (i.e.  not yet updated)
     #  if(sum(temp==0)==length(temp)){
       temp_cumsum <- cumsum( temp[order(temp, decreasing =TRUE)])
       max_indx_cs <- min(which( temp_cumsum >cov_lev ))
-      susiF.obj$cs[[l]]  <- order(temp, decreasing = TRUE)[1:max_indx_cs ]
+      obj$cs[[l]]  <- order(temp, decreasing = TRUE)[1:max_indx_cs ]
 
   }
 
-  return(susiF.obj)
+  return(obj)
 }
 
 #@title Update susiF by computing predicted curves
 #
-#@param susiF.obj a susiF object defined by init_susiF_obj function
+#@param obj a susiF object defined by init_susiF_obj function
 #@param Y functional phenotype, matrix of size N by size J. The underlying algorithm uses wavelet which assume that J is of the form J^2. If J not a power of 2, susiF internally remaps the data into grid of length 2^J
 #@param X matrix of size N by p
 #@param indx_lst list generated by gen_wavelet_indx for the given level of resolution
@@ -1835,7 +1834,7 @@ update_cal_cs.susiF <- function(susiF.obj, cov_lev=0.95, l,...)
 #@export
 #
 
-update_cal_indf <- function(susiF.obj, Y, X, indx_lst, TI=FALSE,...)
+update_cal_indf <- function(obj, Y, X, indx_lst, TI=FALSE,...)
   UseMethod("update_cal_indf")
 
 # @rdname update_cal_indf
@@ -1849,68 +1848,68 @@ update_cal_indf <- function(susiF.obj, Y, X, indx_lst, TI=FALSE,...)
 #
 #' @importFrom wavethresh wr
 #' @importFrom wavethresh wd
-update_cal_indf.susiF <- function(susiF.obj, Y, X, indx_lst, TI=FALSE,...)
+update_cal_indf.susiF <- function(obj, Y, X, indx_lst, TI=FALSE,...)
 {
 
   if( TI){
 
     idx_lead_cov <- list()
 
-    for (l in 1:length(susiF.obj$alpha)){
-      idx_lead_cov[[l]]  <- which.max(susiF.obj$alpha[[l]])
+    for (l in 1:length(obj$alpha)){
+      idx_lead_cov[[l]]  <- which.max(obj$alpha[[l]])
     }
     mean_Y          <- attr(Y, "scaled:center")
-    susiF.obj$ind_fitted_func <- matrix(mean_Y,
+    obj$ind_fitted_func <- matrix(mean_Y,
                                         byrow=TRUE,
                                         nrow=nrow(Y),
                                         ncol=ncol(Y))+Reduce("+",
-                                        lapply(1:length(susiF.obj$alpha),
+                                        lapply(1:length(obj$alpha),
                                                function(l)
-                                                 matrix( X[,idx_lead_cov[[l]]] , ncol=1)%*%  t(susiF.obj$fitted_func[[l]] )*(attr(X, "scaled:scale")[idx_lead_cov[[l]]])
+                                                 matrix( X[,idx_lead_cov[[l]]] , ncol=1)%*%  t(obj$fitted_func[[l]] )*(attr(X, "scaled:scale")[idx_lead_cov[[l]]])
                                                )
                                         )
 
-    return( susiF.obj)
+    return( obj)
   }else{
     mean_Y          <- attr(Y, "scaled:center")
-    if(sum( is.na(unlist(susiF.obj$alpha))))
+    if(sum( is.na(unlist(obj$alpha))))
     {
       stop("Error: some alpha value not updated, please update alpha value first")
     }
-    temp <- wavethresh::wd(rep(0, susiF.obj$n_wac)) #create dummy wd object
+    temp <- wavethresh::wd(rep(0, obj$n_wac)) #create dummy wd object
 
 
-    if(inherits(get_G_prior(susiF.obj),"mixture_normal_per_scale" ))
+    if(inherits(get_G_prior(obj),"mixture_normal_per_scale" ))
     {
-      for ( i in 1:susiF.obj$N)
+      for ( i in 1:obj$N)
       {
-        susiF.obj$ind_fitted_func[i,]  <- mean_Y#fitted_baseline future implementation
-        for ( l in 1:susiF.obj$L)
+        obj$ind_fitted_func[i,]  <- mean_Y#fitted_baseline future implementation
+        for ( l in 1:obj$L)
         {
           #add wavelet coefficient
-          temp$D                         <-    ( susiF.obj$alpha[[l]] * X [i,])%*%susiF.obj$fitted_wc[[l]][,-indx_lst[[length(indx_lst)]]]
-          temp$C[length(temp$C)]         <-    ( susiF.obj$alpha[[l]] * X [i,])%*%susiF.obj$fitted_wc[[l]][,indx_lst[[length(indx_lst)]]]
+          temp$D                         <-    ( obj$alpha[[l]] * X [i,])%*%obj$fitted_wc[[l]][,-indx_lst[[length(indx_lst)]]]
+          temp$C[length(temp$C)]         <-    ( obj$alpha[[l]] * X [i,])%*%obj$fitted_wc[[l]][,indx_lst[[length(indx_lst)]]]
           #transform back
-          susiF.obj$ind_fitted_func[i,]  <-  susiF.obj$ind_fitted_func[i,]+wavethresh::wr(temp)
+          obj$ind_fitted_func[i,]  <-  obj$ind_fitted_func[i,]+wavethresh::wr(temp)
         }
       }
     }
-    if(inherits(get_G_prior(susiF.obj),"mixture_normal" ))
+    if(inherits(get_G_prior(obj),"mixture_normal" ))
     {
-      for ( i in 1:susiF.obj$N)
+      for ( i in 1:obj$N)
       {
-        susiF.obj$ind_fitted_func[i,]  <- mean_Y#fitted_baseline
-        for ( l in 1:susiF.obj$L)
+        obj$ind_fitted_func[i,]  <- mean_Y#fitted_baseline
+        for ( l in 1:obj$L)
         {
           #add wavelet coefficient
-          temp$D                         <-    (susiF.obj$alpha[[l]] * X [i,])%*%susiF.obj$fitted_wc[[l]][,-dim(susiF.obj$fitted_wc[[l]])[2]]
-          temp$C[length(temp$C)]         <-    (susiF.obj$alpha[[l]] * X [i,]) %*%susiF.obj$fitted_wc[[l]][,dim(susiF.obj$fitted_wc[[l]])[2]]
+          temp$D                         <-    (obj$alpha[[l]] * X [i,])%*%obj$fitted_wc[[l]][,-dim(obj$fitted_wc[[l]])[2]]
+          temp$C[length(temp$C)]         <-    (obj$alpha[[l]] * X [i,]) %*%obj$fitted_wc[[l]][,dim(obj$fitted_wc[[l]])[2]]
           #transform back
-          susiF.obj$ind_fitted_func[i,]  <-  susiF.obj$ind_fitted_func[i,]+wavethresh::wr(temp)
+          obj$ind_fitted_func[i,]  <-  obj$ind_fitted_func[i,]+wavethresh::wr(temp)
         }
       }
     }
-    return( susiF.obj)
+    return( obj)
   }
 
 
@@ -1920,7 +1919,7 @@ update_cal_indf.susiF <- function(susiF.obj, Y, X, indx_lst, TI=FALSE,...)
 
 #' @title Update susiF by computing posterior curves
 #
-#' @param  susiF.obj a susiF/EBmvFR object defined by init_susiF_obj function
+#' @param  obj a susiF/EBmvFR object defined by init_susiF_obj function
 #' @param Y  functional phenotype, matrix of size N by size J. The underlying algorithm uses wavelet which assume that J is of the form J^2. If J not a power of 2, susif internally remaps the data into grid of length 2^J
 #
 #' @param X matrix of size n by p in
@@ -1933,7 +1932,7 @@ update_cal_indf.susiF <- function(susiF.obj, Y, X, indx_lst, TI=FALSE,...)
 #
 #' @export
 #' @keywords internal
-update_cal_fit_func  <- function( susiF.obj, indx_lst,  ...)
+update_cal_fit_func  <- function( obj, indx_lst,  ...)
   UseMethod("update_cal_fit_func")
 
 #' @rdname update_cal_fit_func
@@ -1949,7 +1948,7 @@ update_cal_fit_func  <- function( susiF.obj, indx_lst,  ...)
 #' @export
 #' @keywords internal
 
-update_cal_fit_func.susiF <- function(susiF.obj,
+update_cal_fit_func.susiF <- function(obj,
                                       indx_lst,
                                       Y,
                                       X,
@@ -1960,12 +1959,12 @@ update_cal_fit_func.susiF <- function(susiF.obj,
 {
 
 
-  if(sum( is.na(unlist(susiF.obj$alpha))))
+  if(sum( is.na(unlist(obj$alpha))))
   {
     stop("Error: some alpha value not updated, please update alpha value first")
   }
   if (TI==TRUE){
-    susiF.obj <- TI_regression(susiF.obj=susiF.obj,
+    obj <- TI_regression(susiF.obj=obj,
                                Y=Y,
                                X=X,
                                filter.number = filter.number,
@@ -1974,34 +1973,34 @@ update_cal_fit_func.susiF <- function(susiF.obj,
     )
   }else{
      if (HMM==TRUE){
-       susiF.obj <- HMM_regression(susiF.obj=susiF.obj,
+       obj <- HMM_regression(obj=obj,
                                   Y=Y,
                                   X=X
        )
-       susiF.obj$cred_band <- NULL
+       obj$cred_band <- NULL
      }else{
-       temp <- wavethresh::wd(rep(0, susiF.obj$n_wac))
+       temp <- wavethresh::wd(rep(0, obj$n_wac))
 
-       if(inherits(get_G_prior(susiF.obj),"mixture_normal_per_scale" ))
+       if(inherits(get_G_prior(obj),"mixture_normal_per_scale" ))
        {
-         for ( l in 1:susiF.obj$L)
+         for ( l in 1:obj$L)
          {
-           temp$D                     <- (susiF.obj$alpha[[l]])%*%sweep( susiF.obj$fitted_wc[[l]][,-indx_lst[[length(indx_lst)]]],
+           temp$D                     <- (obj$alpha[[l]])%*%sweep( obj$fitted_wc[[l]][,-indx_lst[[length(indx_lst)]]],
                                                                          1,
-                                                                         1/(susiF.obj$csd_X ), "*")
-           temp$C[length(temp$C)]     <- (susiF.obj$alpha[[l]])%*% (susiF.obj$fitted_wc[[l]][,indx_lst[[length(indx_lst)]]]*( 1/(susiF.obj$csd_X )))
-           susiF.obj$fitted_func[[l]] <-  wavethresh::wr(temp)
+                                                                         1/(obj$csd_X ), "*")
+           temp$C[length(temp$C)]     <- (obj$alpha[[l]])%*% (obj$fitted_wc[[l]][,indx_lst[[length(indx_lst)]]]*( 1/(obj$csd_X )))
+           obj$fitted_func[[l]] <-  wavethresh::wr(temp)
          }
        }
-       if(inherits(get_G_prior(susiF.obj),"mixture_normal" ))
+       if(inherits(get_G_prior(obj),"mixture_normal" ))
        {
-         for ( l in 1:susiF.obj$L)
+         for ( l in 1:obj$L)
          {
-           temp$D                     <- (susiF.obj$alpha[[l]])%*%sweep(susiF.obj$fitted_wc[[l]][,-dim(susiF.obj$fitted_wc[[l]])[2]],
+           temp$D                     <- (obj$alpha[[l]])%*%sweep(obj$fitted_wc[[l]][,-dim(obj$fitted_wc[[l]])[2]],
                                                                         1,
-                                                                        1/(susiF.obj$csd_X ), "*")
-           temp$C[length(temp$C)]     <- (susiF.obj$alpha[[l]])%*% (susiF.obj$fitted_wc[[l]][,dim(susiF.obj$fitted_wc[[l]])[2]]*( 1/(susiF.obj$csd_X )) )
-           susiF.obj$fitted_func[[l]] <- wr(temp)
+                                                                        1/(obj$csd_X ), "*")
+           temp$C[length(temp$C)]     <- (obj$alpha[[l]])%*% (obj$fitted_wc[[l]][,dim(obj$fitted_wc[[l]])[2]]*( 1/(obj$csd_X )) )
+           obj$fitted_func[[l]] <- wr(temp)
          }
        }
      }
@@ -2009,20 +2008,20 @@ update_cal_fit_func.susiF <- function(susiF.obj,
 
   }
 
-  return(susiF.obj)
+  return(obj)
 }
 
 
 # @title Update susiF by computing credible band for posterior curves
 #
-# @param susiF.obj a susiF object defined by init_susiF_obj function
+# @param obj a susiF object defined by init_susiF_obj function
 #
 # @param indx_lst list generated by gen_wavelet_indx for the given level of resolution
 #
 # @return susiF object
 #
 # @export
-update_cal_credible_band  <- function(susiF.obj, indx_lst,...)
+update_cal_credible_band  <- function(obj, indx_lst,...)
   UseMethod("update_cal_credible_band")
 
 # @rdname  update_cal_credible_band
@@ -2039,30 +2038,30 @@ update_cal_credible_band  <- function(susiF.obj, indx_lst,...)
 # @export
 #
 
-update_cal_credible_band.susiF <- function(susiF.obj, indx_lst,...)
+update_cal_credible_band.susiF <- function(obj, indx_lst,...)
 {
 
-  if(sum( is.na(unlist(susiF.obj$alpha))))
+  if(sum( is.na(unlist(obj$alpha))))
   {
     stop("Error: some alpha value not updated, please update alpha value first")
   }
-  temp <- wavethresh::wd(rep(0, susiF.obj$n_wac))
+  temp <- wavethresh::wd(rep(0, obj$n_wac))
 
 
-  for ( l in 1:susiF.obj$L)
+  for ( l in 1:obj$L)
   {
-    Smat <-  susiF.obj$fitted_wc2[[l]]
+    Smat <-  obj$fitted_wc2[[l]]
     W1   <- ((wavethresh::GenW(n=  ncol(Smat )  , filter.number = 10, family = "DaubLeAsymm")))
-    tt   <- diag( W1%*%diag(c(susiF.obj$alpha[[l]]%*%Smat ))%*% t(W1 ))
+    tt   <- diag( W1%*%diag(c(obj$alpha[[l]]%*%Smat ))%*% t(W1 ))
 
-    up                       <-  susiF.obj$fitted_func[[l]]+ 3*sqrt(tt)#*sqrt(susiF.obj$N-1)
-    low                      <-  susiF.obj$fitted_func[[l]]- 3*sqrt(tt)#*sqrt(susiF.obj$N-1)
-    susiF.obj$cred_band[[l]] <- rbind(up, low)
+    up                       <-  obj$fitted_func[[l]]+ 3*sqrt(tt)#*sqrt(obj$N-1)
+    low                      <-  obj$fitted_func[[l]]- 3*sqrt(tt)#*sqrt(obj$N-1)
+    obj$cred_band[[l]] <- rbind(up, low)
   }
 
 
 
-  return(susiF.obj)
+  return(obj)
 }
 
 
@@ -2070,7 +2069,7 @@ update_cal_credible_band.susiF <- function(susiF.obj, indx_lst,...)
 
 #' @title Update susiF lfsr effect
 #'
-#' @param susiF.obj a susiF object defined by init_susiF_obj function
+#' @param obj a susiF object defined by init_susiF_obj function
 #'
 #' @return susiF object
 #'
@@ -2078,7 +2077,7 @@ update_cal_credible_band.susiF <- function(susiF.obj, indx_lst,...)
 #'
 #' @keywords internal
 #'
-update_lfsr_effect  <- function    (susiF.obj ,...)
+update_lfsr_effect  <- function    (obj ,...)
   UseMethod("update_lfsr_effect")
 
 #' @rdname update_lfsr_effect
@@ -2091,19 +2090,19 @@ update_lfsr_effect  <- function    (susiF.obj ,...)
 #'
 #' @keywords internal
 
-update_lfsr_effect.susiF  <- function  (susiF.obj ,...){
+update_lfsr_effect.susiF  <- function  (obj ,...){
 
-    susiF.obj$lfsr <- lapply(1:length(susiF.obj$cs) ,
-                             function(l) min(susiF.obj$lfsr_wc[[l]])
+    obj$lfsr <- lapply(1:length(obj$cs) ,
+                             function(l) min(obj$lfsr_wc[[l]])
                              )
-    return( susiF.obj)
+    return( obj)
 }
 
 
 
 #' @title Update susiF log Bayes factor
 #
-#' @param susiF.obj a susiF object defined by init_susiF_obj function
+#' @param obj a susiF object defined by init_susiF_obj function
 #' @param l effect to update
 #' @param lBF vector of length p, containing the updated log Bayes factors
 #' @return susiF object
@@ -2111,7 +2110,7 @@ update_lfsr_effect.susiF  <- function  (susiF.obj ,...){
 #' @keywords internal
 
 
-update_lBF  <- function    (susiF.obj, l, lBF,...)
+update_lBF  <- function    (obj, l, lBF,...)
   UseMethod("update_lBF")
 
 #' @rdname update_lBF
@@ -2124,15 +2123,15 @@ update_lBF  <- function    (susiF.obj, l, lBF,...)
 #' @keywords internal
 
 
-update_lBF.susiF <- function    (susiF.obj,l, lBF,...)
+update_lBF.susiF <- function    (obj,l, lBF,...)
 {
-  if(l> susiF.obj$L)
+  if(l> obj$L)
   {
     stop("Error: trying to update more effects than the number of specified effect")
   }
 
-  susiF.obj$lBF[[l]] <- lBF
-  return(susiF.obj)
+  obj$lBF[[l]] <- lBF
+  return(obj)
 }
 
 
@@ -2140,7 +2139,7 @@ update_lBF.susiF <- function    (susiF.obj,l, lBF,...)
 
 #'@title Update susiF local False Sign Rate
 #
-#'@param susiF.obj a susiF object defined by init_susiF_obj function
+#'@param obj a susiF object defined by init_susiF_obj function
 #
 #'@param l effect to update
 #
@@ -2155,7 +2154,7 @@ update_lBF.susiF <- function    (susiF.obj,l, lBF,...)
 #' @keywords internal
 
 
-update_lfsr <- function    (susiF.obj, l, Bhat, Shat, indx_lst,...)
+update_lfsr <- function    (obj, l, Bhat, Shat, indx_lst,...)
   UseMethod("update_lfsr")
 
 #' @title Update susiF lfsr.
@@ -2168,15 +2167,15 @@ update_lfsr <- function    (susiF.obj, l, Bhat, Shat, indx_lst,...)
 #
 #' @export
 #
-update_lfsr.susiF <- function (susiF.obj, l, Bhat, Shat, indx_lst, ...) {
-  clfsr_wc <-  cal_clfsr(get_G_prior(susiF.obj),  Bhat,Shat,indx_lst )
-  susiF.obj$lfsr_wc[[l]] <- cal_lfsr (clfsr_wc,susiF.obj$alpha[[l]])
-  return(susiF.obj)
+update_lfsr.susiF <- function (obj, l, Bhat, Shat, indx_lst, ...) {
+  clfsr_wc <-  cal_clfsr(get_G_prior(obj),  Bhat,Shat,indx_lst )
+  obj$lfsr_wc[[l]] <- cal_lfsr (clfsr_wc,obj$alpha[[l]])
+  return(obj)
 }
 
 #' @title Update susiF log Bayes factor
 #
-#' @param susiF.obj a susiF object defined by init_susiF_obj function
+#' @param obj a susiF object defined by init_susiF_obj function
 #'
 #' @param  ELBO new ELBO value
 #'
@@ -2186,7 +2185,7 @@ update_lfsr.susiF <- function (susiF.obj, l, Bhat, Shat, indx_lst, ...) {
 #'
 #' @keywords internal
 #'
-update_ELBO  <- function    (susiF.obj,ELBO ,...)
+update_ELBO  <- function    (obj,ELBO ,...)
   UseMethod("update_ELBO")
 
 #' @rdname update_ELBO
@@ -2199,15 +2198,15 @@ update_ELBO  <- function    (susiF.obj,ELBO ,...)
 #' @keywords internal
 
 
-update_ELBO.susiF <- function    (susiF.obj,ELBO,...)
+update_ELBO.susiF <- function    (obj,ELBO,...)
 {
 
-  susiF.obj$ELBO <- c(susiF.obj$ELBO,ELBO)
-  return(susiF.obj)
+  obj$ELBO <- c(obj$ELBO,ELBO)
+  return(obj)
 }
 
 #' @title Compute KL divergence effect l
-#'  @param susiF.obj a susiF object
+#'  @param obj a susiF object
 #' @param X matrix of covariates
 #
 #' @param D matrix of wavelet D coefficients from the original input data (Y)
@@ -2220,7 +2219,7 @@ update_ELBO.susiF <- function    (susiF.obj,ELBO,...)
 #' @export
 #' @keywords internal
 
-update_KL <- function(susiF.obj,   X, D, C , indx_lst,...)
+update_KL <- function(obj,   X, D, C , indx_lst,...)
   UseMethod("update_KL")
 
 
@@ -2235,16 +2234,16 @@ update_KL <- function(susiF.obj,   X, D, C , indx_lst,...)
 #' @keywords internal
 #
 
-update_KL.susiF <- function(susiF.obj,  X, D, C , indx_lst,...)
+update_KL.susiF <- function(obj,  X, D, C , indx_lst,...)
 {
 
-  susiF.obj$KL <-  do.call(c,lapply(1:susiF.obj$L,FUN=function(l) cal_KL_l(susiF.obj=susiF.obj,
+  obj$KL <-  do.call(c,lapply(1:obj$L,FUN=function(l) cal_KL_l(obj=obj,
                                                                            l=l,
                                                                            X=X,
                                                                            D=D,
                                                                            C=C,
                                                                            indx_lst =indx_lst )))
-  return( susiF.obj)
+  return( obj)
 }
 
 
@@ -2253,7 +2252,7 @@ update_KL.susiF <- function(susiF.obj,  X, D, C , indx_lst,...)
 
 # @title Update mixture proportion of susiF mixture proportions of effect l
 #
-# @param susiF.obj a susif object defined by init_susiF_obj function
+# @param obj a susif object defined by init_susiF_obj function
 #
 # @param l integer larger or equal to 1. Corresponds to the effect to be accessed
 #
@@ -2263,7 +2262,7 @@ update_KL.susiF <- function(susiF.obj,  X, D, C , indx_lst,...)
 #
 # @export
 
-update_pi <- function( susiF.obj, l, tpi,...)
+update_pi <- function( obj, l, tpi,...)
   UseMethod("update_pi")
 
 # @rdname update_pi
@@ -2274,10 +2273,10 @@ update_pi <- function( susiF.obj, l, tpi,...)
 #
 # @export
 #
-update_pi.susiF <- function( susiF.obj, l, tpi,...)
+update_pi.susiF <- function( obj, l, tpi,...)
 {
 
-  if( l > length(susiF.obj$est_pi))
+  if( l > length(obj$est_pi))
   {
     stop("Error trying to access mixture proportion")
   }
@@ -2290,10 +2289,10 @@ update_pi.susiF <- function( susiF.obj, l, tpi,...)
     stop("Error tpi should be of one of the follwoing class:\n
           pi_mixture_normal \n pi_mixture_normal_per_scale")
   }
-  susiF.obj$est_pi[[l]] <- tpi
+  obj$est_pi[[l]] <- tpi
  
    
-  return(susiF.obj)
+  return(obj)
 }
 
 
@@ -2302,12 +2301,12 @@ update_pi.susiF <- function( susiF.obj, l, tpi,...)
 
 #' @title Update residual variance
 #' @description  See title
-#' @param  susiF.obj a susiF object
+#' @param  obj a susiF object
 #' @param sigma2 the new value for residual variance
 #' @export
 #' @keywords internal
 
-update_residual_variance  <- function( susiF.obj,sigma2,...)
+update_residual_variance  <- function( obj,sigma2,...)
   UseMethod("update_residual_variance")
 
 #' @rdname update_residual_variance
@@ -2319,11 +2318,11 @@ update_residual_variance  <- function( susiF.obj,sigma2,...)
 #' @export
 #' @keywords internal
 
-update_residual_variance.susiF <- function( susiF.obj,sigma2,...)
+update_residual_variance.susiF <- function( obj,sigma2,...)
 {
 
-  susiF.obj$sigma2 <- sigma2
-  return(susiF.obj)
+  obj$sigma2 <- sigma2
+  return(obj)
 }
 
 
@@ -2331,7 +2330,7 @@ update_residual_variance.susiF <- function( susiF.obj,sigma2,...)
 #
 #' @title Return which credible sets are  dummy
 #
-#' @param susiF.obj a susif object defined by init_susiF_obj function
+#' @param obj a susif object defined by init_susiF_obj function
 #' @param min.purity minimal purity within a CS
 #' @param X matrix of covariates
 #' @param max_crit remove cs base on max absolute correlation instead of min absolute correlation, usefull in the
@@ -2340,7 +2339,7 @@ update_residual_variance.susiF <- function( susiF.obj,sigma2,...)
 #
 #' @export
 #' @keywords internal
-which_dummy_cs <- function(susiF.obj, min.purity=0.5,X,median_crit=FALSE,...)
+which_dummy_cs <- function(obj, min.purity=0.5,X,median_crit=FALSE,...)
   UseMethod("which_dummy_cs")
 
 
@@ -2352,30 +2351,30 @@ which_dummy_cs <- function(susiF.obj, min.purity=0.5,X,median_crit=FALSE,...)
 #' @export which_dummy_cs.susiF
 #' @export
 #' @keywords internal
-which_dummy_cs.susiF <- function(susiF.obj, min.purity=0.5,X,median_crit=FALSE,...){
+which_dummy_cs.susiF <- function(obj, min.purity=0.5,X,median_crit=FALSE,...){
 
   dummy.cs<- c()
-  if( susiF.obj$L==1){
+  if( obj$L==1){
     return(dummy.cs)
   }
 
-  f_crit <- function (susiF.obj, min.purity=0.5, l, median_crit=FALSE){
+  f_crit <- function (obj, min.purity=0.5, l, median_crit=FALSE){
     if( median_crit){
-      #if( length(susiF.obj$cs[[l]] )  < ncol(X)/10) {
+      #if( length(obj$cs[[l]] )  < ncol(X)/10) {
       #  is.dummy.cs <- FALSE
       #   return(is.dummy.cs )
       #}
-      if(length(susiF.obj$cs[[l]]) <5){
+      if(length(obj$cs[[l]]) <5){
         is.dummy.cs <- FALSE
       }else{
-        tt <-  cor( X[,susiF.obj$cs[[l]]])
+        tt <-  cor( X[,obj$cs[[l]]])
 
         is.dummy.cs <-   median(abs( tt[lower.tri(tt, diag =FALSE)]))  <  min.purity
       }
 
 
     }else{
-      is.dummy.cs <-   min(abs(cor( X[,susiF.obj$cs[[l]]]))) <  min.purity
+      is.dummy.cs <-   min(abs(cor( X[,obj$cs[[l]]]))) <  min.purity
     }
 
     return( is.dummy.cs)
@@ -2385,27 +2384,27 @@ which_dummy_cs.susiF <- function(susiF.obj, min.purity=0.5,X,median_crit=FALSE,.
 
 
 
-  if( inherits( susiF.obj$G_prior,"mixture_normal"))
+  if( inherits( obj$G_prior,"mixture_normal"))
   {
-    for (l in 1:susiF.obj$L )
+    for (l in 1:obj$L )
     {
 
-      if (length(susiF.obj$cs[[l]])==1)
+      if (length(obj$cs[[l]])==1)
       {
 
-        if( susiF.obj$est_pi[[l]][1]==1){# check if the estimated prior is exactly 0
+        if( obj$est_pi[[l]][1]==1){# check if the estimated prior is exactly 0
 
           dummy.cs<-  c( dummy.cs,l)
         }
 
       }else{
 
-        if(   f_crit(susiF.obj = susiF.obj, min.purity=0.5, l, median_crit )){#check if the purity of cs l is lower that min.purity
+        if(   f_crit(obj = obj, min.purity=0.5, l, median_crit )){#check if the purity of cs l is lower that min.purity
 
           dummy.cs<-  c( dummy.cs,l)
 
         }else{
-          if(susiF.obj$est_pi[[l]][1]==1){
+          if(obj$est_pi[[l]][1]==1){
             dummy.cs<-  c( dummy.cs,l)
           }
 
@@ -2417,7 +2416,7 @@ which_dummy_cs.susiF <- function(susiF.obj, min.purity=0.5,X,median_crit=FALSE,.
     {
       return(dummy.cs)
     }else{
-      if(length(dummy.cs)==susiF.obj$L) #avoid returning empty results
+      if(length(dummy.cs)==obj$L) #avoid returning empty results
       {
         dummy.cs <- dummy.cs[-1]
       }
@@ -2426,28 +2425,27 @@ which_dummy_cs.susiF <- function(susiF.obj, min.purity=0.5,X,median_crit=FALSE,.
     }
   }
 
-
-  if(inherits(susiF.obj$G_prior,"mixture_normal_per_scale"))
+  if(inherits(obj$G_prior,"mixture_normal_per_scale"))
   {
-    for (l in 1:susiF.obj$L )
+    for (l in 1:obj$L )
     {
 
-      if (length(susiF.obj$cs[[l]])==1)
+      if (length(obj$cs[[l]])==1)
       {
 
-        if(  mean(sapply(susiF.obj$est_pi[[l]],"[[",1))==1){# check if the estimated prior is exactly 0
+        if(  mean(sapply(obj$est_pi[[l]],"[[",1))==1){# check if the estimated prior is exactly 0
 
           dummy.cs<-  c( dummy.cs,l)
         }
 
       }else{
 
-        if(  f_crit(susiF.obj = susiF.obj, min.purity=0.5, l, median_crit )){#check if the purity of cs l is lower that min.purity
+        if(  f_crit(obj = obj, min.purity=0.5, l, median_crit )){#check if the purity of cs l is lower that min.purity
 
           dummy.cs<-  c( dummy.cs,l)
 
         }else{
-          if(  mean(sapply(susiF.obj$est_pi[[l]],"[[",1))==1){
+          if(  mean(sapply(obj$est_pi[[l]],"[[",1))==1){
             dummy.cs<-  c( dummy.cs,l)
           }
 
@@ -2459,7 +2457,7 @@ which_dummy_cs.susiF <- function(susiF.obj, min.purity=0.5,X,median_crit=FALSE,.
     {
       return(dummy.cs)
     }else{
-      if(length(dummy.cs)==susiF.obj$L) #avoid returning empty results
+      if(length(dummy.cs)==obj$L) #avoid returning empty results
       {
         dummy.cs <- dummy.cs[-1]
       }

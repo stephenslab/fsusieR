@@ -5,12 +5,12 @@
 \alias{update_alpha_hist.susiF}
 \title{Update alpha_hist   susiF object}
 \usage{
-update_alpha_hist(susiF.obj, discard, ...)
+update_alpha_hist(obj, discard, ...)
 
-\method{update_alpha_hist}{susiF}(susiF.obj, discard = FALSE, ...)
+\method{update_alpha_hist}{susiF}(obj, discard = FALSE, ...)
 }
 \arguments{
-\item{susiF.obj}{a susiF object defined by init_susiF_obj function}
+\item{obj}{a susiF object defined by init_susiF_obj function}
 
 \item{discard}{logical set to FALSE by default, if true remove element of history longer than L}
 }

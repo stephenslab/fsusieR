@@ -5,12 +5,12 @@
 \alias{update_cal_pip.susiF}
 \title{Update susiF by computing PiP}
 \usage{
-update_cal_pip(susiF.obj, ...)
+update_cal_pip(obj, ...)
 
-\method{update_cal_pip}{susiF}(susiF.obj, ...)
+\method{update_cal_pip}{susiF}(obj, ...)
 }
 \arguments{
-\item{susiF.obj}{a susiF object defined by  init_susiF_obj  function}
+\item{obj}{a susiF object defined by  init_susiF_obj  function}
 }
 \value{
 susiF object

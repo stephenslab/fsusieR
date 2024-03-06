@@ -409,7 +409,7 @@ susiF <- function(Y, X, L = 2,
 
   #preparing output
 
-  susiF.obj <- out_prep(susiF.obj     = susiF.obj,
+  susiF.obj <- out_prep(obj     = susiF.obj,
                         Y             = Y,
                         X             = X,
                         indx_lst      = indx_lst,

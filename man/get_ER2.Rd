@@ -14,11 +14,11 @@ get_ER2(obj, Y, X, ...)
 \method{get_ER2}{susiF}(obj, Y, X, ...)
 }
 \arguments{
+\item{obj}{a susiF object defined by init_susiF_obj function}
+
 \item{Y}{wavelet transformed  functional phenotype, matrix of size N by size J.}
 
 \item{X}{matrix of size N by p}
-
-\item{susiF.obj}{a susiF object defined by init_susiF_obj function}
 }
 \value{
 estimated residual variance
