@@ -9,14 +9,14 @@
 \usage{
 \method{update_residual_variance}{EBmvFR}(obj, sigma2, ...)
 
-update_residual_variance(obj, sigma2, ...)
+update_residual_variance(susiF.obj, sigma2, ...)
 
-\method{update_residual_variance}{susiF}(obj, sigma2, ...)
+\method{update_residual_variance}{susiF}(susiF.obj, sigma2, ...)
 }
 \arguments{
-\item{obj}{a susiF object}
-
 \item{sigma2}{the new value for residual variance}
+
+\item{susiF.obj}{a susiF object}
 }
 \description{
 See title

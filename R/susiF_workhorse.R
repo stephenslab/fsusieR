@@ -40,12 +40,19 @@
 #' @param tt output of the cal_Bhat_Shat function
 #'
 #' @param max_step_EM max_step_EM
+#' 
 #' @param parallel if true use parallel computation
+#' 
 #' @param max_SNP_EM check susiF  description
+#' 
 #' @param cor_small check susiF  description
+#' 
 #' @param is.pois check susiF  description
-#'  @param e threshold value to avoid computing posterior that have low alpha value. Set it to 0 to compute the entire posterio. default value is 0.001
-
+#' 
+#' @param e threshold value to avoid computing posterior that have low
+#'  alpha value. Set it to 0 to compute the entire posterio. default
+#'  value is 0.001
+#'
 #' @export
 susiF.workhorse <- function(susiF.obj,
                             W,
