@@ -412,7 +412,7 @@ susiF <- function(Y, X, L = 2,
 
   #preparing output
 
-  obj <- out_prep(obj     = obj,
+  obj <- out_prep(     obj            = obj, 
                         Y             = Y,
                         X             = X,
                         indx_lst      = indx_lst,
@@ -423,6 +423,7 @@ susiF <- function(Y, X, L = 2,
                         TI            = TI,
                         HMM           = HMM,
                         tidx          = tidx,
+                        names_colX    = names_colX
   )
   obj$runtime <- proc.time()-pt
   return(obj)

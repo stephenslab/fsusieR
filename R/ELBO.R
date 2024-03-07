@@ -34,7 +34,9 @@ cal_KL_l.susiF <- function(obj, l, X, D, C , indx_lst, ...)
 {
 
   R_l <- cal_partial_resid(
+ 
                            obj = obj,
+ 
                            l         =  (l-1),
                            X         =  X,
                            D         =  D,

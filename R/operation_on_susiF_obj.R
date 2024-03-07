@@ -18,10 +18,11 @@
 #' @return a matrix of size N by size J of partial residuals
 #
 #' @export
+#' 
 #' @keywords internal
 cal_partial_resid  <- function(  obj, l, X, D, C,  indx_lst,... )
-  UseMethod("cal_partial_resid")
 
+  UseMethod("cal_partial_resid")
 
 #' @rdname cal_partial_resid
 #
@@ -30,11 +31,12 @@ cal_partial_resid  <- function(  obj, l, X, D, C,  indx_lst,... )
 #' @export cal_partial_resid.susiF
 #
 #' @export
+#' 
 #' @keywords internal
+
 
 cal_partial_resid.susiF  <- function(  obj, l, X, D, C,  indx_lst,... )
 {
-
 
   L <- obj$L
 
@@ -336,8 +338,11 @@ get_pi  <- function(obj, l,...)
 #
 # @export get_pi.susiF
 #
+
 #' @export
 #' @keywords internal
+
+
 get_pi.susiF <- function(obj, l,...)
 {
 
@@ -378,6 +383,7 @@ get_lBF  <- function(obj, l,...)
 #
 #' @export
 #' @keywords internal
+
 get_lBF.susiF <- function(obj, l,...)
 {
 
@@ -527,6 +533,7 @@ get_post_F2 <- function(obj,l,...)
 #
 #' @export
 #' @keywords internal
+
 get_post_F2.susiF <- function(obj, l,...)
 {
   if(missing(l))
@@ -1047,7 +1054,8 @@ out_prep.susiF <- function(obj ,
                            filter.number = 10,
                            family =  "DaubLeAsymm",
                            HMM=FALSE,
-                           tidx =NULL
+                           tidx =NULL ,
+                           names_colX =NULL,
                            ...)
 {
 
@@ -1087,12 +1095,65 @@ out_prep.susiF <- function(obj ,
   #
 
 
-
-
-  obj$outing_grid <- outing_grid
+  obj             <-  rename_format_output (obj        = obj, 
+                                            names_colX = names_colX,
+                                            tidx       = tidx)
+  obj$outing_grid <-  outing_grid
   obj$purity      <-  cal_purity(l_cs= obj$cs, X=X)
   return(obj)
 }
+
+
+
+
+
+rename_format_output <- function(obj, names_colX, tidx, ...){
+  
+  if ( length(tidx)>0){
+    for ( l in 1:length(obj$cs)){
+    
+      
+      talpha  <- rep (0, length(names_colX))
+      talpha[-tidx] <- obj$alpha[[l]]
+      obj$alpha[[l]] <- talpha
+      names(obj$alpha[[l]]) <- names_colX
+      
+       
+     
+    }
+    tpip  <- rep (0, length(names_colX))
+    tpip[-tidx] <- obj$pip 
+    obj$pip  <- tpip
+    names(obj$pip) <- names_colX
+    obj <- update_cal_cs(obj, cov_lev = 0.95)
+  }else{
+    for ( l in 1:length(obj$cs)){
+     
+      names(obj$alpha[[l]]) <- names_colX
+      
+       
+    }
+    names(obj$pip) <- names_colX
+    obj <- update_cal_cs(obj, cov_lev = 0.95)
+  }
+  
+  
+  
+  
+  
+  if( !is.null(names_colX)){
+    names(obj$ind_fitted_func) <- names_colX
+  }
+  if( !is.null(tidx)){
+    obj$ind_fitted_func <- obj$ind_fitted_func[,tidx]
+  }
+  return(obj)
+}
+
+
+
+
+
 
 
 
@@ -1658,7 +1719,8 @@ update_susiF_obj  <- function(obj, l,
                               cal_wc_lsfr=FALSE,
                               df=NULL,
                               cov_lev=0.95,
-                              e=0.001,...)
+                              e=0.001,
+                              ...)
       UseMethod("update_susiF_obj")
 
 # @rdname update_susiF_obj
@@ -1809,10 +1871,9 @@ update_cal_cs.susiF <- function(obj, cov_lev=0.95, l,...)
 
     # check if temp has only 0 (i.e.  not yet updated)
     #  if(sum(temp==0)==length(temp)){
-    temp_cumsum <- cumsum( temp[order(temp, decreasing =TRUE)])
-    max_indx_cs <- min(which( temp_cumsum >cov_lev ))
-    obj$cs[[l]]  <- order(temp, decreasing = TRUE)[1:max_indx_cs ]
-
+    temp_cumsum        <- cumsum( temp[order(temp, decreasing =TRUE)])
+    max_indx_cs        <- min(which( temp_cumsum >cov_lev ))
+    obj$cs[[l]]        <- order(temp, decreasing = TRUE)[1:max_indx_cs ]
     return(obj)
   }
 
@@ -1829,7 +1890,7 @@ update_cal_cs.susiF <- function(obj, cov_lev=0.95, l,...)
       temp_cumsum <- cumsum( temp[order(temp, decreasing =TRUE)])
       max_indx_cs <- min(which( temp_cumsum >cov_lev ))
       obj$cs[[l]]  <- order(temp, decreasing = TRUE)[1:max_indx_cs ]
-
+      names(obj$cs[[l]]) <- names(obj$alpha[[l]])[obj$cs[[l]]]
   }
 
   return(obj)
@@ -2048,6 +2109,7 @@ update_cal_credible_band  <- function(obj, indx_lst,...)
 #
 #' @export
 #' @keywords internal
+
 update_cal_credible_band.susiF <- function(obj, indx_lst,...)
 {
 
@@ -2283,6 +2345,7 @@ update_pi <- function( obj, l, tpi,...)
 #
 #' @export
 #' @keywords internal
+
 update_pi.susiF <- function( obj, l, tpi,...)
 {
 
@@ -2434,7 +2497,6 @@ which_dummy_cs.susiF <- function(obj, min.purity=0.5,X,median_crit=FALSE,...){
       return(dummy.cs)
     }
   }
-
 
   if(inherits(obj$G_prior,"mixture_normal_per_scale"))
   {
