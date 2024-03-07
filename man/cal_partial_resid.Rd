@@ -14,7 +14,7 @@ cal_partial_resid(obj, l, X, D, C, indx_lst, ...)
 \method{cal_partial_resid}{susiF}(obj, l, X, D, C, indx_lst, ...)
 }
 \arguments{
-\item{obj}{a susiF object defined by init_susiF_obj function}
+\item{obj}{a susiF  or EBmvFR object}
 
 \item{l}{integer larger or equal to 1. Corresponds to the effect to be accessed}
 

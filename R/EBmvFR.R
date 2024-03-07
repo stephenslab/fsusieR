@@ -275,11 +275,11 @@ EBmvFR <- function(Y, X,
 
 
   #Recycled for the first step of the while loop
-  EBmvFR.obj   <-  init_EBmvFR_obj(G_prior=G_prior,
+  obj   <-  init_EBmvFR_obj(G_prior=G_prior,
                                    Y=Y,
                                    X=X)
 
-  EBmvFR.obj   <- EBmvFR.workhorse(EBmvFR.obj     = EBmvFR.obj,
+  obj   <- EBmvFR.workhorse(       obj            = obj,
                                    W              = W,
                                    X              = X,
                                    tol            = tol,
@@ -293,16 +293,16 @@ EBmvFR <- function(Y, X,
                                    maxit          = maxit,
                                    max_step_EM    = max_step_EM)
   #preparing output
-  EBmvFR.obj <- out_prep(obj         = EBmvFR.obj,
+  obj <- out_prep(       obj         = obj,
                          Y           = Y,
                          X           = X,
                          indx_lst    = indx_lst,
                          outing_grid = outing_grid
   )
-  EBmvFR.obj$runtime <- proc.time()-pt
+  obj$runtime <- proc.time()-pt
 
   if(adjust){
-    EBmvFR.obj$Y_adjusted <-  Y_org-X_org%*%EBmvFR.obj$fitted_func
+    obj$Y_adjusted <-  Y_org-X_org%*%obj$fitted_func
   }
-  return(EBmvFR.obj)
+  return(obj)
 }

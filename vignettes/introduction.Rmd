@@ -30,7 +30,7 @@ al.^[this vignette is based on the original SuSiE vignette by [Gao Wang](https:/
 ] to functional phenotypes that can span over large genomic
 regions. The methods implemented here are particularly well-suited to
 settings where some of the X variables are highly correlated, and the
-true effects are highly sparse (e.g. <20 non-zero effects in the
+true effects are highly sparse (e.g., <20 non-zero effects in the
 vector b). One example of this is genetic fine-mapping molecular
 measurements from sequencing assays (ChIP-seq, ATAC-seq ), as well as
 DNA methylation. However, the methods should also be useful more
@@ -42,7 +42,7 @@ fSuSiE fits the following linear regression ${Y} = {XB} + {E}$, where ${Y}$ is a
 
 The output of the fitting procedure is a number of "Credible Sets"
 (CSs), which are each designed to have a high probability of
-containing a variable with a non-zero effect, while at the same time
+containing a variable with a non-zero effect while at the same time
 being as small as possible. You can think of the CSs as being a set of
 "highly correlated" variables that are each associated with the
 response: you can be confident that one of the variables has a
@@ -52,8 +52,8 @@ one.
 The package is developed by William R.P. Denault from the Stephens Lab
 at the University of Chicago.
 
-Please post issues to ask questions, get our support or provide us
-feedback; please send pull requests if you have helped fix bugs or
+Please post issues to ask questions, get our support, or provide us
+feedback: please send pull requests if you have helped fix bugs or
 make improvements to the source code.
 
 ### Using fSuSiE
@@ -61,16 +61,16 @@ make improvements to the source code.
 #### the data
 This vignette shows how to use fsusieR in the context of genetic fine-mapping. We use simulated data of a molecular trait over a region of 124 base pairs (Y) with N≈600 individuals. We want to identify which columns of the genotype matrix X  (P=1000) cause changes in expression level.
 
-The simulated data set is simulated to have exactly 2 non-zero effects.
+The simulated data set is simulated to have exactly two non-zero effects.
 
-Here we simulate the effects
+Here, we simulate the effects
 ```{r}
 knitr::opts_chunk$set(
 	echo = TRUE,
 	message = FALSE,
 	warning = FALSE
 )
-library(susiF.alpha)
+library(fsusieR)
 library(susieR)
 library(wavethresh)
 set.seed(1)
@@ -95,7 +95,7 @@ legend(x=100,
        col=c( "blue","green"))
 
 ```
-So the underlying causal variants are variant 25  and variant 75. The plot above shows the functional effect of the two variants. Below, we generate the  observed curves (effect +noise)
+So, the underlying causal variants are variant 25  and variant 75. The plot above shows the functional effect of the two variants. Below, we generate the  observed curves (effect +noise)
 
 
 
@@ -131,17 +131,17 @@ Running fSuSiE requires a Y matrix in which each line corresponds to an individu
 
 ```
 
-FSuSiE automatically selects the number of causal effects (here two). The effect detected are summarized in terms of credible sets. Each credible set contains the likely causal covariates for a given effect. You can access them simply as 
+FSuSiE automatically selects the number of causal effects (here two). The effects detected are summarized in terms of credible sets. Each credible set contains the likely causal covariates for a given effect. You can access them simply as 
  
 ```{r}
 out$cs
 ```
-As you can see the two CSs contain the correct causal SNPs.
+As you can see, the two CSs contain the correct causal SNPs.
 
 
 ### Visualization
 
-The easiest way to visualize the result is to use the \code{plot_susiF} function
+The easiest way to visualize the result is to use the \code{plot_susiF} function.
 
 ```{r}
  
@@ -184,7 +184,7 @@ You can also access the information directly in the output of susiF in the fitte
  
 
 ####Posterior inclusion probabilities
-You can also access the Posterior inclusion probabilities directly from the fitted bject. Similarly you can also specify the plot_susiF function only display the PiP plot.
+You can also access the Posterior inclusion probabilities directly from the fitted object. Similarly, you can also specify the plot_susiF function to only display the PiP plot.
 
  
 ```{r}
@@ -198,9 +198,9 @@ plot_susiF(out, pip_only=TRUE)
  
  
 #### Extracting the regions affected by the credible sets
- We provide a build-in function to retreive the regions where the credible bands are "crossing zero"/i.e. the effects are likely not to be 0 in this region. 
+ We provide a build-in function to retrieve the regions where the credible bands are "crossing zero"/i.e., the effects are likely not to be 0 in this region. 
 ```{r}
- affected_reg(susiF.obj = out)
+ affected_reg( out)
   
 ```
 
@@ -219,7 +219,7 @@ plot(out$ind_fitted_func,  true_sig,
 abline(a=0,b=1)
 ```
 
-Note that these prediction can different substantially from the observed noisy curves
+Note that these predictions can differ substantially from the observed noisy curves
 ```{r}
 
 plot(out$ind_fitted_func,  Y,
@@ -228,16 +228,16 @@ abline(a=0,b=1)
 ```
 
 
-#### Handling function of any length and unevely space data
+#### Handling function of any length and unevenly space data
 
-Wavelets are primarly design to analyse function sampled on $2^J$  envely spaced position. However, this assumption is unrealistic in practice. For  handling function of any length we use the approach of Kovac and Silvermann (2005) that basically remaps the data on a grid of length $2^J$. \textbf{What is important to know for the user:}  
-* if you don't provide the sampling position (e.g. base pair measurement) in the pos argument, susiF considers that the columns of Y corresponds to evenly spaced sampling positions. For exemple when fine mapping DNA methylation (DNAm) data, if you are trying to fine map meQTL, the columns of the Y matrix corresponds different CpG . You \textbf{should} provide the genomic position of each of this CpG as a vector in the "pos" argument in the susiF function.
-
-
-* susiF provide the estimated effect on the remapped effect on a $2^J$   grid. 
+Wavelets are primarily designed to analyze functions sampled on $2^J$ evenly spaced positions. However, this assumption is unrealistic in practice. For handling functions of any length, we use the approach of Kovac and Silvermann (2005), which basically remaps the data on a grid of length $2^J$. \textbf{What is important to know for the user:}  
+* if you don't provide the sampling position (e.g., base pair measurement) in the pos argument, susiF considers that the columns of Y correspond to evenly spaced sampling positions. For example, when fine-mapping DNA methylation (DNAm) data, if you are trying to fine-map meQTL, the columns of the Y matrix correspond to different CpG . You \textbf{should} provide the genomic position of each of these CpG as a vector in the "pos" argument in the susiF function.
 
 
-Example of how to analysis unevenly spaced data.
+* susiF provides the estimated effect on the remapped effect on a $2^J$   grid. 
+
+
+Example of how to analyze unevenly spaced data.
 The black lines corresponds to  one of the SNP  effect in our data, the red ticks corresponds to the sampling positions and the red dots correspond to what part of the effect we can observe.
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
@@ -254,18 +254,18 @@ f1 <-  simu_IBSS_per_level(lev_res )$sim_func  #first effect
 f2 <- simu_IBSS_per_level(lev_res )$sim_func  #second effect
 
 
-## suppose we observe these functions on 200 points
+## Suppose we observe these functions on 200 points
 sampling_pos <- sample( 1:length(f1), size=200)
 sampling_pos <-sampling_pos  [order(sampling_pos)]
 
-plot(f2, type="l", main="underlying function and the different sampling postion")
+plot(f2, type="l", main="underlying function and the different sampling position")
  points(sampling_pos, f2[sampling_pos], col="red",pch=20)
  points(sampling_pos, rep(0, length(sampling_pos)), col="red",pch=3)
  abline(0,0)
  
 ```
 
-Lets generate the data under these conditions
+Let's generate the data under these conditions
 
 
 ```{r message=FALSE, warning=FALSE}
@@ -287,16 +287,16 @@ Y <- noisy.data
 ```
 
 
-To account for it simply pass the sampling position in the pos argument
+To account for it, pass the sampling position in the pos argument.
 
 
 
 ```{r message=FALSE, warning=FALSE}
  out <- susiF(Y,X,L=3 ,pos= sampling_pos)
 ```
-To visualize the estimated effect with the correct x coordinate use the "$outing_grid" object from the susiF.obj 
+To visualize the estimated effect with the correct x coordinate, use the "$outing_grid" object from the susiF.obj 
 
-In this example effect 2 (in our simulation) is capture in the first CS. The black line the actual true effect. The red dots are the effect level at the sampling position, the thick blue line is the estimated effect and the dashed line are the 95% credible bands
+In this example, effect 2 (in our simulation) is captured in the first CS. The black line is the actual true effect. The red dots are the effect level at the sampling position, the thick blue line is the estimated effect, and the dashed line is the 95% credible bands.
 
 ```{r}
 plot(   x=1:512,           y=f2,type="l")
@@ -311,9 +311,9 @@ lines(  x=out$outing_grid, y= out$cred_band[[1]][2,] ,col='darkblue' ,lty=2 )
  
  
 #### A note on the priors available
-Note that fSuSiE has two different priors available \textit{mixture_normal_per_scale} and \textit{mixture_normal}. The default value is \textit{mixture_normal_per_scale}, which has slightly higher performance (power, estimation accuracy) than the  \textit{mixture_normal}. However,  \textit{mixture_normal} is up to 40% faster than the \textit{mixture_normal_per_scale}. You may consider using this option before performing genome-wide fine mapping. 
+Note that fSuSiE has two different priors available: \textit{mixture_normal_per_scale} and \textit{mixture_normal}. The default value is \textit{mixture_normal_per_scale}, which has slightly higher performance (power, estimation accuracy) than the  \textit{mixture_normal}. However,  \textit{mixture_normal} is up to 40% faster than the \textit{mixture_normal_per_scale}. You may consider using this option before performing genome-wide fine mapping. 
  
-Here a comparison between their running time
+Here is a comparison between their running time
 ```{r }
  out1 <- susiF(Y,X,L=3 , prior = 'mixture_normal_per_scale',verbose=FALSE)
  out1$runtime

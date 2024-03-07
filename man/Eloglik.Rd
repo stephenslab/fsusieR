@@ -5,16 +5,18 @@
 \alias{Eloglik.susiF}
 \title{Expected log likelihood for a   susiF   object}
 \usage{
-Eloglik(susiF.obj, Y, X, ...)
+Eloglik(obj, ...)
 
-\method{Eloglik}{susiF}(susiF.obj, Y, X, ...)
+\method{Eloglik}{susiF}(obj, Y, X, ...)
 }
 \arguments{
-\item{susiF.obj}{a susiF object defined by  init_susiF_obj  function}
+\item{obj}{a susiF object defined by  init_susiF_obj  function}
 
 \item{Y}{Matrix of outcomes}
 
 \item{X}{Matrix of covariates}
+
+\item{data}{list of data for susif_ss}
 }
 \value{
 Expected log likelihood

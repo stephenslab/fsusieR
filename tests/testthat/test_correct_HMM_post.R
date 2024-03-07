@@ -57,7 +57,7 @@ devtools::load_all(".")
 
 Xb    = colScale(X)
 Yb      <- colScale(Y, scale=FALSE)
-out2  <- HMM_regression(susiF.obj=out1,
+out2  <- HMM_regression( obj=out1,
                         Y=Yb,
                         X=X 
 )

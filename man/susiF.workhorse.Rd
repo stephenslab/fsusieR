@@ -5,7 +5,7 @@
 \title{Sum of Single Function}
 \usage{
 susiF.workhorse(
-  susiF.obj,
+  obj,
   W,
   X,
   tol,
@@ -29,7 +29,7 @@ susiF.workhorse(
 )
 }
 \arguments{
-\item{susiF.obj}{an object of class susiF}
+\item{obj}{an object of class susiF}
 
 \item{W}{a list in which element D contains matrix of wavelet d coefficients and
 element C contains the vector of scaling coefficients}
@@ -77,8 +77,9 @@ expected level of coverage of the cs if not specified set to 0.95}
 
 \item{cor_small}{check susiF  description}
 
-\item{is.pois}{check susiF  description
-@param e threshold value to avoid computing posterior that have low alpha value. Set it to 0 to compute the entire posterio. default value is 0.001}
+\item{is.pois}{check susiF  description}
+
+\item{e}{threshold value to avoid computing posterior that have low alpha value. Set it to 0 to compute the entire posterio. default value is 0.001}
 }
 \description{
 Implementation of the SuSiF method

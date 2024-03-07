@@ -5,7 +5,7 @@
 #' @details Implementation of the SuSiF method
 #'
 #'
-#' @param susiF.obj an object of class susiF
+#' @param obj an object of class susiF
 #' @param W a list in which element D contains matrix of wavelet d coefficients and
 #'  element C contains the vector of scaling coefficients
 #' @param X matrix of size n by p contains the covariates
@@ -44,10 +44,9 @@
 #' @param max_SNP_EM check susiF  description
 #' @param cor_small check susiF  description
 #' @param is.pois check susiF  description
-#'  @param e threshold value to avoid computing posterior that have low alpha value. Set it to 0 to compute the entire posterio. default value is 0.001
-
+#' @param e threshold value to avoid computing posterior that have low alpha value. Set it to 0 to compute the entire posterio. default value is 0.001
 #' @export
-susiF.workhorse <- function(susiF.obj,
+susiF.workhorse <- function(obj,
                             W,
                             X,
                             tol,
@@ -69,7 +68,7 @@ susiF.workhorse <- function(susiF.obj,
                             is.pois=FALSE,
                             e = 0.001){
 
-  G_prior  <- get_G_prior(susiF.obj )
+  G_prior  <- get_G_prior(obj )
   Y_f      <-  cbind( W$D,W$C)
   update_Y <- Y_f
   # numerical value to check breaking condition of while
@@ -85,7 +84,7 @@ susiF.workhorse <- function(susiF.obj,
     df =NULL
   }
 
-  if( susiF.obj$L_max==1)
+  if( obj$L_max==1)
   {
     tt   <-cal_Bhat_Shat(Y       = update_Y,
                          X       = X,
@@ -99,7 +98,7 @@ susiF.workhorse <- function(susiF.obj,
                                lowc_wc  = lowc_wc
                                )
     }
-    tpi  <- get_pi(susiF.obj,1)
+    tpi  <- get_pi(obj,1)
     G_prior <- update_prior(G_prior = G_prior,
                             tpi     = tpi ) #allow EM to start close to previous solution (to double check)
 
@@ -117,7 +116,7 @@ susiF.workhorse <- function(susiF.obj,
 
     )
 
-    susiF.obj <-  update_susiF_obj(susiF.obj = susiF.obj ,
+    obj <-  update_susiF_obj(obj = obj ,
                                    l         = 1,
                                    EM_pi     = EM_out,
                                    Bhat      = Bhat,
@@ -127,8 +126,8 @@ susiF.workhorse <- function(susiF.obj,
                                    cov_lev   =  cov_lev,
                                    e         = e
     )
-    susiF.obj <- update_ELBO(susiF.obj  = susiF.obj,
-                             get_objective( susiF.obj = susiF.obj,
+    obj <- update_ELBO(obj  = obj,
+                             get_objective( obj = obj,
                                             Y         = Y_f,
                                             X         = X,
                                             D         = W$D,
@@ -145,12 +144,12 @@ susiF.workhorse <- function(susiF.obj,
     while( (check >tol & iter <maxit))
     {
 
-      for( l in 1:susiF.obj$L)
+      for( l in 1:obj$L)
       {
 
-        #print(susiF.obj$alpha[[l]])
+        #print(obj$alpha[[l]])
         update_Y  <-  cal_partial_resid(
-          susiF.obj = susiF.obj,
+          obj = obj,
           l         = (l-1)  ,
           X         = X,
           D         = W$D,
@@ -184,7 +183,7 @@ susiF.workhorse <- function(susiF.obj,
                                 v1 =v1 ,
                                 lowc_wc =lowc_wc )
 
-          tpi <-  get_pi(susiF.obj,l)
+          tpi <-  get_pi(obj,l)
           G_prior <- update_prior(G_prior, tpi= tpi ) #allow EM to start close to previous solution (to double check)
           if(is.pois){
             tt$Shat <- update_Shat_pois(Shat     = tt$Shat,
@@ -211,7 +210,7 @@ susiF.workhorse <- function(susiF.obj,
 
         #print(h)
         # print(EM_out$lBF[1:10])
-        susiF.obj <-  update_susiF_obj(susiF.obj   = susiF.obj ,
+        obj <-  update_susiF_obj(obj   = obj ,
                                        l           = l,
                                        EM_pi       = EM_out,
                                        Bhat        = tt$Bhat,
@@ -224,26 +223,26 @@ susiF.workhorse <- function(susiF.obj,
 
       }#end for l in 1:L  -----
 
-      # plot(susiF.obj$lBF[[1]])
-      #plot(susiF.obj$lBF[[2]])
+      # plot(obj$lBF[[1]])
+      #plot(obj$lBF[[2]])
 
-      #plot(susiF.obj$lBF[[3]])
-      # save(susiF.obj, file ="D:/Document/Serieux/Travail/Package/susiF.alpha/pb_object.RData")
+      #plot(obj$lBF[[3]])
+      # save(obj, file ="D:/Document/Serieux/Travail/Package/susiF.alpha/pb_object.RData")
       # break
       ####Check greedy/backfit and stopping condition -----
-      susiF.obj <- greedy_backfit (susiF.obj,
+      obj <- greedy_backfit (obj,
                                    verbose    = verbose,
                                    cov_lev    = cov_lev,
                                    X          = X,
                                    min.purity = min.purity
       )
-      sigma2    <- estimate_residual_variance(susiF.obj,
+      sigma2    <- estimate_residual_variance(obj,
                                               Y         = Y_f,
                                               X         = X)
       #print(sigma2)
-      susiF.obj <- update_residual_variance(susiF.obj     = susiF.obj,
+      obj <- update_residual_variance(obj     = obj,
                                             sigma2    = sigma2 )
-      susiF.obj <- test_stop_cond(susiF.obj      = susiF.obj,
+      obj <- test_stop_cond(obj      = obj,
                                   check     = check,
                                   cal_obj   = cal_obj,
                                   Y         = Y_f,
@@ -251,9 +250,9 @@ susiF.workhorse <- function(susiF.obj,
                                   D         = W$D,
                                   C         = W$C,
                                   indx_lst  = indx_lst)
-      #  print(susiF.obj$alpha)
-      #print(susiF.obj$ELBO)
-      check <- susiF.obj$check
+      #  print(obj$alpha)
+      #print(obj$ELBO)
+      check <- obj$check
 
 
       iter <- iter +1
@@ -262,5 +261,5 @@ susiF.workhorse <- function(susiF.obj,
     }#end while
   }#end else in if(L==1)
 
- return(susiF.obj)
+ return(obj)
 }

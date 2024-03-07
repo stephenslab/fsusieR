@@ -5,12 +5,12 @@
 \alias{which_dummy_cs.susiF}
 \title{Return which credible sets are  dummy}
 \usage{
-which_dummy_cs(susiF.obj, min.purity = 0.5, X, median_crit = FALSE, ...)
+which_dummy_cs(obj, min.purity = 0.5, X, median_crit = FALSE, ...)
 
-\method{which_dummy_cs}{susiF}(susiF.obj, min.purity = 0.5, X, median_crit = FALSE, ...)
+\method{which_dummy_cs}{susiF}(obj, min.purity = 0.5, X, median_crit = FALSE, ...)
 }
 \arguments{
-\item{susiF.obj}{a susif object defined by init_susiF_obj function}
+\item{obj}{a susif object defined by init_susiF_obj function}
 
 \item{min.purity}{minimal purity within a CS}
 

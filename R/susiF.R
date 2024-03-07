@@ -98,6 +98,7 @@
 #' @param e threshold value to avoid computing posterior that have low alpha value. Set it to 0 to compute the entire posterior. default value is 0.001
 #'
 #' @importFrom stats var
+#' 
 #'
 #' @export
 #'
@@ -170,7 +171,7 @@
 #'
 #'#### Findout which regions are affected by the different CS
 #'
-#'affected_reg(susiF.obj = out)
+#'affected_reg(obj = out)
 #'
 #' # This corresponds to the regions where the credible bands are
 #' # "crossing zero"/i.e. the effects are likely not to be 0 in this
@@ -299,6 +300,8 @@ susiF <- function(Y, X, L = 2,
   Y           <- map_data$Y
   rm( map_data)
   # centering and scaling covariate
+  
+  names_colX <-  colnames(X)  
   tidx <- which(apply(X,2,var)==0)
   if( length(tidx)>0){
     warning(paste("Some of the columns of X are constants, we removed" ,length(tidx), "columns"))
@@ -371,7 +374,7 @@ susiF <- function(Y, X, L = 2,
   tt          <- temp$tt
 
   #Recycled for the first step of the while loop
-  susiF.obj   <-  init_susiF_obj(L_max=L,
+  obj   <-  init_susiF_obj(L_max=L,
                                  G_prior=G_prior,
                                  Y=Y,
                                  X=X,
@@ -387,7 +390,7 @@ susiF <- function(Y, X, L = 2,
 
 
 
-  susiF.obj     <- susiF.workhorse(susiF.obj      = susiF.obj,
+  obj     <- susiF.workhorse(obj      = obj,
                                    W              = W,
                                    X              = X,
                                    tol            = tol,
@@ -409,7 +412,7 @@ susiF <- function(Y, X, L = 2,
 
   #preparing output
 
-  susiF.obj <- out_prep(susiF.obj     = susiF.obj,
+  obj <- out_prep(obj     = obj,
                         Y             = Y,
                         X             = X,
                         indx_lst      = indx_lst,
@@ -418,8 +421,9 @@ susiF <- function(Y, X, L = 2,
                         filter.number = filter.number,
                         family        = family,
                         TI            = TI,
-                        HMM           = HMM
+                        HMM           = HMM,
+                        tidx          = tidx,
   )
-  susiF.obj$runtime <- proc.time()-pt
-  return(susiF.obj)
+  obj$runtime <- proc.time()-pt
+  return(obj)
 }

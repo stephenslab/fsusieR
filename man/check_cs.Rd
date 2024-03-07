@@ -5,19 +5,19 @@
 \alias{check_cs.susiF}
 \title{Check purity credible sets}
 \usage{
-check_cs(susiF.obj, min.purity = 0.5, X, ...)
+check_cs(obj, min.purity = 0.5, X, ...)
 
-\method{check_cs}{susiF}(susiF.obj, min.purity = 0.5, X, ...)
+\method{check_cs}{susiF}(obj, min.purity = 0.5, X, ...)
 }
 \arguments{
-\item{susiF.obj}{a susif object defined by init_susiF_obj function}
+\item{obj}{a susif object defined by init_susiF_obj function}
 
 \item{min.purity}{minimal purity within a CS}
 
 \item{X}{matrix of covariates}
 }
 \value{
-a susif.obj without "dummy" credible s
+a obj without "dummy" credible s
 }
 \description{
 Check purity credible sets

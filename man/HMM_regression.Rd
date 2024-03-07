@@ -5,12 +5,12 @@
 \alias{HMM_regression.susiF}
 \title{Compute refined estimate using HMM regression}
 \usage{
-HMM_regression(susiF.obj, Y, X, verbose = TRUE, fit_indval = TRUE, ...)
+HMM_regression(obj, Y, X, verbose = TRUE, fit_indval = TRUE, ...)
 
-\method{HMM_regression}{susiF}(susiF.obj, Y, X, verbose = TRUE, fit_indval = TRUE, ...)
+\method{HMM_regression}{susiF}(obj, Y, X, verbose = TRUE, fit_indval = TRUE, ...)
 }
 \arguments{
-\item{susiF.obj}{a susiF object}
+\item{obj}{a susiF object}
 
 \item{Y}{matrix of responses}
 

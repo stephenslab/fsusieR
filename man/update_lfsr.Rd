@@ -5,12 +5,12 @@
 \alias{update_lfsr.susiF}
 \title{Update susiF local False Sign Rate}
 \usage{
-update_lfsr(susiF.obj, l, Bhat, Shat, indx_lst, ...)
+update_lfsr(obj, l, Bhat, Shat, indx_lst, ...)
 
-\method{update_lfsr}{susiF}(susiF.obj, l, Bhat, Shat, indx_lst, ...)
+\method{update_lfsr}{susiF}(obj, l, Bhat, Shat, indx_lst, ...)
 }
 \arguments{
-\item{susiF.obj}{a susiF object defined by init_susiF_obj function}
+\item{obj}{a susiF object defined by init_susiF_obj function}
 
 \item{l}{effect to update}
 

@@ -4,7 +4,7 @@
 #'
 #' @details Empirical Bayes multivariate functional regression
 #'
-#' @param EBmvFR.obj an object of class EBmvFR
+#' @param obj an object of class EBmvFR
 #' @param W a list in which element D contains matrix of wavelet d coefficients and
 #'  element C contains the vector of scaling coefficients
 #'
@@ -32,7 +32,7 @@
 #' @param  max_step_EM see susiF function
 #' @export
 
-EBmvFR.workhorse <- function(EBmvFR.obj,
+EBmvFR.workhorse <- function(obj,
                              W,
                              X,
                              tol,
@@ -66,7 +66,7 @@ EBmvFR.workhorse <- function(EBmvFR.obj,
       if(verbose){
         print(paste("Fitting effect ", j,", iter" ,  iter ))
       }
-      EBmvFR.obj   <-  fit_effect.EBmvFR (EBmvFR.obj = EBmvFR.obj,
+      obj   <-  fit_effect.EBmvFR (obj = obj,
                                           j          = j,
                                           X          = X,
                                           D          = W$D,
@@ -78,11 +78,11 @@ EBmvFR.workhorse <- function(EBmvFR.obj,
 
 
 
-    sigma2    <- estimate_residual_variance(EBmvFR.obj,Y=Y_f,X)
+    sigma2    <- estimate_residual_variance(obj,Y=Y_f,X)
    # print(sigma2)
-    EBmvFR.obj <- update_residual_variance(EBmvFR.obj, sigma2 = sigma2 )
+    obj <- update_residual_variance(obj, sigma2 = sigma2 )
 
-    EBmvFR.obj <- update_prior( EBmvFR.obj,
+    obj <- update_prior_EBmvFR( obj            = obj,
                                 max_step       = max_step_EM,
                                 espsilon       = 0.0001,
                                 init_pi0_w     = init_pi0_w ,
@@ -91,7 +91,7 @@ EBmvFR.workhorse <- function(EBmvFR.obj,
                                 lowc_wc        = lowc_wc,
                                 nullweight     = nullweight   )
 
-    EBmvFR.obj <- test_stop_cond( obj = EBmvFR.obj,
+    obj <- test_stop_cond( obj = obj,
                                  check      = check,
                                  cal_obj    = cal_obj,
                                  Y          = Y_f,
@@ -100,9 +100,9 @@ EBmvFR.workhorse <- function(EBmvFR.obj,
                                  C          = W$C,
                                  indx_lst    = indx_lst)
 
-    #print(EBmvFR.obj$alpha)
-    #print(EBmvFR.obj$ELBO)
-    check <- EBmvFR.obj$check
+    #print(obj$alpha)
+    #print(obj$ELBO)
+    check <- obj$check
 
 
 
@@ -111,6 +111,6 @@ EBmvFR.workhorse <- function(EBmvFR.obj,
 
   }#end while
 
-  EBmvFR.obj$niter <- iter
-  return(EBmvFR.obj)
+  obj$niter <- iter
+  return(obj)
 }

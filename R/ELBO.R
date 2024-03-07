@@ -1,6 +1,6 @@
 #' @title Compute KL divergence effect l
 #
-#' @param susiF.obj a susisF object defined by  init_susiF_obj  function
+#' @param obj a susisF object defined by  init_susiF_obj  function
 #
 #' @param l integer larger or equal to 1. Corresponds to the effect to be accessed
 #
@@ -16,7 +16,7 @@
 #' @return The KL divergence for effect l
 #' @export
 #' @keywords internal
-cal_KL_l <- function(susiF.obj, l, X, D,C , indx_lst, ...)
+cal_KL_l <- function(obj, l, X, D,C , indx_lst, ...)
   UseMethod("cal_KL_l")
 
 
@@ -30,11 +30,11 @@ cal_KL_l <- function(susiF.obj, l, X, D,C , indx_lst, ...)
 #
 #' @export
 #' @keywords internal
-cal_KL_l.susiF <- function(susiF.obj, l, X, D, C , indx_lst, ...)
+cal_KL_l.susiF <- function(obj, l, X, D, C , indx_lst, ...)
 {
 
   R_l <- cal_partial_resid(
-                           susiF.obj = susiF.obj,
+                           obj = obj,
                            l         =  (l-1),
                            X         =  X,
                            D         =  D,
@@ -43,7 +43,7 @@ cal_KL_l.susiF <- function(susiF.obj, l, X, D, C , indx_lst, ...)
                           )
 
 
-  out <-    - loglik_SFR(susiF.obj, l,R_l,X,indx_lst)- loglik_SFR_post(susiF.obj, l,R_l,X)
+  out <-    - loglik_SFR(obj, l,R_l,X,indx_lst)- loglik_SFR_post(obj, l,R_l,X)
 
 
   return(out)
@@ -55,7 +55,7 @@ cal_KL_l.susiF <- function(susiF.obj, l, X, D, C , indx_lst, ...)
 
 #' @title Compute log likelihood of single function regression of effect l
 #
-#' @param susiF.obj a susiF object defined by  init_susiF_obj  function
+#' @param obj a susiF object defined by  init_susiF_obj  function
 #
 #' @param l effect to update
 #
@@ -68,7 +68,7 @@ cal_KL_l.susiF <- function(susiF.obj, l, X, D, C , indx_lst, ...)
 #' @return The log-likelihood, \eqn{\log p(Y | X, V)}, where V is the prior parameters
 #' @export
 #' @keywords internal
-loglik_SFR <- function    (susiF.obj, l,  ...)
+loglik_SFR <- function    (obj, l,  ...)
   UseMethod("loglik_SFR")
 
 #' @rdname loglik_SFR
@@ -81,23 +81,23 @@ loglik_SFR <- function    (susiF.obj, l,  ...)
 #
 #' @export
 #' @keywords internal
-loglik_SFR.susiF <- function (susiF.obj, l, Y , X, indx_lst, ...)
+loglik_SFR.susiF <- function (obj, l, Y , X, indx_lst, ...)
 {
-  lBF            <- get_lBF(susiF.obj,l)
+  lBF            <- get_lBF(obj,l)
   prior_weights  <- rep(1/ncol(X),ncol(X))
   maxlBF         <- max(lBF)
   w              <- exp(lBF - maxlBF)
   w_weighted     <- w * prior_weights
   weighted_sum_w <- sum(w_weighted)
   lBF_model      <- maxlBF + log(weighted_sum_w)
-  return(lBF_model + sum(dnorm(Y,0,sd = sqrt(susiF.obj$sigma2),log = TRUE)))
+  return(lBF_model + sum(dnorm(Y,0,sd = sqrt(obj$sigma2),log = TRUE)))
 }
 
 
 #' @title Compute posterior expected loglikelihood for single function
 #   regression of effect l
 #
-#' @param susiF.obj susiF object, for example created by calling
+#' @param obj susiF object, for example created by calling
 #'  init_susiF_obj .
 #
 #' @param l Index of effect to update.
@@ -109,7 +109,7 @@ loglik_SFR.susiF <- function (susiF.obj, l, Y , X, indx_lst, ...)
 #
 #' @export
 #' @keywords internal
-loglik_SFR_post <- function (susiF.obj, l, ...)
+loglik_SFR_post <- function (obj, l, ...)
   UseMethod("loglik_SFR_post")
 
 #' @rdname loglik_SFR_post
@@ -124,13 +124,13 @@ loglik_SFR_post <- function (susiF.obj, l, ...)
 #
 #' @export
 #' @keywords internal
-loglik_SFR_post.susiF <- function (susiF.obj, l, Y, X, ...)
+loglik_SFR_post.susiF <- function (obj, l, Y, X, ...)
 {
   n   <- nrow(Y)
   t   <- ncol(Y)
-  EF  <- get_post_F(susiF.obj,l)
-  EF2 <- get_post_F2(susiF.obj,l)
-  s2  <- susiF.obj$sigma2
+  EF  <- get_post_F(obj,l)
+  EF2 <- get_post_F2(obj,l)
+  s2  <- obj$sigma2
   return(-n*t/2*log(2*pi*s2)
          - s2/2*(sum(t(Y)%*%Y) - 2*sum(t(Y)%*%X%*%EF) + sum(t(EF2)%*%EF2)))
 }
@@ -140,16 +140,18 @@ loglik_SFR_post.susiF <- function (susiF.obj, l, Y, X, ...)
 
 #' @title Expected log likelihood for a   susiF   object
 #
-#' @param susiF.obj a susiF object defined by  init_susiF_obj  function
+#' @param obj a susiF object defined by  init_susiF_obj  function
 #
 #' @param Y Matrix of outcomes
 #
 #' @param X Matrix of covariates
+#' 
+#' @param data list of data for susif_ss
 #
 #' @return Expected log likelihood
 #' @export
 #' @keywords internal
-Eloglik <- function    (susiF.obj, Y, X,  ...)
+Eloglik <- function    (obj,   ...)
   UseMethod("Eloglik")
 
 
@@ -160,23 +162,24 @@ Eloglik <- function    (susiF.obj, Y, X,  ...)
 #' @export Eloglik.susiF
 #' @export
 #' @keywords internal
-Eloglik.susiF = function (susiF.obj,Y ,X,  ...) {
+Eloglik.susiF = function (obj,Y ,X,  ...) {
   n = nrow(Y)
   t = ncol(Y)
 
-  return(-(n*t/2) * log(2*pi*susiF.obj$sigma2) - (1/(2*susiF.obj$sigma2)) * get_ER2( susiF.obj, Y, X))
+  return(-(n*t/2) * log(2*pi*obj$sigma2) - (1/(2*obj$sigma2)) * get_ER2( obj, Y, X))
 }
-
-Eloglik.susiF_ss = function (susiF_ss.obj,data) {
+#' @export
+#' @keywords internal
+Eloglik.susiF_ss = function (obj,data,...) {
   n <- data$N
   t <- ncol(data$Bhat)
 
-  return(-(n*t/2) * log(2*pi*susiF_ss.obj$sigma2) - (1/(2*susiF_ss.obj$sigma2)) * get_ER2( susiF_ss.obj,data))
+  return(-(n*t/2) * log(2*pi*obj$sigma2) - (1/(2*obj$sigma2)) * get_ER2( obj,data))
 }
 
 #' @title Get objective function from data and susiF object
 #
-#' @param susiF.obj a susiF object defined by  init_susiF_obj  function
+#' @param obj a susiF object defined by  init_susiF_obj  function
 #
 #' @param Y Matrix of outcomes
 #
@@ -192,7 +195,7 @@ Eloglik.susiF_ss = function (susiF_ss.obj,data) {
 #
 #' @export
 #' @keywords internal
-get_objective <- function    (susiF.obj,  Y, X, D, C , indx_lst,  ...)
+get_objective <- function    (obj,  Y, X, D, C , indx_lst,  ...)
   UseMethod("get_objective")
 
 
@@ -203,10 +206,10 @@ get_objective <- function    (susiF.obj,  Y, X, D, C , indx_lst,  ...)
 #' @export get_objective.susiF
 #' @export
 #' @keywords internal
-get_objective.susiF <- function    (susiF.obj, Y, X, D, C , indx_lst,  ...)
+get_objective.susiF <- function    (obj, Y, X, D, C , indx_lst,  ...)
 {
-#print(susiF.obj$KL)
-  out <-  Eloglik(susiF.obj, Y, X)  + sum(susiF.obj$KL)
+#print(obj$KL)
+  out <-  Eloglik(obj, Y, X)  + sum(obj$KL)
   return(out)
 
 }

@@ -203,7 +203,7 @@ plot_susiF(out, cred.band = TRUE)
 
 #### Findout which regions are affected by the different CS
 
-affected_reg(susiF.obj = out)
+affected_reg(obj = out)
 
 # This corresponds to the regions where the credible bands are
 # "crossing zero"/i.e. the effects are likely not to be 0 in this

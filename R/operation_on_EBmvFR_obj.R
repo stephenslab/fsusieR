@@ -23,11 +23,11 @@ cal_lik_EBmvFR <- function(Lmat, tpi_k){
 #  temp is a dummy wavethresh object
 #  j effect to update
 
-cal_post_effect <- function(EBmvFR.obj,j, temp,indx_lst){
-  temp$D                     <- EBmvFR.obj$fitted_wc[[1]][j,-indx_lst[[length(indx_lst)]]]
-  temp$D                     <- temp$D* 1/(EBmvFR.obj$csd_X[j] )
-  temp$C[length(temp$C)]     <- EBmvFR.obj$fitted_wc[[1]][j,indx_lst[[length(indx_lst)]]]
-  temp$C[length(temp$C)]     <- temp$C[length(temp$C)]*( 1/(EBmvFR.obj$csd_X[j] ))
+cal_post_effect <- function(obj,j, temp,indx_lst){
+  temp$D                     <- obj$fitted_wc[[1]][j,-indx_lst[[length(indx_lst)]]]
+  temp$D                     <- temp$D* 1/(obj$csd_X[j] )
+  temp$C[length(temp$C)]     <- obj$fitted_wc[[1]][j,indx_lst[[length(indx_lst)]]]
+  temp$C[length(temp$C)]     <- temp$C[length(temp$C)]*( 1/(obj$csd_X[j] ))
   return( wavethresh::wr(temp))
 }
 
@@ -44,10 +44,10 @@ cal_post_effect <- function(EBmvFR.obj,j, temp,indx_lst){
 cal_partial_resid.EBmvFR  <- function(  obj, l, X, D, C,  indx_lst,... )
 {
 
-  EBmvFR.obj <- obj
+  obj <- obj
 
-  update_D  <-  D -   X[,-l]%*%EBmvFR.obj$fitted_wc[[1]][-l,-indx_lst[[length(indx_lst)]]]
-  update_C  <-  C  -  as.vector(X[,-l]%*%EBmvFR.obj$fitted_wc[[1]][-l,indx_lst[[length(indx_lst)]]])
+  update_D  <-  D -   X[,-l]%*%obj$fitted_wc[[1]][-l,-indx_lst[[length(indx_lst)]]]
+  update_C  <-  C  -  as.vector(X[,-l]%*%obj$fitted_wc[[1]][-l,indx_lst[[length(indx_lst)]]])
 
 
   update_Y  <- cbind(  update_D, update_C)
@@ -69,17 +69,17 @@ cal_partial_resid.EBmvFR  <- function(  obj, l, X, D, C,  indx_lst,... )
 #
 estimate_residual_variance.EBmvFR <- function(obj,Y,X,... )
 {
-  EBmvFR.obj <- obj
-  out <-  (1/(prod(dim(Y))))*get_ER2 (EBmvFR.obj,Y, X  )
+  obj <- obj
+  out <-  (1/(prod(dim(Y))))*get_ER2 (obj,Y, X  )
   #TODO: not correct, need to correct bottom part
   return(out)
 }
 
 
-fit_effect.EBmvFR <- function( EBmvFR.obj, j,X,D, C,  indx_lst,lowc_wc){
+fit_effect.EBmvFR <- function( obj, j,X,D, C,  indx_lst,lowc_wc){
 
   Y <- cal_partial_resid(
-     obj = EBmvFR.obj,
+     obj = obj,
     l         = j,
     X         = X,
     D         = D,
@@ -88,23 +88,24 @@ fit_effect.EBmvFR <- function( EBmvFR.obj, j,X,D, C,  indx_lst,lowc_wc){
   )
 
   MLE_wc <- cal_Bhat_Shat(Y,X= matrix(X[,j], ncol=1),
-                          resid_var  = EBmvFR.obj$sigma2,
+                          resid_var  = obj$sigma2,
                           lowc_wc    = lowc_wc
   )
-  EBmvFR.obj <- update_effect.EBmvFR(EBmvFR.obj,
+  obj <- update_effect.EBmvFR(obj,
                                      j          = j,
                                      MLE_wc     = MLE_wc,
                                      lowc_wc    = lowc_wc,
                                      indx_lst   = indx_lst)
-  return(EBmvFR.obj)
+  return(obj)
 }
 
+#' @export
+#' @keywords internal
 
 
+get_G_prior.EBmvFR <- function( obj, ...){
 
-get_G_prior.EBmvFR <- function( EBmvFR.obj){
-
-  out <- EBmvFR.obj$G_prior
+  out <- obj$G_prior
 
   return(out)
 }
@@ -123,9 +124,9 @@ get_G_prior.EBmvFR <- function( EBmvFR.obj){
 get_ER2.EBmvFR = function (   obj,Y, X,  ...) {
 
 
-  EBmvFR.obj <- obj
-  postF  <- EBmvFR.obj$fitted_wc[[1]]# J by N matrix
-  postF2 <- EBmvFR.obj$fitted_wc2[[1]] # Posterior second moment.
+  obj <- obj
+  postF  <- obj$fitted_wc[[1]]# J by N matrix
+  postF2 <- obj$fitted_wc2[[1]] # Posterior second moment.
 
   return(sum(t((Y - X%*%postF ))%*%(Y - X%*%postF ) )  -sum(t(postF)%*%postF) + sum(    postF2))
 }
@@ -206,18 +207,18 @@ test_stop_cond.EBmvFR <- function(obj, check, cal_obj, Y, X, D, C, indx_lst,...)
 {
 
 
-     EBmvFR.obj <- obj
+     obj <- obj
 
     if( cal_obj){
 
       stop("use cal_obj=FALSE, ELBO currently bieng implemented")
-      EBmvFR.obj <- update_KL(EBmvFR.obj,
+      obj <- update_KL(obj,
                              X,
                              D= D,
                              C= C , indx_lst)
 
-      EBmvFR.obj <- update_ELBO(EBmvFR.obj,
-                               get_objective( EBmvFR.obj = EBmvFR.obj,
+      obj <- update_ELBO(obj,
+                               get_objective( obj = obj,
                                               Y         = Y,
                                               X         = X,
                                               D         = D,
@@ -226,36 +227,36 @@ test_stop_cond.EBmvFR <- function(obj, check, cal_obj, Y, X, D, C, indx_lst,...)
                                )
       )
 
-      if(length(EBmvFR.obj$ELBO)>1    )#update parameter convergence,
+      if(length(obj$ELBO)>1    )#update parameter convergence,
       {
-        check <- abs(diff(EBmvFR.obj$ELBO)[(length( EBmvFR.obj$ELBO )-1)])
-        EBmvFR.obj$check <- check
-        return(EBmvFR.obj)
+        check <- abs(diff(obj$ELBO)[(length( obj$ELBO )-1)])
+        obj$check <- check
+        return(obj)
       }else{
-        EBmvFR.obj$check <- check
-        return(EBmvFR.obj)
+        obj$check <- check
+        return(obj)
       }
     }
     else{
-      len <- length( EBmvFR.obj$pi_hist)
+      len <- length( obj$pi_hist)
       if( len>1)#update parameter convergence, no ELBO for the moment
       {
         check <-0
 
-        tpi_2 <- do.call( c, EBmvFR.obj$pi_hist[[len ]])
-        tpi_1 <- do.call( c, EBmvFR.obj$pi_hist[[(len-1) ]])
+        tpi_2 <- do.call( c, obj$pi_hist[[len ]])
+        tpi_1 <- do.call( c, obj$pi_hist[[(len-1) ]])
 
         #print( sum(abs(tpi_2-tpi_1))/log(length(tpi_1)))
         check <- sum(abs(tpi_2-tpi_1))/log(length(tpi_1))#adding the log of length to limit computational time
-        EBmvFR.obj$check <- check
-        return(EBmvFR.obj)
+        obj$check <- check
+        return(obj)
         #print(check)
       }else{
-        EBmvFR.obj$check <- check
-        return(EBmvFR.obj)
+        obj$check <- check
+        return(obj)
       }
     }
-  return(EBmvFR.obj)
+  return(obj)
 
 }
 
@@ -271,12 +272,12 @@ test_stop_cond.EBmvFR <- function(obj, check, cal_obj, Y, X, D, C, indx_lst,...)
 
 out_prep.EBmvFR <- function( obj,  Y,  X, indx_lst,    outing_grid,...)
 {
-  EBmvFR.obj <- obj
+  obj <- obj
 
-  EBmvFR.obj             <-  update_cal_fit_func(EBmvFR.obj, indx_lst)
-  EBmvFR.obj             <-  update_cal_indf    (EBmvFR.obj, X)
-  EBmvFR.obj$outing_grid <-  outing_grid
-  return(EBmvFR.obj)
+  obj             <-  update_cal_fit_func(obj, indx_lst)
+  obj             <-  update_cal_indf    (obj, X = X)
+  obj$outing_grid <-  outing_grid
+  return(obj)
 }
 
 
@@ -284,9 +285,9 @@ out_prep.EBmvFR <- function( obj,  Y,  X, indx_lst,    outing_grid,...)
 
 
 
-update_pi_hist <- function(EBmvFR.obj,tpi ){
-  EBmvFR.obj$pi_hist[[length(EBmvFR.obj$pi_hist)+1]] <- tpi
-  return(EBmvFR.obj)
+update_pi_hist <- function(obj,tpi ){
+  obj$pi_hist[[length(obj$pi_hist)+1]] <- tpi
+  return(obj)
 }
 
 
@@ -306,12 +307,12 @@ update_pi_hist <- function(EBmvFR.obj,tpi ){
 
 update_cal_fit_func.EBmvFR <- function(obj, indx_lst,...)
 {
-  EBmvFR.obj <- obj
-  temp <- wavethresh::wd(rep(0, EBmvFR.obj$n_wac))
+  obj <- obj
+  temp <- wavethresh::wd(rep(0, obj$n_wac))
 
 
-       fit_func <-   do.call(rbind, lapply(1:EBmvFR.obj$P,
-                                   function( j) cal_post_effect(EBmvFR.obj= EBmvFR.obj,
+       fit_func <-   do.call(rbind, lapply(1:obj$P,
+                                   function( j) cal_post_effect(obj= obj,
                                                          j,
                                                          temp=temp,
                                                          indx_lst=indx_lst)
@@ -319,9 +320,9 @@ update_cal_fit_func.EBmvFR <- function(obj, indx_lst,...)
                             )
 
 
-    EBmvFR.obj$fitted_func <-  fit_func
+    obj$fitted_func <-  fit_func
 
-  return(EBmvFR.obj)
+  return(obj)
 
 
 }
@@ -335,41 +336,38 @@ update_cal_fit_func.EBmvFR <- function(obj, indx_lst,...)
 #
 #  @export update_cal_indf.EBmvFR
 #
-#  @export
-#  @keywords internal
+#' @export
+#' @keywords internal
+update_cal_indf.EBmvFR  <- function(obj,  Y, X, indx_lst, TI, ...){
 
-update_cal_indf.EBmvFR  <- function(EBmvFR.obj,  X ){
-
-  EBmvFR.obj$ind_fitted_func <-   X%*%EBmvFR.obj$fitted_func
-  return(EBmvFR.obj)
+  obj$ind_fitted_func <-   X%*%obj$fitted_func
+  return(obj)
 }
 
 
 
 
-update_effect.EBmvFR <- function(EBmvFR.obj, j, MLE_wc,lowc_wc,indx_lst){
-  EBmvFR.obj$MLE_wc[[1]][j,]     <- MLE_wc$Bhat
-  EBmvFR.obj$MLE_wc2[[1]][j,]    <- MLE_wc$Shat
-  EBmvFR.obj$fitted_wc[[1]][j,]  <- post_mat_mean( G_prior   = get_G_prior(EBmvFR.obj),
+update_effect.EBmvFR <- function(obj, j, MLE_wc,lowc_wc,indx_lst){
+  obj$MLE_wc[[1]][j,]     <- MLE_wc$Bhat
+  obj$MLE_wc2[[1]][j,]    <- MLE_wc$Shat
+  obj$fitted_wc[[1]][j,]  <- post_mat_mean( G_prior   = get_G_prior(obj),
                                                    Bhat     = MLE_wc$Bhat,
                                                    Shat     = MLE_wc$Shat,
                                                    lowc_wc  = lowc_wc,
                                                    indx_lst = indx_lst)
-  EBmvFR.obj$fitted_wc2[[1]][j,] <- post_mat_sd( G_prior    = get_G_prior(EBmvFR.obj),
+  obj$fitted_wc2[[1]][j,] <- post_mat_sd( G_prior    = get_G_prior(obj),
                                                  Bhat     = MLE_wc$Bhat,
                                                  Shat     = MLE_wc$Shat,
                                                  lowc_wc  = lowc_wc,
                                                  indx_lst = indx_lst)^2
 
 
-  return(EBmvFR.obj)
+  return(obj)
 
 }
 
-
-
-
-update_prior.EBmvFR <- function( EBmvFR.obj,
+ 
+update_prior_EBmvFR <- function( obj,
                                  max_step = 100,
                                  espsilon = 0.0001,
                                  init_pi0_w =1,
@@ -379,27 +377,27 @@ update_prior.EBmvFR <- function( EBmvFR.obj,
                                  nullweight  ){
 
 
-  get_G_prior(EBmvFR.obj)
+  get_G_prior(obj)
 
 
   #static parameters
-  Lmat  <-  L_mixsq(G_prior   = get_G_prior(EBmvFR.obj),
-                    Bhat      = EBmvFR.obj$MLE_wc[[1]],
-                    Shat      = sqrt(EBmvFR.obj$MLE_wc2[[1]]),
+  Lmat  <-  L_mixsq(G_prior   = get_G_prior(obj),
+                    Bhat      = obj$MLE_wc[[1]],
+                    Shat      = sqrt(obj$MLE_wc2[[1]]),
                     indx_lst  = indx_lst,
                     is.EBmvFR =TRUE)
 
-  J <- dim(EBmvFR.obj$MLE_wc[[1]])[1]
-  tsd_k <- get_sd_G_prior(get_G_prior( EBmvFR.obj))
+  J <- dim(obj$MLE_wc[[1]])[1]
+  tsd_k <- get_sd_G_prior(get_G_prior( obj))
 
   #dynamic parameters
-  tpi_k = get_pi_G_prior(get_G_prior( EBmvFR.obj))
+  tpi_k = get_pi_G_prior(get_G_prior( obj))
   oldloglik <-0
   newloglik <-1
 
   zeta <- rep(1/J,J) #assignation initial value
   k <- 1 #counting the number of iteration
-  tpi_k <- get_pi_G_prior(get_G_prior(EBmvFR.obj))
+  tpi_k <- get_pi_G_prior(get_G_prior(obj))
 
   while( k <=max_step &  abs(newloglik-oldloglik)>=espsilon)
   {
@@ -420,14 +418,14 @@ update_prior.EBmvFR <- function( EBmvFR.obj,
 
   }
 
-  EBmvFR.obj         <-  update_pi_hist(EBmvFR.obj,
+  obj         <-  update_pi_hist(obj,
                                         tpi = tpi_k
   )
-  EBmvFR.obj$G_prior <-  update_prior(get_G_prior( EBmvFR.obj) ,
+  obj$G_prior <-  update_prior(get_G_prior( obj) ,
                                       tpi = tpi_k
   )
 
-  return( EBmvFR.obj)
+  return( obj)
 
 }
 
@@ -445,7 +443,7 @@ update_prior.EBmvFR <- function( EBmvFR.obj,
 #' @keywords internal
 
  update_residual_variance.EBmvFR <- function( obj, sigma2  ,... ){
-   EBmvFR.obj <- obj
-   EBmvFR.obj$sigma2 <- sigma2
-   return(EBmvFR.obj)
+   obj <- obj
+   obj$sigma2 <- sigma2
+   return(obj)
  }

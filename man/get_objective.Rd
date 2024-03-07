@@ -5,12 +5,12 @@
 \alias{get_objective.susiF}
 \title{Get objective function from data and susiF object}
 \usage{
-get_objective(susiF.obj, Y, X, D, C, indx_lst, ...)
+get_objective(obj, Y, X, D, C, indx_lst, ...)
 
-\method{get_objective}{susiF}(susiF.obj, Y, X, D, C, indx_lst, ...)
+\method{get_objective}{susiF}(obj, Y, X, D, C, indx_lst, ...)
 }
 \arguments{
-\item{susiF.obj}{a susiF object defined by  init_susiF_obj  function}
+\item{obj}{a susiF object defined by  init_susiF_obj  function}
 
 \item{Y}{Matrix of outcomes}
 

@@ -5,12 +5,12 @@
 \alias{loglik_SFR.susiF}
 \title{Compute log likelihood of single function regression of effect l}
 \usage{
-loglik_SFR(susiF.obj, l, ...)
+loglik_SFR(obj, l, ...)
 
-\method{loglik_SFR}{susiF}(susiF.obj, l, Y, X, indx_lst, ...)
+\method{loglik_SFR}{susiF}(obj, l, Y, X, indx_lst, ...)
 }
 \arguments{
-\item{susiF.obj}{a susiF object defined by  init_susiF_obj  function}
+\item{obj}{a susiF object defined by  init_susiF_obj  function}
 
 \item{l}{effect to update}
 

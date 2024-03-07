@@ -5,12 +5,12 @@
 \alias{loglik_SFR_post.susiF}
 \title{Compute posterior expected loglikelihood for single function}
 \usage{
-loglik_SFR_post(susiF.obj, l, ...)
+loglik_SFR_post(obj, l, ...)
 
-\method{loglik_SFR_post}{susiF}(susiF.obj, l, Y, X, ...)
+\method{loglik_SFR_post}{susiF}(obj, l, Y, X, ...)
 }
 \arguments{
-\item{susiF.obj}{susiF object, for example created by calling
+\item{obj}{susiF object, for example created by calling
 init_susiF_obj .}
 
 \item{l}{Index of effect to update.}

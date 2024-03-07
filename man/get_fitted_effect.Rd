@@ -5,12 +5,12 @@
 \alias{get_fitted_effect.susiF}
 \title{Access fitted effect l}
 \usage{
-get_fitted_effect(susiF.obj, l, ...)
+get_fitted_effect(obj, l, ...)
 
-\method{get_fitted_effect}{susiF}(susiF.obj, l, ...)
+\method{get_fitted_effect}{susiF}(obj, l, ...)
 }
 \arguments{
-\item{susiF.obj}{a fitted objected}
+\item{obj}{a fitted objected}
 
 \item{l}{effect of interest}
 

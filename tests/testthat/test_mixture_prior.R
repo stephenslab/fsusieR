@@ -407,7 +407,7 @@ test_that("The partial residual should be    ",
             susiF_obj <- update_susiF_obj(susiF_obj, 1, outEM, Bhat, Shat, indx_lst )
 
             update_T <- cal_partial_resid(
-              susiF.obj = susiF_obj,
+              obj = susiF_obj,
               l         = 1,
               X         = X,
               D         = W$D,

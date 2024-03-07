@@ -16,7 +16,7 @@ knitr::opts_chunk$set(
 	message = FALSE,
 	warning = FALSE
 )
-library(susiF.alpha)
+library(fsusieR)
 library(susieR)
 library(wavethresh)
 set.seed(1)

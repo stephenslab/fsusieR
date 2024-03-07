@@ -5,7 +5,7 @@
 \title{Plot susiF object}
 \usage{
 plot_susiF(
-  susiF.obj,
+  obj,
   title = "",
   cred.band = TRUE,
   lfsr.curve = TRUE,
@@ -18,13 +18,13 @@ plot_susiF(
 )
 }
 \arguments{
-\item{susiF.obj}{output of the susiF function}
+\item{obj}{output of the susiF function}
 
 \item{title}{character}
 
-\item{cred.band}{logical, if TRUE, plot credible bands if susiF.obj fitted with wavelets regression. Set as TRUE by default}
+\item{cred.band}{logical, if TRUE, plot credible bands if obj fitted with wavelets regression. Set as TRUE by default}
 
-\item{lfsr.curve}{logical, if TRUE, plot estimated lfsr of the effect at each base pair  if susiF.obj fitted with HMM regression. Set as TRUE by default}
+\item{lfsr.curve}{logical, if TRUE, plot estimated lfsr of the effect at each base pair  if obj fitted with HMM regression. Set as TRUE by default}
 
 \item{size_line}{numeric, width of the plotted lines}
 

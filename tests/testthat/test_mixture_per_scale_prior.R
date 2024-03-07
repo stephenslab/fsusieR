@@ -126,22 +126,22 @@ test_that("susiF object pi are expected to be equal to ",
 
 test_that("correct expansion of susiF object",
 {
-  susiF.obj   <-  init_susiF_obj(L_max=10, G_prior, Y,X, L_start=3,
+  obj   <-  init_susiF_obj(L_max=10, G_prior, Y,X, L_start=3,
                                  greedy = greedy,
                                  backfit=backfit)
-  expect_equal(susiF.obj$L_max, 10  )
-  expect_equal(susiF.obj$L, 3  )
-  susiF.obj <- expand_susiF_obj(susiF.obj,L_extra=7)
-  expect_equal(susiF.obj$L_max, 10  )
-  expect_equal(susiF.obj$L,length(susiF.obj$fitted_wc))
-  expect_equal(susiF.obj$L,length(susiF.obj$alpha))
-  expect_equal(susiF.obj$L,length(susiF.obj$fitted_wc2))
-  expect_equal(susiF.obj$L,length(susiF.obj$G_prior))
-  expect_equal(susiF.obj$L,length(susiF.obj$cs))
-  expect_equal(susiF.obj$L,length(susiF.obj$est_pi))
-  expect_equal(susiF.obj$L,length(susiF.obj$est_sd))
-  expect_equal(susiF.obj$L,length(susiF.obj$lBF))
-  expect_equal(susiF.obj$L,length(susiF.obj$cred_band))
+  expect_equal(obj$L_max, 10  )
+  expect_equal(obj$L, 3  )
+  obj <- expand_susiF_obj(obj,L_extra=7)
+  expect_equal(obj$L_max, 10  )
+  expect_equal(obj$L,length(obj$fitted_wc))
+  expect_equal(obj$L,length(obj$alpha))
+  expect_equal(obj$L,length(obj$fitted_wc2))
+  expect_equal(obj$L,length(obj$G_prior))
+  expect_equal(obj$L,length(obj$cs))
+  expect_equal(obj$L,length(obj$est_pi))
+  expect_equal(obj$L,length(obj$est_sd))
+  expect_equal(obj$L,length(obj$lBF))
+  expect_equal(obj$L,length(obj$cred_band))
 
 }
 )
@@ -335,7 +335,7 @@ test_that("The partial residual should be    ",
             susiF_obj <- update_susiF_obj(susiF_obj, 1, outEM, Bhat, Shat, indx_lst )
 
             update_T <- cal_partial_resid(
-              susiF.obj = susiF_obj,
+              obj = susiF_obj,
               l         = 1,
               X         = X,
               D         = W$D,

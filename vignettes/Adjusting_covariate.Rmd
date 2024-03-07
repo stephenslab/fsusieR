@@ -13,16 +13,16 @@ vignette: >
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## Adjustement for functional fine-mapping
+## Adjustment for functional fine-mapping
 
 In order to reduce the number of false positives in fine-mapping
 analysis, it is often important to account for potential
-counfounders. As most of the tools in the SuSiE suite don't account
+confounders. As most of the tools in the SuSiE suite don't account
 for confounders while performing fine-mapping, it is important to
-account for counfounders prior to the analysis. Similar problem arise
+account for confounders prior to the analysis. A similar problem arises
 with fSuSiE. While it is relatively straightforward to adjust
-univariate phenotypes. It is more complicated to adjust curves/profile for
-confounding. Thus we implemented a user friendly function that
+univariate phenotypes. It is more complicated to adjust curves/profiles for
+confounding. Thus, we implemented a user-friendly function that
 performs this preprocessing step.
 
 ### Generating the data
@@ -32,7 +32,7 @@ knitr::opts_chunk$set(
 	message = FALSE,
 	warning = FALSE
 )
-library(susiF.alpha)
+library(fsusieR)
 library(susieR)
 library(wavethresh)
 set.seed(2)
@@ -55,7 +55,7 @@ f3_cov  <- simu_IBSS_per_level(lev_res )$sim_func #effect cov 3
 ```
 
 
-Here the observed data is a mixture of technical noise and genotype signal (target.data). Our goal is to remove the technical noise.
+Here, the observed data is a mixture of technical noise and genotype signal (target.data). Our goal is to remove the technical noise.
 
 ```{r}
 
@@ -83,12 +83,12 @@ Y <- technical.noise+target.data
 
 ###  Account for covariates
 
-We use the function \textit{EBmvFR} to regress out the effect of the covariate (in the matrix Cov). The function output an object that contains 
+We use the function \textit{EBmvFR} to regress out the effect of the covariate (in the matrix Cov). The function outputs an object that contains 
 * the adjusted curves
 * the fitted effect (covariate)
 * the corresponding position for the mapped adjusted curves and fitted curves
 
-NB: If you input matrix Y has a number of column that is not a power of 2. Then \textit{EBmvFR} will remap the corresponding curves to a grid with $2^K$ points. Note that if the corresponding positions of the columns are not evenly spaced then it is important to provide these positions in the pos arugment. The output of the will provide the   adjusted curves and the fitted effect matrices mapped on the grid provided in the pos entry
+NB: If you input matrix Y has a number of columns that is not a power of 2. Then \textit{EBmvFR} will remap the corresponding curves to a grid with $2^K$ points. Note that if the corresponding positions of the columns are not evenly spaced, then it is important to provide these positions in the pos argument. The output provides the adjusted curves and the fitted effect matrices mapped on the grid provided in the pos entry
 
 
 ```{r}
@@ -110,7 +110,7 @@ Y_corrected  <-Est_effect$Y_adjusted
 ```
 
 
-You can also perform the adjustment yourself by accessing the fitted curves directly (and potentially only removing the effect your are interested in)
+You can also perform the adjustment yourself by accessing the fitted curves directly (and potentially only removing the effect you are interested in)
 ```{r}
   plot(  Y_corrected, Y-Cov %*%Est_effect$fitted_func )
 ```
@@ -118,7 +118,7 @@ You can also perform the adjustment yourself by accessing the fitted curves dire
 
 
 
-Here you can see that the corrected data are closely matching the actual underlying signals
+Here, you can see that the corrected data closely matches the actual underlying signals.
 
 ```{r}
 
@@ -148,9 +148,9 @@ We can check the results
 ```
  
  
-  ### Comparison with fine-mapping without adjustement
+  ### Comparison with fine-mapping without adjustment
 
-We can compare the performance when not adjusting
+We can compare the performance when not adjusting.
 
 
 ```{r, echo=FALSE}
@@ -159,7 +159,7 @@ out_unadj <- susiF(Y=Y,
              L=10 )
 ```
 
-Here we can the performance 
+Here we can see the performance. 
 
 
 

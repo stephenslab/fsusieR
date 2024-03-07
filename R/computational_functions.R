@@ -3,7 +3,7 @@
 
 #' @title Compute correlation between credible sets
 #
-#' @param susiF.obj a susiF object
+#' @param obj a susiF object
 #' @param  X matrix of covariates
 #'
 #' @importFrom stats median
@@ -11,24 +11,24 @@
 #'
 #' @export
 #' @keywords internal
-cal_cor_cs <- function(susiF.obj,X){
+cal_cor_cs <- function(obj,X){
 
-  if(length(susiF.obj$cs)==1)
-  {return(susiF.obj)}else{
+  if(length(obj$cs)==1)
+  {return(obj)}else{
 
-    mat_cor <- matrix(NA, ncol = length(susiF.obj$cs),
-                      nrow= length(susiF.obj$cs))
+    mat_cor <- matrix(NA, ncol = length(obj$cs),
+                      nrow= length(obj$cs))
 
-    for ( l in 1:length(susiF.obj$cs)){
+    for ( l in 1:length(obj$cs)){
 
-      for ( k in 1:length(susiF.obj$cs)){
+      for ( k in 1:length(obj$cs)){
 
         temp <- max(do.call( c,
-                             sapply( 1:length(susiF.obj$cs[[l]]),
+                             sapply( 1:length(obj$cs[[l]]),
                                      function(l1)
-                                       sapply( 1:length(susiF.obj$cs[[k]]),
-                                               function( k1)  cor(X[,c(susiF.obj$cs[[l]][l1],
-                                                                       susiF.obj$cs[[k]][k1])])[2,1],
+                                       sapply( 1:length(obj$cs[[k]]),
+                                               function( k1)  cor(X[,c(obj$cs[[l]][l1],
+                                                                       obj$cs[[k]][k1])])[2,1],
                                                simplify=FALSE)
                              )
         )
@@ -39,8 +39,8 @@ cal_cor_cs <- function(susiF.obj,X){
       }
     }
   }
-  susiF.obj$cs_cor <- mat_cor
-  return(susiF.obj)
+  obj$cs_cor <- mat_cor
+  return(obj)
 }
 # @title Regress Y nxJ on X nxp
 #
@@ -821,7 +821,7 @@ fit_hmm <- function (x,sd,
 #'
 #' @description    Compute refined estimate using HMM regression
 #'
-#' @param susiF.obj  a susiF object
+#' @param obj  a susiF object
 #' @param Y  matrix of responses
 #' @param X matrix containing the covariates
 #' @param verbose logical
@@ -831,7 +831,7 @@ fit_hmm <- function (x,sd,
 #' @export
 
 
-HMM_regression<- function (susiF.obj,
+HMM_regression<- function (obj,
                            Y,
                            X,
                            verbose=TRUE,
@@ -849,7 +849,7 @@ HMM_regression<- function (susiF.obj,
 #'
 #' @export
 #'
-HMM_regression.susiF <- function( susiF.obj,
+HMM_regression.susiF <- function( obj,
                                   Y ,
                                   X ,
                                   verbose=TRUE,
@@ -859,9 +859,9 @@ HMM_regression.susiF <- function( susiF.obj,
   if(verbose){
     print( "Fine mapping done, refining effect estimates using HMM regression")
   }
-  idx <- do.call( c, lapply( 1:length(susiF.obj$cs),
+  idx <- do.call( c, lapply( 1:length(obj$cs),
                              function(l){
-                               tp_id <-  which.max(susiF.obj$alpha[[l]])
+                               tp_id <-  which.max(obj$alpha[[l]])
                              }
   )
   )
@@ -937,30 +937,30 @@ HMM_regression.susiF <- function( susiF.obj,
 
 
   fitted_trend <- lapply(1:length(idx), function(l)
-    fitted_trend[[l]]/susiF.obj$csd_X[idx[l]]
+    fitted_trend[[l]]/obj$csd_X[idx[l]]
   )
 
 
-  susiF.obj$fitted_func <- fitted_trend
-  susiF.obj$lfsr_func   <- fitted_lfsr
+  obj$fitted_func <- fitted_trend
+  obj$lfsr_func   <- fitted_lfsr
 
   if( fit_indval ){
 
     mean_Y <- attr(Y, "scaled:center")
-    susiF.obj$ind_fitted_func <- matrix(mean_Y,
+    obj$ind_fitted_func <- matrix(mean_Y,
                                         byrow=TRUE,
                                         nrow=nrow(Y),
                                         ncol=ncol(Y))+Reduce("+",
-                                                             lapply(1:length(susiF.obj$alpha),
+                                                             lapply(1:length(obj$alpha),
                                                                     function(l)
                                                                       matrix( X[,idx[[l]]] , ncol=1)%*%
-                                                                      t(susiF.obj$fitted_func[[l]] )*(attr(X, "scaled:scale")[idx[[l]]])
+                                                                      t(obj$fitted_func[[l]] )*(attr(X, "scaled:scale")[idx[[l]]])
                                                              )
                                         )
 
   }
 
-  return(susiF.obj)
+  return(obj)
 }
 
 #' @title Compute Log-Bayes Factor
@@ -1642,7 +1642,7 @@ post_mat_sd.mixture_normal_per_scale <-  function( G_prior,
 #'
 #' @description e Compute refined estimate using translation invariant wavelet transform
 #'
-#' @param susiF.obj  a susiF object
+#' @param obj  a susiF object
 #'
 #' @param Y  matrix of responses
 #'
@@ -1655,7 +1655,7 @@ post_mat_sd.mixture_normal_per_scale <-  function( G_prior,
 #' @export
 
 
-TI_regression <- function (susiF.obj,Y,X, verbose ,
+TI_regression <- function (obj,Y,X, verbose ,
                            filter.number , family   ,...)
   UseMethod("TI_regression")
 
@@ -1675,7 +1675,7 @@ TI_regression <- function (susiF.obj,Y,X, verbose ,
 #'
 #' @export
 #'
-TI_regression.susiF <- function( susiF.obj,Y,X, verbose=TRUE,
+TI_regression.susiF <- function( obj,Y,X, verbose=TRUE,
                            filter.number = 10, family = "DaubLeAsymm" ,... ){
 
   if(verbose){
@@ -1709,18 +1709,18 @@ TI_regression.susiF <- function( susiF.obj,Y,X, verbose=TRUE,
 
 
 
-  for ( l in 1: length(susiF.obj$cs)){
+  for ( l in 1: length(obj$cs)){
     refined_est$wd[[l]]  <- rep( 0, ncol(Y_f))
     refined_est$wdC[[l]] <- rep( 0, ncol(Y_c))
     refined_est$wd2[[l]] <- rep( 0, ncol(Y_f))
-    refined_est$idx_lead_cov[[l]]  <- which.max(susiF.obj$alpha[[l]])
+    refined_est$idx_lead_cov[[l]]  <- which.max(obj$alpha[[l]])
   }
 
 
-  if(  length(susiF.obj$cs)==1){
+  if(  length(obj$cs)==1){
 
 
-    if( inherits(get_G_prior(susiF.obj),"mixture_normal_per_scale" )){
+    if( inherits(get_G_prior(obj),"mixture_normal_per_scale" )){
       res <- cal_Bhat_Shat(Y_f, matrix(X[,refined_est$idx_lead_cov[[1]]],
                                        ncol=1))
       wd   <- rep( 0 ,length(res$Bhat))
@@ -1763,7 +1763,7 @@ TI_regression.susiF <- function( susiF.obj,Y,X, verbose=TRUE,
       refined_est$wdC[[l]] <- t_ash$result$PosteriorMean
 
     }
-    if(inherits(get_G_prior(susiF.obj),"mixture_normal" )){
+    if(inherits(get_G_prior(obj),"mixture_normal" )){
       res <- cal_Bhat_Shat(Y_f, matrix(X[,refined_est$idx_lead_cov[[1]]],
                                        ncol=1))
       t_ash <-  ashr::ash(c( res$Bhat),c(res$Shat))
@@ -1781,11 +1781,11 @@ TI_regression.susiF <- function( susiF.obj,Y,X, verbose=TRUE,
   }else{
 
 
-    if( inherits(get_G_prior(susiF.obj),"mixture_normal_per_scale" )){
+    if( inherits(get_G_prior(obj),"mixture_normal_per_scale" )){
 
       for (k in 1:3){
 
-        for ( l in 1: length(susiF.obj$cs) ){
+        for ( l in 1: length(obj$cs) ){
           par_res<-  Y_f -Reduce("+",
                                  lapply( (1: length(refined_est$idx_lead_cov))[-l],
                                          function(j)
@@ -1843,10 +1843,10 @@ TI_regression.susiF <- function( susiF.obj,Y,X, verbose=TRUE,
       }
     }
 
-    if(inherits(get_G_prior(susiF.obj),"mixture_normal" )){
+    if(inherits(get_G_prior(obj),"mixture_normal" )){
       for (k in 1:5){
 
-        for ( l in 1: length(susiF.obj$cs) ){
+        for ( l in 1: length(obj$cs) ){
           par_res<-  Y_f -Reduce("+",
                                  lapply( (1: length(refined_est$idx_lead_cov))[-l],
                                          function(j)
@@ -1880,29 +1880,29 @@ TI_regression.susiF <- function( susiF.obj,Y,X, verbose=TRUE,
 
 
   }
-  for( l in 1:length(susiF.obj$cs)){
+  for( l in 1:length(obj$cs)){
 
     dummy_station_wd$C <- refined_est$wdC[[l]]
     dummy_station_wd$D <- refined_est$wd[[l]]
     mywst <- wavethresh::convert(dummy_station_wd  )
     nlevels <-wavethresh::nlevelsWT(mywst)
     refined_est$fitted_func[[l]]=  wavethresh::av.basis(mywst, level = (dummy_station_wd$nlevels-1), ix1 = 0,
-                                           ix2 = 1, filter = mywst$filter) *1/(susiF.obj$csd_X[ which.max(susiF.obj$alpha[[l]])] )
+                                           ix2 = 1, filter = mywst$filter) *1/(obj$csd_X[ which.max(obj$alpha[[l]])] )
     mv.wd = wd.var(rep(0, ncol(Y)),   type = "station")
     mv.wd$D <-  (refined_est$wd2[[l]])
 
 
-    refined_est$fitted_var[[l]]= AvBasis.var(convert.var(mv.wd))*(1/(susiF.obj$csd_X[ which.max(susiF.obj$alpha[[l]])] )^2)
+    refined_est$fitted_var[[l]]= AvBasis.var(convert.var(mv.wd))*(1/(obj$csd_X[ which.max(obj$alpha[[l]])] )^2)
 
-    susiF.obj$fitted_func[[l]] <-  refined_est$fitted_func[[l]]
-    up                         <-  susiF.obj$fitted_func[[l]]+ 3* sqrt(refined_est$fitted_var[[l]]) #*sqrt(susiF.obj$N-1)
-    low                        <-  susiF.obj$fitted_func[[l]]- 3*sqrt(refined_est$fitted_var[[l]]) #*sqrt(susiF.obj$N-1)
-    susiF.obj$cred_band[[l]]   <- rbind(up, low)
+    obj$fitted_func[[l]] <-  refined_est$fitted_func[[l]]
+    up                         <-  obj$fitted_func[[l]]+ 3* sqrt(refined_est$fitted_var[[l]]) #*sqrt(obj$N-1)
+    low                        <-  obj$fitted_func[[l]]- 3*sqrt(refined_est$fitted_var[[l]]) #*sqrt(obj$N-1)
+    obj$cred_band[[l]]   <- rbind(up, low)
 
   }
 
   rm( refined_est)
 
-  return(susiF.obj)
+  return(obj)
 }
 

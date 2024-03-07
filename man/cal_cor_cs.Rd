@@ -4,10 +4,10 @@
 \alias{cal_cor_cs}
 \title{Compute correlation between credible sets}
 \usage{
-cal_cor_cs(susiF.obj, X)
+cal_cor_cs(obj, X)
 }
 \arguments{
-\item{susiF.obj}{a susiF object}
+\item{obj}{a susiF object}
 
 \item{X}{matrix of covariates}
 }

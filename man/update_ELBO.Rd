@@ -5,12 +5,12 @@
 \alias{update_ELBO.susiF}
 \title{Update susiF log Bayes factor}
 \usage{
-update_ELBO(susiF.obj, ELBO, ...)
+update_ELBO(obj, ELBO, ...)
 
-\method{update_ELBO}{susiF}(susiF.obj, ELBO, ...)
+\method{update_ELBO}{susiF}(obj, ELBO, ...)
 }
 \arguments{
-\item{susiF.obj}{a susiF object defined by init_susiF_obj function}
+\item{obj}{a susiF object defined by init_susiF_obj function}
 
 \item{ELBO}{new ELBO value}
 }

@@ -4,11 +4,11 @@
 \alias{update_KL}
 \alias{update_KL.susiF}
 \title{Compute KL divergence effect l
- @param susiF.obj a susiF object}
+ @param obj a susiF object}
 \usage{
-update_KL(susiF.obj, X, D, C, indx_lst, ...)
+update_KL(obj, X, D, C, indx_lst, ...)
 
-\method{update_KL}{susiF}(susiF.obj, X, D, C, indx_lst, ...)
+\method{update_KL}{susiF}(obj, X, D, C, indx_lst, ...)
 }
 \arguments{
 \item{X}{matrix of covariates}
@@ -24,6 +24,6 @@ susiF object
 }
 \description{
 Compute KL divergence effect l
- @param susiF.obj a susiF object
+ @param obj a susiF object
 }
 \keyword{internal}

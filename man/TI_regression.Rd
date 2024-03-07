@@ -5,10 +5,10 @@
 \alias{TI_regression.susiF}
 \title{Compute refined estimate using translation invariant wavelet transform}
 \usage{
-TI_regression(susiF.obj, Y, X, verbose, filter.number, family, ...)
+TI_regression(obj, Y, X, verbose, filter.number, family, ...)
 
 \method{TI_regression}{susiF}(
-  susiF.obj,
+  obj,
   Y,
   X,
   verbose = TRUE,
@@ -18,7 +18,7 @@ TI_regression(susiF.obj, Y, X, verbose, filter.number, family, ...)
 )
 }
 \arguments{
-\item{susiF.obj}{a susiF object}
+\item{obj}{a susiF object}
 
 \item{Y}{matrix of responses}
 

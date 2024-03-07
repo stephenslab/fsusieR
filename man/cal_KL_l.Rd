@@ -5,12 +5,12 @@
 \alias{cal_KL_l.susiF}
 \title{Compute KL divergence effect l}
 \usage{
-cal_KL_l(susiF.obj, l, X, D, C, indx_lst, ...)
+cal_KL_l(obj, l, X, D, C, indx_lst, ...)
 
-\method{cal_KL_l}{susiF}(susiF.obj, l, X, D, C, indx_lst, ...)
+\method{cal_KL_l}{susiF}(obj, l, X, D, C, indx_lst, ...)
 }
 \arguments{
-\item{susiF.obj}{a susisF object defined by  init_susiF_obj  function}
+\item{obj}{a susisF object defined by  init_susiF_obj  function}
 
 \item{l}{integer larger or equal to 1. Corresponds to the effect to be accessed}
 

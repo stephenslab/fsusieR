@@ -4,10 +4,10 @@
 \alias{affected_reg}
 \title{Extract coordinates of the regions affected by the different CS}
 \usage{
-affected_reg(susiF.obj)
+affected_reg(obj)
 }
 \arguments{
-\item{susiF.obj}{at fitted susiF.obj object}
+\item{obj}{at fitted obj object}
 }
 \description{
 Extract coordinates of the regions affected by the different CS

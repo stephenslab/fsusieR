@@ -5,7 +5,7 @@
 \title{Empirical Bayes multivariate functional regression}
 \usage{
 EBmvFR.workhorse(
-  EBmvFR.obj,
+  obj,
   W,
   X,
   tol,
@@ -21,7 +21,7 @@ EBmvFR.workhorse(
 )
 }
 \arguments{
-\item{EBmvFR.obj}{an object of class EBmvFR}
+\item{obj}{an object of class EBmvFR}
 
 \item{W}{a list in which element D contains matrix of wavelet d coefficients and
 element C contains the vector of scaling coefficients}

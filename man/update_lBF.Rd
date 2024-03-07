@@ -5,12 +5,12 @@
 \alias{update_lBF.susiF}
 \title{Update susiF log Bayes factor}
 \usage{
-update_lBF(susiF.obj, l, lBF, ...)
+update_lBF(obj, l, lBF, ...)
 
-\method{update_lBF}{susiF}(susiF.obj, l, lBF, ...)
+\method{update_lBF}{susiF}(obj, l, lBF, ...)
 }
 \arguments{
-\item{susiF.obj}{a susiF object defined by init_susiF_obj function}
+\item{obj}{a susiF object defined by init_susiF_obj function}
 
 \item{l}{effect to update}
 
