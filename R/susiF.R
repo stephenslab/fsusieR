@@ -19,32 +19,32 @@
 #' are evenly spaced
 #'
 #' @param  post_processing character, use "TI" for translation invariant wavelet estimates,
-#' "HMM" for hidden Markov model (usefull for estimating non-zero regions),
-#' "none" for simple wavelet estiamte (not recommended)
+#' "HMM" for hidden Markov model (useful for estimating non-zero regions),
+#' "none" for simple wavelet estimate (not recommended)
 #'
 #' @param prior specify the prior used in susiF. The two available choices are
 #' available "mixture_normal_per_scale", "mixture_normal". Default "mixture_normal_per_scale",
 #' if this susiF is too slow, consider using  "mixture_normal"  using  "mixture_normal" which  is up to 40\% faster but may lead to slight power loss
 #'
 #' @param verbose If \code{verbose = TRUE}, the algorithm's progress,
-#' and a summary of the optimization settings are printed to the
+#' and a summary of the optimization settings are printed on the
 #' console.
 #'
 #'
 #' @param tol a small, non-negative number specifying the convergence
 #' tolerance for the IBSS fitting procedure. The fitting procedure
-#' will halt when the difference in the variational lower bound, or
+#' will halt when the difference in the variational lower bound or
 #' \dQuote{ELBO} (the objective function to be maximized), is less
 #' than \code{tol}.
 #'
 #' @param maxit Maximum number of IBSS iterations.
 #'
 #' @param cov_lev numeric between 0 and 1, corresponding to the
-#' expected level of coverage of the cs if not specified set to 0.95
+#' expected level of coverage of the CS if not specified, set to 0.95
 #'
 #' @param min.purity minimum purity for estimated credible sets
 #'
-#' @param filter.cs logical, if TRUE filter the credible set (removing low purity
+#' @param filter.cs logical, if TRUE filters the credible set (removing low-purity)
 #' cs and cs with estimated prior equal to 0). Set as TRUE by default.
 #'
 #' @param init_pi0_w starting value of weight on null compoenent in mixsqp
@@ -54,18 +54,18 @@
 #'
 #' @param  cal_obj logical if set as TRUE compute ELBO for convergence monitoring
 #'
-#' @param quantile_trans logical if set as TRUE perform normal quantile transform
+#' @param quantile_trans logical, if set as TRUE perform normal quantile, transform
 #' on wavelet coefficients
 #'
 #' @param L_start number of effect initialized at the start of the algorithm
 #'
 #' @param nullweight numeric value for penalizing likelihood at point mass 0 (should be between 0 and 1)
-#' (usefull in small sample size)
+#' (useful in small sample size)
 #'
 #' @param thresh_lowcount numeric, used to check the wavelet coefficients have
 #'  problematic distribution (very low dispersion even after standardization).
-#'  Basically check if the median of the absolute value of the distribution of
-#'   a wavelet coefficient is below this threshold. If yes, the algorithm discard
+#'  Basically, check if the median of the absolute value of the distribution of
+#'   a wavelet coefficient is below this threshold. If yes, the algorithm discards
 #'   this wavelet coefficient (setting its estimate effect to 0 and estimate sd to 1).
 #'   Set to 0 by default. It can be useful when analyzing sparse data from sequence
 #'    based assay or small samples.
@@ -73,11 +73,11 @@
 #' @param greedy logical, if TRUE allows greedy search for extra effect
 #'  (up to L specified by the user). Set as TRUE by default
 #'
-#' @param backfit logical, if TRUE allow discarding effect via backfitting.
-#'  Set as true by default as TRUE. We advise keeping it as TRUE
+#' @param backfit logical, if TRUE, allow discarding effect via back fitting.
+#'  Set as true by default as TRUE. We advise keeping it as TRUE.
 #'
 #' @param gridmult numeric used to control the number of components used in the mixture prior (see ashr package
-#'  for more details). From the ash function:  multiplier by which the default grid values for mixsd differ from one another.
+#'  for more details). From the ash function:  multiplier by which the default grid values for mixed differ from one another.
 #'   (Smaller values produce finer grids.). Increasing this value may reduce computational time
 #'
 #' @param max_scale numeric, define the maximum of wavelet coefficients used in the analysis (2^max_scale).
@@ -89,19 +89,19 @@
 #'
 #' @param family see documentation of wd from wavethresh package
 #'
-#' @param max_SNP_EM maximum number of SNP used for learning the prior. By default set to 1000. Reducing this may help reducing
-#'the computational time. We advice to keep it at least larger than 50
+#' @param max_SNP_EM maximum number of SNP used for learning the prior. By default, set to 1000. Reducing this may help reduce
+#'the computational time. We advise to keep it at least larger than 50
 #'
-#' @param cor_small logical set to FALSE by default. If TRUE used Bayes factor from Valen E Johnson JRSSB 2005 instead of Wakefeild approximation for Gen Epi 2009
-#' the Bayes factor from Valen E Johnson JRSSB 2005 tend to have better coverage in small sample size. We advise using this parameter if n<50
+#' @param cor_small logical set to FALSE by default. If TRUE used the Bayes factor from Valen E Johnson JRSSB 2005 instead of Wakefield approximation for Gen Epi 2009
+#' The Bayes factor from Valen E Johnson JRSSB 2005 tends to have better coverage in small sample sizes. We advise using this parameter if n<50
 #'
-#' @param e threshold value to avoid computing posterior that have low alpha value. Set it to 0 to compute the entire posterior. default value is 0.001
+#' @param e threshold value is used to avoid computing posteriors that have low alpha values. Set it to 0 to compute the entire posterior. default value is 0.001
 #'
 #' @importFrom stats var
 #' 
 #' 
 #' @return  A \code{"susiF"} object with some or all of the following elements:
-#' \item{alpha}{a list of length L  containing the of posterior inclusion probabilites for each effect.}
+#' \item{alpha}{a list of length L  containing the posterior inclusion probabilities for each effect.}
 #' \item{pip}{a vector of length J, containing the posterior inclusion probability of each covariate}
 #' \item{cs}{a list of length L, each element is the credible set of the lth effect  }
 #' \item{purity}{a list of length L, each element is the purity of the lth effect  }
@@ -110,15 +110,15 @@
 #' \item{sigma2 }{The estimated residual variance}
 #' \item{lBF}{a list of length L  containing the log  Bayes factor for each effect.}
 #' \item{ ind_fitted_func}{a matrix of the individual estimated genotype effect}
-#' \item{outin_grid}{The grid on which the effect are estimated (see vignette introduction for more details)}
+#' \item{outin_grid}{The grid on which the effects are estimated (see vignette introduction for more details)}
 #' \item{runtime}{runtime of the algorithm}
-#' \item{G_prior}{the a list of of ash object containning the prior mixture component}
+#' \item{G_prior}{a list of of ash objects containning the prior mixture component}
 #' \item{est_pi}{a list  of length L, each element contains the estimated  prior mixture  weights for each effect}
 #' \item{est_sd}{the estimated prior mixture for each effect}
 #' \item{ELBO}{the ELBO value at each iteration of the algorithm}
-#' \item{fitted_wc}{a list  of length L, each element is a list of length J, containing the conditional  wavelet coefficients first moment for Lth effect. Note that this is omly for internal use in the IBSS and
+#' \item{fitted_wc}{a list of length L, each element is a list of length J, containing the conditional wavelet coefficients first moment for Lth effect. Note that this is only for internal use in the IBSS and
 #'        the results in  fitted_func  will corresponds to this wavelet coefficient if  \code{post_processing} is set to \code{none}, not recommended. }
-#' \item{fitted_wc2}{a list  of length L, each element is a list of length J, containing the conditional  wavelet coefficients second moment forLth effect.}
+#' \item{fitted_wc2}{a list of length L, each element is a list of length J, containing the conditional wavelet coefficients second-moment for the Lth effect.}
 #' @export
 #'
 #' @examples
@@ -188,7 +188,7 @@
 #'
 #'
 #'
-#'#### Findout which regions are affected by the different CS
+#'#### Find out which regions are affected by the different CS
 #'
 #'affected_reg(obj = out)
 #'
