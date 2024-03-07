@@ -22,6 +22,8 @@ out_prep(obj, Y, X, indx_lst, outing_grid, ...)
   filter.number = 10,
   family = "DaubLeAsymm",
   HMM = FALSE,
+  tidx = NULL,
+  names_colX = NULL,
   ...
 )
 }

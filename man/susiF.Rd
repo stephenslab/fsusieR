@@ -128,6 +128,27 @@ the Bayes factor from Valen E Johnson JRSSB 2005 tend to have better coverage in
 
 \item{e}{threshold value to avoid computing posterior that have low alpha value. Set it to 0 to compute the entire posterior. default value is 0.001}
 }
+\value{
+A \code{"susiF"} object with some or all of the following elements:
+\item{alpha}{a list of length L  containing the of posterior inclusion probabilites for each effect.}
+\item{pip}{a vector of length J, containing the posterior inclusion probability of each covariate}
+\item{cs}{a list of length L, each element is the credible set of the lth effect  }
+\item{purity}{a list of length L, each element is the purity of the lth effect  }
+\item{fitted_func}{a list of length L, each element is a list of length J, containing the estimated effect of the Lth effect at each position}
+\item{cred_band}{a list of length L, each element is a list of length J, containing the credible band of the Lth effect at each position}
+\item{sigma2 }{The estimated residual variance}
+\item{lBF}{a list of length L  containing the log  Bayes factor for each effect.}
+\item{ ind_fitted_func}{a matrix of the individual estimated genotype effect}
+\item{outin_grid}{The grid on which the effect are estimated (see vignette introduction for more details)}
+\item{runtime}{runtime of the algorithm}
+\item{G_prior}{the a list of of ash object containning the prior mixture component}
+\item{est_pi}{a list  of length L, each element contains the estimated  prior mixture  weights for each effect}
+\item{est_sd}{the estimated prior mixture for each effect}
+\item{ELBO}{the ELBO value at each iteration of the algorithm}
+\item{fitted_wc}{a list  of length L, each element is a list of length J, containing the conditional  wavelet coefficients first moment for Lth effect. Note that this is omly for internal use in the IBSS and
+       the results in  fitted_func  will corresponds to this wavelet coefficient if  \code{post_processing} is set to \code{none}, not recommended. }
+\item{fitted_wc2}{a list  of length L, each element is a list of length J, containing the conditional  wavelet coefficients second moment forLth effect.}
+}
 \description{
 Implementation of the SuSiF method
 }
