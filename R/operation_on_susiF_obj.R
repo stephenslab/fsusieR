@@ -1118,7 +1118,7 @@ rename_format_output <- function(obj, names_colX, tidx, ...){
       obj$alpha[[l]] <- talpha
       names(obj$alpha[[l]]) <- names_colX
       
-       
+      names(obj$fitted_func)[l]<- paste("fitted_function_effect_", l, sep = "")
      
     }
     tpip  <- rep (0, length(names_colX))
@@ -1130,7 +1130,7 @@ rename_format_output <- function(obj, names_colX, tidx, ...){
     for ( l in 1:length(obj$cs)){
      
       names(obj$alpha[[l]]) <- names_colX
-      
+      names(obj$fitted_func)[l]<- paste("fitted_function_effect_", l, sep = "")
        
     }
     names(obj$pip) <- names_colX
@@ -2062,6 +2062,7 @@ update_cal_fit_func.susiF <- function(obj,
                                                                          1/(obj$csd_X ), "*")
            temp$C[length(temp$C)]     <- (obj$alpha[[l]])%*% (obj$fitted_wc[[l]][,indx_lst[[length(indx_lst)]]]*( 1/(obj$csd_X )))
            obj$fitted_func[[l]] <-  wavethresh::wr(temp)
+           
          }
        }
        if(inherits(get_G_prior(obj),"mixture_normal" ))
@@ -2073,6 +2074,7 @@ update_cal_fit_func.susiF <- function(obj,
                                                                         1/(obj$csd_X ), "*")
            temp$C[length(temp$C)]     <- (obj$alpha[[l]])%*% (obj$fitted_wc[[l]][,dim(obj$fitted_wc[[l]])[2]]*( 1/(obj$csd_X )) )
            obj$fitted_func[[l]] <- wr(temp)
+           
          }
        }
      }

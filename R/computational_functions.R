@@ -1898,7 +1898,8 @@ TI_regression.susiF <- function( obj,Y,X, verbose=TRUE,
     up                         <-  obj$fitted_func[[l]]+ 3* sqrt(refined_est$fitted_var[[l]]) #*sqrt(obj$N-1)
     low                        <-  obj$fitted_func[[l]]- 3*sqrt(refined_est$fitted_var[[l]]) #*sqrt(obj$N-1)
     obj$cred_band[[l]]   <- rbind(up, low)
-
+    names(obj$cred_band[[l]]) <- c("up","low")
+    names(obj$cred_band)[l] <- paste("credible_band_effect_",l, sep = "")
   }
 
   rm( refined_est)
