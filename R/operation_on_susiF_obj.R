@@ -1109,6 +1109,11 @@ out_prep.susiF <- function(obj ,
 
 rename_format_output <- function(obj, names_colX, tidx, ...){
   
+  
+  if (!is.null(names_colX)){
+    
+  
+  
   if ( length(tidx)>0){
     for ( l in 1:length(obj$cs)){
     
@@ -1136,17 +1141,9 @@ rename_format_output <- function(obj, names_colX, tidx, ...){
     names(obj$pip) <- names_colX
     obj <- update_cal_cs(obj, cov_lev = 0.95)
   }
-  
-  
-  
-  
-  
-  if( !is.null(names_colX)){
-    names(obj$ind_fitted_func) <- names_colX
   }
-  if( !is.null(tidx)){
-    obj$ind_fitted_func <- obj$ind_fitted_func[,tidx]
-  }
+  
+   
   return(obj)
 }
 
@@ -1923,6 +1920,7 @@ update_cal_indf <- function(obj, Y, X, indx_lst, TI=FALSE,...)
 update_cal_indf.susiF <- function(obj, Y, X, indx_lst, TI=FALSE,...)
 {
 
+
   if( TI){
 
     idx_lead_cov <- list()
@@ -1930,6 +1928,7 @@ update_cal_indf.susiF <- function(obj, Y, X, indx_lst, TI=FALSE,...)
     for (l in 1:length(obj$alpha)){
       idx_lead_cov[[l]]  <- which.max(obj$alpha[[l]])
     }
+    
     mean_Y          <- attr(Y, "scaled:center")
     obj$ind_fitted_func <- matrix(mean_Y,
                                         byrow=TRUE,
