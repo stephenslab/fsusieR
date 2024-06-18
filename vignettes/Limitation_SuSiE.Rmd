@@ -2,11 +2,23 @@
 title: "Illustration limitation SuSiE"
 author: "William R.P. Denault"
 date: "2024-03-07"
-output: html_document
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Introduction to fSuSiE}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.width = 5,
+  fig.height = 3,
+  fig.align = "center",
+  fig.cap = "&nbsp;",
+  dpi = 175
+  )
 ```
 
 # Problem set up 
@@ -60,7 +72,7 @@ for (i in which( effect>0)){
 }
  
 ```
-SuSiE only detected effect in at  CpGs number  88,91,94,100. Whereas the effect of the causak SNP (SNP number  700) spans between CpG 65 to CpG 106.Thus showing the lack of power of SuSiE in this scenario.
+SuSiE only detected effect in at  CpGs number  88 and 91. Whereas the effect of the causak SNP (SNP number  700) spans between CpG 65 to CpG 106.Thus showing the lack of power of SuSiE in this scenario.
 
 
 ### Have a look at SuSiE results
@@ -152,66 +164,13 @@ P03 <- P00+geom_point(x=94,y=effect[94], col="red", shape=21,size=3)+
   xlab("CpG")+
   ylab("Effect ") 
 
-tt <- susie( X=X,y=y[,94], L=1)
-
-df_pip3 <-data.frame(x=1:length(tt$pip),
-                     y=tt$pip)
-df2   <-data.frame(x= tt$sets$cs$L1,
-                   y=tt$pip[tt$sets$cs$L1])
-df3   <-data.frame(x= 700,y=tt$pip[700])
-P31 <-ggplot( )+
-  geom_point(df_pip3, mapping=aes(x=x, y=y))+
-  xlab("SNP index")+
-  ylab("PIP")+
-  theme_classic()+
-  theme(panel.border = element_rect(colour = "black", fill=NA, size=1.2),
-        axis.text.y=element_blank(),
-        axis.ticks.y=element_blank(),
-        axis.text.x=element_blank(),
-        axis.ticks.x=element_blank())+
-  
-  geom_point(df2 ,  mapping=aes(x=x,y=y), col="lightblue3",size=3)+
-  geom_point(df3 ,  mapping=aes(x=x,y=y), col="red", shape=21,size=3)
-
-P04 <- P00+geom_point(x=100,y=effect[100], col="red", shape=21,size=4)+
-  theme(panel.border = element_rect(colour = "black", fill=NA, size=1.2),
-        axis.text.y=element_blank(),
-        axis.ticks.y=element_blank(),
-        axis.text.x=element_blank(),
-        axis.ticks.x=element_blank())+
-  
-  geom_hline(yintercept = 0)+
-  xlab("CpG")+
-  ylab("Effect ") 
-
-tt <- susie( X=X,y=y[,100], L=1)
-
-df_pip4 <-data.frame(x=1:length(tt$pip),
-                     y=tt$pip)
-df2   <-data.frame(x= tt$sets$cs$L1,
-                   y=tt$pip[tt$sets$cs$L1])
-df3   <-data.frame(x= 700,y=tt$pip[700])
-P41 <-  ggplot( )+ theme_classic()+
-  geom_point(df_pip4, mapping=aes(x=x, y=y))+
-  theme(panel.border = element_rect(colour = "black", fill=NA, size=1.2),
-        axis.text.y=element_blank(),
-        axis.ticks.y=element_blank(),
-        axis.text.x=element_blank(),
-        axis.ticks.x=element_blank())+
-  xlab("SNP index")+
-  ylab("PIP")+
-  
-  
-  geom_point(df2 ,  mapping=aes(x=x,y=y), col="lightblue3",size=3)+
-  geom_point(df3 ,  mapping=aes(x=x,y=y), col="red", shape=21,size=3)
-
+ 
 
 library(cowplot)
 library(gridExtra)
 grid.arrange(P01, P11,
              P02,P21,
-             P03, P31,
-             P04,P41, ncol=2)
+               ncol=2)
 
 ```
  

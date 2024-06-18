@@ -17,7 +17,7 @@ knitr::opts_chunk$set(
   fig.height = 3,
   fig.align = "center",
   fig.cap = "&nbsp;",
-  dpi = 120
+  ddpi = 175
   )
 ```
 
@@ -157,9 +157,7 @@ The easiest way to visualize the result is to use the \code{plot_susiF} function
 You can also access the information directly in the output of susiF in the fitted_func part of the output. See below 
  
  
-```{r}
- par(mfrow=c(1,2))
- 
+```{r} 
  plot( f1, type="l", main="Estimated effect 1", xlab="")
  lines(get_fitted_effect(out,l=2),col='blue' )
  abline(a=0,b=0)
@@ -178,8 +176,7 @@ You can also access the information directly in the output of susiF in the fitte
         legend = c("effect 2"," fSuSiE est "),
         col=c("black","green" )
  )
- 
- par(mfrow=c(1,1))
+  
 ```
  
 

@@ -12,10 +12,14 @@ vignette: >
  
 
 knitr::opts_chunk$set(
-	echo = TRUE,
-	message = FALSE,
-	warning = FALSE
-)
+  collapse = TRUE,
+  comment = "#>",
+  fig.width = 5,
+  fig.height = 3,
+  fig.align = "center",
+  fig.cap = "&nbsp;",
+  dpi = 175
+  )
 library(fsusieR)
 library(susieR)
 library(wavethresh)
