@@ -430,7 +430,6 @@ susiF <- function(Y, X, L = 2,
                                    e              = e)
 
   #preparing output
-browser()
   obj <- out_prep(     obj            = obj, 
                         Y             = Y,
                         X             = X,

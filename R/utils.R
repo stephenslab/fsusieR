@@ -65,11 +65,7 @@ Quantile_transform  <- function(x)
   #x.rank = rank(x, ties.method="average")
   return(qqnorm(x.rank,plot.it = F)$x)
 }
-
-fast_var <- function (x)
-{
-  .Call(stats:::C_cov, x, x, 5, FALSE)
-}
+ 
 
 #' @title  Scaling function from r-blogger
 #'

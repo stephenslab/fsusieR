@@ -103,7 +103,7 @@ cal_Bhat_Shat   <- function(Y,
 
 
         Shat  <-   matrix(mapply(function(l,j)
-                                           sqrt(fast_var(Y[ind_analysis[[l]],l] - X[ind_analysis[[l]], j]  *  Bhat[j,l]) /(length(ind_analysis[[l]])-1)),
+                                           sqrt(Rfast::cova(Y[ind_analysis[[l]],l] - X[ind_analysis[[l]], j]  *  Bhat[j,l]) /(length(ind_analysis[[l]])-1)),
                                  l=rep(1:dim(Y)[2],each= ncol(X)),
                                  j=rep(1:dim(X)[2], ncol(Y))
                                  ),

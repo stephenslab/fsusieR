@@ -1,6 +1,6 @@
 ---
-title: Introduction to fSuSiE
-author: William R.P. Denault
+title: "Introduction to fSuSiE"
+author: "William R.P. Denault"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
