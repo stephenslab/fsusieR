@@ -1890,7 +1890,7 @@ TI_regression.susiF <- function( obj,Y,X, verbose=TRUE,
                                            ix2 = 1, filter = mywst$filter) *1/(obj$csd_X[ which.max(obj$alpha[[l]])] )
     mv.wd = wd.var(rep(0, ncol(Y)),   type = "station")
     mv.wd$D <-  (refined_est$wd2[[l]])
-
+  
 
     refined_est$fitted_var[[l]]= AvBasis.var(convert.var(mv.wd))*(1/(obj$csd_X[ which.max(obj$alpha[[l]])] )^2)
 

@@ -315,6 +315,7 @@ remap_data <- function(Y,pos, verbose=TRUE, max_scale=10){
 #' @importFrom wavethresh nlevelsWT
 AvBasis.var <- function (wst, Ccode = TRUE, ...) {
   nlevels <- nlevelsWT(wst)
+  
   if (is.null(wst$filter$G)) {
     if (Ccode == FALSE) {
       answer <- av.basis(wst, level = nlevels - 1, ix1 = 0,
@@ -396,6 +397,7 @@ wd.var <- function (data, filter.number = 10, family = "DaubLeAsymm",
   fl.dbase <- wavethresh::first.last(LengthH = length(filter$H),
                                      DataLength = DataLength,
                                      type = type, bc = bc)
+ 
   if (bc == "interval") {
     ans <- wavethresh::wd.int(data = data,
                               preferred.filter.number = filter.number,
