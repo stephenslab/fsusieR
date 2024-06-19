@@ -63,6 +63,8 @@ cal_cor_cs <- function(obj,X){
 # \item{Shat}{ matrix pxJ standard error, Shat[j,t] corresponds to standard error of the regression coefficient of Y[,t] on X[,j] }
 #
 # @export
+# @importFrom  Rfast colsums
+# @importFrom  Rfast colVars
 
 cal_Bhat_Shat   <- function(Y,
                             X ,
@@ -82,7 +84,7 @@ cal_Bhat_Shat   <- function(Y,
 
       Shat  <- do.call( cbind,
                         lapply( 1:ncol(Bhat),
-                                function(i) matrixStats::colSds(Y [,i] -sweep( X,2, Bhat[,i], "*"))
+                                function(i)  sqrt(Rfast::colVars(  Y [,i] -sweep( X,2, Bhat[,i], "*")))
                         )
       )
       Shat <- Shat/sqrt(nrow(Y))
@@ -93,7 +95,7 @@ cal_Bhat_Shat   <- function(Y,
 
         Bhat <-  do.call(cbind,lapply(1:length(ind_analysis),
                                       function(l){
-                                        d   <- colSums(X[ind_analysis[[l]], ]^2)
+                                        d   <- Rfast::colsums(X[ind_analysis[[l]], ]^2)
                                         out <- (t(X[ind_analysis[[l]], ])%*%Y[ind_analysis[[l]], l])/d
                                         return(out)
                                       }
@@ -103,7 +105,7 @@ cal_Bhat_Shat   <- function(Y,
 
 
         Shat  <-   matrix(mapply(function(l,j)
-                                           sqrt(Rfast::cova(Y[ind_analysis[[l]],l] - X[ind_analysis[[l]], j]  *  Bhat[j,l]) /(length(ind_analysis[[l]])-1)),
+                                           sqrt(Rfast::cova(matrix(Y[ind_analysis[[l]],l] - X[ind_analysis[[l]], j]  *  Bhat[j,l])) /(length(ind_analysis[[l]])-1)),
                                  l=rep(1:dim(Y)[2],each= ncol(X)),
                                  j=rep(1:dim(X)[2], ncol(Y))
                                  ),
@@ -112,12 +114,12 @@ cal_Bhat_Shat   <- function(Y,
 
 
       }else{
-        d <- colSums(X[ind_analysis , ]^2)
+        d <- Rfast::colsums(X[ind_analysis , ]^2)
         Bhat <- (t(X[ind_analysis , ])%*%Y[ind_analysis , ])/d
 
         Shat  <- do.call( cbind,
                           lapply( 1:ncol(Bhat),
-                                  function(i) matrixStats::colSds(Y [ind_analysis,i] -sweep( X[ind_analysis,],2, Bhat[ ,i], "*"))
+                                  function(i)sqrt(Rfast::colVars(Y [ind_analysis,i] -sweep( X[ind_analysis,],2, Bhat[ ,i], "*")))
                           )
         )
         Shat <- Shat/sqrt(nrow(Y[ind_analysis,]))

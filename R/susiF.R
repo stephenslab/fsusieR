@@ -201,7 +201,7 @@
 #'par(mfrow=c(1,2))
 #'
 #'
-#'plot( f1, type="l", main="Estimated effect 1", xlab="")
+#'plot( f2, type="l", main="Estimated effect 1", xlab="")
 #'lines(unlist(out$fitted_func[[1]]),col='blue' )
 #'lines(unlist(out$cred_band[[1]][1,]),col='darkblue',lty=2 )
 #'lines(unlist(out$cred_band[[1]][2,]),col='darkblue' ,lty=2 )
@@ -212,7 +212,7 @@
 #'       legend = c("effect 1"," fSuSiE est "),
 #'       col=c("black","blue" )
 #')
-#'plot( f2, type="l", main="Estimated effect 2", xlab="")
+#'plot( f1, type="l", main="Estimated effect 2", xlab="")
 #'lines(unlist(out$fitted_func[[2]]),col='darkgreen' )
 #'lines(unlist(out$cred_band[[2]][1,]),col='darkgreen',lty=2 )
 #'lines(unlist(out$cred_band[[2]][2,]),col='darkgreen' ,lty=2 )
