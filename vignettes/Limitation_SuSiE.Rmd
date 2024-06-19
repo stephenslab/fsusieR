@@ -1,10 +1,10 @@
 ---
-title: "Illustration limitation SuSiE"
+title: "Illustration of the limitations of SuSiE"
 author: "William R.P. Denault"
 date: "2024-03-07"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Introduction to fSuSiE}
+  %\VignetteIndexEntry{Illustration of the limitations of SuSiE}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -34,7 +34,7 @@ effect[which(effect<0)]<- 0
 effect[1:40]<- 0
 
 plot( effect)
-library(susiF.alpha)
+library(fsusieR)
 library(susieR)
 library(wavethresh)
 library(ggplot2)

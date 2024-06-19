@@ -443,8 +443,8 @@ wd.var <- function (data, filter.number = 10, family = "DaubLeAsymm",
          offsetC = as.integer(fl.dbase$first.last.c[,3]),
          firstD = as.integer(fl.dbase$first.last.d[,
                                                    1]), lastD = as.integer(fl.dbase$first.last.d[,
-                                                                                                 2]), offsetD = as.integer(fl.dbase$first.last.d[,
-                                                                                                                                                 3]), ntype = as.integer(ntype), nbc = as.integer(nbc),
+                                                   2]), offsetD = as.integer(fl.dbase$first.last.d[,
+                                                   3]), ntype = as.integer(ntype), nbc = as.integer(nbc),
          error = as.integer(error), PACKAGE = "wavethresh")
   }
   else {
