@@ -42,9 +42,9 @@
 #' @param cov_lev numeric between 0 and 1, corresponding to the
 #' expected level of coverage of the CS if not specified, set to 0.95
 #'
-#' @param min.purity minimum purity for estimated credible sets
+#' @param min_purity minimum purity for estimated credible sets
 #'
-#' @param filter.cs logical, if TRUE filters the credible set (removing low-purity)
+#' @param filter_cs logical, if TRUE filters the credible set (removing low-purity)
 #' cs and cs with estimated prior equal to 0). Set as TRUE by default.
 #'
 #' @param init_pi0_w starting value of weight on null compoenent in mixsqp
@@ -236,8 +236,8 @@ susiF <- function(Y, X, L = 2,
                   maxit = 100,
                   tol = 1e-3,
                   cov_lev = 0.95,
-                  min.purity=0.5,
-                  filter.cs =TRUE,
+                  min_purity=0.5,
+                  filter_cs =TRUE,
                   init_pi0_w= 1,
                   nullweight= 10 ,
                   control_mixsqp =  list(verbose=FALSE,
@@ -421,7 +421,7 @@ susiF <- function(Y, X, L = 2,
                                    cal_obj        = cal_obj,
                                    verbose        = verbose,
                                    cov_lev        = cov_lev,
-                                   min.purity     = min.purity,
+                                   min_purity     = min_purity,
                                    maxit          = maxit,
                                    tt             = tt,
                                    max_SNP_EM     = max_SNP_EM,
@@ -434,7 +434,7 @@ susiF <- function(Y, X, L = 2,
                         Y             = Y,
                         X             = X,
                         indx_lst      = indx_lst,
-                        filter.cs     = filter.cs,
+                        filter_cs     = filter_cs,
                         outing_grid   = outing_grid,
                         filter.number = filter.number,
                         family        = family,

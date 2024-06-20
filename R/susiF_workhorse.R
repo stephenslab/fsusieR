@@ -27,7 +27,7 @@
 #' @param cov_lev numeric between 0 and 1, corresponding to the
 #' expected level of coverage of the cs if not specified set to 0.95
 #'
-#' @param min.purity minimum purity for estimated credible sets
+#' @param min_purity minimum purity for estimated credible sets
 #' @param init_pi0_w starting value of weight on null compoenent in mixsqp
 #'  (between 0 and 1)
 #' @param control_mixsqp list of parameter for mixsqp function see  mixsqp package
@@ -58,7 +58,7 @@ susiF.workhorse <- function(obj,
                             cal_obj,
                             verbose,
                             cov_lev,
-                            min.purity,
+                            min_purity,
                             maxit,
                             tt,
                             parallel=FALSE,
@@ -234,7 +234,7 @@ susiF.workhorse <- function(obj,
                                    verbose    = verbose,
                                    cov_lev    = cov_lev,
                                    X          = X,
-                                   min.purity = min.purity
+                                   min_purity = min_purity
       )
       sigma2    <- estimate_residual_variance(obj,
                                               Y         = Y_f,

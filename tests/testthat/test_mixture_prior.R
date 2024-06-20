@@ -465,7 +465,7 @@ susiF_obj <-  update_susiF_obj(susiF_obj, 1, outEM, Bhat, Shat, indx_lst ,
 susiF_obj <-  out_prep(susiF_obj,Y=Y,
                        X=X,
                        indx_lst=indx_lst,
-                       filter.cs = FALSE,
+                       filter_cs = FALSE,
                        TI=TRUE,
                        outing_grid = 1:ncol(Y), lfsr_curve = 0.05 )
 

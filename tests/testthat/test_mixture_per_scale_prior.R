@@ -485,5 +485,5 @@ test_that("Removing one wc coeef should lead to the followin results",
 #out <- susiF(Y,X,L=2, prior="mixture_normal_per_scale", cal_obj = TRUE)
 #out <- susiF(Y,X,L=2, prior="mixture_normal_per_scale", cal_obj = TRUE,quantile_trans = TRUE)
 
-out <- susiF(Y,X,L=2, prior="mixture_normal_per_scale", cal_obj = FALSE,quantile_trans = TRUE, filter.cs = FALSE)
+out <- susiF(Y,X,L=2, prior="mixture_normal_per_scale", cal_obj = FALSE,quantile_trans = TRUE, filter_cs = FALSE)
 out$cs
