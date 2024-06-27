@@ -14,8 +14,8 @@ susiF(
   maxit = 100,
   tol = 0.001,
   cov_lev = 0.95,
-  min.purity = 0.5,
-  filter.cs = TRUE,
+  min_purity = 0.5,
+  filter_cs = TRUE,
   init_pi0_w = 1,
   nullweight = 10,
   control_mixsqp = list(verbose = FALSE, eps = 1e-06, numiter.em = 4),
@@ -69,9 +69,9 @@ than \code{tol}.}
 \item{cov_lev}{numeric between 0 and 1, corresponding to the
 expected level of coverage of the CS if not specified, set to 0.95}
 
-\item{min.purity}{minimum purity for estimated credible sets}
+\item{min_purity}{minimum purity for estimated credible sets}
 
-\item{filter.cs}{logical, if TRUE filters the credible set (removing low-purity)
+\item{filter_cs}{logical, if TRUE filters the credible set (removing low-purity)
 cs and cs with estimated prior equal to 0). Set as TRUE by default.}
 
 \item{init_pi0_w}{starting value of weight on null compoenent in mixsqp
@@ -105,7 +105,7 @@ Set as true by default as TRUE. We advise keeping it as TRUE.}
 
 \item{gridmult}{numeric used to control the number of components used in the mixture prior (see ashr package
 for more details). From the ash function:  multiplier by which the default grid values for mixed differ from one another.
- (Smaller values produce finer grids.). Increasing this value may reduce computational time}
+ (Smaller values produce finer grids.). Increasing this value may reduce computational time.}
 
 \item{max_scale}{numeric, define the maximum of wavelet coefficients used in the analysis (2^max_scale).
 Set 10 true by default.}

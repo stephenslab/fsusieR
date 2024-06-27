@@ -29,3 +29,4 @@ pxJ matrix of local false sign rate
 \description{
 Compute conditional local false sign rate
 }
+\keyword{internal}

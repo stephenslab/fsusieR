@@ -5,14 +5,14 @@
 \alias{check_cs.susiF}
 \title{Check purity credible sets}
 \usage{
-check_cs(obj, min.purity = 0.5, X, ...)
+check_cs(obj, min_purity = 0.5, X, ...)
 
-\method{check_cs}{susiF}(obj, min.purity = 0.5, X, ...)
+\method{check_cs}{susiF}(obj, min_purity = 0.5, X, ...)
 }
 \arguments{
 \item{obj}{a susif object defined by init_susiF_obj function}
 
-\item{min.purity}{minimal purity within a CS}
+\item{min_purity}{minimal purity within a CS}
 
 \item{X}{matrix of covariates}
 }

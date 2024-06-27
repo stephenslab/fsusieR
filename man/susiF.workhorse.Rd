@@ -17,7 +17,7 @@ susiF.workhorse(
   cal_obj,
   verbose,
   cov_lev,
-  min.purity,
+  min_purity,
   maxit,
   tt,
   parallel = FALSE,
@@ -63,7 +63,7 @@ console.}
 \item{cov_lev}{numeric between 0 and 1, corresponding to the
 expected level of coverage of the cs if not specified set to 0.95}
 
-\item{min.purity}{minimum purity for estimated credible sets}
+\item{min_purity}{minimum purity for estimated credible sets}
 
 \item{maxit}{Maximum number of IBSS iterations.}
 

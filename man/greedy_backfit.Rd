@@ -5,9 +5,9 @@
 \alias{greedy_backfit.susiF}
 \title{Update  susiF via greedy search or backfit}
 \usage{
-greedy_backfit(obj, verbose, cov_lev, X, min.purity, ...)
+greedy_backfit(obj, verbose, cov_lev, X, min_purity, ...)
 
-\method{greedy_backfit}{susiF}(obj, verbose, cov_lev, X, min.purity, ...)
+\method{greedy_backfit}{susiF}(obj, verbose, cov_lev, X, min_purity, ...)
 }
 \arguments{
 \item{obj}{a susiF object defined by init_susiF_obj function}
@@ -18,7 +18,7 @@ greedy_backfit(obj, verbose, cov_lev, X, min.purity, ...)
 
 \item{X}{matrix of size n by p contains the covariates}
 
-\item{min.purity}{minimum purity for estimated credible sets}
+\item{min_purity}{minimum purity for estimated credible sets}
 }
 \value{
 susiF object

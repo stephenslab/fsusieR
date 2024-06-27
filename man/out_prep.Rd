@@ -17,7 +17,7 @@ out_prep(obj, Y, X, indx_lst, outing_grid, ...)
   X,
   indx_lst,
   outing_grid,
-  filter.cs,
+  filter_cs,
   TI,
   filter.number = 10,
   family = "DaubLeAsymm",
@@ -38,7 +38,7 @@ out_prep(obj, Y, X, indx_lst, outing_grid, ...)
 
 \item{outing_grid}{grid use to fit fsusie}
 
-\item{filter.cs}{logical, if TRUE filter the credible set (removing low purity cs and cs with estimated prior equal to 0)}
+\item{filter_cs}{logical, if TRUE filter the credible set (removing low purity cs and cs with estimated prior equal to 0)}
 }
 \value{
 susiF object
