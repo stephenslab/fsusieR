@@ -22,7 +22,7 @@ knitr::opts_chunk$set(
 ```
 
 # Problem set up 
-This vignette illustrates some of the limitations of SuSiE when analyzing molecular traits or traits/responses variable that are functions. We  use a simple example where the effect of a SNP spans over multiple CpG.  We start by fine-mapping the effect of the genotype on each CpG in a  sequentially fashion. Then we show that SuSiE can outputs unconsistent results. Finally we show that fSuSiE can handle this problem and output much more interpretable results.
+This vignette illustrates some of the limitations of SuSiE when analyzing molecular traits or traits/responses variables that are functions. We use a simple example where the effect of a SNP spans over multiple CpG. We start by fine-mapping the effect of the genotype on each CpG in a sequential fashion. Then, we show that SuSiE can output inconsistent results. Finally we show that fSuSiE can handle this problem and output much more interpretable results.
 
 
 Let's simulate a simple effect of a SNP on a set of CpG. The effect of the SNP is a cosine function that spans over 40 CpG. The effect of the SNP is 0 for the first 40 CpG. We simulate 100 observations of the effect of the SNP on the CpG. We then run SuSiE sequentially on each CpG. 
@@ -55,7 +55,7 @@ y <- do.call(rbind, obs)
 
 which(effect>0)
 ```
-Once the data is simulated, we can run SuSiE on each CpG. For the sake of simplicity, we only run SuSiE with L=1 as we are aware that there is only one effect in this simualtion. In the same line, we also limit our fine mapping to the region where the effect is non-zero (which we don't know in practice). 
+Once the data is simulated, we can run SuSiE on each CpG. For the sake of simplicity, we only run SuSiE with L=1 as we are aware that there is only one effect in this simulation. In the same line, we also limit our fine mapping to the region where the effect is non-zero (which we don't know in practice). 
 
 ```{r}
  
