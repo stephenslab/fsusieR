@@ -119,25 +119,43 @@ Note that the true causal SNPs are at SNP positions 25 and 75
 
 ### Run fSuSiE
 
-Running fSuSiE requires a Y matrix in which each line corresponds to
-an individual profile/time series. X the genotype matrix in which each
-line represents the individual genotype and the column the different
-SNPs. L is an upper bound on the number of causal SNPs within the
-regions (we advise keeping this parameter below 20).
+The main function in fsusieR for performing an fSuSiE analysis is the
+"susiF" function. It has many input arguments for customizing or
+fine-tuning the analysis, but at its simplest, only three inputs are
+needed: (1) the molecular trait matrix, $\bf Y; (2) the genotype
+matrix, $\bf X$; and (3) a number specifying an upper bound on the
+number of single effects. Typically this number will be around 10, or
+perhaps a bit larger. Therefore, the call to susiF for this simulated
+data set is simply:
 
 ```{r run-susiF, results="hide"}
 out <- susiF(Y,X,L = 10)
 ```
 
-FSuSiE automatically selects the number of causal effects (here
+On most current computers, this call to susiF should not take more
+than a minute or two to run.
+
+fSuSiE automatically selects the number of causal effects (here
 two). The effects detected are summarized in terms of credible
-sets. Each credible set contains the likely causal covariates for a
+sets (CSs). Each credible set contains the likely causal covariates for a
 given effect. You can access them simply as
  
-```{r}
+```{r credible-sets}
 out$cs
 ```
+
 As you can see, the two CSs contain the correct causal SNPs.
+
+```{r pips}
+cs1 <- out$cs[[1]]
+cs2 <- out$cs[[2]]
+out$pip[cs1]
+out$pip[cs2]
+```
+
+```{r cor-cs1}
+cor(X[,cs1])
+```
 
 ### Visualization
 
@@ -145,7 +163,7 @@ The easiest way to visualize the result is to use the
 \code{plot_susiF} function.
 
 ```{r}
-plot_susiF(out )
+fsusie_plots <- plot_susiF(out)
 ```
 
 You can also access the information directly in the output of susiF in
