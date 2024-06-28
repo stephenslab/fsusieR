@@ -2,14 +2,19 @@
 title: "Introduction to fSuSiE"
 author: "William R.P. Denault"
 date: "`r Sys.Date()`"
-output: rmarkdown::html_vignette
+output:
+  html_document:
+    toc: no
+    toc_float: no
+    highlight: textmate
+    theme: readable
 vignette: >
   %\VignetteIndexEntry{Introduction to fSuSiE}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
 
-```{r, include = FALSE}
+```{r, include=FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
@@ -21,45 +26,62 @@ knitr::opts_chunk$set(
   )
 ```
 
-# fSuSiE
+## Overview
 
-In this package, we implement a Bayesian variable selection method
-called the "Functional Sum of Single Effects" ({\em fSuSiE}) model
-that extends the {\em SuSiE} model of Wang et
-al.^[this vignette is based on the original SuSiE vignette by [Gao Wang](https://stephenslab.github.io/susieR/articles/finemapping.html)
-] to functional phenotypes that can span over large genomic
-regions. The methods implemented here are particularly well-suited to
-settings where some of the X variables are highly correlated, and the
-true effects are highly sparse (e.g., <20 non-zero effects in the
-vector b). One example of this is genetic fine-mapping molecular
-measurements from sequencing assays (ChIP-seq, ATAC-seq ), as well as
-DNA methylation. However, the methods should also be useful more
-generally (e.g., detecting changes in time series).
+fSuSiE implements a Bayesian variable selection method based on the
+"Functional Sum of Single Effects" (fSuSiE) model.  The fSuSiE model
+extends the SuSiE model to functional traits. fSuSiE (and SuSiE) are
+particularly well suited to settings where some of the variables are
+strongly correlated and the true effects on the trait are very
+sparse. This is exactly the situation we face in genetic
+fine-mapping. The functional traits of interest are molecular
+measurements from sequencing assays (e.g., ChIP-seq, ATAC-seq), and
+DNA methylation. However, the methods are quite general and could be
+useful for other problems inside and outside genetics.
 
-###Model Description 
+## The fSuSiE model
 
-fSuSiE fits the following linear regression ${Y} = {XB} + {E}$, where ${Y}$ is a N x T matrix containing the observed curves, ${X}$ is the N × p matrix of single nucleotide polymorphisms (SNP) in the region to be fine-mapped. ${B}$ is a p × T matrix whose element $b_{jt}$ is the effect of SNP $j$ on the trait at location t, and ${E}$ is a matrix of error terms which initially, we consider being normally-distributed with variance $\sigma^2$. Analogous to regular fine-mapping, the matrix ${B}$ is expected to be sparse, i.e., most rows will be zero. Non-zero rows correspond to SNPs that do affect the trait. The goal is to identify the non-zero rows of  ${B}$. We extended  {\em SuSiE} to functional traits by writing ${B}= \sum_l^L {B}^{(l)}$, where each "single-effect" matrix ${B}^{(l)}$ has only one non-zero row, corresponding to a single causal SNP. We devised a fast variational inference procedure~\cite{blei_variational_2017} for fitting this model by first projecting the data in the wavelet space and then using an adaptation of the efficient iterative Bayesian stepwise selection (IBSS) approach proposed by Wang and colleagues.
+fSuSiE fits the linear regression model
+$$
+{\bf Y} = {\bf X} {\bf B} + {\bf E},
+$$
 
-The output of the fitting procedure is a number of "Credible Sets"
-(CSs), which are each designed to have a high probability of
-containing a variable with a non-zero effect while at the same time
-being as small as possible. You can think of the CSs as being a set of
-"highly correlated" variables that are each associated with the
-response: you can be confident that one of the variables has a
-non-zero coefficient, but they are too correlated to be sure which
-one.
+where $\bf Y$ is an N x T matrix containing the $N$ trait observations
+at $T$ locations; $\bf X$ is the N x p matrix of single nucleotide
+polymorphisms (SNP) in the region to be fine-mapped; $\bf B$ is a p x
+T matrix whose element $b_{jt}$ is the effect of SNP $j$ on the trait
+at location t; and $\bf E$ is a matrix of error terms.
 
-The package is developed by William R.P. Denault from the Stephens Lab
-at the University of Chicago.
+Analogous to regular fine-mapping, the matrix $\bf B$ is expected to
+be row-wise sparse, that is, most of the rows of $\bf B$ will be
+zero. (Non-zero rows correspond to SNPs that affect the trait.) The
+goal, in short, is to identify the non-zero rows of ${\bf B}$. To
+accomplish this task, we extend SuSiE to functional traits: we express
+${\bf B}$ as a sum of "single effects",
+$$
+{\bf B} = \sum_{l=1}^L {B}^{(l)},
+$$
+where each single-effect matrix ${B}^{(l)}$ has only one non-zero row,
+corresponding to a single causal SNP. We have developed a fast
+procedure for fitting this model by (i) projecting the data in the
+wavelet space, then (ii) using a version of the iterative Bayesian
+stepwise selection (IBSS) algorithm adapted for fSuSiE.
 
-Please post issues to ask questions, get our support, or provide us
-feedback: please send pull requests if you have helped fix bugs or
-make improvements to the source code.
+fSuSiE also outputs Credible Sets (CSs). Each CS is defined so that it
+has a high probability of containing a variable with a non-zero effect
+while at the same time being as small as possible.
+
+We illustrate these ideas in the examples below.
 
 ### Using fSuSiE
 
 #### the data
-This vignette shows how to use fsusieR in the context of genetic fine-mapping. We use simulated data of a molecular trait over a region of 124 base pairs (Y) with N≈600 individuals. We want to identify which columns of the genotype matrix X  (P=1000) cause changes in expression level.
+
+This vignette shows how to use fsusieR in the context of genetic
+fine-mapping. We use simulated data of a molecular trait over a region
+of 124 base pairs (Y) with N≈600 individuals. We want to identify
+which columns of the genotype matrix X (P=1000) cause changes in
+expression level.
 
 The simulated data set is simulated to have exactly two non-zero effects.
 
@@ -100,7 +122,6 @@ So, the underlying causal variants are variant 25  and variant 75. The plot abov
 
 
 ```{r}
-
 noisy.data  <- list()
 X <- N3finemapping$X[,1:100]
 for ( i in 1:nrow(X))
@@ -112,77 +133,70 @@ for ( i in 1:nrow(X))
 
 }
 noisy.data <- do.call(rbind, noisy.data)
-
 Y <- noisy.data
-
-
 ```
 
 #### Output and interpretation
 
-
-Running fSuSiE requires a Y matrix in which each line corresponds to an individual profile/time series. X the genotype matrix in which each line represents the individual genotype and the column the different SNPs. L is an upper bound on the number of causal SNPs within the regions (we advise keeping this parameter below 20).
-
-
-
+Running fSuSiE requires a Y matrix in which each line corresponds to
+an individual profile/time series. X the genotype matrix in which each
+line represents the individual genotype and the column the different
+SNPs. L is an upper bound on the number of causal SNPs within the
+regions (we advise keeping this parameter below 20).
 
 ```{r}
  out <- susiF(Y,X,L=10) 
 
 ```
 
-FSuSiE automatically selects the number of causal effects (here two). The effects detected are summarized in terms of credible sets. Each credible set contains the likely causal covariates for a given effect. You can access them simply as 
+FSuSiE automatically selects the number of causal effects (here
+two). The effects detected are summarized in terms of credible
+sets. Each credible set contains the likely causal covariates for a
+given effect. You can access them simply as
  
 ```{r}
 out$cs
 ```
 As you can see, the two CSs contain the correct causal SNPs.
 
-
 ### Visualization
 
-The easiest way to visualize the result is to use the \code{plot_susiF} function.
+The easiest way to visualize the result is to use the
+\code{plot_susiF} function.
 
 ```{r}
- 
- plot_susiF(out )
- 
-
+plot_susiF(out )
 ```
 
-
-
-
-
-You can also access the information directly in the output of susiF in the fitted_func part of the output. See below 
- 
+You can also access the information directly in the output of susiF in
+the fitted_func part of the output. See below
  
 ```{r} 
- plot( f1, type="l", main="Estimated effect 1", xlab="")
- lines(get_fitted_effect(out,l=2),col='blue' )
- abline(a=0,b=0)
- legend(x= 35,
-        y=3,
-        lty= rep(1,2),
-        legend = c("effect 1"," fSuSiE est "),
-        col=c("black","blue" )
- )
- plot( f2, type="l", main="Estimated effect 2", xlab="")
- lines(get_fitted_effect(out,l=1),col='green' )
- abline(a=0,b=0)
- legend(x= 20,
-        y=-1.5,
-        lty= rep(1,2),
-        legend = c("effect 2"," fSuSiE est "),
-        col=c("black","green" )
- )
-  
+plot( f1, type="l", main="Estimated effect 1", xlab="")
+lines(get_fitted_effect(out,l=2),col='blue' )
+abline(a=0,b=0)
+legend(x= 35,
+       y=3,
+       lty= rep(1,2),
+       legend = c("effect 1"," fSuSiE est "),
+       col=c("black","blue" )
+)
+plot( f2, type="l", main="Estimated effect 2", xlab="")
+lines(get_fitted_effect(out,l=1),col='green' )
+abline(a=0,b=0)
+legend(x= 20,
+       y=-1.5,
+       lty= rep(1,2),
+       legend = c("effect 2"," fSuSiE est "),
+       col=c("black","green" )
+)
 ```
- 
 
-####Posterior inclusion probabilities
-You can also access the Posterior inclusion probabilities directly from the fitted object. Similarly, you can specify the plot_susiF function to display only the PiP plot.
+#### Posterior inclusion probabilities
 
+You can also access the Posterior inclusion probabilities directly
+from the fitted object. Similarly, you can specify the plot_susiF
+function to display only the PiP plot.
  
 ```{r}
  
@@ -302,12 +316,9 @@ lines(  x=out$outing_grid, y=out$fitted_func[[1]]    ,col='darkblue', lwd=2)
 lines(  x=out$outing_grid, y= out$cred_band[[1]][1,] ,col='darkblue',lty=2 )
 lines(  x=out$outing_grid, y= out$cred_band[[1]][2,] ,col='darkblue' ,lty=2 )
 ```
-
-
-
  
- 
-#### A note on the priors available
+### A note on the priors available
+
 Note that fSuSiE has two different priors available: \textit{mixture_normal_per_scale} and \textit{mixture_normal}. The default value is \textit{mixture_normal_per_scale}, which has slightly higher performance (power, estimation accuracy) than the  \textit{mixture_normal}. However,  \textit{mixture_normal} is up to 40% faster than the \textit{mixture_normal_per_scale}. You may consider using this option before performing genome-wide fine mapping. 
  
 Here is a comparison between their running time
@@ -317,5 +328,3 @@ Here is a comparison between their running time
  out2 <- susiF(Y,X,L=3 , prior = 'mixture_normal',verbose=FALSE)
  out2$runtime
 ```
- 
- 
