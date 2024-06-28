@@ -110,7 +110,7 @@ Y     <- tcrossprod(X[,pos1],f1) + tcrossprod(X[,pos2],f2) + noise
 ```
 
 The end result is a fine-mapping data set containing the genotype data
-at 100 SNPs (stored as a 574 x 100 matrix ${\bf X}$ ) and the
+at 100 SNPs (stored as a 574 x 100 matrix ${\bf X}$) and the
 molecular trait data at 128 locations (stored as a 574 x 128 matrix
 ${\bf Y}$).
 
@@ -122,7 +122,7 @@ Note that the true causal SNPs are at SNP positions 25 and 75
 The main function in fsusieR for performing an fSuSiE analysis is the
 "susiF" function. It has many input arguments for customizing or
 fine-tuning the analysis, but at its simplest, only three inputs are
-needed: (1) the molecular trait matrix, $\bf Y; (2) the genotype
+needed: (1) the molecular trait matrix, $\bf Y$; (2) the genotype
 matrix, $\bf X$; and (3) a number specifying an upper bound on the
 number of single effects. Typically this number will be around 10, or
 perhaps a bit larger. Therefore, the call to susiF for this simulated
