@@ -181,7 +181,7 @@ You can also access the information directly in the output of susiF in the fitte
  
 
 ####Posterior inclusion probabilities
-You can also access the Posterior inclusion probabilities directly from the fitted object. Similarly, you can also specify the plot_susiF function to only display the PiP plot.
+You can also access the Posterior inclusion probabilities directly from the fitted object. Similarly, you can specify the plot_susiF function to display only the PiP plot.
 
  
 ```{r}
