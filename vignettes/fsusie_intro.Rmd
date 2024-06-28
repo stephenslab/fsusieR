@@ -5,7 +5,6 @@ date: "`r Sys.Date()`"
 output:
   html_document:
     toc: no
-    toc_float: no
     highlight: textmate
     theme: readable
 vignette: >
@@ -14,16 +13,10 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-```{r, include=FALSE}
-knitr::opts_chunk$set(
-  collapse = TRUE,
-  comment = "#>",
-  fig.width = 5,
-  fig.height = 3,
-  fig.align = "center",
-  fig.cap = "&nbsp;",
-  ddpi = 175
-  )
+```{r knitr-opts, include=FALSE}
+knitr::opts_chunk$set(collapse = TRUE,comment = "#>",fig.width = 5,
+                      fig.height = 3,fig.align = "center",
+					  fig.cap = "&nbsp;",dpi = 120)
 ```
 
 ## Overview
@@ -73,70 +66,58 @@ while at the same time being as small as possible.
 
 We illustrate these ideas in the examples below.
 
-### Using fSuSiE
+## The example fine-mapping data set
 
-#### the data
-
-This vignette shows how to use fsusieR in the context of genetic
-fine-mapping. We use simulated data of a molecular trait over a region
-of 124 base pairs (Y) with N≈600 individuals. We want to identify
-which columns of the genotype matrix X (P=1000) cause changes in
-expression level.
-
-The simulated data set is simulated to have exactly two non-zero effects.
-
-Here, we simulate the effects
-```{r}
-knitr::opts_chunk$set(
-	echo = TRUE,
-	message = FALSE,
-	warning = FALSE
-)
-library(fsusieR)
+```{r load-packages}
 library(susieR)
-library(wavethresh)
+library(fsusieR)
+library(ggplot2)
+library(cowplot)
+```
+
+We illustrate fSuSiE on a simulated molecular trait in which two of
+the candidate genetic variants (SNPs) affect the trait. The molecular
+trait spans a region of 120 locations.
+
+First, we simulate the SNP effects (blue and green in the plot):
+
+```{r sim-effects, fig.height=2, fig.width=5}
 set.seed(1)
+f1 <- simu_IBSS_per_level(7)$sim_func
+f2 <- simu_IBSS_per_level(7)$sim_func
+par(mar = c(2,2,2,2))
+plot(f1,type = "l",col = "royalblue",lwd = 2)
+abline(a = 0,b = 0,lty = "dotted")
+lines(f2,type = "l",col = "limegreen",lwd = 2)
+```
+
+Notice that each of the SNPs increases or decreases at many locations,
+but in a mostly spatially smooth way.
+
+Now we simulate the molecular trait. To do this, we use some genotype
+data included in susieR. 
+
+```{r sim-trait}
 data(N3finemapping)
-attach(N3finemapping)
-
-rsnr <- 0.5 #expected root signal noise ratio
-
-pos1 <- 25    #Position of the causal covariate for effect 1
-pos2 <- 75    #Position of the causal covariate for effect 2
-lev_res <- 7#length of the molecular phenotype (2^lev_res)
-f1 <-  simu_IBSS_per_level(lev_res )$sim_func#first effect
-f2 <- simu_IBSS_per_level(lev_res )$sim_func #second effect
-
-plot( f1, type ="l", ylab="effect", col="blue")
-abline(a=0,b=0)
-lines(f2, type="l", col="green")
-legend(x=100,
-       y=3,
-       lty = rep(1,3),
-      legend= c("effect 1", "effect 2" ),
-       col=c( "blue","green"))
-
-```
-So, the underlying causal variants are variant 25  and variant 75. The plot above shows the functional effect of the two variants. Below, we generate the  observed curves (effect +noise)
-
-
-
-```{r}
-noisy.data  <- list()
-X <- N3finemapping$X[,1:100]
-for ( i in 1:nrow(X))
-{
-  f1_obs <- f1
-  f2_obs <- f2
-  noise <- rnorm(length(f1), sd=  (1/  rsnr ) * var(f1))
-  noisy.data [[i]] <-  X[i,pos1]*f1_obs +X[i,pos2]*f2_obs + noise
-
-}
-noisy.data <- do.call(rbind, noisy.data)
-Y <- noisy.data
+rsnr  <- 0.5
+pos1  <- 25
+pos2  <- 75
+X     <- N3finemapping$X[,1:100]
+n     <- nrow(X)
+nloc  <- length(f1)
+noise <- matrix(rnorm(n*nloc,sd = var(f1)/rsnr),n,nloc)
+Y     <- tcrossprod(X[,pos1],f1) + tcrossprod(X[,pos2],f2) + noise
 ```
 
-#### Output and interpretation
+The end result is a fine-mapping data set containing the genotype data
+at 100 SNPs (stored as a 574 x 100 matrix ${\bf X}$ ) and the
+molecular trait data at 128 locations (stored as a 574 x 128 matrix
+${\bf Y}$).
+
+Note that the true causal SNPs are at SNP positions 25 and 75
+(columns 25 and 75 in the X matrix).
+
+### Run fSuSiE
 
 Running fSuSiE requires a Y matrix in which each line corresponds to
 an individual profile/time series. X the genotype matrix in which each
@@ -144,9 +125,8 @@ line represents the individual genotype and the column the different
 SNPs. L is an upper bound on the number of causal SNPs within the
 regions (we advise keeping this parameter below 20).
 
-```{r}
- out <- susiF(Y,X,L=10) 
-
+```{r run-susiF, results="hide"}
+out <- susiF(Y,X,L = 10)
 ```
 
 FSuSiE automatically selects the number of causal effects (here
@@ -222,6 +202,8 @@ You can also check the predictive power of susiF by checking the fitted from the
 
  
 ```{r}
+f1_obs <- f1
+f2_obs <- f2
 true_sig  <- matrix( X[ ,pos1], ncol=1)%*%t(f1_obs) +matrix( X[ ,pos2], ncol=1)%*%t(f2_obs)             
 
 
@@ -258,8 +240,6 @@ attach(N3finemapping)
 
 rsnr <- 0.5 #expected root signal noise ratio
 
-pos1 <- 25    #Position of the causal covariate for effect 1
-pos2 <- 75    #Position of the causal covariate for effect 2
 lev_res <- 9#length of the molecular phenotype (2^lev_res)
 f1 <-  simu_IBSS_per_level(lev_res )$sim_func  #first effect
 f2 <- simu_IBSS_per_level(lev_res )$sim_func  #second effect
