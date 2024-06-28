@@ -117,7 +117,7 @@ ${\bf Y}$).
 Note that the true causal SNPs are at SNP positions 25 and 75
 (columns 25 and 75 in the X matrix).
 
-### Run fSuSiE
+## Fitting the fSuSiE model
 
 The main function in fsusieR for performing an fSuSiE analysis is the
 "susiF" function. It has many input arguments for customizing or
@@ -190,7 +190,7 @@ legend(x= 20,
 )
 ```
 
-#### Posterior inclusion probabilities
+## Posterior inclusion probabilities
 
 You can also access the Posterior inclusion probabilities directly
 from the fitted object. Similarly, you can specify the plot_susiF
