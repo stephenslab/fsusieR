@@ -157,7 +157,7 @@ fit$pip[cs2]
 cor(X[,cs1])
 ```
 
-### Visualization
+## Visualization
 
 The easiest way to visualize the result is to use the
 \code{plot_susiF} function.
@@ -169,65 +169,37 @@ fsusie_plots <- plot_susiF(fit)
 You can also access the information directly in the output of susiF in
 the fitted_func part of the output. See below
 
-```{r}
+```{r plot-effects, fig.height=3, fig.width=4}
 plot_susiF_effect(fit)
 ```
-
-```{r} 
-plot( f1, type="l", main="Estimated effect 1", xlab="")
-lines(get_fitted_effect(out,l=2),col='blue' )
-abline(a=0,b=0)
-legend(x= 35,
-       y=3,
-       lty= rep(1,2),
-       legend = c("effect 1"," fSuSiE est "),
-       col=c("black","blue" )
-)
-plot( f2, type="l", main="Estimated effect 2", xlab="")
-lines(get_fitted_effect(out,l=1),col='green' )
-abline(a=0,b=0)
-legend(x= 20,
-       y=-1.5,
-       lty= rep(1,2),
-       legend = c("effect 2"," fSuSiE est "),
-       col=c("black","green" )
-)
-```
-
-## Posterior inclusion probabilities
 
 You can also access the Posterior inclusion probabilities directly
 from the fitted object. Similarly, you can specify the plot_susiF
 function to display only the PiP plot.
  
 ```{r}
- 
-out$pip[1:10]
-
 plot_susiF(out, pip_only=TRUE)
 ```
  
- 
- 
- 
-#### Extracting the regions affected by the credible sets
- We provide a build-in function to retrieve the regions where the credible bands are "crossing zero"/i.e., the effects are likely not to be 0 in this region. 
+## Extracting the regions affected by the credible sets
+
+We provide a build-in function to retrieve the regions where the
+credible bands are "crossing zero"/i.e., the effects are likely not to
+be 0 in this region.
+
 ```{r}
- affected_reg( out)
-  
+affected_reg( out)
 ```
 
+## Prediction
 
-### Prediction
-
-You can also check the predictive power of susiF by checking the fitted from the output susiF
-
+You can also check the predictive power of susiF by checking the
+fitted from the output susiF
  
 ```{r}
 f1_obs <- f1
 f2_obs <- f2
-true_sig  <- matrix( X[ ,pos1], ncol=1)%*%t(f1_obs) +matrix( X[ ,pos2], ncol=1)%*%t(f2_obs)             
-
+true_sig  <- matrix( X[ ,pos1], ncol=1)%*%t(f1_obs) +matrix( X[ ,pos2], ncol=1)%*%t(f2_obs)
 
 plot(out$ind_fitted_func,  true_sig,
      xlab= "predicted value", ylab="true value") 

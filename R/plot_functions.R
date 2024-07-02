@@ -13,11 +13,11 @@ plot_susiF_pips <- function (obj, title="",
   }
   
   
-  color = c("black", "dodgerblue2", "green4", "#6A3D9A", "#FF7F00",
-            "gold1", "skyblue2", "#FB9A99", "palegreen2", "#CAB2D6",
-            "#FDBF6F", "gray70", "khaki2", "maroon", "orchid1", "deeppink1",
-            "blue1", "steelblue4", "darkturquoise", "green1", "yellow4",
-            "yellow3", "darkorange4", "brown")
+  color <- c("black", "dodgerblue2", "green4", "#6A3D9A", "#FF7F00",
+             "gold1", "skyblue2", "#FB9A99", "palegreen2", "#CAB2D6",
+             "#FDBF6F", "gray70", "khaki2", "maroon", "orchid1", "deeppink1",
+             "blue1", "steelblue4", "darkturquoise", "green1", "yellow4",
+             "yellow3", "darkorange4", "brown")
   L <- obj$L
   
   y <- obj$pip
@@ -36,7 +36,7 @@ plot_susiF_pips <- function (obj, title="",
   
   P1 <- ggplot(df, aes_string(y = "y",
                               x ="pos_SNP",
-                              col = "CS")) +
+                              color = "CS")) +
     geom_point(size = size_point,
                shape=point_shape) +
     theme(axis.ticks.x = element_blank(),
@@ -98,7 +98,7 @@ plot_susiF_effect  <- function (obj,
                                 title = "",
                                 cred.band = TRUE,
                                 lfsr.curve = TRUE,
-                                linewidth = 0.75,
+                                linewidth = 0.5,
                                 font_size = 10,
                                 ...) {
   color <- c("black", "dodgerblue2", "green4", "#6A3D9A", "#FF7F00",
@@ -109,7 +109,7 @@ plot_susiF_effect  <- function (obj,
   L     <- obj$L
   n_wac <- obj$n_wac
   y     <- obj$pip
-  col_y <- rep(0, length(y))
+  col_y <- rep(0,length(y))
   
   if (is.character(effect)) {
     if (effect == "all") {
@@ -136,20 +136,16 @@ plot_susiF_effect  <- function (obj,
                                   low = rep(0, n_wac)),
                        cred_band)
     
-    x  <- rep(obj$outing_grid, (length(indx_effect) + 1))
+    x  <- rep(obj$outing_grid,length(indx_effect) + 1)
     CS <- rep(0:L, each = n_wac)
-    df <- data.frame(fun_plot = fun_plot,
-                     CS = as.factor(CS),
-                     x = x,
+    df <- data.frame(fun_plot = fun_plot,CS = as.factor(CS),x = x,
                      upr = cred_band$up,
                      lwr = cred_band$low)
-    df  <- df[-which(df$CS==0),]
-    out <- ggplot(df, aes_string(y = "fun_plot",
-                                x = "x",
-                                col = "CS")) +
+    df  <- df[-which(df$CS == 0),]
+    out <- ggplot(df, aes_string(y = "fun_plot",x = "x",color = "CS")) +
       geom_line(linewidth = linewidth) +
       geom_ribbon(aes_string(ymin = "lwr",ymax = "upr",fill = "CS",
-                             color = "CS"),alpha = 0.3) +
+                             color = "CS"),linewidth = 0,alpha = 0.3) +
       scale_color_manual("Credible set",values = color[-1][indx_effect]) +
       scale_fill_manual("Credible set",values = color[-1][indx_effect]) +
       facet_grid(CS~.)
@@ -165,7 +161,7 @@ plot_susiF_effect  <- function (obj,
       df$lfsr_curve <- lfsr_curve
       out <- ggplot(df, aes_string(y = "fun_plot",x = "x",color = "CS")) +
         geom_line(linewidth = linewidth) +
-        geom_line(aes(y = lfsr_curve,x = x,col = "black")) +
+        geom_line(aes(y = lfsr_curve,x = x,color = "black")) +
         geom_hline(yintercept = 0.05) +
         scale_color_manual("Credible set",values = color[-1][indx_effect]) +
         facet_grid(CS~.,scales = "free")
@@ -179,7 +175,7 @@ plot_susiF_effect  <- function (obj,
       out <- ggplot(df,aes_string(y = "fun_plot",x = "x",color = "CS")) +
         geom_line(linewidth = linewidth) +
         scale_color_manual("Credible set",values = color[-1][indx_effect]) +
-        geom_hline(yintercept = 0,linetype = "dashed",col = "grey",
+        geom_hline(yintercept = 0,linetype = "dashed",color = "grey",
                    linewidth = 1.5) +
         facet_grid(CS~.,scales = "free")
     }
@@ -222,7 +218,7 @@ plot_susiF_effect  <- function (obj,
 #
 #' @export
 #
-plot_susiF  = function (obj,
+plot_susiF = function (obj,
                         title="",
                         effect= "all",
                         cred.band = TRUE,
