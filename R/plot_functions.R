@@ -1,52 +1,41 @@
+#'
 #' @export
 #' 
-plot_susiF_pips <- function (obj, title="", 
-                             size_point=4,
-                             pos_SNP, 
-                             point_shape, ...){
-  
-  if(missing(pos_SNP)){
-    pos_SNP<-  1:length(obj$pip)
+plot_susiF_pip <- function (obj,
+                            title = "", 
+                            point_size = 1,
+                            pos_SNP, 
+                            point_shape,
+                            font_size = 10,
+                            ...) {
+  if (missing(pos_SNP)) {
+    pos_SNP <- 1:length(obj$pip)
   }
-  if( missing(point_shape)){
-    point_shape <- rep( 19, length(pos_SNP))
+  if (missing(point_shape)) {
+    point_shape <- rep(19,length(pos_SNP))
   }
-  
-  
   color <- c("black", "dodgerblue2", "green4", "#6A3D9A", "#FF7F00",
              "gold1", "skyblue2", "#FB9A99", "palegreen2", "#CAB2D6",
              "#FDBF6F", "gray70", "khaki2", "maroon", "orchid1", "deeppink1",
              "blue1", "steelblue4", "darkturquoise", "green1", "yellow4",
              "yellow3", "darkorange4", "brown")
   L <- obj$L
-  
   y <- obj$pip
-  col_y <- rep(0, length(y))
-  
+  col_y <- rep(0,length(y))
   for (l in 1:L) {
     col_y[which(1:length(y) %in% obj$cs[[l]])] <- l
   }
-  CS <-  factor(col_y,
-                levels=0:L,
-                labels = c("Not in CS", 1:L))
-  
-  
-  df <-  data.frame(y = y, CS = CS)
-  
-  
-  P1 <- ggplot(df, aes_string(y = "y",
-                              x ="pos_SNP",
-                              color = "CS")) +
-    geom_point(size = size_point,
-               shape=point_shape) +
-    theme(axis.ticks.x = element_blank(),
-          axis.text.x = element_blank()) +
-    scale_color_manual("Credible set",
-                       values = color) +
-    xlab("SNP index") +
-    ylab("Posterior Inclusion Probability (PIP)")
-  
-  return(P1)
+  CS <- factor(col_y,
+               levels = 0:L,
+               labels = c("none",1:L))
+  df <- data.frame(y = y,CS = CS,pos_SNP)
+  return(ggplot(df, aes_string(y = "y",x = "pos_SNP",color = "CS")) +
+         geom_point(size = point_size,
+                    shape = point_shape) +
+         scale_color_manual("CS",values = color) +
+         labs(x = "SNP",y = "PIP",title = title) +
+         theme_cowplot(font_size = font_size))
+  return(out)
   
 }
 
@@ -189,14 +178,23 @@ plot_susiF_effect  <- function (obj,
 #' @title Plot susiF object
 #
 #' @param obj output of the susiF function
+#' 
 #' @param effect  the index of the effect to be plotted or use "all" to plot all effects
+#' 
 #' @param cred.band logical, if TRUE, plot credible bands if obj fitted with wavelets regression. Set as TRUE by default
+#' 
 #' @param  lfsr.curve logical, if TRUE, plot estimated lfsr of the effect at each base pair  if obj fitted with HMM regression. Set as TRUE by default
+#' 
 #' @param size_line numeric, width of the plotted lines
+#' 
 #' @param size_point numeric, size of the point
+#' 
 #' @param pos_SNP vector, containing the base pair of the SNPs
+#' 
 #' @param point_shape vector, containing the shape of dots
+#' 
 #' @param pip_only logical, if TRUE only ouput the PIP plot
+#' 
 #' @param title character
 #' @param \dots Other arguments..
 #'
