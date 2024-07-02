@@ -1,5 +1,5 @@
-
-
+#' @export
+#' 
 plot_susiF_pips <- function (obj, title="", 
                              size_point=4,
                              pos_SNP, 
@@ -50,19 +50,29 @@ plot_susiF_pips <- function (obj, title="",
   
 }
 
-
-
-
-
 #' @title Plot specific effect from susiF object
-#' @description  Plot specific effect from susiF object
-#' @param obj output of the susiF function
-#' @param effect  the index of the effect to be plotted or use "all" to plot all effects
-#' @param cred.band logical, if TRUE, plot credible bands if obj fitted with wavelets regression. Set as TRUE by default
-#' @param  lfsr.curve logical, if TRUE, plot estimated lfsr of the effect at each base pair  if obj fitted with HMM regression. Set as TRUE by default
-#' @param size_line numeric, width of the plotted lines 
-#' @param title character
-#' @param \dots Other arguments..
+#' 
+#' @description Plot specific effect from susiF object
+#' 
+#' @param obj Output of the susiF function.
+#' 
+#' @param effect The indices of the effects to be plotted, or use
+#'   "all" to plot all effects.
+#' 
+#' @param cred.band logical, if TRUE, plot credible bands if obj
+#'   fitted with wavelets regression.
+#' 
+#' @param lfsr.curve logical, if TRUE, plot estimated lfsr of the
+#'   effect at each base pair if obj fitted with HMM regression.
+#' 
+#' @param size_line numeric, width of the plotted lines
+#'
+#' @title font_size Passed as the \dQuote{ont_size} argument to
+#'   \code{\link[cowplot]{theme_cowplot}}.
+#' 
+#' @param title The title of the plot.
+#' 
+#' @param \dots Other arguments.
 #'
 #' @importFrom ggplot2 ggplot
 #' @importFrom ggplot2 aes_string
@@ -79,66 +89,49 @@ plot_susiF_pips <- function (obj, title="",
 #' @importFrom ggplot2 geom_ribbon
 #' @importFrom ggplot2 scale_fill_manual
 #' @importFrom ggplot2 aes
+#' @importFrom cowplot theme_cowplot
 #
 #' @export
 #
-plot_effect  <- function( obj,
-                          effect=1,
-                          title="",
-                          cred.band = TRUE,
-                          lfsr.curve=TRUE,
-                          size_line=2, ...){
-  
-  
-  
-  
-  
-   
-  color = c("black", "dodgerblue2", "green4", "#6A3D9A", "#FF7F00",
-            "gold1", "skyblue2", "#FB9A99", "palegreen2", "#CAB2D6",
-            "#FDBF6F", "gray70", "khaki2", "maroon", "orchid1", "deeppink1",
-            "blue1", "steelblue4", "darkturquoise", "green1", "yellow4",
-            "yellow3", "darkorange4", "brown")
-  L <- obj$L
+plot_susiF_effect  <- function (obj,
+                                effect = "all",
+                                title = "",
+                                cred.band = TRUE,
+                                lfsr.curve = TRUE,
+                                linewidth = 0.75,
+                                font_size = 10,
+                                ...) {
+  color <- c("black", "dodgerblue2", "green4", "#6A3D9A", "#FF7F00",
+             "gold1", "skyblue2", "#FB9A99", "palegreen2", "#CAB2D6",
+             "#FDBF6F", "gray70", "khaki2", "maroon", "orchid1", "deeppink1",
+             "blue1", "steelblue4", "darkturquoise", "green1", "yellow4",
+             "yellow3", "darkorange4", "brown")
+  L     <- obj$L
   n_wac <- obj$n_wac
-  y <- obj$pip
+  y     <- obj$pip
   col_y <- rep(0, length(y))
   
-  
-  
-  if ( is.character(effect)   ){
-    if(effect =="all"){
+  if (is.character(effect)) {
+    if (effect == "all") {
       indx_effect <- 1:obj$L
-    }else{
-      stop(paste("entry not supported" ))
+    } else {
+      stop(paste("entry not supported"))
     }
-    
-    
-    
-  }else{
-    if (is.numeric(effect)==1 & length(which(effect>L))>0)  {
-      stop(paste("the specified effect should be lower or equal to ",
-                 L))
+  } else{
+    if (is.numeric(effect) == 1 & length(which(effect > L)) > 0)  {
+      stop(paste("the specified effect should be lower or equal to ",L))
     }
     indx_effect <- effect
   }
-  
-    
-
- 
-  
    
-  L= length(indx_effect)
+  L <- length(indx_effect)
   fun_plot <- do.call(c, obj$fitted_func[indx_effect])
-  n_wac <- obj$n_wac
+  n_wac    <- obj$n_wac
   fun_plot <- c(rep(0, n_wac), fun_plot)
-  
-  
-  if (cred.band& is.null(obj$lfsr_func)) {
+
+  if (cred.band & is.null(obj$lfsr_func)) {
     cred_band <- data.frame(t(do.call(cbind,
-                                      obj$cred_band[indx_effect] )
-    )
-    )
+                                      obj$cred_band[indx_effect])))
     cred_band <- rbind(data.frame(up = rep(0, n_wac),
                                   low = rep(0, n_wac)),
                        cred_band)
@@ -150,81 +143,52 @@ plot_effect  <- function( obj,
                      x = x,
                      upr = cred_band$up,
                      lwr = cred_band$low)
-    df <- df[-which(df$CS==0),]
-    P2 <- ggplot(df, aes_string(y = "fun_plot",
+    df  <- df[-which(df$CS==0),]
+    out <- ggplot(df, aes_string(y = "fun_plot",
                                 x = "x",
                                 col = "CS")) +
-      geom_line(linewidth = size_line) +
+      geom_line(linewidth = linewidth) +
       geom_ribbon(aes_string(ymin = "lwr",ymax = "upr",fill = "CS",
-                             col = "CS"),alpha = 0.3) +
-      scale_color_manual("Credible set", values = color[-1][indx_effect]) +
-      scale_fill_manual("Credible set", values = color[-1][indx_effect]) +
-      facet_grid(CS~.) +
-      xlab("postion") + ylab("Estimated effect")+
-      theme(legend.position = "none", 
-            strip.background = element_blank(), 
-            strip.text = element_blank())
-     
-  }else {
-    
-    
-    if (lfsr.curve& !is.null(obj$lfsr_func)){
-      lfsr_curve <- do.call(c , obj$lfsr_func)
-      
-      
-      
-      x <- rep(obj$outing_grid, (indx_effect + 1))
-      CS <- rep(0:L, each = n_wac)
-      df <- data.frame(fun_plot = fun_plot,
-                       CS = as.factor(CS),
-                       x = x
-      )
-      df <- df[-which(df$CS==0),]
-      df$   lfsr_curve <-    lfsr_curve
-      P2 <- ggplot(df, aes_string(y = "fun_plot",
-                                  x = "x",
-                                  col = "CS")) +
-        geom_line(linewidth = size_line) +
-        geom_line(aes(y=lfsr_curve, x=x, col="black"))+
-        geom_hline(yintercept = 0.05)+
-        scale_color_manual("Credible set",
-                           values = color[-1][indx_effect]) +
-        facet_grid(CS~., scales = "free")+
-        xlab("postion") + ylab("Estimated effect")+
-        theme(legend.position = "none", 
-              strip.background = element_blank(), 
-              strip.text = element_blank())
-    }else{
-      
-      
-      x <- rep(obj$outing_grid, (indx_effect + 1))
+                             color = "CS"),alpha = 0.3) +
+      scale_color_manual("Credible set",values = color[-1][indx_effect]) +
+      scale_fill_manual("Credible set",values = color[-1][indx_effect]) +
+      facet_grid(CS~.)
+  } else {
+    if (lfsr.curve & !is.null(obj$lfsr_func)){
+      lfsr_curve <- do.call(c,obj$lfsr_func)
+      x  <- rep(obj$outing_grid,indx_effect + 1)
       CS <- rep(0:L, each = n_wac)
       df <- data.frame(fun_plot = fun_plot,
                        CS = as.factor(CS),
                        x = x)
       df <- df[-which(df$CS==0),]
-      P2 <- ggplot(df, aes_string(y = "fun_plot",
-                                  x = "x",
-                                  col = "CS")) +
-        geom_line(linewidth = size_line) + scale_color_manual("Credible set",
-                                                              values = color[-1][indx_effect]) +
-        geom_hline(yintercept=0, linetype='dashed', col = 'grey', linewidth = 1.5)+
-        facet_grid(CS~., scales = "free")+
-        xlab("postion") + ylab("Estimated effect")+
-        theme(legend.position = "none", 
-              strip.background = element_blank(), 
-              strip.text = element_blank())
+      df$lfsr_curve <- lfsr_curve
+      out <- ggplot(df, aes_string(y = "fun_plot",x = "x",color = "CS")) +
+        geom_line(linewidth = linewidth) +
+        geom_line(aes(y = lfsr_curve,x = x,col = "black")) +
+        geom_hline(yintercept = 0.05) +
+        scale_color_manual("Credible set",values = color[-1][indx_effect]) +
+        facet_grid(CS~.,scales = "free")
+    } else{
+      x  <- rep(obj$outing_grid,indx_effect + 1)
+      CS <- rep(0:L, each = n_wac)
+      df <- data.frame(fun_plot = fun_plot,
+                       CS = as.factor(CS),
+                       x = x)
+      df <- df[-which(df$CS==0),]
+      out <- ggplot(df,aes_string(y = "fun_plot",x = "x",color = "CS")) +
+        geom_line(linewidth = linewidth) +
+        scale_color_manual("Credible set",values = color[-1][indx_effect]) +
+        geom_hline(yintercept = 0,linetype = "dashed",col = "grey",
+                   linewidth = 1.5) +
+        facet_grid(CS~.,scales = "free")
     }
-    
-    
-    
   }
-  return(P2)
-  
+  out <- out +
+    labs(x = "position",y = "estimated effect",title = title) +
+    theme_cowplot(font_size = font_size)
+  return(out)
 }
-
-
-
 
 #' @title Plot susiF object
 #
@@ -258,14 +222,14 @@ plot_effect  <- function( obj,
 #
 #' @export
 #
-plot_susiF  = function (obj, title="",
+plot_susiF  = function (obj,
+                        title="",
                         effect= "all",
                         cred.band = TRUE,
                         lfsr.curve=TRUE,
                         size_line=2,
                         size_point=4,
                         pos_SNP,
-                        pip_only=FALSE,
                         point_shape, ...)
 {
   
@@ -294,8 +258,6 @@ plot_susiF  = function (obj, title="",
    
     return(P1)
   }
-  
-   
   
   return(out <- gridExtra::grid.arrange(P1,P2,ncol=2,top =title))
 }

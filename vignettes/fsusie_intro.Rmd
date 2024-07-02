@@ -129,7 +129,7 @@ perhaps a bit larger. Therefore, the call to susiF for this simulated
 data set is simply:
 
 ```{r run-susiF, results="hide"}
-out <- susiF(Y,X,L = 10)
+fit <- susiF(Y,X,L = 10)
 ```
 
 On most current computers, this call to susiF should not take more
@@ -141,16 +141,16 @@ sets (CSs). Each credible set contains the likely causal covariates for a
 given effect. You can access them simply as
  
 ```{r credible-sets}
-out$cs
+fit$cs
 ```
 
 As you can see, the two CSs contain the correct causal SNPs.
 
 ```{r pips}
-cs1 <- out$cs[[1]]
-cs2 <- out$cs[[2]]
-out$pip[cs1]
-out$pip[cs2]
+cs1 <- fit$cs[[1]]
+cs2 <- fit$cs[[2]]
+fit$pip[cs1]
+fit$pip[cs2]
 ```
 
 ```{r cor-cs1}
@@ -163,12 +163,16 @@ The easiest way to visualize the result is to use the
 \code{plot_susiF} function.
 
 ```{r}
-fsusie_plots <- plot_susiF(out)
+fsusie_plots <- plot_susiF(fit)
 ```
 
 You can also access the information directly in the output of susiF in
 the fitted_func part of the output. See below
- 
+
+```{r}
+plot_susiF_effect(fit)
+```
+
 ```{r} 
 plot( f1, type="l", main="Estimated effect 1", xlab="")
 lines(get_fitted_effect(out,l=2),col='blue' )

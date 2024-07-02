@@ -13,7 +13,6 @@ plot_susiF(
   size_line = 2,
   size_point = 4,
   pos_SNP,
-  pip_only = FALSE,
   point_shape,
   ...
 )
@@ -35,11 +34,11 @@ plot_susiF(
 
 \item{pos_SNP}{vector, containing the base pair of the SNPs}
 
-\item{pip_only}{logical, if TRUE only ouput the PIP plot}
-
 \item{point_shape}{vector, containing the shape of dots}
 
 \item{\dots}{Other arguments..}
+
+\item{pip_only}{logical, if TRUE only ouput the PIP plot}
 }
 \description{
 Plot susiF object
