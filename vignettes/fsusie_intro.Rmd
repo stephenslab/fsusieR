@@ -177,7 +177,7 @@ You can also access the Posterior inclusion probabilities directly
 from the fitted object. Similarly, you can specify the plot_susiF
 function to display only the PiP plot.
  
-```{r plot-pips, fig.height=2, fig.width=4}
+```{r plot-pips, fig.height=2, fig.width=5}
 plot_susiF_pip(fit)
 ```
  
