@@ -1,13 +1,8 @@
 Encoding: UTF-8
 Type: Package
 Package: fsusieR
-<<<<<<< Updated upstream
-Version: 0.2.8
+Version: 0.2.62
 Date: 2024-06-28
-=======
-Version: 0.2.61
-Date: 2024-06-27
->>>>>>> Stashed changes
 Title: Sum of Single Functions
 Authors@R: person("William R. P.","Denault",role = c("aut","cre"),
                   email = "wdenault@uchicago.edu")
