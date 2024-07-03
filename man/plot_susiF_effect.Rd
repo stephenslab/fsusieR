@@ -11,8 +11,7 @@ plot_susiF_effect(
   cred.band = TRUE,
   lfsr.curve = TRUE,
   linewidth = 0.5,
-  font_size = 10,
-  ...
+  font_size = 10
 )
 }
 \arguments{
@@ -29,9 +28,7 @@ fitted with wavelets regression.}
 \item{lfsr.curve}{logical, if TRUE, plot estimated lfsr of the
 effect at each base pair if obj fitted with HMM regression.}
 
-\item{\dots}{Other arguments.}
-
-\item{size_line}{numeric, width of the plotted lines}
+\item{linewidth}{numeric, width of the plotted lines}
 }
 \description{
 Plot specific effect from susiF object

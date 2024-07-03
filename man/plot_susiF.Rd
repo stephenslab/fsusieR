@@ -10,11 +10,11 @@ plot_susiF(
   effect = "all",
   cred.band = TRUE,
   lfsr.curve = TRUE,
-  size_line = 2,
-  size_point = 4,
+  linewidth = 2,
+  point_size = 4,
   pos_SNP,
   point_shape,
-  ...
+  pip_only = FALSE
 )
 }
 \arguments{
@@ -28,15 +28,13 @@ plot_susiF(
 
 \item{lfsr.curve}{logical, if TRUE, plot estimated lfsr of the effect at each base pair  if obj fitted with HMM regression. Set as TRUE by default}
 
-\item{size_line}{numeric, width of the plotted lines}
+\item{linewidth}{numeric, width of the plotted lines}
 
-\item{size_point}{numeric, size of the point}
+\item{point_size}{numeric, size of the point}
 
 \item{pos_SNP}{vector, containing the base pair of the SNPs}
 
 \item{point_shape}{vector, containing the shape of dots}
-
-\item{\dots}{Other arguments..}
 
 \item{pip_only}{logical, if TRUE only ouput the PIP plot}
 }

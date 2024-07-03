@@ -1,13 +1,34 @@
-#'
-#' @export
+
+#' @title Plot posterior inclusion probabilities from susiF object
 #' 
+#' @description Plot posterior inclusion probabilities from susiF object
+#' 
+#' 
+#' @param point_size numeric, size of the point
+#' 
+#' @param pos_SNP vector, containing the base pair of the SNPs
+#' 
+#' @param point_shape vector, containing the shape of dots
+#' 
+#' @param font_size numeric, the size of the font
+#'
+#' @importFrom ggplot2 ggplot
+#' @importFrom ggplot2 geom_point
+#' @importFrom ggplot2 theme
+#' @importFrom ggplot2 element_blank
+#' @importFrom ggplot2 scale_color_manual
+#' @importFrom ggplot2 xlab
+#' @importFrom ggplot2 ylab 
+#' @importFrom ggplot2 aes
+#' @importFrom cowplot theme_cowplot
+#' @importFrom ggplot2 labs
+#' @export
 plot_susiF_pip <- function (obj,
                             title = "", 
-                            point_size = 1,
+                            point_size = 2,
                             pos_SNP, 
                             point_shape,
-                            font_size = 10,
-                            ...) {
+                            font_size = 10 ) {
   if (missing(pos_SNP)) {
     pos_SNP <- 1:length(obj$pip)
   }
@@ -35,7 +56,7 @@ plot_susiF_pip <- function (obj,
          scale_color_manual("CS",values = color) +
          labs(x = "SNP",y = "PIP",title = title) +
          theme_cowplot(font_size = font_size))
-  return(out)
+ 
   
 }
 
@@ -54,14 +75,13 @@ plot_susiF_pip <- function (obj,
 #' @param lfsr.curve logical, if TRUE, plot estimated lfsr of the
 #'   effect at each base pair if obj fitted with HMM regression.
 #' 
-#' @param size_line numeric, width of the plotted lines
+#' @param linewidth numeric, width of the plotted lines
 #'
 #' @title font_size Passed as the \dQuote{ont_size} argument to
 #'   \code{\link[cowplot]{theme_cowplot}}.
 #' 
 #' @param title The title of the plot.
-#' 
-#' @param \dots Other arguments.
+#'  
 #'
 #' @importFrom ggplot2 ggplot
 #' @importFrom ggplot2 aes_string
@@ -79,7 +99,7 @@ plot_susiF_pip <- function (obj,
 #' @importFrom ggplot2 scale_fill_manual
 #' @importFrom ggplot2 aes
 #' @importFrom cowplot theme_cowplot
-#
+#' @importFrom ggplot2 labs
 #' @export
 #
 plot_susiF_effect  <- function (obj,
@@ -88,8 +108,7 @@ plot_susiF_effect  <- function (obj,
                                 cred.band = TRUE,
                                 lfsr.curve = TRUE,
                                 linewidth = 0.5,
-                                font_size = 10,
-                                ...) {
+                                font_size = 10 ) {
   color <- c("black", "dodgerblue2", "green4", "#6A3D9A", "#FF7F00",
              "gold1", "skyblue2", "#FB9A99", "palegreen2", "#CAB2D6",
              "#FDBF6F", "gray70", "khaki2", "maroon", "orchid1", "deeppink1",
@@ -99,7 +118,7 @@ plot_susiF_effect  <- function (obj,
   n_wac <- obj$n_wac
   y     <- obj$pip
   col_y <- rep(0,length(y))
-  
+ 
   if (is.character(effect)) {
     if (effect == "all") {
       indx_effect <- 1:obj$L
@@ -111,8 +130,9 @@ plot_susiF_effect  <- function (obj,
       stop(paste("the specified effect should be lower or equal to ",L))
     }
     indx_effect <- effect
+    indx_effect <- indx_effect[order(indx_effect)]
   }
-   
+
   L <- length(indx_effect)
   fun_plot <- do.call(c, obj$fitted_func[indx_effect])
   n_wac    <- obj$n_wac
@@ -126,47 +146,48 @@ plot_susiF_effect  <- function (obj,
                        cred_band)
     
     x  <- rep(obj$outing_grid,length(indx_effect) + 1)
-    CS <- rep(0:L, each = n_wac)
+    CS <- rep(c(0,indx_effect), each = n_wac)
     df <- data.frame(fun_plot = fun_plot,CS = as.factor(CS),x = x,
                      upr = cred_band$up,
                      lwr = cred_band$low)
     df  <- df[-which(df$CS == 0),]
-    out <- ggplot(df, aes_string(y = "fun_plot",x = "x",color = "CS")) +
-      geom_line(linewidth = linewidth) +
-      geom_ribbon(aes_string(ymin = "lwr",ymax = "upr",fill = "CS",
-                             color = "CS"),linewidth = 0,alpha = 0.3) +
-      scale_color_manual("Credible set",values = color[-1][indx_effect]) +
-      scale_fill_manual("Credible set",values = color[-1][indx_effect]) +
-      facet_grid(CS~.)
+    out <- ggplot(df, aes(y = fun_plot, x = x, color = as.factor(CS))) +
+           geom_line(linewidth = linewidth) +
+           geom_ribbon(aes(ymin = lwr, ymax = upr, fill = as.factor(CS), color = as.factor(CS)), linewidth = 0, alpha = 0.3) +
+           scale_color_manual("Credible set", values = color[-1][indx_effect]) +
+           scale_fill_manual("Credible set", values = color[-1][indx_effect]) +
+           facet_grid(as.factor(CS) ~ .)
+    
   } else {
     if (lfsr.curve & !is.null(obj$lfsr_func)){
-      lfsr_curve <- do.call(c,obj$lfsr_func)
-      x  <- rep(obj$outing_grid,indx_effect + 1)
-      CS <- rep(0:L, each = n_wac)
+      lfsr_curve <- do.call(c,obj$lfsr_func[indx_effect])
+      x  <- rep(obj$outing_grid,length(indx_effect) + 1)
+      CS <- rep(c(0,indx_effect), each = n_wac)
       df <- data.frame(fun_plot = fun_plot,
                        CS = as.factor(CS),
                        x = x)
       df <- df[-which(df$CS==0),]
       df$lfsr_curve <- lfsr_curve
-      out <- ggplot(df, aes_string(y = "fun_plot",x = "x",color = "CS")) +
-        geom_line(linewidth = linewidth) +
-        geom_line(aes(y = lfsr_curve,x = x,color = "black")) +
-        geom_hline(yintercept = 0.05) +
-        scale_color_manual("Credible set",values = color[-1][indx_effect]) +
-        facet_grid(CS~.,scales = "free")
+      out <-   ggplot(df, aes(y = fun_plot, x = x, color = as.factor(CS))) +
+               geom_line(linewidth = linewidth, show.legend = TRUE) +
+               geom_line(aes(y = lfsr_curve, x = x), color = "black", show.legend = FALSE) +
+               geom_hline(yintercept = 0.05, color = "black", linetype = "dashed") +
+               geom_hline(yintercept = 0.0, color = "black") +
+               scale_color_manual("Credible set", values = color[-1][indx_effect]) +
+               facet_grid(CS ~ ., scales = "free")
+      
+
     } else{
-      x  <- rep(obj$outing_grid,indx_effect + 1)
-      CS <- rep(0:L, each = n_wac)
+      x  <- rep(obj$outing_grid,length(indx_effect) + 1)
+      CS <- rep(c(0,indx_effect), each = n_wac)
       df <- data.frame(fun_plot = fun_plot,
                        CS = as.factor(CS),
                        x = x)
       df <- df[-which(df$CS==0),]
-      out <- ggplot(df,aes_string(y = "fun_plot",x = "x",color = "CS")) +
-        geom_line(linewidth = linewidth) +
-        scale_color_manual("Credible set",values = color[-1][indx_effect]) +
-        geom_hline(yintercept = 0,linetype = "dashed",color = "grey",
-                   linewidth = 1.5) +
-        facet_grid(CS~.,scales = "free")
+      out <- ggplot(df, aes(y = fun_plot, x = x, color = as.factor(CS))) +
+             geom_line(linewidth = linewidth, show.legend = TRUE) +
+             scale_color_manual("Credible set", values = color[-1][indx_effect]) +
+             facet_grid(CS ~ ., scales = "free")
     }
   }
   out <- out +
@@ -185,9 +206,9 @@ plot_susiF_effect  <- function (obj,
 #' 
 #' @param  lfsr.curve logical, if TRUE, plot estimated lfsr of the effect at each base pair  if obj fitted with HMM regression. Set as TRUE by default
 #' 
-#' @param size_line numeric, width of the plotted lines
+#' @param linewidth numeric, width of the plotted lines
 #' 
-#' @param size_point numeric, size of the point
+#' @param point_size numeric, size of the point
 #' 
 #' @param pos_SNP vector, containing the base pair of the SNPs
 #' 
@@ -195,8 +216,7 @@ plot_susiF_effect  <- function (obj,
 #' 
 #' @param pip_only logical, if TRUE only ouput the PIP plot
 #' 
-#' @param title character
-#' @param \dots Other arguments..
+#' @param title character 
 #'
 #' @importFrom ggplot2 ggplot
 #' @importFrom ggplot2 aes_string
@@ -212,19 +232,19 @@ plot_susiF_effect  <- function (obj,
 #' @importFrom ggplot2 ylab
 #' @importFrom ggplot2 geom_ribbon
 #' @importFrom ggplot2 scale_fill_manual
-#' @importFrom ggplot2 aes
-#
+#' @importFrom ggplot2 aes 
 #' @export
 #
-plot_susiF = function (obj,
+plot_susiF<- function (obj,
                         title="",
                         effect= "all",
                         cred.band = TRUE,
                         lfsr.curve=TRUE,
-                        size_line=2,
-                        size_point=4,
+                        linewidth=2,
+                        point_size=4,
                         pos_SNP,
-                        point_shape, ...)
+                        point_shape,
+                        pip_only =FALSE)
 {
   
   if(missing(pos_SNP)){
@@ -235,18 +255,16 @@ plot_susiF = function (obj,
   }
   
   
-  P1  <- plot_susiF_pips  (obj         = obj  ,
-                           size_point  = size_point,
+  P1  <- plot_susiF_pip  (obj         = obj  ,
+                           point_size  = point_size,
                            pos_SNP     = pos_SNP,, 
                            point_shape = point_shape)
   
-  P2 <- plot_effect ( obj = obj ,
+  P2 <- plot_susiF_effect ( obj = obj ,
                       effect= effect,
                       cred.band = cred.band,
                       lfsr.curve= lfsr.curve,
-                      size_line=size_line,
-                      size_point= size_point,
-                      pos_SNP = pos_SNP )
+                      linewidth=linewidth  )
   
   if(pip_only){
    
@@ -258,6 +276,13 @@ plot_susiF = function (obj,
 
 
 
-
+#'
+#' @export
+#'
+plot.susiF <- function(x,
+                      ... ) {
+  
+                      return(plot_susiF (obj=x  ))
+  }
 
  
