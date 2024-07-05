@@ -214,15 +214,24 @@ plot(fit$ind_fitted_func,  Y,
 abline(a=0,b=1)
 ```
 
+## Handling functions of any length, and unevenly space data
 
-#### Handling function of any length and unevenly space data
+Wavelets are primarily designed to analyze functions sampled on $2^J$
+evenly spaced positions. However, this assumption is unrealistic in
+practice. For handling functions of any length, we use the approach of
+Kovac and Silvermann (2005), which basically remaps the data on a grid
+of length $2^J$. \textbf{What is important to know for the user:}
 
-Wavelets are primarily designed to analyze functions sampled on $2^J$ evenly spaced positions. However, this assumption is unrealistic in practice. For handling functions of any length, we use the approach of Kovac and Silvermann (2005), which basically remaps the data on a grid of length $2^J$. \textbf{What is important to know for the user:}  
-* if you don't provide the sampling position (e.g., base pair measurement) in the pos argument, susiF considers that the columns of Y correspond to evenly spaced sampling positions. For example, when fine-mapping DNA methylation (DNAm) data, if you are trying to fine-map meQTL, the columns of the Y matrix correspond to different CpG . You \textbf{should} provide the genomic position of each of these CpG as a vector in the "pos" argument in the susiF function.
++ If you don't provide the sampling position (e.g., base pair
+  measurement) in the pos argument, susiF considers that the columns
+  of Y correspond to evenly spaced sampling positions. For example,
+  when fine-mapping DNA methylation (DNAm) data, if you are trying to
+  fine-map meQTL, the columns of the Y matrix correspond to different
+  CpG . You \textbf{should} provide the genomic position of each of
+  these CpG as a vector in the "pos" argument in the susiF function.
 
-
-* susiF provides the estimated effect on the remapped effect on a $2^J$   grid. 
-
++ susiF provides the estimated effect on the remapped effect on a
+  $2^J$ grid.
 
 Example of how to analyze unevenly spaced data.
 The black lines corresponds to  one of the SNP  effect in our data, the red ticks corresponds to the sampling positions and the red dots correspond to what part of the effect we can observe.

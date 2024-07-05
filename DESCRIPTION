@@ -1,8 +1,8 @@
 Encoding: UTF-8
 Type: Package
 Package: fsusieR
-Version: 0.2.66
-Date: 2024-07-02
+Version: 0.2.67
+Date: 2024-07-05
 Title: Sum of Single Functions
 Authors@R: person("William R. P.","Denault",role = c("aut","cre"),
                   email = "wdenault@uchicago.edu")
