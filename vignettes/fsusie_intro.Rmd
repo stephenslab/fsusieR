@@ -170,7 +170,7 @@ You can also access the Posterior inclusion probabilities directly
 from the fitted object. Similarly, you can specify the plot_susiF
 function to display only the PiP plot.
  
-```{r plot-pips, fig.height=2, fig.width=5}
+```{r plot-pips, fig.height=2, fig.width=5, eval=FALSE}
 plot_susiF_pip(fit)
 ```
 
@@ -181,123 +181,98 @@ The easiest way to visualize the result is to use the
 fsusie_plots <- plot_susiF(fit)
 ```
 
-## Extracting the regions affected by the credible sets
-
-We provide a build-in function to retrieve the regions where the
-credible bands are "crossing zero"/i.e., the effects are likely not to
-be 0 in this region.
-
-```{r}
-affected_reg(fit)
-```
-
 ## Prediction
 
 You can also check the predictive power of susiF by checking the
 fitted from the output susiF
  
-```{r}
+```{r, eval=FALSE}
 f1_obs <- f1
 f2_obs <- f2
 true_sig  <- matrix( X[ ,pos1], ncol=1)%*%t(f1_obs) +matrix( X[ ,pos2], ncol=1)%*%t(f2_obs)
-
 plot(fit$ind_fitted_func,  true_sig,
      xlab= "predicted value", ylab="true value") 
 abline(a=0,b=1)
 ```
 
-Note that these predictions can differ substantially from the observed noisy curves
-```{r}
+Note that these predictions can differ substantially from the observed
+noisy curves
 
+```{r, eval=FALSE}
 plot(fit$ind_fitted_func,  Y,
      xlab= "predicted value", ylab="Noisy observation value") 
 abline(a=0,b=1)
 ```
 
-## Handling functions of any length, and unevenly space data
+## Handling functions of any length and unevenly spaced data
 
 Wavelets are primarily designed to analyze functions sampled on $2^J$
-evenly spaced positions. However, this assumption is unrealistic in
-practice. For handling functions of any length, we use the approach of
-Kovac and Silvermann (2005), which basically remaps the data on a grid
-of length $2^J$. \textbf{What is important to know for the user:}
+evenly spaced positions. However, this assumption can be limiting.
 
-+ If you don't provide the sampling position (e.g., base pair
-  measurement) in the pos argument, susiF considers that the columns
-  of Y correspond to evenly spaced sampling positions. For example,
-  when fine-mapping DNA methylation (DNAm) data, if you are trying to
-  fine-map meQTL, the columns of the Y matrix correspond to different
-  CpG . You \textbf{should} provide the genomic position of each of
-  these CpG as a vector in the "pos" argument in the susiF function.
+For handling functions of any length, we use the approach of Kovac and
+Silvermann (2005) which remaps the data on a grid of length
+$2^J$.
 
-+ susiF provides the estimated effect on the remapped effect on a
-  $2^J$ grid.
+Here are a couple of things to keep in mind:
 
-Example of how to analyze unevenly spaced data.
-The black lines corresponds to  one of the SNP  effect in our data, the red ticks corresponds to the sampling positions and the red dots correspond to what part of the effect we can observe.
+1. If you don't provide the sampling positions (e.g., base pair
+   measurement) in the "pos" argument, susiF assumes that the columns
+   of Y are evenly spaced. For molecular traits with known genomic
+   positions (e.g., base-pair positions), we recommend providing the
+   genomic positions in the "pos" argument.
 
-```{r echo=FALSE, message=FALSE, warning=FALSE}
+2. susiF always returns the estimated effect on a $2^J$ grid.
+
+To illustrate, consider the following example. The true function is
+defined on $2^9 = 512$ positions, but we only observe the function in
+a random subset of those positions.
+
+```{r sim-effects-uneven, fig.height=2, fig.width=5}
 set.seed(2)
 data(N3finemapping)
-attach(N3finemapping)
-
-rsnr <- 0.5 #expected root signal noise ratio
-
-lev_res <- 9#length of the molecular phenotype (2^lev_res)
-f1 <-  simu_IBSS_per_level(lev_res )$sim_func  #first effect
-f2 <- simu_IBSS_per_level(lev_res )$sim_func  #second effect
-
-
-## Suppose we observe these functions on 200 points
-sampling_pos <- sample( 1:length(f1), size=200)
-sampling_pos <-sampling_pos  [order(sampling_pos)]
-
-plot(f2, type="l", main="underlying function and the different sampling position")
- points(sampling_pos, f2[sampling_pos], col="red",pch=20)
- points(sampling_pos, rep(0, length(sampling_pos)), col="red",pch=3)
- abline(0,0)
- 
+rsnr <- 0.5
+f1 <- simu_IBSS_per_level(9)$sim_func
+f2 <- simu_IBSS_per_level(9)$sim_func
+pos <- sort(sample(512,200))
+par(mar = c(2,2,2,2))
+plot(f2,type = "l",lwd = 1.25)
+points(pos,f2[pos],col = "black",pch = 20,cex = 0.75)
+abline(a = 0,b = 0,col = "black",lty = "dotted")
 ```
 
-Let's generate the data under these conditions
+Let's now generate Y similar to above.
 
-
-```{r message=FALSE, warning=FALSE}
-  f1_obs <- f1[sampling_pos]
-  f2_obs <- f2[sampling_pos]
-noisy.data  <- list()
-X <- N3finemapping$X[,1:100]
-for ( i in 1:nrow(X))
-{
-
-  noise <- rnorm(length(f1_obs ), sd=  2)
-  noisy.data [[i]] <-  X[i,pos1]*f1_obs +X[i,pos2]*f2_obs + noise
-
-}
-noisy.data <- do.call(rbind, noisy.data)
-
-Y <- noisy.data
-
+```{r sim-data-uneven}
+f1_obs <- f1[pos]
+f2_obs <- f2[pos]
+X      <- N3finemapping$X[,1:100]
+n      <- nrow(X)
+nloc   <- length(pos)
+noise  <- matrix(rnorm(n*nloc,sd = var(f1)/rsnr),n,nloc)
+Y      <- tcrossprod(X[,pos1],f1_obs) + tcrossprod(X[,pos2],f2_obs) + noise
 ```
 
+The only change to the call to susiF is that we now also provide the
+sampling positions:
 
-To account for it, pass the sampling position in the pos argument.
-
-
-
-```{r message=FALSE, warning=FALSE}
- out <- susiF(Y,X,L=3 ,pos= sampling_pos)
+```{r run-susiF-uneven, results="hide"}
+fit <- susiF(Y,X,L = 10,pos)
 ```
-To visualize the estimated effect with the correct x coordinate, use the "$outing_grid" object from the susiF.obj 
 
-In this example, effect 2 (in our simulation) is captured in the first CS. The black line is the actual true effect. The red dots are the effect level at the sampling position, the thick blue line is the estimated effect, and the dashed line is the 95% credible bands.
+To visualize the estimated effect with the correct x coordinate, use
+the "$outing_grid" object from the susiF.obj
+
+In this example, effect 2 (in our simulation) is captured in the first
+CS. The black line is the actual true effect. The red dots are the
+effect level at the sampling position, the thick blue line is the
+estimated effect, and the dashed line is the 95% credible bands.
 
 ```{r}
-plot(   x=1:512,           y=f2,type="l")
-points( x=sampling_pos,    y=f2_obs, col="red",pch=20)
-lines(  x=out$outing_grid, y=out$fitted_func[[1]]    ,col='darkblue', lwd=2)
-lines(  x=out$outing_grid, y= out$cred_band[[1]][1,] ,col='darkblue',lty=2 )
-lines(  x=out$outing_grid, y= out$cred_band[[1]][2,] ,col='darkblue' ,lty=2 )
+plot(x = 1:512,y = f2,type = "l")
+points(x = sampling_pos,y = f2_obs,col = "red",pch = 20)
+lines(x = out$outing_grid,y = out$fitted_func[[1]],col = "darkblue",lwd = 2)
+lines(x = out$outing_grid,y = out$cred_band[[1]][1,],col = "darkblue",lty = 2)
+lines(x = out$outing_grid,y = out$cred_band[[1]][2,],col = "darkblue",lty = 2)
 ```
  
 ### A note on the priors available
@@ -305,7 +280,7 @@ lines(  x=out$outing_grid, y= out$cred_band[[1]][2,] ,col='darkblue' ,lty=2 )
 Note that fSuSiE has two different priors available: \textit{mixture_normal_per_scale} and \textit{mixture_normal}. The default value is \textit{mixture_normal_per_scale}, which has slightly higher performance (power, estimation accuracy) than the  \textit{mixture_normal}. However,  \textit{mixture_normal} is up to 40% faster than the \textit{mixture_normal_per_scale}. You may consider using this option before performing genome-wide fine mapping. 
  
 Here is a comparison between their running time
-```{r }
+```{r, eval=FALSE}
  out1 <- susiF(Y,X,L=3 , prior = 'mixture_normal_per_scale',verbose=FALSE)
  out1$runtime
  out2 <- susiF(Y,X,L=3 , prior = 'mixture_normal',verbose=FALSE)

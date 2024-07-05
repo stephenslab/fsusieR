@@ -252,9 +252,8 @@ plot_susiF_effect <- function (obj,
                                  data.frame(ystart = 0,yend = 0))
     affected_region_dat$CS <- factor(affected_region_dat$CS)
     out <- out + geom_segment(aes(x = Start,xend = End,y = ystart,yend = yend),
-                              data = affected_region_dat,
-                              linewidth = 0.75,lineend = "square",
-                              color = "black")
+                              data = affected_region_dat,linewidth = 0.75,
+                              lineend = "square",color = "black")
   }
 
   # Finish up the plot.
