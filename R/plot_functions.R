@@ -141,7 +141,9 @@ plot_susiF_pip <- function (obj,
 #'   the regions in which the credible bands cross zero are also shown.
 #'
 #' @param show_outing_grid. If \code{show_outing_grid = TRUE}, show
-#'   the positions at which the effects were estimated.
+#'   the grid positions at which the effects were estimated. By default,
+#'   this option is set to \code{TRUE} only when the grid poisitions are
+#'   uneven.
 #' 
 #' @param lfsr_curve Logical. If \code{TRUE}, plot estimated lfsr of the
 #'   effect at each base pair if obj fitted with HMM regression. This

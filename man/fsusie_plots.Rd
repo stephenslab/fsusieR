@@ -37,7 +37,7 @@ plot_susiF_effect(
   title = "",
   cred_band = TRUE,
   show_affected_region = TRUE,
-  show_outing_grid = TRUE,
+  show_outing_grid = ifelse(diff(range(diff(obj$outing_grid))) < 1e-06, FALSE, TRUE),
   lfsr_curve = TRUE,
   line_width = 0.35,
   point_size = 0.5,
@@ -77,7 +77,9 @@ has no effect unless the \code{\link{susiF}} option
 the regions in which the credible bands cross zero are also shown.}
 
 \item{show_outing_grid.}{If \code{show_outing_grid = TRUE}, show
-the positions at which the effects were estimated.}
+the grid positions at which the effects were estimated. By default,
+this option is set to \code{TRUE} only when the grid poisitions are
+uneven.}
 }
 \description{
 Various visualizations of fSuSiE results.
