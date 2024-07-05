@@ -13,7 +13,7 @@ plot_susiF(
   effect = "all",
   cred_band = TRUE,
   lfsr_curve = TRUE,
-  linewidth = 0.5,
+  line_width = 0.5,
   point_size = 2,
   pos_SNP,
   point_shape,
@@ -37,8 +37,10 @@ plot_susiF_effect(
   title = "",
   cred_band = TRUE,
   show_affected_region = TRUE,
+  show_outing_grid = TRUE,
   lfsr_curve = TRUE,
-  linewidth = 0.5,
+  line_width = 0.35,
+  point_size = 0.5,
   font_size = 10
 )
 }
@@ -58,7 +60,7 @@ effect at each base pair if obj fitted with HMM regression. This
 has no effect unless the \code{\link{susiF}} option
 \code{post_processing = "HMM"} was used.}
 
-\item{linewidth}{Numeric. Width of the plotted lines.}
+\item{line_width}{Numeric. Width of the plotted lines.}
 
 \item{point_size}{numeric, size of the point}
 
@@ -73,6 +75,9 @@ has no effect unless the \code{\link{susiF}} option
 
 \item{show_affected_region.}{If \code{show_affected_region = TRUE},
 the regions in which the credible bands cross zero are also shown.}
+
+\item{show_outing_grid.}{If \code{show_outing_grid = TRUE}, show
+the positions at which the effects were estimated.}
 }
 \description{
 Various visualizations of fSuSiE results.

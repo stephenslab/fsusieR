@@ -46,7 +46,7 @@ plot_susiF <- function (obj,
                         effect = "all",
                         cred_band = TRUE,
                         lfsr_curve = TRUE,
-                        linewidth = 0.5,
+                        line_width = 0.5,
                         point_size = 2,
                         pos_SNP,
                         point_shape,
@@ -68,7 +68,7 @@ plot_susiF <- function (obj,
                           effect = effect,
                           cred_band = cred_band,
                           lfsr_curve = lfsr_curve,
-                          linewidth = linewidth)
+                          line_width = line_width)
   
   if (pip_only) {
     return(P1)
@@ -139,23 +139,22 @@ plot_susiF_pip <- function (obj,
 #'
 #' @param show_affected_region. If \code{show_affected_region = TRUE},
 #'   the regions in which the credible bands cross zero are also shown.
+#'
+#' @param show_outing_grid. If \code{show_outing_grid = TRUE}, show
+#'   the positions at which the effects were estimated.
 #' 
 #' @param lfsr_curve Logical. If \code{TRUE}, plot estimated lfsr of the
 #'   effect at each base pair if obj fitted with HMM regression. This
 #'   has no effect unless the \code{\link{susiF}} option
 #'   \code{post_processing = "HMM"} was used.
 #' 
-#' @param linewidth Numeric. Width of the plotted lines.
+#' @param line_width Numeric. Width of the plotted lines.
 #'
 #' @importFrom ggplot2 ggplot
-#' @importFrom ggplot2 geom_line
 #' @importFrom ggplot2 facet_grid
-#' @importFrom ggplot2 geom_point
+#' @importFrom ggplot2 geom_line
 #' @importFrom ggplot2 geom_hline
-#' @importFrom ggplot2 theme
-#' @importFrom ggplot2 element_blank
-#' @importFrom ggplot2 xlab
-#' @importFrom ggplot2 ylab
+#' @importFrom ggplot2 geom_point
 #' @importFrom ggplot2 geom_ribbon
 #' @importFrom ggplot2 geom_segment
 #' @importFrom ggplot2 scale_color_manual
@@ -171,8 +170,10 @@ plot_susiF_effect <- function (obj,
                                title = "",
                                cred_band = TRUE,
                                show_affected_region = TRUE,
+                               show_outing_grid = TRUE,
                                lfsr_curve = TRUE,
-                               linewidth = 0.5,
+                               line_width = 0.35,
+                               point_size = 0.5,
                                font_size = 10) {
   L     <- obj$L
   n_wac <- obj$n_wac
@@ -210,9 +211,11 @@ plot_susiF_effect <- function (obj,
                      upr = cred_band_dat$up,lwr = cred_band_dat$low)
     df  <- df[-which(df$CS == 0),]
     out <- ggplot(df,aes(y = fun_plot,x = x,color = CS)) +
-      geom_line(linewidth = linewidth) +
+      geom_line(linewidth = line_width) +
       geom_ribbon(aes(ymin = lwr,ymax = upr,fill = CS,color = CS),
                   linewidth = 0,alpha = 0.3)
+    if (show_outing_grid)
+      out <- out + geom_point(size = point_size,shape = 21,fill = "white")
     facet_scale <- "fixed"
   } else {
     if (lfsr_curve & !is.null(obj$lfsr_func)) {
@@ -225,10 +228,12 @@ plot_susiF_effect <- function (obj,
       df <- df[-which(df$CS == 0),]
       df$lfsr_curve <- lfsr_curve_dat
       out <- ggplot(df,aes(y = fun_plot,x = x,color = CS)) +
-        geom_line(linewidth = linewidth) +
+        geom_line(linewidth = line_width) +
         geom_line(aes(y = lfsr_curve,x = x),color = "black",
                   show.legend = FALSE) +
         geom_hline(yintercept = 0.05,color = "black",linetype = "dashed")
+      if (show_outing_grid)
+        out <- out + geom_point(size = point_size,shape = 21,fill = "white")
       facet_scale <- "free"
     } else {
         
@@ -238,7 +243,10 @@ plot_susiF_effect <- function (obj,
       df <- data.frame(fun_plot = fun_plot,CS = factor(CS),x = x)
       df <- df[-which(df$CS == 0),]
       out <- ggplot(df,aes(y = fun_plot,x = x,color = CS)) +
-        geom_line(linewidth = linewidth)
+        geom_line(linewidth = line_width) +
+        geom_point(size = point_size)
+      if (show_outing_grid)
+        out <- out + geom_point(size = point_size,shape = 21,fill = "white")
       facet_scale <- "free"
     }
   }

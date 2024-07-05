@@ -230,19 +230,19 @@ a random subset of those positions.
 ```{r sim-effects-uneven, fig.height=2, fig.width=5}
 set.seed(2)
 data(N3finemapping)
-rsnr <- 0.5
 f1 <- simu_IBSS_per_level(9)$sim_func
 f2 <- simu_IBSS_per_level(9)$sim_func
-pos <- sort(sample(512,200))
+pos <- sort(sample(512,36))
 par(mar = c(2,2,2,2))
 plot(f2,type = "l",lwd = 1.25)
 points(pos,f2[pos],col = "black",pch = 20,cex = 0.75)
 abline(a = 0,b = 0,col = "black",lty = "dotted")
 ```
 
-Let's now generate Y similar to above.
+Let's now generate the data matrix Y similar to above.
 
 ```{r sim-data-uneven}
+rsnr   <- 0.03
 f1_obs <- f1[pos]
 f2_obs <- f2[pos]
 X      <- N3finemapping$X[,1:100]
@@ -259,30 +259,28 @@ sampling positions:
 fit <- susiF(Y,X,L = 10,pos)
 ```
 
-To visualize the estimated effect with the correct x coordinate, use
-the "$outing_grid" object from the susiF.obj
+To visualize the estimated effects, again we can use the
+"plot_susiF_effect" function:
 
-In this example, effect 2 (in our simulation) is captured in the first
-CS. The black line is the actual true effect. The red dots are the
-effect level at the sampling position, the thick blue line is the
-estimated effect, and the dashed line is the 95% credible bands.
-
-```{r}
-plot(x = 1:512,y = f2,type = "l")
-points(x = sampling_pos,y = f2_obs,col = "red",pch = 20)
-lines(x = out$outing_grid,y = out$fitted_func[[1]],col = "darkblue",lwd = 2)
-lines(x = out$outing_grid,y = out$cred_band[[1]][1,],col = "darkblue",lty = 2)
-lines(x = out$outing_grid,y = out$cred_band[[1]][2,],col = "darkblue",lty = 2)
+```{r plot-effects-uneven, fig.height=2.5, fig.width=5}
+plot_susiF_effect(fit)
 ```
  
-### A note on the priors available
+## A note on the priors available
 
-Note that fSuSiE has two different priors available: \textit{mixture_normal_per_scale} and \textit{mixture_normal}. The default value is \textit{mixture_normal_per_scale}, which has slightly higher performance (power, estimation accuracy) than the  \textit{mixture_normal}. However,  \textit{mixture_normal} is up to 40% faster than the \textit{mixture_normal_per_scale}. You may consider using this option before performing genome-wide fine mapping. 
+Note that fSuSiE has two different priors available:
+\textit{mixture_normal_per_scale} and \textit{mixture_normal}. The
+default value is \textit{mixture_normal_per_scale}, which has slightly
+higher performance (power, estimation accuracy) than the
+\textit{mixture_normal}. However, \textit{mixture_normal} is up to 40%
+faster than the \textit{mixture_normal_per_scale}. You may consider
+using this option before performing genome-wide fine mapping.
  
 Here is a comparison between their running time
+
 ```{r, eval=FALSE}
- out1 <- susiF(Y,X,L=3 , prior = 'mixture_normal_per_scale',verbose=FALSE)
- out1$runtime
- out2 <- susiF(Y,X,L=3 , prior = 'mixture_normal',verbose=FALSE)
- out2$runtime
+out1 <- susiF(Y,X,L=3 , prior = 'mixture_normal_per_scale',verbose=FALSE)
+out1$runtime
+out2 <- susiF(Y,X,L=3 , prior = 'mixture_normal',verbose=FALSE)
+out2$runtime
 ```
