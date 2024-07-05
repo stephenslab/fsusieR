@@ -36,6 +36,7 @@ plot_susiF_effect(
   effect = "all",
   title = "",
   cred_band = TRUE,
+  show_affected_region = TRUE,
   lfsr_curve = TRUE,
   linewidth = 0.5,
   font_size = 10
@@ -69,6 +70,9 @@ has no effect unless the \code{\link{susiF}} option
 
 \item{font_size}{Passed as the \dQuote{ont_size} argument to
 \code{\link[cowplot]{theme_cowplot}}.}
+
+\item{show_affected_region.}{If \code{show_affected_region = TRUE},
+the regions in which the credible bands cross zero are also shown.}
 }
 \description{
 Various visualizations of fSuSiE results.

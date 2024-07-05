@@ -136,6 +136,9 @@ plot_susiF_pip <- function (obj,
 #' 
 #' @param cred_band logical. If \code{TRUE}, plot credible bands if
 #'   the fSuSiE model was fitted with wavelet regression.
+#'
+#' @param show_affected_region. If \code{show_affected_region = TRUE},
+#'   the regions in which the credible bands cross zero are also shown.
 #' 
 #' @param lfsr_curve Logical. If \code{TRUE}, plot estimated lfsr of the
 #'   effect at each base pair if obj fitted with HMM regression. This
@@ -154,6 +157,7 @@ plot_susiF_pip <- function (obj,
 #' @importFrom ggplot2 xlab
 #' @importFrom ggplot2 ylab
 #' @importFrom ggplot2 geom_ribbon
+#' @importFrom ggplot2 geom_segment
 #' @importFrom ggplot2 scale_color_manual
 #' @importFrom ggplot2 scale_fill_manual
 #' @importFrom ggplot2 aes
@@ -166,6 +170,7 @@ plot_susiF_effect <- function (obj,
                                effect = "all",
                                title = "",
                                cred_band = TRUE,
+                               show_affected_region = TRUE,
                                lfsr_curve = TRUE,
                                linewidth = 0.5,
                                font_size = 10) {
@@ -194,46 +199,68 @@ plot_susiF_effect <- function (obj,
   fun_plot <- c(rep(0,n_wac),fun_plot)
 
   if (cred_band & is.null(obj$lfsr_func)) {
-    cred_band <- data.frame(t(do.call(cbind,obj$cred_band[indx_effect])))
-    cred_band <- rbind(data.frame(up = rep(0,n_wac),low = rep(0,n_wac)),
-                       cred_band)
+
+    # Include the credible bands.
+    cred_band_dat <- data.frame(t(do.call(cbind,obj$cred_band[indx_effect])))
+    cred_band_dat <- rbind(data.frame(up = rep(0,n_wac),low = rep(0,n_wac)),
+                           cred_band_dat)
     x  <- rep(obj$outing_grid,length(indx_effect) + 1)
     CS <- rep(c(0,indx_effect),each = n_wac)
     df <- data.frame(fun_plot = fun_plot,CS = factor(CS),x = x,
-                     upr = cred_band$up,lwr = cred_band$low)
+                     upr = cred_band_dat$up,lwr = cred_band_dat$low)
     df  <- df[-which(df$CS == 0),]
     out <- ggplot(df,aes(y = fun_plot,x = x,color = CS)) +
       geom_line(linewidth = linewidth) +
       geom_ribbon(aes(ymin = lwr,ymax = upr,fill = CS,color = CS),
-                  linewidth = 0,alpha = 0.3) +
-      facet_grid(CS~.)
+                  linewidth = 0,alpha = 0.3)
+    facet_scale <- "fixed"
   } else {
     if (lfsr_curve & !is.null(obj$lfsr_func)) {
-      lfsr_curve <- do.call(c,obj$lfsr_func[indx_effect])
+
+      # Add lfsr information.
+      lfsr_curve_dat <- do.call(c,obj$lfsr_func[indx_effect])
       x  <- rep(obj$outing_grid,length(indx_effect) + 1)
       CS <- rep(c(0,indx_effect), each = n_wac)
       df <- data.frame(fun_plot = fun_plot,CS = factor(CS),x = x)
       df <- df[-which(df$CS == 0),]
-      df$lfsr_curve <- lfsr_curve
+      df$lfsr_curve <- lfsr_curve_dat
       out <- ggplot(df,aes(y = fun_plot,x = x,color = CS)) +
         geom_line(linewidth = linewidth) +
         geom_line(aes(y = lfsr_curve,x = x),color = "black",
                   show.legend = FALSE) +
-        geom_hline(yintercept = 0.05,color = "black",linetype = "dashed") +
-            facet_grid(CS~.,scales = "free")
+        geom_hline(yintercept = 0.05,color = "black",linetype = "dashed")
+      facet_scale <- "free"
     } else {
+        
+      # Do not include the credible bands.
       x  <- rep(obj$outing_grid,length(indx_effect) + 1)
       CS <- rep(c(0,indx_effect),each = n_wac)
       df <- data.frame(fun_plot = fun_plot,CS = factor(CS),x = x)
       df <- df[-which(df$CS == 0),]
       out <- ggplot(df,aes(y = fun_plot,x = x,color = CS)) +
-        geom_line(linewidth = linewidth) +
-        facet_grid(CS~.,scales = "free")
+        geom_line(linewidth = linewidth)
+      facet_scale <- "free"
     }
   }
+
+  # Add a horizontal line.
+  out <- out + geom_hline(yintercept = 0,color = "black",linetype = "dotted")
+
+  # Add the "affected region".
+  if (show_affected_region) {
+    affected_region_dat <- cbind(affected_reg(obj),
+                                 data.frame(ystart = 0,yend = 0))
+    affected_region_dat$CS <- factor(affected_region_dat$CS)
+    out <- out + geom_segment(aes(x = Start,xend = End,y = ystart,yend = yend),
+                              data = affected_region_dat,
+                              linewidth = 0.75,lineend = "square",
+                              color = "black")
+  }
+
+  # Finish up the plot.
   plot_colors <- plot_colors[-1][indx_effect]
   return(out +
-         geom_hline(yintercept = 0,color = "black",linetype = "dotted") +
+         facet_grid(CS~.,scales = facet_scale) +
          scale_color_manual("Credible set",values = plot_colors) +
          scale_fill_manual("Credible set",values = plot_colors) +
          labs(x = "position",y = "estimated effect",title = title) +
