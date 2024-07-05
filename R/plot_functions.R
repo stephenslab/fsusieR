@@ -44,8 +44,8 @@ plot_colors <- c("black", "dodgerblue2", "green4", "#6A3D9A", "#FF7F00",
 plot_susiF <- function (obj,
                         title = "",
                         effect = "all",
-                        cred.band = TRUE,
-                        lfsr.curve = TRUE,
+                        cred_band = TRUE,
+                        lfsr_curve = TRUE,
                         linewidth = 0.5,
                         point_size = 2,
                         pos_SNP,
@@ -66,8 +66,8 @@ plot_susiF <- function (obj,
   
   P2 <- plot_susiF_effect(obj = obj ,
                           effect = effect,
-                          cred.band = cred.band,
-                          lfsr.curve = lfsr.curve,
+                          cred_band = cred_band,
+                          lfsr_curve = lfsr_curve,
                           linewidth = linewidth)
   
   if (pip_only) {
@@ -134,10 +134,10 @@ plot_susiF_pip <- function (obj,
 #' @param effect The indices of the effects to be plotted, or use
 #'   \code{effect = "all"} to plot all effects.
 #' 
-#' @param cred.band logical. If \code{TRUE}, plot credible bands if
+#' @param cred_band logical. If \code{TRUE}, plot credible bands if
 #'   the fSuSiE model was fitted with wavelet regression.
 #' 
-#' @param lfsr.curve Logical. If \code{TRUE}, plot estimated lfsr of the
+#' @param lfsr_curve Logical. If \code{TRUE}, plot estimated lfsr of the
 #'   effect at each base pair if obj fitted with HMM regression. This
 #'   has no effect unless the \code{\link{susiF}} option
 #'   \code{post_processing = "HMM"} was used.
@@ -165,8 +165,8 @@ plot_susiF_pip <- function (obj,
 plot_susiF_effect <- function (obj,
                                effect = "all",
                                title = "",
-                               cred.band = TRUE,
-                               lfsr.curve = TRUE,
+                               cred_band = TRUE,
+                               lfsr_curve = TRUE,
                                linewidth = 0.5,
                                font_size = 10) {
   L     <- obj$L
@@ -193,7 +193,7 @@ plot_susiF_effect <- function (obj,
   n_wac    <- obj$n_wac
   fun_plot <- c(rep(0,n_wac),fun_plot)
 
-  if (cred.band & is.null(obj$lfsr_func)) {
+  if (cred_band & is.null(obj$lfsr_func)) {
     cred_band <- data.frame(t(do.call(cbind,obj$cred_band[indx_effect])))
     cred_band <- rbind(data.frame(up = rep(0,n_wac),low = rep(0,n_wac)),
                        cred_band)
@@ -208,7 +208,7 @@ plot_susiF_effect <- function (obj,
                   linewidth = 0,alpha = 0.3) +
       facet_grid(CS~.)
   } else {
-    if (lfsr.curve & !is.null(obj$lfsr_func)) {
+    if (lfsr_curve & !is.null(obj$lfsr_func)) {
       lfsr_curve <- do.call(c,obj$lfsr_func[indx_effect])
       x  <- rep(obj$outing_grid,length(indx_effect) + 1)
       CS <- rep(c(0,indx_effect), each = n_wac)

@@ -159,13 +159,6 @@ cor(X[,cs1])
 
 ## Visualization
 
-The easiest way to visualize the result is to use the
-\code{plot_susiF} function.
-
-```{r, eval=FALSE}
-fsusie_plots <- plot_susiF(fit)
-```
-
 You can also access the information directly in the output of susiF in
 the fitted_func part of the output. See below
 
@@ -180,7 +173,14 @@ function to display only the PiP plot.
 ```{r plot-pips, fig.height=2, fig.width=5}
 plot_susiF_pip(fit)
 ```
- 
+
+The easiest way to visualize the result is to use the
+\code{plot_susiF} function.
+
+```{r, eval=FALSE}
+fsusie_plots <- plot_susiF(fit)
+```
+
 ## Extracting the regions affected by the credible sets
 
 We provide a build-in function to retrieve the regions where the

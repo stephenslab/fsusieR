@@ -11,8 +11,8 @@ plot_susiF(
   obj,
   title = "",
   effect = "all",
-  cred.band = TRUE,
-  lfsr.curve = TRUE,
+  cred_band = TRUE,
+  lfsr_curve = TRUE,
   linewidth = 0.5,
   point_size = 2,
   pos_SNP,
@@ -35,8 +35,8 @@ plot_susiF_effect(
   obj,
   effect = "all",
   title = "",
-  cred.band = TRUE,
-  lfsr.curve = TRUE,
+  cred_band = TRUE,
+  lfsr_curve = TRUE,
   linewidth = 0.5,
   font_size = 10
 )
@@ -49,10 +49,10 @@ plot_susiF_effect(
 \item{effect}{The indices of the effects to be plotted, or use
 \code{effect = "all"} to plot all effects.}
 
-\item{cred.band}{logical. If \code{TRUE}, plot credible bands if
+\item{cred_band}{logical. If \code{TRUE}, plot credible bands if
 the fSuSiE model was fitted with wavelet regression.}
 
-\item{lfsr.curve}{Logical. If \code{TRUE}, plot estimated lfsr of the
+\item{lfsr_curve}{Logical. If \code{TRUE}, plot estimated lfsr of the
 effect at each base pair if obj fitted with HMM regression. This
 has no effect unless the \code{\link{susiF}} option
 \code{post_processing = "HMM"} was used.}
