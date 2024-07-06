@@ -217,7 +217,7 @@ plot_susiF_effect <- function (obj,
       geom_ribbon(aes(ymin = lwr,ymax = upr,fill = CS,color = CS),
                   linewidth = 0,alpha = 0.3)
     if (show_outing_grid)
-      out <- out + geom_point(size = point_size,shape = 21,fill = "white")
+      out <- out + geom_point(size = point_size)
     facet_scale <- "fixed"
   } else {
     if (lfsr_curve & !is.null(obj$lfsr_func)) {
