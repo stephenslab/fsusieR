@@ -25,7 +25,7 @@ plot_susiF(
 plot_susiF_pip(
   obj,
   title = "",
-  point_size = 2,
+  point_size = 1.25,
   pos_SNP,
   point_shape,
   font_size = 10

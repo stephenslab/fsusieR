@@ -170,7 +170,7 @@ You can also access the posterior inclusion probabilities directly
 from the fitted object. Similarly, you can specify the plot_susiF
 function to display only the PiP plot.
  
-```{r plot-pips, fig.height=2, fig.width=5, eval=FALSE}
+```{r plot-pips, fig.height=1.75, fig.width=5}
 plot_susiF_pip(fit)
 ```
 
@@ -243,21 +243,21 @@ To visualize the estimated effects, again we can use the
 plot_susiF_effect(fit)
 ```
  
-## A note on the priors available
+## Prior on the effects
 
 Note that fSuSiE has two different priors available:
-\textit{mixture_normal_per_scale} and \textit{mixture_normal}. The
-default value is \textit{mixture_normal_per_scale}, which has slightly
-higher performance (power, estimation accuracy) than the
-\textit{mixture_normal}. However, \textit{mixture_normal} is up to 40%
-faster than the \textit{mixture_normal_per_scale}. You may consider
-using this option before performing genome-wide fine mapping.
+"mixture_normal_per_scale" and "mixture_normal". The default value is
+"mixture_normal_per_scale", which has slightly higher performance
+overall (power, estimation accuracy) than "mixture_normal". However,
+"mixture_normal" is somewhat faster than the
+"mixture_normal_per_scale":
  
-Here is a comparison between their running time
-
-```{r, eval=FALSE}
-out1 <- susiF(Y,X,L=3 , prior = 'mixture_normal_per_scale',verbose=FALSE)
-out1$runtime
-out2 <- susiF(Y,X,L=3 , prior = 'mixture_normal',verbose=FALSE)
-out2$runtime
+```{r fsusie-priors}
+fit1 <- susiF(Y,X,L = 10,prior = "mixture_normal_per_scale")
+fit2 <- susiF(Y,X,L = 10,prior = "mixture_normal")
+fit1$runtime
+fit2$runtime
 ```
+
+Therefore, for larger data sets you may want to use the
+"mixture_normal" prior.

@@ -101,10 +101,10 @@ plot.susiF <- function(x, ...) {
 #' 
 plot_susiF_pip <- function (obj,
                             title = "", 
-                            point_size = 2,
+                            point_size = 1.25,
                             pos_SNP, 
                             point_shape,
-                            font_size = 10 ) {
+                            font_size = 10) {
   if (missing(pos_SNP)) {
     pos_SNP <- 1:length(obj$pip)
   }
