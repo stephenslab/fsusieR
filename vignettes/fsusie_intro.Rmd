@@ -70,7 +70,7 @@ We illustrate these ideas in the examples below.
 
 ```{r load-packages}
 library(susieR)
-# library(fsusieR)
+library(fsusieR)
 library(ggplot2)
 library(cowplot)
 ```
