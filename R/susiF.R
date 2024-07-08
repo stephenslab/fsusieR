@@ -99,26 +99,61 @@
 #'
 #' @importFrom stats var
 #' 
+#' @return A \code{"susiF"} object with some or all of the following
+#' elements:
 #' 
-#' @return  A \code{"susiF"} object with some or all of the following elements:
-#' \item{alpha}{a list of length L  containing the posterior inclusion probabilities for each effect.}
-#' \item{pip}{a vector of length J, containing the posterior inclusion probability of each covariate}
-#' \item{cs}{a list of length L, each element is the credible set of the lth effect  }
-#' \item{purity}{a list of length L, each element is the purity of the lth effect  }
-#' \item{fitted_func}{a list of length L, each element is a list of length J, containing the estimated effect of the Lth effect at each position}
-#' \item{cred_band}{a list of length L, each element is a list of length J, containing the credible band of the Lth effect at each position}
-#' \item{sigma2 }{The estimated residual variance}
-#' \item{lBF}{a list of length L  containing the log  Bayes factor for each effect.}
-#' \item{ ind_fitted_func}{a matrix of the individual estimated genotype effect}
-#' \item{outin_grid}{The grid on which the effects are estimated (see vignette introduction for more details)}
+#' \item{alpha}{List of length L containing the posterior inclusion
+#'   probabilities for each effect.}
+#' 
+#' \item{pip}{Vector of length J, containing the posterior inclusion
+#'   probability for each covariate.}
+#' 
+#' \item{cs}{List of length L. Each element is the credible set of
+#' the lth effect.}
+#' 
+#' \item{purity}{List of length L. Each element is the purity of the
+#'   lth effect.}
+#' 
+#' \item{fitted_func}{List of length L. Each element is a vector of
+#'   length J containing the Lth estimated single effect.}
+#' 
+#' \item{cred_band}{List of length L. Each element is a list of
+#'   length J, containing the credible band of the Lth effect at each
+#'   position}
+#' 
+#' \item{sigma2}{The estimated residual variance.}
+#' 
+#' \item{lBF}{List of length L containing the log-Bayes factor for
+#'   each effect.}
+#' 
+#' \item{ind_fitted_func}{Matrix of the individual estimated
+#'   genotype effect.}
+#' 
+#' \item{outing_grid}{The grid on which the effects are estimated. Ssee
+#'   the introductory vignette for more details.}
+#' 
 #' \item{runtime}{runtime of the algorithm}
-#' \item{G_prior}{a list of of ash objects containning the prior mixture component}
-#' \item{est_pi}{a list  of length L, each element contains the estimated  prior mixture  weights for each effect}
-#' \item{est_sd}{the estimated prior mixture for each effect}
-#' \item{ELBO}{the ELBO value at each iteration of the algorithm}
-#' \item{fitted_wc}{a list of length L, each element is a list of length J, containing the conditional wavelet coefficients first moment for Lth effect. Note that this is only for internal use in the IBSS and
-#'        the results in  fitted_func  will corresponds to this wavelet coefficient if  \code{post_processing} is set to \code{none}, not recommended. }
-#' \item{fitted_wc2}{a list of length L, each element is a list of length J, containing the conditional wavelet coefficients second-moment for the Lth effect.}
+#' 
+#' \item{G_prior}{A list of of ash objects containing the prior
+#'   mixture component.}
+#' 
+#' \item{est_pi}{List of length L. Each element contains the
+#'   estimated prior mixture weights for each effect.}
+#' 
+#' \item{est_sd}{Ehe estimated prior mixture for each effect.}
+#' 
+#' \item{ELBO}{The ELBO value at each iteration of the algorithm.}
+#' 
+#' \item{fitted_wc}{List of length L. Each element is a matrix
+#'   containing the conditional wavelet coefficients (first moment) for
+#'   a single effect. For internal use only. The results in
+#'   \code{fitted_func} will correspond to this wavelet coefficient if
+#'   \code{post_processing = "none"} (which is not recommended).}
+#' 
+#' \item{fitted_wc2}{List of length L. Each element is a matrix
+#'   containing the conditional wavelet coefficients (second-moment) for
+#'   a single effect.}
+#' 
 #' @export
 #'
 #' @examples
