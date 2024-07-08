@@ -11,8 +11,12 @@ plot_colors <- c("black", "dodgerblue2", "green4", "#6A3D9A", "#FF7F00",
 #' @description Various visualizations of fSuSiE results.
 #
 #' @param obj Output of the susiF function.
+#'
+#' @param which_plot Which plots to return; a PIP plot, effect plot,
+#'   or both (in which case the return value is a list containing the
+#'   two plots.
 #' 
-#' @param point_size numeric, size of the point
+#' @param point_size numeric, size of the points.
 #' 
 #' @param pos_SNP vector, containing the base pair of the SNPs
 #' 
@@ -42,47 +46,54 @@ plot_colors <- c("black", "dodgerblue2", "green4", "#6A3D9A", "#FF7F00",
 #' @export
 #
 plot_susiF <- function (obj,
-                        title = "",
+                        which_plot = c("both","pip","effect"),
                         effect = "all",
                         cred_band = TRUE,
+                        show_affected_region = TRUE,
+                        show_outing_grid = ifelse(diff(range(diff(obj$outing_grid))) < 1e-6,FALSE,TRUE),
                         lfsr_curve = TRUE,
-                        line_width = 0.5,
-                        point_size = 2,
+                        line_width = 0.35,
+                        point_size = 1.25,
+                        dot_size = 0.5,
                         pos_SNP,
                         point_shape,
-                        pip_only = FALSE) {
-  
-  if(missing(pos_SNP)){
-    pos_SNP<-  1:length(obj$pip)
+                        font_size = 10,
+                        title = "") {
+
+  if (missing(pos_SNP)) {
+    pos_SNP <- 1:length(obj$pip)
   }
-  if( missing(point_shape)){
-    point_shape <- rep( 19, length(pos_SNP))
+  if (missing(point_shape)) {
+    point_shape <- rep(19,length(pos_SNP))
   }
-  
-  P1  <- plot_susiF_pip  (obj         = obj  ,
-                           point_size  = point_size,
-                           pos_SNP     = pos_SNP,, 
-                           point_shape = point_shape)
-  
-  P2 <- plot_susiF_effect(obj = obj ,
-                          effect = effect,
-                          cred_band = cred_band,
-                          lfsr_curve = lfsr_curve,
-                          line_width = line_width)
-  
-  if (pip_only) {
-    return(P1)
-  }
-  return(out <- gridExtra::grid.arrange(P1,P2,ncol=2,top =title))
+  which_plot <- match.arg(which_plot)
+
+  p1 <- plot_susiF_pip(obj,title,pos_SNP,point_shape,point_size,font_size)
+
+  p2 <- plot_susiF_effect(obj,effect,title,cred_band,show_affected_region,
+                          show_outing_grid,lfsr_curve,line_width,dot_size,
+                          font_size)
+                        
+  if (which_plot == "both")
+    return(list(pip = p1,effect = p2))
+  else if (which_plot == "pip")
+    return(p1)
+  else
+    return(p2)
 }
 
 #' @rdname fsusie_plots
 #'
+#' @param x Output of the susiF function.
+#'
+#' @importFrom graphics plot
+#' 
+#' @method plot susiF
+#'
 #' @export
 #'
-plot.susiF <- function(x, ...) {
-  return(plot_susiF(x,...))
-}
+plot.susiF <- function (x, ...)
+  plot_susiF(x,...)
  
 #' @rdname fsusie_plots
 #'
@@ -101,9 +112,9 @@ plot.susiF <- function(x, ...) {
 #' 
 plot_susiF_pip <- function (obj,
                             title = "", 
-                            point_size = 1.25,
                             pos_SNP, 
                             point_shape,
+                            point_size = 1.25,
                             font_size = 10) {
   if (missing(pos_SNP)) {
     pos_SNP <- 1:length(obj$pip)
@@ -152,6 +163,8 @@ plot_susiF_pip <- function (obj,
 #' 
 #' @param line_width Numeric. Width of the plotted lines.
 #'
+#' @param dot_size numeric, size of the points in the effect plot.
+#' 
 #' @importFrom ggplot2 ggplot
 #' @importFrom ggplot2 facet_grid
 #' @importFrom ggplot2 geom_line
@@ -175,7 +188,7 @@ plot_susiF_effect <- function (obj,
                                show_outing_grid = ifelse(diff(range(diff(obj$outing_grid))) < 1e-6,FALSE,TRUE),
                                lfsr_curve = TRUE,
                                line_width = 0.35,
-                               point_size = 0.5,
+                               dot_size = 0.5,
                                font_size = 10) {
   L     <- obj$L
   n_wac <- obj$n_wac
@@ -217,7 +230,7 @@ plot_susiF_effect <- function (obj,
       geom_ribbon(aes(ymin = lwr,ymax = upr,fill = CS,color = CS),
                   linewidth = 0,alpha = 0.3)
     if (show_outing_grid)
-      out <- out + geom_point(size = point_size)
+      out <- out + geom_point(size = dot_size)
     facet_scale <- "fixed"
   } else {
     if (lfsr_curve & !is.null(obj$lfsr_func)) {
@@ -235,7 +248,7 @@ plot_susiF_effect <- function (obj,
                   show.legend = FALSE) +
         geom_hline(yintercept = 0.05,color = "black",linetype = "dashed")
       if (show_outing_grid)
-        out <- out + geom_point(size = point_size,shape = 21,fill = "white")
+        out <- out + geom_point(size = dot_size,shape = 21,fill = "white")
       facet_scale <- "free"
     } else {
         
@@ -245,10 +258,9 @@ plot_susiF_effect <- function (obj,
       df <- data.frame(fun_plot = fun_plot,CS = factor(CS),x = x)
       df <- df[-which(df$CS == 0),]
       out <- ggplot(df,aes(y = fun_plot,x = x,color = CS)) +
-        geom_line(linewidth = line_width) +
-        geom_point(size = point_size)
+        geom_line(linewidth = line_width)
       if (show_outing_grid)
-        out <- out + geom_point(size = point_size,shape = 21,fill = "white")
+        out <- out + geom_point(size = dot_size,shape = 21,fill = "white")
       facet_scale <- "free"
     }
   }

@@ -174,11 +174,13 @@ function to display only the PiP plot.
 plot_susiF_pip(fit)
 ```
 
-The easiest way to visualize the result is to use the
-\code{plot_susiF} function.
+Or use the "plot" method to quickly generate both plots.
 
-```{r, eval=FALSE}
-fsusie_plots <- plot_susiF(fit)
+```{r plot-all, fig.height=3.5, fig.width=5}
+res <- plot(fit)
+plot_grid(res$pip,res$effect,
+          nrow = 2,ncol = 1,
+		  rel_heights = c(3,5))
 ```
 
 ## Handling functions of any length and unevenly spaced data
@@ -246,18 +248,17 @@ plot_susiF_effect(fit)
 ## Prior on the effects
 
 Note that fSuSiE has two different priors available:
-"mixture_normal_per_scale" and "mixture_normal". The default value is
-"mixture_normal_per_scale", which has slightly higher performance
-overall (power, estimation accuracy) than "mixture_normal". However,
-"mixture_normal" is somewhat faster than the
-"mixture_normal_per_scale":
+mixture_normal_per_scale and mixture_normal. The default value is
+mixture_normal_per_scale, which has slightly higher performance
+overall (power, estimation accuracy) than mixture_normal. However,
+mixture_normal is somewhat faster:
  
-```{r fsusie-priors}
-fit1 <- susiF(Y,X,L = 10,prior = "mixture_normal_per_scale")
-fit2 <- susiF(Y,X,L = 10,prior = "mixture_normal")
-fit1$runtime
-fit2$runtime
+```{r fsusie-priors, message=FALSE}
+fit_mnps <- susiF(Y,X,L = 10,prior = "mixture_normal_per_scale",verbose = FALSE)
+fit_mn <- susiF(Y,X,L = 10,prior = "mixture_normal",verbose = FALSE)
+fit_mnps$runtime
+fit_mn$runtime
 ```
 
 Therefore, for larger data sets you may want to use the
-"mixture_normal" prior.
+`prior = "mixture_normal"` option.

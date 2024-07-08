@@ -9,15 +9,19 @@
 \usage{
 plot_susiF(
   obj,
-  title = "",
+  which_plot = c("both", "pip", "effect"),
   effect = "all",
   cred_band = TRUE,
+  show_affected_region = TRUE,
+  show_outing_grid = ifelse(diff(range(diff(obj$outing_grid))) < 1e-06, FALSE, TRUE),
   lfsr_curve = TRUE,
-  line_width = 0.5,
-  point_size = 2,
+  line_width = 0.35,
+  point_size = 1.25,
+  dot_size = 0.5,
   pos_SNP,
   point_shape,
-  pip_only = FALSE
+  font_size = 10,
+  title = ""
 )
 
 \method{plot}{susiF}(x, ...)
@@ -25,9 +29,9 @@ plot_susiF(
 plot_susiF_pip(
   obj,
   title = "",
-  point_size = 1.25,
   pos_SNP,
   point_shape,
+  point_size = 1.25,
   font_size = 10
 )
 
@@ -40,14 +44,16 @@ plot_susiF_effect(
   show_outing_grid = ifelse(diff(range(diff(obj$outing_grid))) < 1e-06, FALSE, TRUE),
   lfsr_curve = TRUE,
   line_width = 0.35,
-  point_size = 0.5,
+  dot_size = 0.5,
   font_size = 10
 )
 }
 \arguments{
 \item{obj}{Output of the susiF function.}
 
-\item{title}{The title of the plot.}
+\item{which_plot}{Which plots to return; a PIP plot, effect plot,
+or both (in which case the return value is a list containing the
+two plots.}
 
 \item{effect}{The indices of the effects to be plotted, or use
 \code{effect = "all"} to plot all effects.}
@@ -62,16 +68,22 @@ has no effect unless the \code{\link{susiF}} option
 
 \item{line_width}{Numeric. Width of the plotted lines.}
 
-\item{point_size}{numeric, size of the point}
+\item{point_size}{numeric, size of the points.}
+
+\item{dot_size}{numeric, size of the points in the effect plot.}
 
 \item{pos_SNP}{vector, containing the base pair of the SNPs}
 
 \item{point_shape}{vector, containing the shape of dots}
 
-\item{pip_only}{logical, if TRUE only ouput the PIP plot}
-
 \item{font_size}{Passed as the \dQuote{ont_size} argument to
 \code{\link[cowplot]{theme_cowplot}}.}
+
+\item{title}{The title of the plot.}
+
+\item{x}{Output of the susiF function.}
+
+\item{pip_only}{logical, if TRUE only ouput the PIP plot}
 
 \item{show_affected_region.}{If \code{show_affected_region = TRUE},
 the regions in which the credible bands cross zero are also shown.}
