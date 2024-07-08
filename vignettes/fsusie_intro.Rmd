@@ -166,7 +166,7 @@ the fitted_func part of the output. See below
 plot_susiF_effect(fit)
 ```
 
-You can also access the Posterior inclusion probabilities directly
+You can also access the posterior inclusion probabilities directly
 from the fitted object. Similarly, you can specify the plot_susiF
 function to display only the PiP plot.
  
@@ -179,29 +179,6 @@ The easiest way to visualize the result is to use the
 
 ```{r, eval=FALSE}
 fsusie_plots <- plot_susiF(fit)
-```
-
-## Prediction
-
-You can also check the predictive power of susiF by checking the
-fitted from the output susiF
- 
-```{r, eval=FALSE}
-f1_obs <- f1
-f2_obs <- f2
-true_sig  <- matrix( X[ ,pos1], ncol=1)%*%t(f1_obs) +matrix( X[ ,pos2], ncol=1)%*%t(f2_obs)
-plot(fit$ind_fitted_func,  true_sig,
-     xlab= "predicted value", ylab="true value") 
-abline(a=0,b=1)
-```
-
-Note that these predictions can differ substantially from the observed
-noisy curves
-
-```{r, eval=FALSE}
-plot(fit$ind_fitted_func,  Y,
-     xlab= "predicted value", ylab="Noisy observation value") 
-abline(a=0,b=1)
 ```
 
 ## Handling functions of any length and unevenly spaced data
