@@ -272,6 +272,8 @@ plot_susiF_effect <- function (obj,
   if (show_affected_region) {
     affected_region_dat <- cbind(affected_reg(obj),
                                  data.frame(ystart = 0,yend = 0))
+    rows <- which(is.element(affected_region_dat$CS,indx_effect))
+    affected_region_dat <- affected_region_dat[rows,]
     affected_region_dat$CS <- factor(affected_region_dat$CS)
     out <- out + geom_segment(aes(x = Start,xend = End,y = ystart,yend = yend),
                               data = affected_region_dat,linewidth = 0.75,
