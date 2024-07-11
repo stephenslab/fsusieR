@@ -26,6 +26,8 @@ is.wholenumber <- function (x, tol = .Machine$double.eps^0.5)
 '%!in%' <- function(x,y)!('%in%'(x,y))
 
 # Based on Rfast implementation.
+#
+#' @importFrom Rfast cova
 fast_lm <- function(x,y)
 {
 

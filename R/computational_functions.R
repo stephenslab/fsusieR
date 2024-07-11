@@ -63,9 +63,10 @@ cal_cor_cs <- function(obj,X){
 # \item{Shat}{ matrix pxJ standard error, Shat[j,t] corresponds to standard error of the regression coefficient of Y[,t] on X[,j] }
 #
 # @export
-# @importFrom  Rfast colsums
-# @importFrom  Rfast colVars
-
+#
+#' @importFrom Rfast colsums
+#' @importFrom Rfast colVars
+#' @importFrom Rfast cova
 cal_Bhat_Shat   <- function(Y,
                             X ,
                             v1 ,
