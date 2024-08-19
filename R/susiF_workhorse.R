@@ -67,7 +67,7 @@ susiF.workhorse <- function(obj,
                             cor_small=FALSE,
                             is.pois=FALSE,
                             e = 0.001){
-
+#browser()
   G_prior  <- get_G_prior(obj )
   Y_f      <-  cbind( W$D,W$C)
   update_Y <- Y_f

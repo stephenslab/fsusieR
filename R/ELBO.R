@@ -146,9 +146,9 @@ loglik_SFR_post.susiF <- function (obj, l, Y, X, ...)
 #
 #' @param Y Matrix of outcomes
 #
-#' @param X Matrix of covariates
+#' @param X Matrix of covariates 
 #' 
-#' @param data list of data for susif_ss
+#' @param \dots Other arguments.
 #
 #' @return Expected log likelihood
 #' @export
@@ -170,14 +170,14 @@ Eloglik.susiF = function (obj,Y ,X,  ...) {
 
   return(-(n*t/2) * log(2*pi*obj$sigma2) - (1/(2*obj$sigma2)) * get_ER2( obj, Y, X))
 }
-#' @export
-#' @keywords internal
-Eloglik.susiF_ss = function (obj,data,...) {
-  n <- data$N
-  t <- ncol(data$Bhat)
-
-  return(-(n*t/2) * log(2*pi*obj$sigma2) - (1/(2*obj$sigma2)) * get_ER2( obj,data))
-}
+#  @export
+#  @keywords internal
+#Eloglik.susiF_ss = function (obj,data,...) {
+#  n <- data$N
+#  t <- ncol(data$Bhat)
+#
+#  return(-(n*t/2) * log(2*pi*obj$sigma2) - (1/(2*obj$sigma2)) * get_ER2( obj,data))
+#}
 
 #' @title Get objective function from data and susiF object
 #

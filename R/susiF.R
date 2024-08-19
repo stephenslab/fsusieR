@@ -219,7 +219,7 @@
 #'
 #'out <- susiF(Y,X,L=2 , prior = 'mixture_normal_per_scale')
 #'
-#'plot_susiF(out, cred.band = TRUE)
+#'plot_susiF(out)
 #'
 #'
 #'
@@ -326,6 +326,15 @@ susiF <- function(Y, X, L = 2,
   if(!cal_obj){
     tol <-10^-3
   }
+  if(L>ncol(X)){
+    L <-ncol(X)
+  }
+  
+  if(L_start>ncol(X)){
+    L_start <-ncol(X)
+  }
+  
+  
   if(L_start >L)
   {
     L_start <- L

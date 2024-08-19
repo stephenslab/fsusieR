@@ -16,7 +16,7 @@ which_dummy_cs(obj, min_purity = 0.5, X, median_crit = FALSE, ...)
 
 \item{X}{matrix of covariates}
 
-\item{max_crit}{remove cs base on max absolute correlation instead of min absolute correlation, usefull in the}
+\item{median_crit}{remove cs base on max absolute correlation instead of min absolute correlation, usefull in the}
 }
 \value{
 a list of index corresponding the the dummy effect

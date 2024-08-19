@@ -24,6 +24,12 @@ plot_colors <- c("black", "dodgerblue2", "green4", "#6A3D9A", "#FF7F00",
 #' 
 #' @param pip_only logical, if TRUE only ouput the PIP plot
 #' 
+#' @param show_outing_grid logical, if TRUE show grid
+#' 
+#' @param pip_only logical, if TRUE show pip only
+#' 
+#' @param show_affected_region logical, if TRUE show affected regions
+#' 
 #' @param font_size Passed as the \dQuote{ont_size} argument to
 #'   \code{\link[cowplot]{theme_cowplot}}.
 #' 

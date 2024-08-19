@@ -61,6 +61,10 @@ two plots.}
 \item{cred_band}{logical. If \code{TRUE}, plot credible bands if
 the fSuSiE model was fitted with wavelet regression.}
 
+\item{show_affected_region}{logical, if TRUE show affected regions}
+
+\item{show_outing_grid}{logical, if TRUE show grid}
+
 \item{lfsr_curve}{Logical. If \code{TRUE}, plot estimated lfsr of the
 effect at each base pair if obj fitted with HMM regression. This
 has no effect unless the \code{\link{susiF}} option
@@ -83,7 +87,7 @@ has no effect unless the \code{\link{susiF}} option
 
 \item{x}{Output of the susiF function.}
 
-\item{pip_only}{logical, if TRUE only ouput the PIP plot}
+\item{pip_only}{logical, if TRUE show pip only}
 
 \item{show_affected_region.}{If \code{show_affected_region = TRUE},
 the regions in which the credible bands cross zero are also shown.}

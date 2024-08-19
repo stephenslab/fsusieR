@@ -253,7 +253,7 @@ X <- G
 
 out <- susiF(Y,X,L=2 , prior = 'mixture_normal_per_scale')
 
-plot_susiF(out, cred.band = TRUE)
+plot_susiF(out)
 
 
 
