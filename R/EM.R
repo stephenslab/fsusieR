@@ -47,6 +47,8 @@ EM_pi <- function(G_prior,Bhat, Shat, indx_lst,
   #static parameters
 
 ## Deal with overfitted cases
+  
+  Shat[ is.na(Shat) ] <- 1e-32 #some rare case in overfitting and numerical limitation of Rfast
   Shat[ Shat<=0 ] <- 1e-32
   lBF <- log_BF(G_prior,
                 Bhat,Shat,

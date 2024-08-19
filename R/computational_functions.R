@@ -74,73 +74,75 @@ cal_Bhat_Shat   <- function(Y,
                             lowc_wc=NULL,
                             ind_analysis,  ...  )
 {
-
-
-
-    if(missing(ind_analysis)){
-
-
-      d <- colSums(X^2)
-      Bhat <- (t(X)%*%Y )/d
-
+  
+  
+  
+  if(missing(ind_analysis)){
+    
+    
+    d <- colSums(X^2)
+    Bhat <- (t(X)%*%Y )/d
+    
+    Shat  <- do.call( cbind,
+                      lapply( 1:ncol(Bhat),
+                              function(i)  (Rfast::colVars(  Y [,i] -sweep( X,2, Bhat[,i], "*")))
+                      )
+    )
+    
+    Shat<- sqrt( pmax(Shat, 1e-64))
+    Shat <- Shat/sqrt(nrow(Y))
+    
+  }else{
+    if( is.list(ind_analysis) ){ #usefull for running multiple univariate regression with different problematic ind
+      
+      
+      Bhat <-  do.call(cbind,lapply(1:length(ind_analysis),
+                                    function(l){
+                                      d   <- Rfast::colsums(X[ind_analysis[[l]], ]^2)
+                                      out <- (t(X[ind_analysis[[l]], ])%*%Y[ind_analysis[[l]], l])/d
+                                      return(out)
+                                    }
+                                    
+                                    
+      ) )
+      
+      
+      Shat  <-   matrix(mapply(function(l,j)
+        (Rfast::cova(matrix(Y[ind_analysis[[l]],l] - X[ind_analysis[[l]], j]  *  Bhat[j,l])) /(length(ind_analysis[[l]])-1)),
+        l=rep(1:dim(Y)[2],each= ncol(X)),
+        j=rep(1:dim(X)[2], ncol(Y))
+      ),
+      ncol=dim(Y)[2]
+      )
+      Shat<- sqrt( pmax(Shat, 1e-64))
+      
+    }else{
+      d <- Rfast::colsums(X[ind_analysis , ]^2)
+      Bhat <- (t(X[ind_analysis , ])%*%Y[ind_analysis , ])/d
+      
       Shat  <- do.call( cbind,
                         lapply( 1:ncol(Bhat),
-                                function(i)  sqrt(Rfast::colVars(  Y [,i] -sweep( X,2, Bhat[,i], "*")))
+                                function(i) (Rfast::colVars(Y [ind_analysis,i] -sweep( X[ind_analysis,],2, Bhat[ ,i], "*")))
                         )
       )
-      Shat <- Shat/sqrt(nrow(Y))
-
-    }else{
-      if( is.list(ind_analysis) ){ #usefull for running multiple univariate regression with different problematic ind
-
-
-        Bhat <-  do.call(cbind,lapply(1:length(ind_analysis),
-                                      function(l){
-                                        d   <- Rfast::colsums(X[ind_analysis[[l]], ]^2)
-                                        out <- (t(X[ind_analysis[[l]], ])%*%Y[ind_analysis[[l]], l])/d
-                                        return(out)
-                                      }
-
-
-        ) )
-
-
-        Shat  <-   matrix(mapply(function(l,j)
-                                           sqrt(Rfast::cova(matrix(Y[ind_analysis[[l]],l] - X[ind_analysis[[l]], j]  *  Bhat[j,l])) /(length(ind_analysis[[l]])-1)),
-                                 l=rep(1:dim(Y)[2],each= ncol(X)),
-                                 j=rep(1:dim(X)[2], ncol(Y))
-                                 ),
-                           ncol=dim(Y)[2]
-                          )
-
-
-      }else{
-        d <- Rfast::colsums(X[ind_analysis , ]^2)
-        Bhat <- (t(X[ind_analysis , ])%*%Y[ind_analysis , ])/d
-
-        Shat  <- do.call( cbind,
-                          lapply( 1:ncol(Bhat),
-                                  function(i)sqrt(Rfast::colVars(Y [ind_analysis,i] -sweep( X[ind_analysis,],2, Bhat[ ,i], "*")))
-                          )
-        )
-        Shat <- Shat/sqrt(nrow(Y[ind_analysis,]))
-
-      }
-
+      Shat<- sqrt( pmax(Shat, 1e-64))
+      Shat <- Shat/sqrt(nrow(Y[ind_analysis,]))
+      
     }
-
-
-
-
-    if( !is.null(lowc_wc)){
-      Bhat[,lowc_wc] <- 0
-      Shat[,lowc_wc] <- 1
-    }
-    out  <- list( Bhat = Bhat,
-                  Shat = Shat)
-
-    return(out)
-
+    
+  }
+  
+  
+  
+  
+  if( !is.null(lowc_wc)){
+    Bhat[,lowc_wc] <- 0
+    Shat[,lowc_wc] <- 1
+  }
+  out  <- list( Bhat = Bhat,
+                Shat = Shat)
+  
+  return(out)
 }
 
 
@@ -871,10 +873,18 @@ HMM_regression.susiF <- function( obj,
                              }
   )
   )
-
-
+  
+  
+  
+ 
   N <- nrow(X)
   sub_X <- data.frame (X[, idx])
+  if(length(idx)> length(unique(idx))){
+    
+    sub_X[,duplicated(idx)]<- 0* sub_X[,duplicated(idx)]
+    
+  }
+  
   fitted_trend  <- list()
   fitted_lfsr   <- list()
 
