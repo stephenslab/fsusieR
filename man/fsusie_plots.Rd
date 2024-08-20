@@ -90,8 +90,6 @@ has no effect unless the \code{\link{susiF}} option
 \item{title}{The title of the plot.}
 
 \item{x}{Output of the susiF function.}
-
-\item{pip_only}{logical, if TRUE only output the PIP plot}
 }
 \description{
 Various visualizations of fSuSiE results.

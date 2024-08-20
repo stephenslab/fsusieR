@@ -22,7 +22,6 @@ plot_colors <- c("black", "dodgerblue2", "green4", "#6A3D9A", "#FF7F00",
 #' 
 #' @param point_shape vector, containing the shape of dots
 #' 
-#' @param pip_only logical, if TRUE only output the PIP plot
 #' 
 #' @param show_outing_grid logical, if TRUE show grid
 #'  
