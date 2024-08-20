@@ -22,11 +22,10 @@ plot_colors <- c("black", "dodgerblue2", "green4", "#6A3D9A", "#FF7F00",
 #' 
 #' @param point_shape vector, containing the shape of dots
 #' 
-#' @param pip_only logical, if TRUE only ouput the PIP plot
+#' @param pip_only logical, if TRUE only output the PIP plot
 #' 
 #' @param show_outing_grid logical, if TRUE show grid
-#' 
-#' @param pip_only logical, if TRUE show pip only
+#'  
 #' 
 #' @param show_affected_region logical, if TRUE show affected regions
 #' 
@@ -154,10 +153,10 @@ plot_susiF_pip <- function (obj,
 #' @param cred_band logical. If \code{TRUE}, plot credible bands if
 #'   the fSuSiE model was fitted with wavelet regression.
 #'
-#' @param show_affected_region. If \code{show_affected_region = TRUE},
+#' @param show_affected_region If \code{show_affected_region = TRUE},
 #'   the regions in which the credible bands cross zero are also shown.
 #'
-#' @param show_outing_grid. If \code{show_outing_grid = TRUE}, show
+#' @param show_outing_grid If \code{show_outing_grid = TRUE}, show
 #'   the grid positions at which the effects were estimated. By default,
 #'   this option is set to \code{TRUE} only when the grid poisitions are
 #'   uneven.
