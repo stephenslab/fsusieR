@@ -4,10 +4,12 @@
 \alias{affected_reg}
 \title{Extract coordinates of the regions affected by the different CS}
 \usage{
-affected_reg(obj)
+affected_reg(obj, lfsr_thresh = 0.05)
 }
 \arguments{
 \item{obj}{at fitted obj object}
+
+\item{lfsr_thresh}{threshold for affected region when using HMM postprocessing}
 }
 \description{
 Extract coordinates of the regions affected by the different CS
