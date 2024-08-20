@@ -171,38 +171,61 @@ cal_purity <- function(l_cs,X){
 #' the second column corresponds to the start of the region  and the third to the end of the affected region
 #'
 #' @param obj at fitted obj object
-#'
+#' @param lfsr_thresh threshold for affected region when using HMM postprocessing 
 #' @importFrom stats complete.cases
 #'
 #' @export
 #'
-affected_reg <- function( obj){
+affected_reg <- function( obj, lfsr_thresh=0.05){
   outing_grid <- obj$outing_grid
 
   reg <-  list()
   h <- 1
-  for (   l in 1:length(obj$cs)){
-
-    pos_up <-  which(obj$cred_band[[l]][1,]<0)
-    pos_low <- which(obj$cred_band[[l]][2,]>0)
-
-
-    reg_up <- split( pos_up,cumsum(c(1,diff( pos_up)!=1)))
-
-    reg_low <- split( pos_low,cumsum(c(1,diff( pos_low)!=1)))
-    for( k in 1:length(reg_up)){
-      reg[[h]] <- c(l, outing_grid[reg_up[[k]][1]], outing_grid[reg_up[[k]][length(reg_up[[k]])]])
-
-      h <- h+1
+  if(!is.null (obj$cred_band)){
+    
+    for (   l in 1:length(obj$cs)){
+      
+      pos_up <-  which(obj$cred_band[[l]][1,]<0)
+      pos_low <- which(obj$cred_band[[l]][2,]>0)
+      
+      
+      reg_up <- split( pos_up,cumsum(c(1,diff( pos_up)!=1)))
+      
+      reg_low <- split( pos_low,cumsum(c(1,diff( pos_low)!=1)))
+      for( k in 1:length(reg_up)){
+        reg[[h]] <- c(l, outing_grid[reg_up[[k]][1]], outing_grid[reg_up[[k]][length(reg_up[[k]])]])
+        
+        h <- h+1
+      }
+      for( k in 1:length(reg_low )){
+        reg[[h]] <- c(l, outing_grid[reg_low [[k]][1]], outing_grid[reg_low [[k]][length(reg_low [[k]])]])
+        
+        h <- h+1
+      }
+      
+      
     }
-    for( k in 1:length(reg_low )){
-      reg[[h]] <- c(l, outing_grid[reg_low [[k]][1]], outing_grid[reg_low [[k]][length(reg_low [[k]])]])
-
-      h <- h+1
-    }
-
-
   }
+  
+  if(!is.null(obj$lfsr_func)){
+    
+    for (   l in 1:length(obj$cs)){
+      
+      pos_up <-  which(obj$lfsr_func[[l]] < lfsr_thresh)
+      pos_low <- which(obj$cred_band[[l]][2,]>0)
+      
+      reg_up <- split( pos_up,cumsum(c(1,diff( pos_up)!=1)))
+      for( k in 1:length(reg_up)){
+        reg[[h]] <- c(l, outing_grid[reg_up[[k]][1]], outing_grid[reg_up[[k]][length(reg_up[[k]])]])
+        
+        h <- h+1
+      }
+     
+      
+      
+    }
+  }
+  
   reg <-  do.call(rbind, reg)
   colnames(reg) <- c("CS", "Start","End")
   reg <- as.data.frame(reg)

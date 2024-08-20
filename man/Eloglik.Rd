@@ -12,11 +12,11 @@ Eloglik(obj, ...)
 \arguments{
 \item{obj}{a susiF object defined by  init_susiF_obj  function}
 
+\item{\dots}{Other arguments.}
+
 \item{Y}{Matrix of outcomes}
 
 \item{X}{Matrix of covariates}
-
-\item{data}{list of data for susif_ss}
 }
 \value{
 Expected log likelihood
