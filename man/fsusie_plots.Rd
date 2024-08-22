@@ -21,7 +21,8 @@ plot_susiF(
   pos_SNP,
   point_shape,
   font_size = 10,
-  title = ""
+  title = "",
+  ...
 )
 
 \method{plot}{susiF}(x, ...)
@@ -90,6 +91,8 @@ has no effect unless the \code{\link{susiF}} option
 \item{title}{The title of the plot.}
 
 \item{x}{Output of the susiF function.}
+
+\item{ldots}{additional arguments}
 }
 \description{
 Various visualizations of fSuSiE results.

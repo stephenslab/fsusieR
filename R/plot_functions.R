@@ -33,6 +33,7 @@ plot_colors <- c("black", "dodgerblue2", "green4", "#6A3D9A", "#FF7F00",
 #' 
 #' @param title The title of the plot.
 #'
+#' @param ldots additional arguments
 #' @importFrom ggplot2 ggplot
 #' @importFrom ggplot2 geom_line
 #' @importFrom ggplot2 facet_wrap
@@ -62,7 +63,8 @@ plot_susiF <- function (obj,
                         pos_SNP,
                         point_shape,
                         font_size = 10,
-                        title = "") {
+                        title = "",
+                         ...) {
 
   if (missing(pos_SNP)) {
     pos_SNP <- 1:length(obj$pip)
