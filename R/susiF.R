@@ -485,7 +485,8 @@ susiF <- function(Y, X, L = 2,
                         TI            = TI,
                         HMM           = HMM,
                         tidx          = tidx,
-                        names_colX    = names_colX
+                        names_colX    = names_colX,
+                        pos           = pos
   )
   obj$runtime <- proc.time()-pt
   return(obj)

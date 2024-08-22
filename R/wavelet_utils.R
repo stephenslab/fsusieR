@@ -27,8 +27,8 @@ interpol_mat <- function(Y, pos, max_scale=10)
                                 y = 1:dim(Y)[2],
                                 gridn = min( 2^max_scale, 
                                              2^(floor(log(length(pos)-1,2)) + 1)   )
-                                )$gridy
-    grid <-  (grid  - min(grid) )*length(grid)/(max(grid)- min(grid))# * (max(bp)-  min(bp))/ (max(grid)-  min(grid))
+                                )$gridt
+    grid <-  (grid  - min(grid) )*length(grid)/(max(grid)- min(grid))  #* (max(bp)-  min(bp))/ (max(grid)-  min(grid))
   out <- list(Y    = Y_new,
               grid = grid,
               bp   = bp)

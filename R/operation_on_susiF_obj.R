@@ -1028,6 +1028,8 @@ name_cs.susiF <- function(obj,X,...){
 #' @param filter_cs logical, if TRUE filter the credible set (removing low purity cs and cs with estimated prior equal to 0)
 #
 #' @param outing_grid grid use to fit fsusie
+#' 
+#' @param pos the original position of the Y column
 #' @return susiF object
 #
 #' @export
@@ -1056,6 +1058,7 @@ out_prep.susiF <- function(obj ,
                            HMM=FALSE,
                            tidx =NULL ,
                            names_colX =NULL,
+                           pos,
                            ...)
 {
 
@@ -1098,8 +1101,9 @@ out_prep.susiF <- function(obj ,
   obj             <-  rename_format_output (obj        = obj, 
                                             names_colX = names_colX,
                                             tidx       = tidx)
-  obj$outing_grid <-  outing_grid
-  obj$purity      <-  cal_purity(l_cs= obj$cs, X=X)
+  obj$outing_grid   <-  outing_grid
+  obj$purity        <-  cal_purity(l_cs= obj$cs, X=X)
+  obj$original_grid <- pos
   return(obj)
 }
 

@@ -211,7 +211,7 @@ set.seed(2)
 data(N3finemapping)
 f1 <- simu_IBSS_per_level(9)$sim_func
 f2 <- simu_IBSS_per_level(9)$sim_func
-pos <- sort(sample(512,36))
+pos <- sort(sample(512,130))
 par(mar = c(2,2,2,2))
 plot(f2,type = "l",lwd = 1.25)
 points(pos,f2[pos],col = "black",pch = 20,cex = 0.75)
@@ -235,7 +235,7 @@ The only change to the call to susiF is that we now also provide the
 sampling positions:
 
 ```{r run-susiF-uneven, results="hide"}
-fit <- susiF(Y,X,L = 10,pos)
+fit <- susiF(Y,X,L = 10,pos=pos)
 ```
 
 To visualize the estimated effects, again we can use the

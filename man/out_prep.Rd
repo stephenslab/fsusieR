@@ -24,6 +24,7 @@ out_prep(obj, Y, X, indx_lst, outing_grid, ...)
   HMM = FALSE,
   tidx = NULL,
   names_colX = NULL,
+  pos,
   ...
 )
 }
@@ -39,6 +40,8 @@ out_prep(obj, Y, X, indx_lst, outing_grid, ...)
 \item{outing_grid}{grid use to fit fsusie}
 
 \item{filter_cs}{logical, if TRUE filter the credible set (removing low purity cs and cs with estimated prior equal to 0)}
+
+\item{pos}{the original position of the Y column}
 }
 \value{
 susiF object
