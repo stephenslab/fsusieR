@@ -467,7 +467,9 @@ susiF_obj <-  out_prep(susiF_obj,Y=Y,
                        indx_lst=indx_lst,
                        filter_cs = FALSE,
                        TI=TRUE,
-                       outing_grid = 1:ncol(Y), lfsr_curve = 0.05 )
+                       outing_grid = 1:ncol(Y),
+                       pos=1:ncol(Y),
+                       lfsr_curve = 0.05 )
 
 plot( unlist(susiF_obj$fitted_func) , type="l", col="green")
 lines( susiF_obj$cred_band [[1]][1,])
