@@ -7,7 +7,7 @@ library(testthat)
 
 devtools::load_all(".")
 
-library(susiF.alpha)
+library(fsusieR)
 library(ashr)
 library(wavethresh)
 set.seed(1)

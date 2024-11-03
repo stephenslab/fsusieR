@@ -293,7 +293,8 @@ susiF <- function(Y, X, L = 2,
                   filter.number = 10,
                   family = "DaubLeAsymm",
                   post_processing=c("TI","HMM","none"),
-                  e = 0.001
+                  e = 0.001,
+                  tol_null_prior=0.001
 
 )
 {
@@ -443,7 +444,8 @@ susiF <- function(Y, X, L = 2,
                                  X=X,
                                  L_start=L_start,
                                  greedy=greedy,
-                                 backfit=backfit)
+                                 backfit=backfit,
+                                 tol_null_prior= tol_null_prior)
 
   if(verbose){
     print("Initialization done")

@@ -153,8 +153,9 @@ cal_L_mixsq_s_per_scale <- function(G_prior,s, Bhat, Shat ,indx_lst,is.EBmvFR=FA
     x[which(is.na(x))] <- median(x, na.rm=T)
     return(x)
   })
+  L = exp(L)
   if(!is.EBmvFR){
-    L <- rbind(c(0, rep(  -1e+30,(ncol(L)-1)  )),#adding penalty line
+    L <- rbind(c(1, rep( 0,(ncol(L)-1)  )),#adding penalty line
                L)
   }
 
@@ -213,8 +214,9 @@ L_mixsq.mixture_normal <- function(G_prior,
     x[which(is.na(x))] <- median(x, na.rm=T)
     return(x)
   })
+  L= exp(L)
   if( !is.EBmvFR ){
-    L <- rbind(c(0, rep(  -1e+30,(ncol(L)-1)  )),#adding penalty line
+    L <- rbind(c(1, rep( 0,(ncol(L)-1)  )),#adding penalty line
                L)
   }
 
@@ -306,7 +308,7 @@ m_step.lik_mixture_normal <- function (L,
 
   mixsqp_out <- mixsqp::mixsqp(L,
                                w,
-                               log = TRUE,
+                               log = FALSE,
                                x0  = c(init_pi0_w ,rep(1e-6,tlength)), # put starting point close to sparse solution
                                control = control_mixsqp
   )
@@ -393,7 +395,7 @@ scale_m_step <- function(L,
   mixsqp_out <- mixsqp::mixsqp( L[[s]] ,
                                 w,
                                 x0 = c(init_pi0_w, rep(1e-6,  tlength )),
-                                log=TRUE ,
+                                log=FALSE ,
                                 control = control_mixsqp
   )
 

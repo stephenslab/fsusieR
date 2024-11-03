@@ -157,10 +157,7 @@ check_cs.susiF <- function(obj, min_purity=0.5,X,  ...)
     {
       return(obj)
     }else{
-      if(length(dummy.cs)==obj$L) #avoid returning empty results
-      {
-        dummy.cs <- dummy.cs[-length(dummy.cs)]
-      }
+      
       obj <- discard_cs( obj,cs=dummy.cs, out_prep= TRUE)
       return(obj)
     }
@@ -195,31 +192,55 @@ discard_cs <- function(obj, cs,out_prep,...)
 #' @keywords internal
 
 discard_cs.susiF <- function(obj, cs, out_prep=FALSE,  ...)
-{
+{ 
+  
+ 
     if( length(cs)==obj$L){
         cs <- cs[-1]
         if(length(cs)==0){
           return(obj)
         }
-      }
-  obj$alpha       <-  obj$alpha[ -cs]
-  obj$lBF         <-  obj$lBF[ -cs]
-  obj$fitted_wc   <-  obj$fitted_wc[ -cs]
-  obj$fitted_wc2  <-  obj$fitted_wc2[ -cs]
-  obj$cs          <-  obj$cs[ -cs]
-  if(out_prep){
-    obj$fitted_func <-  obj$fitted_func[ -cs]
+    }
+  
+  if(1 %in% cs ){
+    obj$alpha [[1]]      <-  rep(1 / length(obj$alpha[[1]]),
+                                 length(obj$alpha[1]))
+    obj$lBF [[1]]        <-  0*obj$lBF [[1]] 
+    obj$fitted_wc [[1]]  <-  0*obj$fitted_wc[[1]]
+    obj$fitted_wc2 [[1]] <-  0*obj$fitted_wc2[[1]]
+    obj$cs               <-  1: length(obj$alpha[[1]])
+    obj$fitted_func[[1]] <-  0*obj$fitted_func 
+    } 
+  if ( length(cs)==1 & 1 %in% cs ){
+    return(obj)
   }else{
-    obj$greedy_backfit_update <- TRUE
-    obj$KL                    <- obj$KL[ -cs]
-    obj$ELBO                  <- -Inf
+    if( 1 %in% cs ){
+      cs= cs[-which(cs==1)]
+    }
+    if( length(cs)>0){
+      
+      obj$alpha       <-  obj$alpha[ -cs]
+      obj$lBF         <-  obj$lBF[ -cs]
+      obj$fitted_wc   <-  obj$fitted_wc[ -cs]
+      obj$fitted_wc2  <-  obj$fitted_wc2[ -cs]
+      obj$cs          <-  obj$cs[ -cs]
+      if(out_prep){
+        obj$fitted_func <-  obj$fitted_func[ -cs]
+      }else{
+        obj$greedy_backfit_update <- TRUE
+        obj$KL                    <- obj$KL[ -cs]
+        obj$ELBO                  <- -Inf
+      }
+      
+      obj$est_sd      <-  obj$est_sd[ -cs]
+      obj$est_pi      <-  obj$est_pi[ -cs]
+      obj$cred_band   <-  obj$cred_band[ -cs]
+      obj$lfsr_wc     <-  obj$lfsr_wc [ -cs]
+      obj$L           <-  obj$L -length(cs)
+    }
+ 
   }
 
-  obj$est_sd      <-  obj$est_sd[ -cs]
-  obj$est_pi      <-  obj$est_pi[ -cs]
-  obj$cred_band   <-  obj$cred_band[ -cs]
-  obj$lfsr_wc     <-  obj$lfsr_wc [ -cs]
-  obj$L           <-  obj$L -length(cs)
   return(obj)
 }
 
@@ -841,7 +862,7 @@ greedy_backfit.susiF <-  function(obj,
 # \item{lfsr_wc}{Local fasle sign rate of the fitted wavelet coefficients}
 #' @export
 #
-init_susiF_obj <- function(L_max, G_prior, Y,X,L_start,greedy,backfit,... )
+init_susiF_obj <- function(L_max, G_prior, Y,X,L_start,greedy,backfit, tol_null_prior=0.001,... )
 {
 
 
@@ -911,7 +932,8 @@ init_susiF_obj <- function(L_max, G_prior, Y,X,L_start,greedy,backfit,... )
                backfit         = backfit,
                greedy_backfit_update=greedy_backfit_update,
                d               = d,
-               lfsr_wc         = lfsr_wc)
+               lfsr_wc         = lfsr_wc,
+               tol_null_prior  = tol_null_prior)
 
   class(obj) <- "susiF"
   return(obj)
@@ -1070,7 +1092,7 @@ out_prep.susiF <- function(obj ,
  # obj <-  update_lfsr_effect(obj)
   if(filter_cs)
   {
-    obj <- check_cs(obj,
+    obj  <- check_cs(obj,
                           min_purity = 0.5,
                           X          = X
                           )
@@ -1701,6 +1723,16 @@ update_cal_fit_func.susiF <- function(obj,
   {
     stop("Error: some alpha value not updated, please update alpha value first")
   }
+  
+  
+  dummy_cs = which_dummy_cs(obj, min_purity=0.5 ,X)
+  if( obj$L==1 &   1 %in% dummy_cs ){
+    
+    obj$fitted_func[[1]] = rep(0 , ncol(Y))
+    return(obj)
+  }
+  
+  
   if (TI==TRUE){
     obj <- TI_regression(obj=obj,
                                Y=Y,
@@ -2094,9 +2126,9 @@ which_dummy_cs <- function(obj, min_purity=0.5,X,median_crit=FALSE,...)
 which_dummy_cs.susiF <- function(obj, min_purity=0.5,X,median_crit=FALSE,...){
 
   dummy.cs<- c()
-  if( obj$L==1){
-    return(dummy.cs)
-  }
+ # if( obj$L==1){
+ #   return(dummy.cs)
+ # }
 
   f_crit <- function (obj, min_purity=0.5, l, median_crit=FALSE){
     if( median_crit){
@@ -2132,7 +2164,7 @@ which_dummy_cs.susiF <- function(obj, min_purity=0.5,X,median_crit=FALSE,...){
       if (length(obj$cs[[l]])==1)
       {
 
-        if( obj$est_pi[[l]][1]==1){# check if the estimated prior is exactly 0
+        if( obj$est_pi[[l]][1]>1-obj$tol_null_prior){# check if the estimated prior is exactly 0
 
           dummy.cs<-  c( dummy.cs,l)
         }
@@ -2152,17 +2184,10 @@ which_dummy_cs.susiF <- function(obj, min_purity=0.5,X,median_crit=FALSE,...){
       }
 
     }
-    if( length(dummy.cs)==0)
-    {
+   
+    
       return(dummy.cs)
-    }else{
-      if(length(dummy.cs)==obj$L) #avoid returning empty results
-      {
-        dummy.cs <- dummy.cs[-1]
-      }
-
-      return(dummy.cs)
-    }
+    
   }
 
   if(inherits(obj$G_prior,"mixture_normal_per_scale"))
@@ -2173,7 +2198,7 @@ which_dummy_cs.susiF <- function(obj, min_purity=0.5,X,median_crit=FALSE,...){
       if (length(obj$cs[[l]])==1)
       {
 
-        if(  mean(sapply(obj$est_pi[[l]],"[[",1))==1){# check if the estimated prior is exactly 0
+        if(  mean(sapply(obj$est_pi[[l]],"[[",1))>1-obj$tol_null_prior){# check if the estimated prior is exactly 0
 
           dummy.cs<-  c( dummy.cs,l)
         }
@@ -2185,7 +2210,7 @@ which_dummy_cs.susiF <- function(obj, min_purity=0.5,X,median_crit=FALSE,...){
           dummy.cs<-  c( dummy.cs,l)
 
         }else{
-          if(  mean(sapply(obj$est_pi[[l]],"[[",1))==1){
+          if(  mean(sapply(obj$est_pi[[l]],"[[",1))> 1-obj$tol_null_prior){
             dummy.cs<-  c( dummy.cs,l)
           }
 
@@ -2193,17 +2218,9 @@ which_dummy_cs.susiF <- function(obj, min_purity=0.5,X,median_crit=FALSE,...){
       }
 
     }
-    if( length(dummy.cs)==0)
-    {
+   
       return(dummy.cs)
-    }else{
-      if(length(dummy.cs)==obj$L) #avoid returning empty results
-      {
-        dummy.cs <- dummy.cs[-1]
-      }
-
-      return(dummy.cs)
-    }
+    
   }
 
 }
