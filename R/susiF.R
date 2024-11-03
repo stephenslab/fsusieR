@@ -353,6 +353,9 @@ susiF <- function(Y, X, L = 2,
     stop("Error: number of position provided different from the number of column of Y")
   }
 
+  if(prior== "mixture_normal"){
+   # nullweight= nullweight*2
+  }
 
 
   map_data <- remap_data(Y=Y,
@@ -433,7 +436,8 @@ susiF <- function(Y, X, L = 2,
                             gridmult       = gridmult,
                             max_SNP_EM     = max_SNP_EM,
                             max_step_EM    = max_step_EM,
-                            cor_small      = cor_small)
+                            cor_small      = cor_small,
+                            tol_null_prior = tol_null_prior)
   G_prior     <- temp$G_prior
   tt          <- temp$tt
 

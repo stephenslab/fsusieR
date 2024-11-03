@@ -209,7 +209,7 @@ discard_cs.susiF <- function(obj, cs, out_prep=FALSE,  ...)
     obj$fitted_wc [[1]]  <-  0*obj$fitted_wc[[1]]
     obj$fitted_wc2 [[1]] <-  0*obj$fitted_wc2[[1]]
     obj$cs               <-  1: length(obj$alpha[[1]])
-    obj$fitted_func[[1]] <-  0*obj$fitted_func 
+    obj$fitted_func[[1]] <-  0*obj$fitted_func [[1]]
     } 
   if ( length(cs)==1 & 1 %in% cs ){
     return(obj)
@@ -1124,7 +1124,7 @@ out_prep.susiF <- function(obj ,
                                             names_colX = names_colX,
                                             tidx       = tidx)
   obj$outing_grid   <-  outing_grid
-  obj$purity        <-  cal_purity(l_cs= obj$cs, X=X)
+ # obj$purity        <-  cal_purity(l_cs= obj$cs, X=X)
   obj$original_grid <- pos
   return(obj)
 }

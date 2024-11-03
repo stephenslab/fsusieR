@@ -22,7 +22,8 @@
 # @param lowc_wc wavelet coefficient with low count to be discarded
 #
 # @param espsilon numeric, tolerance EM algorithm
-#
+# @param  tol_null_prior tolerance for the mixture on the null component if the mass on the point mass is large than 1- tol_null_prior then set BF=1
+
 #  @param nullweight numeric value for penalizing likelihood at point mass 0 (should be between 0 and 1)
 # (usefull in small sample size)
 #@param indx_lst internal list of wavelet coefficients
@@ -42,7 +43,9 @@ EM_pi <- function(G_prior,Bhat, Shat, indx_lst,
                   lowc_wc,
                   nullweight,
                   max_SNP_EM=1000,
-                  df=NULL){
+                  df=NULL,
+                  tol_null_prior
+                  ){
 
   #static parameters
 
@@ -90,7 +93,8 @@ EM_pi <- function(G_prior,Bhat, Shat, indx_lst,
                       indx_lst,
                       init_pi0_w     = init_pi0_w,
                       control_mixsqp = control_mixsqp,
-                      nullweight     = nullweight)
+                      nullweight     = nullweight,
+                      tol_null_prior=tol_null_prior)
     G_prior <- update_prior(G_prior,tpi_k)
 
     lBF <-  log_BF(G_prior,
@@ -289,6 +293,7 @@ m_step.lik_mixture_normal <- function (L,
                                        control_mixsqp,
                                        nullweight,
                                        is.EBmvFR=FALSE,
+                                       tol_null_prior,
                                        ...)
 {
 
@@ -313,6 +318,10 @@ m_step.lik_mixture_normal <- function (L,
                                control = control_mixsqp
   )
   out <- mixsqp_out$x
+  if(out[1]>1-tol_null_prior){
+    out=0*out
+    out[1]=1
+  }
   class(out) <-  "pi_mixture_normal"
   return(out)
 }
@@ -333,6 +342,7 @@ m_step.lik_mixture_normal_per_scale <- function(L,
                                                 control_mixsqp,
                                                 nullweight,
                                                 is.EBmvFR=FALSE,
+                                                tol_null_prior,
                                                 ...)
 {
   #setting the weight to fit the weighted ash problem
@@ -343,7 +353,8 @@ m_step.lik_mixture_normal_per_scale <- function(L,
                                          init_pi0_w     =init_pi0_w,
                                          control_mixsqp = control_mixsqp,
                                          nullweight     =  nullweight,
-                                         is.EBmvFR      = is.EBmvFR)
+                                         is.EBmvFR      = is.EBmvFR,
+                                         tol_null_prior=tol_null_prior)
   )
   class( out ) <-  c("pi_mixture_normal_per_scale" )
   return(out)
@@ -376,7 +387,9 @@ scale_m_step <- function(L,
                          init_pi0_w=0.5,
                          control_mixsqp,
                          nullweight,
-                         is.EBmvFR=FALSE,...)
+                         is.EBmvFR=FALSE,
+                         tol_null_prior,
+                         ...)
 {
 
   if(!is.EBmvFR){
@@ -400,6 +413,10 @@ scale_m_step <- function(L,
   )
 
   out <- mixsqp_out$x
+  if(out[1]>1-tol_null_prior){
+    out=0*out
+    out[1]=1
+  }
   return( out)
 
 }

@@ -52,7 +52,8 @@ init_prior.default <- function(Y,
 
                                max_SNP_EM=100,
                                max_step_EM=1,
-                               cor_small=FALSE, ... )
+                               cor_small=FALSE,
+                               tol_null_prior,... )
 {
 
 
@@ -174,7 +175,8 @@ init_prior.default <- function(Y,
                   lowc_wc=lowc_wc,
                   nullweight=nullweight,
                   max_SNP_EM=max_SNP_EM,
-                  df=df)$tpi_k
+                  df=df,
+                  tol_null_prior =tol_null_prior )$tpi_k
 
   G_prior <- update_prior(G_prior , tpi_k)
   return(list(G_prior=G_prior,

@@ -203,7 +203,8 @@ susiF.workhorse <- function(obj,
                            nullweight     = nullweight,
                            max_SNP_EM     = max_SNP_EM,
                            max_step       = max_step_EM,
-                           df             = df
+                           df             = df,
+                           tol_null_prior = obj$tol_null_prior
           )
            #plot(EM_out$lBF/(sum( EM_out$lBFlBF)))
         }

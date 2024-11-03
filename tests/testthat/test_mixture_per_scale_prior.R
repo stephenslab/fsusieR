@@ -55,7 +55,9 @@ G_prior <- init_prior(Y=Y_f,
                       lowc_wc=NULL,
                       control_mixsqp = control_mixsqp,
                       nullweight     = nullweight,
-                      max_SNP_EM=100)$G_prior
+                      max_SNP_EM=100,
+                
+                      tol_null_prior=0)$G_prior
 
 lBF <- log_BF (G_prior, tt$Bhat, tt$Shat , indx_lst,
                lowc_wc=NULL)
