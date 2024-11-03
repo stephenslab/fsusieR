@@ -263,13 +263,15 @@ L_mixsq.mixture_normal_per_scale <- function(G_prior,
 #' @param control_mixsqp list of parameter for mixsqp function see mixsqp package
 #' @param nullweight numeric value for penalizing likelihood at point mass 0 (should be between 0 and 1)
 #' (usefull in small sample size)
+#'  @param  tol_null_prior tolerance for the mixture on the null component if the mass on the point mass is large than 1- tol_null_prior then set BF=1
+
 #' @param \dots Other arguments.
 #' @return a vector of proportion (class pi_mixture_normal)
 #'
 #' @export
 #' @keywords internal
 
-m_step <- function(L, zeta, indx_lst,init_pi0_w,control_mixsqp,nullweight,is.EBmvFR=FALSE,...)
+m_step <- function(L, zeta, indx_lst,init_pi0_w,control_mixsqp,nullweight,is.EBmvFR=FALSE, tol_null_prior=0,...)
   UseMethod("m_step")
 
 
