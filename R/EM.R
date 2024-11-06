@@ -44,7 +44,7 @@ EM_pi <- function(G_prior,Bhat, Shat, indx_lst,
                   nullweight,
                   max_SNP_EM=1000,
                   df=NULL,
-                  tol_null_prior
+                  tol_null_prior=0.001
                   ){
 
   #static parameters
@@ -271,7 +271,7 @@ L_mixsq.mixture_normal_per_scale <- function(G_prior,
 #' @export
 #' @keywords internal
 
-m_step <- function(L, zeta, indx_lst,init_pi0_w,control_mixsqp,nullweight,is.EBmvFR=FALSE, tol_null_prior=0,...)
+m_step <- function(L, zeta, indx_lst,init_pi0_w,control_mixsqp,nullweight,is.EBmvFR=FALSE, tol_null_prior=0.001,...)
   UseMethod("m_step")
 
 
@@ -295,7 +295,7 @@ m_step.lik_mixture_normal <- function (L,
                                        control_mixsqp,
                                        nullweight,
                                        is.EBmvFR=FALSE,
-                                       tol_null_prior,
+                                       tol_null_prior=0.001,
                                        ...)
 {
 
@@ -344,7 +344,7 @@ m_step.lik_mixture_normal_per_scale <- function(L,
                                                 control_mixsqp,
                                                 nullweight,
                                                 is.EBmvFR=FALSE,
-                                                tol_null_prior,
+                                                tol_null_prior=0.001,
                                                 ...)
 {
   #setting the weight to fit the weighted ash problem
@@ -390,7 +390,7 @@ scale_m_step <- function(L,
                          control_mixsqp,
                          nullweight,
                          is.EBmvFR=FALSE,
-                         tol_null_prior,
+                         tol_null_prior=0.001,
                          ...)
 {
 
