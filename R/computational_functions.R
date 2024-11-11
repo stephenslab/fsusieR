@@ -1048,19 +1048,18 @@ log_BF.mixture_normal <- function (G_prior,
       # Speed Gain: could potential skip the one that are exactly zero.
 
 
-      if(!is.null(lowc_wc)){
-        for (k in 1:length(m$fitted_g$pi))
-        {
-          tt <- tt + pi_k[k] * dnorm(Bhat[t,-lowc_wc],sd = sqrt(sd_k[k]^2 + Shat[t,-lowc_wc]^2))
-        }
-        out <- sum(log(tt) - dnorm(Bhat[t,-lowc_wc],sd = Shat[t,-lowc_wc],log = TRUE))
-      }else{
-        for (k in 1:length(m$fitted_g$pi))
-        {
-          tt <- tt + pi_k[k] * dnorm(Bhat[t,],sd = sqrt(sd_k[k]^2 + Shat[t,]^2))
-        }
-        out <- sum(log(tt) - dnorm(Bhat[t,],sd = Shat[t,],log = TRUE))
+      if (!is.null(lowc_wc)) {
+        tt <- Reduce("+", lapply(1:length(m$fitted_g$pi), function(k) {
+          pi_k[k] * dnorm(Bhat[t, -lowc_wc], sd = sqrt(sd_k[k]^2 + Shat[t, -lowc_wc]^2))
+        }))
+        out <- sum(log(tt) - dnorm(Bhat[t, -lowc_wc], sd = Shat[t, -lowc_wc], log = TRUE))
+      } else {
+        tt <- Reduce("+", lapply(1:length(m$fitted_g$pi), function(k) {
+          pi_k[k] * dnorm(Bhat[t, ], sd = sqrt(sd_k[k]^2 + Shat[t, ]^2))
+        }))
+        out <- sum(log(tt) - dnorm(Bhat[t, ], sd = Shat[t, ], log = TRUE))
       }
+      
 
       # tt <- ifelse(tt==Inf,max(10000, 100*max(tt[-which(tt==Inf)])),tt)
 
