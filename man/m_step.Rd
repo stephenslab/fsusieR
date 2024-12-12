@@ -14,6 +14,7 @@ m_step(
   control_mixsqp,
   nullweight,
   is.EBmvFR = FALSE,
+  tol_null_prior = 0.001,
   ...
 )
 
@@ -25,6 +26,7 @@ m_step(
   control_mixsqp,
   nullweight,
   is.EBmvFR = FALSE,
+  tol_null_prior = 0.001,
   ...
 )
 
@@ -36,6 +38,7 @@ m_step(
   control_mixsqp,
   nullweight,
   is.EBmvFR = FALSE,
+  tol_null_prior = 0.001,
   ...
 )
 }
@@ -51,7 +54,8 @@ m_step(
 \item{control_mixsqp}{list of parameter for mixsqp function see mixsqp package}
 
 \item{nullweight}{numeric value for penalizing likelihood at point mass 0 (should be between 0 and 1)
-(usefull in small sample size)}
+(usefull in small sample size)
+ @param  tol_null_prior tolerance for the mixture on the null component if the mass on the point mass is large than 1- tol_null_prior then set BF=1}
 
 \item{\dots}{Other arguments.}
 }
