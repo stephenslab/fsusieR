@@ -7,7 +7,8 @@ R package implementing the Sum of Single Functions ("SuSiF") method.
 Install and load the package:
 
 ```r
-# install.packages("remotes")
+# install.packages("remotes") 
+remotes::install_github("stephenslab/smashr")
 remotes::install_github("stephenslab/fsusieR")
 ```
 
