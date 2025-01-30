@@ -1,3 +1,4 @@
+# Script which I will use to 
 library(fsusieR)
 library(ggplot2)
 library(cowplot)
@@ -24,8 +25,8 @@ storage.mode(X) <- "double"
 
 # This is the effect matrix.
 F <- matrix(0,p,m)
-F[1,5:8] <- 1.25
-F[3,5:8] <- (-2)
+F[1,5:8] <- 2.5
+F[3,5:8] <- (-1.75)
 F[9,13:16] <- 2
 rownames(F) <- snp_ids
 colnames(F) <- cpg_ids
@@ -36,8 +37,10 @@ Y <- X %*% F + E
 Y <- Y - min(Y)
 
 # Run fsusie.
-fit <- susiF(Y,X,L = 3,filter_cs = FALSE,post_processing = "TI")
+fit <- susiF(Y,X,L = 3,filter_cs = FALSE,post_processing = "TI",
+             prior = "mixture_normal")
 print(fit$cs)
+plot_susiF_pip(fit)
 plot_susiF_effect(fit)
 
 # Compute association statistics for all CpG-SNP pairs.
