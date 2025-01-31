@@ -1,0 +1,163 @@
+---
+title: "fSuSiE: introduction to the key ideas with a toy methylation data set"
+author: William Denault and Peter Carbonetto
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    toc: no
+    highlight: textmate
+    theme: readable
+vignette: >
+  %\VignetteIndexEntry{}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+ADD TEXT HERE.
+
+```{r knitr-opts, include=FALSE}
+knitr::opts_chunk$set(comment = "#",collapse = TRUE,results = "hold",
+                      fig.align = "center",dpi = 120)
+```
+
+Load the packages used in this vignette.
+
+```{r load-pkgs}
+library(fsusieR)
+library(ggplot2)
+library(cowplot)
+```
+
+Set the seed so that the results can be reproduced.
+
+```{r set-seed}
+set.seed(1)
+```
+
+Simulate data
+-------------
+
+We simulate a "toy" methylation data set in which the methylation
+levels of 100 individuals are measured at 32 CpGs. Among the 12
+candidate SNPs, 3 SNPs affect the methylation levels.
+
+```{r sim-params}
+n <- 100
+m <- 32
+p <- 12
+```
+
+Generate the SNP minor allele frequencies (MAFs):
+
+```{r sim-mafs}
+maf <- 0.05 + 0.45*runif(p)
+```
+
+Generate ids for SNPs and CpGs.
+
+```{r sim-ids} 
+snpids <- paste0("rs-",1:p)
+cpgids <- paste0("CpG-",1:m)
+```
+
+Simulate the genotypes:
+
+```{r sim-geno}
+X <- (runif(n*p) < maf) +
+     (runif(n*p) < maf)
+X <- matrix(X,n,p,byrow = TRUE)
+storage.mode(X) <- "double"
+colnames(X) <- snpids
+```
+
+This is the matrix that determines how the SNP alleles change the
+methylation levels. 
+
+```{r sim-effect-matrix}
+F <- matrix(0,p,m)
+F[1,9:16] <- 2.5
+F[3,9:16] <- (-1.75)
+F[9,25:32] <- 2
+rownames(F) <- snpids
+colnames(F) <- cpgids
+```
+
+Simulate the methylation levels at the CpGs:
+
+```{r sim-Y}
+E <- matrix(4*rnorm(n*m),n,m)
+Y <- X %*% F + E
+Y <- Y - min(Y)
+```
+
+To make the example more realistic, the methylation levels are all
+zero or higher.
+
+QTL mapping
+-----------
+
+In a typical methylation QTL mapping analysis, one would perform
+association tests for all the CpG-SNP pairs.
+
+```{r map-qtls}
+assoc <- matrix(0,m,p)
+rownames(assoc) <- cpgids
+colnames(assoc) <- snpids
+for (i in 1:m) {
+  for (j in 1:p) {
+    dat <- data.frame(x = X[,j],y = Y[,i])
+    fit <- lm(y ~ x,dat)
+    assoc[i,j] <- summary(fit)$coefficients["x","Pr(>|t|)"]
+  }
+}
+```
+
+Having performed these tests for association, we can examine the
+associations in two different ways, by SNP and by CpG site. Let's
+start with the SNP-centered view:
+
+```{r, fig.height=2.5, fig.width=3}
+pdat <- data.frame(cpg    = rep(1:m,times = p),
+                   snp    = rep(1:p,each = m),
+				   effect = as.vector(t(F != 0)),
+                   pval   = as.vector(assoc))
+pdat <- transform(pdat,pval = -log10(pval))
+threshold <- -log10(0.05/(m*p))
+ggplot(pdat,aes(x = snp,y = pval,shape = effect)) +
+  geom_point(size = 1.5,color = "black") +
+  geom_hline(yintercept = threshold,color = "black",linetype = "dotted") +
+  scale_x_continuous(breaks = 1:12) +
+  scale_shape_manual(values = c(1,4)) +
+  labs(x = "SNP",y = "-log10 p-value") +
+  theme_cowplot(font_size = 11)
+```
+
+ADD TEXT HERE.
+
+```{r, fig.height=2.5, fig.width=3}
+ggplot(pdat,aes(x = cpg,y = pval,shape = effect)) +
+  geom_point(size = 1.5,color = "black") +
+  geom_hline(yintercept = threshold,linetype = "dotted") +
+  labs(x = "CpG",y = "-log10 p-value") +
+  scale_shape_manual(values = c(1,4)) +
+  theme_cowplot(font_size = 11)
+```
+
+ADD TEXT HERE.
+
+
+
+Fine-mapping with fSuSiE
+------------------------
+
+ADD TEXT AND CODE HERE.
+
+Session info
+------------
+
+This is the version of R and the packages that were used to generate
+these results.
+
+```{r session-info}
+sessionInfo()
+```
