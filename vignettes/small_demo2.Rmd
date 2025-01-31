@@ -42,9 +42,9 @@ We simulate a "toy" methylation data set in which the methylation
 levels of 100 individuals are measured at 32 CpGs.
 
 Among the 12 candidate SNPs, 3 SNPs affect the methylation levels: 2
-SNPs affect the methylation levels of the same 8 CpGs (near each other
-on the chromosome), and the other SNP affects the methylation levels
-of 8 different CpGs (also near each other on the chromosome).
+SNPs affect the methylation levels of the same cluster of 8 CpGs, and
+the other SNP affects the methylation levels of different cluster of 8
+CpGs.
 
 ```{r sim-params}
 n <- 100
@@ -152,13 +152,14 @@ affected by the SNPs.
 
 This is the CpG-centered view:
 
-```{r, fig.height=2.5, fig.width=3}
+```{r, fig.height=2.5, fig.width=3.5}
 ggplot(pdat,aes(x = cpg,y = pval,shape = effect,color = effect)) +
   geom_point(size = 1.5) +
   geom_hline(yintercept = threshold,linetype = "dotted") +
-  labs(x = "CpG",y = "-log10 p-value") +
+  scale_x_continuous(breaks = c(0,seq(4,32,4))) +
   scale_shape_manual(values = c(1,4)) +
   scale_color_manual(values = c("darkblue","darkorange")) +
+  labs(x = "CpG",y = "-log10 p-value") +
   theme_cowplot(font_size = 11)
 ```
 
@@ -187,14 +188,14 @@ causal SNPs, but more generally this number can be estimated.)
 fSuSiE indeed correctly produced 3 credible sets (95% CSs) each
 containing one of the causal SNPs:
 
-```{r show-credible-sets}
+```{r fsusie-cs}
 fit$cs
 ```
 
 This result can be visualized using a "PIP plot" (PIP = posterior
 inclusion probability):
 
-```{r pip-plot, fig.height=1.5, fig.width=3}
+```{r fsusie-pip-plot, fig.height=1.5, fig.width=3}
 pdat <- data.frame(SNP = 1:p,
                    PIP = fit$pip,
 				   CS  = rep("none",p))
@@ -212,6 +213,39 @@ ggplot(pdat,aes(x = SNP,y = PIP,fill = CS)) +
 Again, fSuSiE very confidently identified the correct three causal
 SNPs, whereas this was not the case in the QTL mapping. The key
 difference is that fSuSiE fits a single model to all the data.
+
+fSuSiE also gives a more coherent view of changes to the CpG sites and
+how they are affected by the individual causal SNPs (or, more
+precisely, by the individual CSs):
+
+```{r fsusie-affected-cpgs, fig.height=2, fig.width=6}
+pdat <- data.frame(CS   = rep(c("L1","L2","L3"),each = m),
+                   CpG  = rep(1:m,times = 3),
+                   lfsr = unlist(fit$lfsr_func),
+				   affected = as.vector(t(F[unlist(fit$cs),]) != 0),
+				   stringsAsFactors = FALSE)
+pdat <- transform(pdat,
+                  CS   = factor(CS,c("L3","L2","L1")),
+				  lfsr = -log10(lfsr))
+ggplot(pdat,aes(x = CpG,y = CS,size = lfsr,color = affected)) +
+  geom_point(shape = 1) +
+  scale_x_continuous(breaks = c(0,seq(4,32,4))) +
+  scale_color_manual(values = c("darkblue","darkorange")) +
+  scale_size(range = c(0.5,10),breaks = c(1.3,5,10)) +
+  labs(size = "-log10(lfsr)") +
+  theme_cowplot(font_size = 10)
+```
+
+Indeed, the significance tests (local false sign rate) break down the
+support for affected CpGs *separately for each CS* (i.e., for each
+causal SNP), and therefore it is quite evident from the fSuSiE results
+that two of the causal SNPs affect the same CpG cluster, and the other
+causal SNP affects a different CpG cluster.
+
+The *local false sign rates* (*lfsr*s) quantify the support the CpG
+sites being affected, and in this example the CpG sites with the
+smallest lfsrs (largest circles in the plot) are indeed the affected
+CpGs.
 
 Session info
 ------------
