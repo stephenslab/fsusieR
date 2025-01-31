@@ -151,7 +151,8 @@ Fine-mapping with fSuSiE
 ADD TEXT HERE.
 
 ```{r run-fsusie}
-fit <- susiF(Y,X,L = 3,filter_cs = FALSE,prior = "mixture_normal")
+fit <- susiF(Y,X,L = 3,filter_cs = FALSE,prior = "mixture_normal",
+             post_processing = "HMM")
 ```
 
 ADD TEXT HERE.
