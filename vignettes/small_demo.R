@@ -1,5 +1,3 @@
-# TO DO: Try doubling the number of CpG sites to increase power for
-# fsusie.
 library(fsusieR)
 library(ggplot2)
 library(cowplot)

@@ -1,5 +1,10 @@
-# TO DO: Try doubling the number of CpG sites to increase power for
-# fsusie.
+# TO DO:
+#
+# Permute the order of the SNPs (without changing the data).
+#
+# Call the SNPs "SNP 1", "SNP 2", etc.
+#
+# Call the CpGs "CpG 1", "CPG 2", etc.
 library(fsusieR)
 library(ggplot2)
 library(cowplot)
@@ -44,7 +49,8 @@ print(fit$cs)
 plot_susiF_pip(fit)
 plot_susiF_effect(fit)
 
-# Compute association statistics for all CpG-SNP pairs.
+# Compute association statistics for all CpG-SNP pairs, and create
+# various plots of the CpG-SNP association statistics.
 pvals <- matrix(0,m,p)
 rownames(pvals) <- cpg_ids
 colnames(pvals) <- snp_ids
@@ -61,13 +67,23 @@ pdat <- data.frame(cpg  = rep(cpg_ids,times = p),
                    stringsAsFactors = FALSE)
 pdat <- transform(pdat,
                   snp = factor(snp,snp_ids),
-                  cpg = factor(cpg,rev(cpg_ids)))
-pdat <- transform(pdat,pval = p.adjust(pval,method = "bonferroni"))
+                  cpg = factor(cpg,cpg_ids))
+# pdat <- transform(pdat,pval = p.adjust(pval,method = "bonferroni"))
 pdat <- transform(pdat,pval = -log10(pval))
+p2 <- ggplot(pdat,aes(x = snp,y = pval)) +
+  geom_point(shape = 21,size = 2,color = "white",fill = "royalblue") +
+  labs(x = "",y = "-log10 p-value") +
+  theme_cowplot(font_size = 12) +
+  theme(axis.text.x = element_text(angle = 45,hjust = 1))
+p3 <- ggplot(pdat,aes(x = cpg,y = pval)) +
+  geom_point(shape = 21,size = 2,color = "white",fill = "darkorange") +
+  labs(x = "",y = "-log10 p-value") +
+  theme_cowplot(font_size = 10) +
+  theme(axis.text.x = element_text(angle = 45,hjust = 1))
+stop()
 i <- which(pdat$pval < 1.3)
 pdat[i,"pval"] <- NA
 p1 <- ggplot(pdat,aes(x = snp,y = cpg,size = pval)) +
   geom_point() +
   theme_cowplot(font_size = 12) +
-    theme(axis.text.x = element_text(angle = 45,hjust = 1))
-print(p1)
+  theme(axis.text.x = element_text(angle = 45,hjust = 1))
