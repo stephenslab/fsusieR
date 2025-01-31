@@ -56,7 +56,7 @@ maf <- 0.05 + 0.45*runif(p)
 Generate ids for SNPs and CpGs.
 
 ```{r sim-ids} 
-snpids <- paste0("rs-",1:p)
+snpids <- paste0("SNP-",1:p)
 cpgids <- paste0("CpG-",1:m)
 ```
 
@@ -75,9 +75,9 @@ methylation levels.
 
 ```{r sim-effect-matrix}
 F <- matrix(0,p,m)
-F[1,9:16] <- 2.5
-F[3,9:16] <- (-1.75)
-F[9,25:32] <- 2
+F[1,9:16] <- 2
+F[9,9:16] <- (-2)
+F[3,25:32] <- 2
 rownames(F) <- snpids
 colnames(F) <- cpgids
 ```
@@ -85,7 +85,7 @@ colnames(F) <- cpgids
 Simulate the methylation levels at the CpGs:
 
 ```{r sim-Y}
-E <- matrix(4*rnorm(n*m),n,m)
+E <- matrix(3*rnorm(n*m),n,m)
 Y <- X %*% F + E
 Y <- Y - min(Y)
 ```
@@ -126,7 +126,7 @@ threshold <- -log10(0.05/(m*p))
 ggplot(pdat,aes(x = snp,y = pval,shape = effect)) +
   geom_point(size = 1.5,color = "black") +
   geom_hline(yintercept = threshold,color = "black",linetype = "dotted") +
-  scale_x_continuous(breaks = 1:12) +
+  scale_x_continuous(breaks = 1:p) +
   scale_shape_manual(values = c(1,4)) +
   labs(x = "SNP",y = "-log10 p-value") +
   theme_cowplot(font_size = 11)
@@ -145,12 +145,37 @@ ggplot(pdat,aes(x = cpg,y = pval,shape = effect)) +
 
 ADD TEXT HERE.
 
-
-
 Fine-mapping with fSuSiE
 ------------------------
 
-ADD TEXT AND CODE HERE.
+ADD TEXT HERE.
+
+```{r run-fsusie}
+fit <- susiF(Y,X,L = 3,filter_cs = FALSE,prior = "mixture_normal")
+```
+
+ADD TEXT HERE.
+
+```{r show-credible-sets}
+fit$cs
+```
+
+ADD TEXT HERE.
+
+```{r pip-plot, fig.height=1.5, fig.width=3}
+pdat <- data.frame(SNP = 1:p,
+                   PIP = fit$pip,
+				   CS  = rep("none",p))
+pdat$CS[fit$cs[[1]]] <- "L1"
+pdat$CS[fit$cs[[2]]] <- "L2"
+pdat$CS[fit$cs[[3]]] <- "L3"
+pdat <- transform(pdat,CS = factor(CS))
+ggplot(pdat,aes(x = SNP,y = PIP,fill = CS)) +
+  geom_point(shape = 21,size = 2,color = "white") +
+  scale_x_continuous(breaks = 1:p) +
+  scale_fill_manual(values = c("dodgerblue","darkorange","red","gray")) +
+  theme_cowplot(font_size = 10)
+```
 
 Session info
 ------------
