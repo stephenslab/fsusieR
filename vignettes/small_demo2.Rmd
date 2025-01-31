@@ -13,7 +13,8 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-ADD TEXT HERE.
+In this vignette we illustrate some of the key ideas underlying fSuSiE
+by applying fSuSiE to analyze a toy methylation data set.
 
 ```{r knitr-opts, include=FALSE}
 knitr::opts_chunk$set(comment = "#",collapse = TRUE,results = "hold",
@@ -38,8 +39,12 @@ Simulate data
 -------------
 
 We simulate a "toy" methylation data set in which the methylation
-levels of 100 individuals are measured at 32 CpGs. Among the 12
-candidate SNPs, 3 SNPs affect the methylation levels.
+levels of 100 individuals are measured at 32 CpGs.
+
+Among the 12 candidate SNPs, 3 SNPs affect the methylation levels: 2
+SNPs affect the methylation levels of the same 8 CpGs (near each other
+on the chromosome), and the other SNP affects the methylation levels
+of 8 different CpGs (also near each other on the chromosome).
 
 ```{r sim-params}
 n <- 100
@@ -97,7 +102,9 @@ QTL mapping
 -----------
 
 In a typical methylation QTL mapping analysis, one would perform
-association tests for all the CpG-SNP pairs.
+association tests for all the CpG-SNP pairs. Here we will simply use
+the standard linear regression function in R, `lm()`, to perform the
+QTL mapping.
 
 ```{r map-qtls}
 assoc <- matrix(0,m,p)
@@ -123,36 +130,55 @@ pdat <- data.frame(cpg    = rep(1:m,times = p),
                    pval   = as.vector(assoc))
 pdat <- transform(pdat,pval = -log10(pval))
 threshold <- -log10(0.05/(m*p))
-ggplot(pdat,aes(x = snp,y = pval,shape = effect)) +
-  geom_point(size = 1.5,color = "black") +
+ggplot(pdat,aes(x = snp,y = pval,shape = effect,color = effect)) +
+  geom_point(size = 1.5) +
   geom_hline(yintercept = threshold,color = "black",linetype = "dotted") +
   scale_x_continuous(breaks = 1:p) +
   scale_shape_manual(values = c(1,4)) +
+  scale_color_manual(values = c("darkblue","darkorange")) +
   labs(x = "SNP",y = "-log10 p-value") +
   theme_cowplot(font_size = 11)
 ```
 
-ADD TEXT HERE.
+Based on these simple association tests, we would identify two out of
+the three causal SNPs. (And perhaps we would identify all three causal
+SNPs if we were a bit more careful about multiple testing
+correction—here we just used the basic Bonferroni correction, which
+tells us that only the CpG-SNPs pairs with p-values less than 0.0001
+are significant.)
+
+*But more importantly*, this view alone doesn't tell us which CPGs are
+affected by the SNPs.
+
+This is the CpG-centered view:
 
 ```{r, fig.height=2.5, fig.width=3}
-ggplot(pdat,aes(x = cpg,y = pval,shape = effect)) +
-  geom_point(size = 1.5,color = "black") +
+ggplot(pdat,aes(x = cpg,y = pval,shape = effect,color = effect)) +
+  geom_point(size = 1.5) +
   geom_hline(yintercept = threshold,linetype = "dotted") +
   labs(x = "CpG",y = "-log10 p-value") +
   scale_shape_manual(values = c(1,4)) +
+  scale_color_manual(values = c("darkblue","darkorange")) +
   theme_cowplot(font_size = 11)
 ```
 
-ADD TEXT HERE.
+From the association test p-values alone it is quite clear that the
+affected CpG sites "cluster" in two continuous regions, but it is less
+clear exactly which CpG sites in these clusters are affected.
+
+*But more importantly*, this view alone doesn't tell us which SNPs are
+affecting the changes in the methylation levels at these CpGs.
 
 Fine-mapping with fSuSiE
 ------------------------
 
-ADD TEXT HERE.
+Let's now contrast the above QTL mapping analysis with an analysis of
+the methylation data using fSuSiE. First we fit the fSuSiE model to
+the data. *Notice that we only a fit a single model to all the data*:
 
 ```{r run-fsusie}
 fit <- susiF(Y,X,L = 3,filter_cs = FALSE,prior = "mixture_normal",
-             post_processing = "HMM")
+             post_processing = "HMM",verbose = FALSE)
 ```
 
 ADD TEXT HERE.
