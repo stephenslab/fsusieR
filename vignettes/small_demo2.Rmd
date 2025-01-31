@@ -176,18 +176,23 @@ Let's now contrast the above QTL mapping analysis with an analysis of
 the methylation data using fSuSiE. First we fit the fSuSiE model to
 the data. *Notice that we only a fit a single model to all the data*:
 
-```{r run-fsusie}
+```{r run-fsusie, message=FALSE, results="hide"}
 fit <- susiF(Y,X,L = 3,filter_cs = FALSE,prior = "mixture_normal",
-             post_processing = "HMM",verbose = FALSE)
+             post_processing = "HMM")
 ```
 
-ADD TEXT HERE.
+(In this example it is assumed that we know that there are three
+causal SNPs, but more generally this number can be estimated.)
+
+fSuSiE indeed correctly produced 3 credible sets (95% CSs) each
+containing one of the causal SNPs:
 
 ```{r show-credible-sets}
 fit$cs
 ```
 
-ADD TEXT HERE.
+This result can be visualized using a "PIP plot" (PIP = posterior
+inclusion probability):
 
 ```{r pip-plot, fig.height=1.5, fig.width=3}
 pdat <- data.frame(SNP = 1:p,
@@ -203,6 +208,10 @@ ggplot(pdat,aes(x = SNP,y = PIP,fill = CS)) +
   scale_fill_manual(values = c("dodgerblue","darkorange","red","gray")) +
   theme_cowplot(font_size = 10)
 ```
+
+Again, fSuSiE very confidently identified the correct three causal
+SNPs, whereas this was not the case in the QTL mapping. The key
+difference is that fSuSiE fits a single model to all the data.
 
 Session info
 ------------
