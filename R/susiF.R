@@ -292,7 +292,7 @@ susiF <- function(Y, X, L = 2,
                   cor_small=FALSE,
                   filter.number = 10,
                   family = "DaubLeAsymm",
-                  post_processing=c("TI","HMM","none"),
+                  post_processing=c("TI","HMM","smash","none"),
                   e = 0.001,
                   tol_null_prior=0.001
 
@@ -376,7 +376,9 @@ susiF <- function(Y, X, L = 2,
   }
   X <- colScale(X)
   # centering input
-  Y <- colScale(Y, scale=FALSE)
+  #Y0 <-  colScale(Y , scale=FALSE)
+  Y  <- colScale(Y )
+   
   W <- DWT2(Y,
             filter.number = filter.number,
             family        = family)
@@ -481,15 +483,14 @@ susiF <- function(Y, X, L = 2,
 
   #preparing output
   obj <- out_prep(     obj            = obj, 
-                        Y             = Y,
+                        Y             =   sweep(Y  , 2, attr(Y , "scaled:scale"),  "*"),
                         X             = X,
                         indx_lst      = indx_lst,
                         filter_cs     = filter_cs,
                         outing_grid   = outing_grid,
                         filter.number = filter.number,
                         family        = family,
-                        TI            = TI,
-                        HMM           = HMM,
+                        post_processing=  post_processing,
                         tidx          = tidx,
                         names_colX    = names_colX,
                         pos           = pos
