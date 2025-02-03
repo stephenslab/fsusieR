@@ -200,7 +200,11 @@ plot_susiF_effect <- function (obj,
   n_wac <- obj$n_wac
   y     <- obj$pip
   col_y <- rep(0,length(y))
- 
+  #this is to handle the case where no postprocessing is used
+  if(sum( obj$cred_band[[1]]==0)== prod(dim( obj$cred_band[[1]]))){
+    cred_band=FALSE
+    show_affected_region =FALSE
+  }
   if (is.character(effect)) {
     if (effect == "all") {
       indx_effect <- 1:obj$L

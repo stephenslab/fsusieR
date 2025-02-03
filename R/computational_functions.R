@@ -1762,12 +1762,15 @@ TI_regression.susiF <- function(  obj,Y,X, verbose=TRUE,
       tsds[ which( is.na(tsds))]<- 1
     }
     
-    
-    s =  smashr::smash.gaus(x=est ,sigma =tsds,  post.var = TRUE  )
+    s =  smashr::smash.gaus(x=est ,
+                            sigma =  (tsds),
+                            ashparam = list(optmethod="mixVBEM"), 
+                            post.var = TRUE  )
     
     fitted_trend[[1]] <- s$mu.est
     fitted_var  [[1]] <- s$mu.est.var
   }else{
+     
     for (  lp in 1: length(idx))
     {
       
@@ -1782,7 +1785,12 @@ TI_regression.susiF <- function(  obj,Y,X, verbose=TRUE,
         est [ which( is.na(tsds))]<- 0
         tsds[ which( is.na(tsds))]<- 1
       }
-      s =  smashr::smash.gaus(x=est ,sigma =tsds,  post.var = TRUE  )
+      
+     
+      s =  smashr::smash.gaus(x=est ,
+                              sigma =   (tsds),
+                              ashparam =list(optmethod="mixVBEM"),  
+                              post.var = TRUE  )
       
       fitted_trend[[idx_cs]]  <- s$mu.est
       fitted_var[[idx_cs]]  <- s$mu.est.var
@@ -1803,8 +1811,8 @@ TI_regression.susiF <- function(  obj,Y,X, verbose=TRUE,
     
     
     
-    up                         <-  obj$fitted_func[[l]]+ 1.96* sqrt(fitted_var[[l]])  
-    low                        <-  obj$fitted_func[[l]]- 1.96*sqrt(fitted_var[[l]])  
+    up                         <-  obj$fitted_func[[l]]+ 3* sqrt(fitted_var[[l]])  
+    low                        <-  obj$fitted_func[[l]]- 3*sqrt(fitted_var[[l]])  
     obj$cred_band[[l]]   <- rbind(up, low)
     names(obj$cred_band[[l]]) <- c("up","low")
     names(obj$cred_band)[l] <- paste("credible_band_effect_",l, sep = "")
