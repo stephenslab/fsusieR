@@ -1097,9 +1097,10 @@ out_prep.susiF <- function(obj ,
                           X          = X
                           )
   }
-
+ 
+  
     obj <-  update_cal_fit_func(obj,
-                                      Y             = Y,
+                                      Y             =  Y,
                                       X             = X,
                                       indx_lst      = indx_lst,
                                       TI            = TI,
@@ -1109,7 +1110,7 @@ out_prep.susiF <- function(obj ,
 
     if(  HMM==FALSE){
       obj <-  update_cal_indf(obj = obj ,
-                                    Y         = Y,
+                                    Y         =  Y,
                                     X         = X,
                                     indx_lst  = indx_lst,
                                     TI        = TI)

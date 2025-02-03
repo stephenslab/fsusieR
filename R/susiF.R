@@ -376,7 +376,9 @@ susiF <- function(Y, X, L = 2,
   }
   X <- colScale(X)
   # centering input
-  Y <- colScale(Y, scale=FALSE)
+  #Y0 <-  colScale(Y , scale=FALSE)
+  Y  <- colScale(Y )
+   
   W <- DWT2(Y,
             filter.number = filter.number,
             family        = family)
@@ -481,7 +483,7 @@ susiF <- function(Y, X, L = 2,
 
   #preparing output
   obj <- out_prep(     obj            = obj, 
-                        Y             = Y,
+                        Y             =   sweep(Y  , 2, attr(Y , "scaled:scale"),  "*"),
                         X             = X,
                         indx_lst      = indx_lst,
                         filter_cs     = filter_cs,
