@@ -16,8 +16,7 @@ update_cal_fit_func(obj, indx_lst, ...)
   indx_lst,
   Y,
   X,
-  TI = TRUE,
-  HMM = FALSE,
+  post_processing = "TI",
   filter.number = 10,
   family = "DaubLeAsymm",
   ...
@@ -32,11 +31,11 @@ update_cal_fit_func(obj, indx_lst, ...)
 
 \item{X}{matrix of size n by p in}
 
-\item{TI}{logical if set to true use cycle spinning wavelet regression}
-
 \item{filter.number}{see documentation of wd from wavethresh package}
 
 \item{family}{see documentation of wd from wavethresh package}
+
+\item{TI}{logical if set to true use cycle spinning wavelet regression}
 }
 \value{
 susiF object

@@ -32,7 +32,7 @@ susiF(
   cor_small = FALSE,
   filter.number = 10,
   family = "DaubLeAsymm",
-  post_processing = c("TI", "HMM", "none"),
+  post_processing = c("TI", "HMM", "smash", "none"),
   e = 0.001,
   tol_null_prior = 0.001
 )
