@@ -71,7 +71,7 @@ methylation data set</h1>
                         <h4 data-toc-skip class="author">William Denault
 and Peter Carbonetto</h4>
             
-            <h4 data-toc-skip class="date">2025-01-31</h4>
+            <h4 data-toc-skip class="date">2025-02-03</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/stephenslab/fsusieR/blob/HEAD/vignettes/small_demo2.Rmd" class="external-link"><code>vignettes/small_demo2.Rmd</code></a></small>
       <div class="hidden name"><code>small_demo2.Rmd</code></div>
@@ -121,8 +121,8 @@ CpGs.</p>
 methylation levels.</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="cn">F</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fl">0</span>,<span class="va">p</span>,<span class="va">m</span><span class="op">)</span></span>
-<span><span class="cn">F</span><span class="op">[</span><span class="fl">1</span>,<span class="fl">9</span><span class="op">:</span><span class="fl">16</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fl">2</span></span>
-<span><span class="cn">F</span><span class="op">[</span><span class="fl">9</span>,<span class="fl">9</span><span class="op">:</span><span class="fl">16</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="op">(</span><span class="op">-</span><span class="fl">2</span><span class="op">)</span></span>
+<span><span class="cn">F</span><span class="op">[</span><span class="fl">1</span>,<span class="fl">9</span><span class="op">:</span><span class="fl">16</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fl">2.5</span></span>
+<span><span class="cn">F</span><span class="op">[</span><span class="fl">9</span>,<span class="fl">9</span><span class="op">:</span><span class="fl">16</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="op">(</span><span class="op">-</span><span class="fl">2.5</span><span class="op">)</span></span>
 <span><span class="cn">F</span><span class="op">[</span><span class="fl">3</span>,<span class="fl">25</span><span class="op">:</span><span class="fl">32</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fl">2</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="cn">F</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="va">snpids</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">colnames</a></span><span class="op">(</span><span class="cn">F</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="va">cpgids</span></span></code></pre></div>
@@ -218,12 +218,12 @@ containing one of the causal SNPs:</p>
 <span><span class="co">#     9 </span></span>
 <span><span class="co"># </span></span>
 <span><span class="co"># [[2]]</span></span>
-<span><span class="co"># SNP-3 </span></span>
-<span><span class="co">#     3 </span></span>
+<span><span class="co"># SNP-1 </span></span>
+<span><span class="co">#     1 </span></span>
 <span><span class="co"># </span></span>
 <span><span class="co"># [[3]]</span></span>
-<span><span class="co"># SNP-1 </span></span>
-<span><span class="co">#     1</span></span></code></pre></div>
+<span><span class="co"># SNP-3 </span></span>
+<span><span class="co">#     3</span></span></code></pre></div>
 <p>This result can be visualized using a “PIP plot” (PIP = posterior
 inclusion probability):</p>
 <div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
@@ -298,7 +298,7 @@ these results.</p>
 <span><span class="co"># [1] stats     graphics  grDevices utils     datasets  methods   base     </span></span>
 <span><span class="co"># </span></span>
 <span><span class="co"># other attached packages:</span></span>
-<span><span class="co"># [1] cowplot_1.1.3  ggplot2_3.5.0  fsusieR_0.2.83</span></span>
+<span><span class="co"># [1] cowplot_1.1.3  ggplot2_3.5.0  fsusieR_0.2.84</span></span>
 <span><span class="co"># </span></span>
 <span><span class="co"># loaded via a namespace (and not attached):</span></span>
 <span><span class="co">#  [1] generics_0.1.3     utf8_1.2.4         sass_0.4.8         ashr_2.2-66       </span></span>

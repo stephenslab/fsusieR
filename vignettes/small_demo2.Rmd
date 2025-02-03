@@ -80,8 +80,8 @@ methylation levels.
 
 ```{r sim-effect-matrix}
 F <- matrix(0,p,m)
-F[1,9:16] <- 2
-F[9,9:16] <- (-2)
+F[1,9:16] <- 2.5
+F[9,9:16] <- (-2.5)
 F[3,25:32] <- 2
 rownames(F) <- snpids
 colnames(F) <- cpgids
