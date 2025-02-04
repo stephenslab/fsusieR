@@ -541,63 +541,101 @@ convert.var <- function (wd, ...) {
 
 
 
-TI_ash_smooth=  function( betahat,sds ,n.shifts=10 ){
+TI_ash_smooth=  function( betahat,sds ,n.shifts=10 ,family =  "DaubExPhase",
+                          filter.number=10){
   
   
   x=betahat
   
   n <- length(x)
+   
   
+  n <- length(x)
+  n.shifts=10  
+  family =  "DaubExPhase" 
+  filter.number=10
   # Initialize a matrix to store smoothed signals for each shift
   smoothed_signals <- matrix(0, nrow = n.shifts, ncol = n)
   smoothed_var <- matrix(0, nrow = n.shifts, ncol = n)
   
   
+  k= floor(n/n.shifts)
   
   i=1
-  shifted_x <- c(x[(i + 1):n], x[1:i])
+  shifted_x <- c(x[(i*k + 1):n], x[1:(i*k)])
   wd_shifted <- wavethresh::wd(shifted_x, filter.number = filter.number, family = family, type = "station")
   
   mat_Coef_D=  matrix( 0, nrow = n.shifts, ncol=  length( wd_shifted$D))
   mat_Coef_D_var = matrix( 0, nrow = n.shifts, ncol=  length( wd_shifted$D))
   
+  shrunk_wc   <- matrix( 0,ncol=length( wd_shifted$D) , nrow=n.shifts,
+                         byrow = FALSE)
+  shrunk_var  <- matrix( 0,ncol=length( wd_shifted$D) , nrow=n.shifts,
+                         byrow = FALSE)
   for (i in 1:n.shifts) {
-    print(i)
+    
     # Shift the signal
-    shifted_x <- c(x[(i + 1):n], x[1:i])
+    shifted_x <- c(x[(i*k + 1):n], x[1:(i*k)])
     
     # Perform wavelet decomposition
     wd_shifted <- wavethresh::wd(shifted_x, filter.number = filter.number, family = family, type = "station")
     mat_Coef_D[i,]=wd_shifted$D
+    
+    res_ash= ashr::ash( c( mat_Coef_D[i,]) , rep( sds,length( wd_shifted$D)  ))
+    
+    
+    shrunk_wc[i, ]   <-  res_ash$result$PosteriorMean 
+    shrunk_var[i, ]  <-   res_ash$result$PosteriorSD^2 
   }
   
-  res_ash= ashr::ash( c(mat_Coef_D) , rep( sds, prod(dim(mat_Coef_D))))
   
-  
-  shrunk_wc   <- matrix( res_ash$result$PosteriorMean, nrow=n.shifts,
-                         byrow = FALSE)
-  shrunk_var  <- matrix( res_ash$result$PosteriorSD^2, nrow=n.shifts,
-                         byrow = FALSE)
+  recover_x <- function(shifted_x, i) {
+    n <- length(shifted_x)
+    n_tilt=n#+sample(c(-1,0,1),size=1)
+    shift_back <- (n_tilt - i*k) %% n  # Ensure non-negative index
+    recovered_x <- c(shifted_x[(shift_back + 1):n], shifted_x[1:shift_back])
+    return(recovered_x)
+  }
   
   for ( i in 1:n.shifts){
+    
     # Reconstruct the smoothed signal using av.basis
-    wd_shifted$D = shrunk_wc [i, ]
-    smoothed_signals[i, ] <- wavethresh::av.basis(
+    wd_shifted$D =   shrunk_wc[i, ] 
+    smoothed_signals[i, ] <-      wavethresh::av.basis(
       wavethresh::convert(wd_shifted),
       level = wd_shifted$nlevels - 1,  # Reconstruct at the finest level
       ix1 = 0,                         # Start index
       ix2 = 1,                         # End index
       filter = wd_shifted$filter       # Wavelet filter
-    )
+    ) 
     
     wd_shifted$D=(shrunk_var[i,])
-    smoothed_var[i, ] = AvBasis.var(convert.var(wd_shifted))
+    ab_var=  AvBasis.var(convert.var(wd_shifted))
+    smoothed_var[i, ] =  recover_x(ab_var,i)
     
   }
+  
+  recover_x <- function(shifted_x, i) {
+    n <- length(shifted_x)
+    tilt= sample(c(-2:2),size=1)
+    shift_back <- (n  - i*k +tilt ) %% n  # Ensure non-negative index
+    recovered_x <- c(shifted_x[(shift_back + 1):n], shifted_x[1:shift_back])
+    return(recovered_x)
+  }
+  
+  for ( i in 1:n.shifts){
+    smoothed_signals[i, ]= recover_x(smoothed_signals[i,],i)
+  }
+  for ( i in 1:n.shifts){
+    smoothed_var[i, ]= recover_x(smoothed_var[i,],i)
+  }
+  
   return(list(smoothed_signal= colMeans(smoothed_signals),
               smoothed_var=  colMeans(smoothed_var)))
   
 }
+
+
 
 
 
