@@ -374,6 +374,9 @@ susiF <- function(Y, X, L = 2,
     warning(paste("Some of the columns of X are constants, we removed" ,length(tidx), "columns"))
     X <- X[,-tidx]
   }
+  if( verbose){
+    print("scaling columns of X and Y to have unit variance")
+  }
   X <- colScale(X)
   # centering input
   #Y0 <-  colScale(Y , scale=FALSE)
