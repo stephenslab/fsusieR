@@ -148,7 +148,7 @@ correction—here we just used the basic Bonferroni correction, which
 tells us that only the CpG-SNPs pairs with p-values less than 0.0001
 are significant.)
 
-```{r gwas-by-snp-ggsave, echo=FALSE}
+```{r gwas-by-snp-ggsave, echo=FALSE, eval=FALSE}
 ggsave("demo_gwas_by_snp.pdf",p1,height = 3,width = 3)
 ```
 
@@ -173,7 +173,7 @@ From the association test p-values alone it is quite clear that the
 affected CpG sites "cluster" in two continuous regions, but it is less
 clear exactly which CpG sites in these clusters are affected.
 
-```{r gwas-by-cpg-ggsave, echo=FALSE}
+```{r gwas-by-cpg-ggsave, echo=FALSE, eval=FALSE}
 ggsave("demo_gwas_by_cpg.pdf",
        p2 + scale_x_continuous(breaks = seq(1,32)),
 	   height = 3,width = 3.75)
@@ -227,7 +227,7 @@ Again, fSuSiE very confidently identified the correct three causal
 SNPs, whereas this was not the case in the QTL mapping. The key
 difference is that fSuSiE fits a single model to all the data.
 
-```{r fsusie-pip-plot-ggsave, echo=FALSE}
+```{r fsusie-pip-plot-ggsave, echo=FALSE, eval=FALSE}
 ggsave("demo_pip_plot.pdf",p3,height = 1.5,width = 3)
 ```
 
@@ -260,7 +260,7 @@ causal SNP), and therefore it is quite evident from the fSuSiE results
 that two of the causal SNPs affect the same CpG cluster, and the other
 causal SNP affects a different CpG cluster.
 
-```{r fsusie-affected-cpgs-ggsave, echo=FALSE}
+```{r fsusie-affected-cpgs-ggsave, echo=FALSE, eval=FALSE}
 ggsave("demo_affected_cpgs.pdf",
        p4 + scale_x_continuous(breaks = seq(1,32)),
 	   height = 1.75,width = 6)
