@@ -72,6 +72,7 @@ X <- (runif(n*p) < maf) +
      (runif(n*p) < maf)
 X <- matrix(X,n,p,byrow = TRUE)
 storage.mode(X) <- "double"
+X[,4] <- X[,3] + 0.03*rnorm(n)
 colnames(X) <- snpids
 ```
 
@@ -80,8 +81,8 @@ methylation levels.
 
 ```{r sim-effect-matrix}
 F <- matrix(0,p,m)
-F[1,9:16] <- 2.5
-F[9,9:16] <- (-2.5)
+F[1,9:16] <- 2.3
+F[9,9:16] <- (-2.3)
 F[3,25:32] <- 2
 rownames(F) <- snpids
 colnames(F) <- cpgids
@@ -236,10 +237,11 @@ how they are affected by the individual causal SNPs (or, more
 precisely, by the individual CSs):
 
 ```{r fsusie-affected-cpgs, fig.height=2, fig.width=6}
+i <- sapply(fit$cs,function (x) intersect(x,c(1,3,9)))
 pdat <- data.frame(CS   = rep(c("L1","L2","L3"),each = m),
                    CpG  = rep(1:m,times = 3),
                    lfsr = unlist(fit$lfsr_func),
-				   affected = as.vector(t(F[unlist(fit$cs),]) != 0),
+				   affected = as.vector(t(F[i,]) != 0),
 				   stringsAsFactors = FALSE)
 pdat <- transform(pdat,
                   CS   = factor(CS,c("L3","L2","L1")),
