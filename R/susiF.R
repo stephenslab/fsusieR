@@ -291,8 +291,8 @@ susiF <- function(Y, X, L = 2,
                   max_step_EM=1,
                   cor_small=FALSE,
                   filter.number = 10,
-                  family = "DaubLeAsymm",
-                  post_processing=c("TI","HMM","smash","none"),
+                  family =  "DaubLeAsymm",
+                  post_processing=c("TI","smash","HMM","none"),
                   e = 0.001,
                   tol_null_prior=0.001
 
