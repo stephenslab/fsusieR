@@ -1761,7 +1761,7 @@ TI_regression.susiF <- function( obj,Y,X, verbose=TRUE,
                          offset.level <- first.last.d[level, 3]
                          first.level  <- first.last.d[level, 1]
                          idx   <- (offset.level + 1 - first.level):(offset.level +n - first.level)
-                         t_ash <- ashr::ash(c( res$Bhat[idx]),c(res$Shat[idx]), nullweight=40)
+                         t_ash <- ashr::ash(c( res$Bhat[idx]), (c(res$Shat[idx])),  nullweight=400)
                          
                          wd [idx] <- t_ash$result$PosteriorMean
                          wd2[idx] <- t_ash$result$PosteriorSD^2
@@ -1785,20 +1785,20 @@ TI_regression.susiF <- function( obj,Y,X, verbose=TRUE,
       
       res <- cal_Bhat_Shat(Y_c, matrix(X[,refined_est$idx_lead_cov[[1]]],
                                        ncol=1))
-      t_ash <-ashr::ash(c( res$Bhat),c(res$Shat))
+      t_ash <-ashr::ash(c( res$Bhat),c(res$Shat), nullweight=400)
       refined_est$wdC[[l]] <- t_ash$result$PosteriorMean
       
     }
     if(inherits(get_G_prior(obj),"mixture_normal" )){
       res <- cal_Bhat_Shat(Y_f, matrix(X[,refined_est$idx_lead_cov[[1]]],
                                        ncol=1))
-      t_ash <-  ashr::ash(c( res$Bhat),c(res$Shat))
+      t_ash <-  ashr::ash(c( res$Bhat),c(res$Shat), nullweight=400)
       refined_est$wd[[1]] <- t_ash$result$PosteriorMean
       refined_est$wd2[[1]]<- t_ash$result$PosteriorSD^2
       
       res <- cal_Bhat_Shat(Y_c, matrix(X[,refined_est$idx_lead_cov[[1]]],
                                        ncol=1))
-      t_ash <- ashr::ash(c( res$Bhat),c(res$Shat))
+      t_ash <- ashr::ash(c( res$Bhat),c(res$Shat), nullweight=400)
       refined_est$wdC[[l]] <- t_ash$result$PosteriorMean
       
     }
@@ -1832,7 +1832,8 @@ TI_regression.susiF <- function( obj,Y,X, verbose=TRUE,
                              offset.level <- first.last.d[level, 3]
                              first.level <- first.last.d[level, 1]
                              idx <- (offset.level + 1 - first.level):(offset.level +n - first.level)
-                             t_ash <- ashr::ash(c( res$Bhat[idx]),c(res$Shat[idx]), nullweight=40)
+                             t_ash <- ashr::ash(c( res$Bhat[idx]), (c(res$Shat[idx])), 
+                                                nullweight=400)
                              
                              wd [idx] <- t_ash$result$PosteriorMean
                              wd2[idx] <- t_ash$result$PosteriorSD^2
@@ -1860,7 +1861,7 @@ TI_regression.susiF <- function( obj,Y,X, verbose=TRUE,
           )
           
           res <- cal_Bhat_Shat(par_resc, matrix(X[,refined_est$idx_lead_cov[[l]]], ncol=1))
-          t_ash <- ashr::ash(c( res$Bhat),c(res$Shat))
+          t_ash <- ashr::ash(c( res$Bhat),c(res$Shat), nullweight=400)
           refined_est$wdC[[l]] <- t_ash$result$PosteriorMean
           
           
@@ -1881,7 +1882,7 @@ TI_regression.susiF <- function( obj,Y,X, verbose=TRUE,
           )
           
           res <- cal_Bhat_Shat(par_res, matrix(X[,refined_est$idx_lead_cov[[l]]], ncol=1))
-          t_ash <- ashr::ash(c( res$Bhat),c(res$Shat))
+          t_ash <- ashr::ash(c( res$Bhat),c(res$Shat), nullweight=400)
           refined_est$wd[[l]] <- t_ash$result$PosteriorMean
           refined_est$wd2[[l]]<- t_ash$result$PosteriorSD^2
           
@@ -1894,7 +1895,7 @@ TI_regression.susiF <- function( obj,Y,X, verbose=TRUE,
           )
           
           res <- cal_Bhat_Shat(par_resc, matrix(X[,refined_est$idx_lead_cov[[l]]], ncol=1))
-          t_ash <- ashr::ash(c( res$Bhat),c(res$Shat))
+          t_ash <- ashr::ash(c( res$Bhat),c(res$Shat), nullweight=400)
           refined_est$wdC[[l]] <- t_ash$result$PosteriorMean
           
           
@@ -2037,13 +2038,12 @@ smash_regression.susiF <- function(  obj,Y,X, verbose=TRUE,
       tsds[ which( is.na(tsds))]<- 1
     }
     
-    #s =  smashr::smash.gaus(x=est ,
-                            #sigma =  sqrt(tsds),
-    #                        ashparam = list(optmethod="mixVBEM",
-    #                                        nullweight=40), 
-    #                        post.var = TRUE  )
-    s =  smash_2lw(noisy_signal=est ,
-                    noise_level  =   tsds)
+     s =  smashr::smash.gaus(x=est ,
+                            sigma =  sqrt(tsds),
+                             ashparam = list(optmethod="mixVBEM" ), 
+                             post.var = TRUE  )
+    #s =  smash_2lw(noisy_signal=est ,
+    #                noise_level  =   tsds)
     fitted_trend[[1]] <- s$mu.est
     fitted_var  [[1]] <- s$mu.est.var
   }else{
@@ -2064,12 +2064,12 @@ smash_regression.susiF <- function(  obj,Y,X, verbose=TRUE,
       }
       
       
-      #s =  smashr::smash.gaus(x=est ,
-      #                         sigma =   (tsds),
-      #                        ashparam =list(optmethod="mixVBEM"),  
-      #                        post.var = TRUE  )
-      s =  smash_2lw(noisy_signal=est ,
-                     noise_level  =   tsds)
+       s =  smashr::smash.gaus(x=est ,
+                                sigma =   (tsds),
+                              ashparam =list(optmethod="mixVBEM"),  
+                             post.var = TRUE  )
+      #s =  smash_2lw(noisy_signal=est ,
+      #               noise_level  =   tsds)
       fitted_trend[[idx_cs]]  <- s$mu.est
       fitted_var[[idx_cs]]  <- s$mu.est.var
     }
