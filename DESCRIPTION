@@ -1,11 +1,12 @@
 Encoding: UTF-8
 Type: Package
 Package: fsusieR
-Version: 0.2.85
-Date: 2025-02-04
+Version: 0.2.86
+Date: 2025-02-05
 Title: Sum of Single Functions
-Authors@R: person("William R. P.","Denault",role = c("aut","cre"),
-                  email = "wdenault@uchicago.edu")
+Authors@R: c(person("William R. P.","Denault",role = c("aut","cre"),
+                    email = "wdenault@uchicago.edu"),
+             person("Peter","Carbonetto",role="ctb"))
 URL: https://github.com/stephenslab/fsusieR
 BugReports: https://github.com/stephenslab/fsusieR
 Description: Implements the "Sum of Single Functions" (fSuSiE) method.
