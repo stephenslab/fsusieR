@@ -1737,8 +1737,8 @@ update_cal_fit_func.susiF <- function(obj,
     obj <- TI_regression(obj=obj,
                                Y=Y,
                                X=X,
-                               filter.number = filter.number,
-                               family = family
+                               filter.number = 1 ,
+                               family = "DaubExPhase"
 
     )
   }
