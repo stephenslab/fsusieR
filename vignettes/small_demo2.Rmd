@@ -132,7 +132,7 @@ p1 <- ggplot(pdat,aes(x = cpg,y = meth_level,color = geno)) +
 print(p1)
 ```
 
-```{r plot-data-ggsave, echo=FALSE, eval=TRUE, message=FALSE}
+```{r plot-data-ggsave, echo=FALSE, eval=FALSE, message=FALSE}
 ggsave("demo_data.pdf",
        p1 + scale_x_continuous(breaks = 1:m),
 	   height = 2,width = 5)
@@ -188,7 +188,7 @@ correction—here we just used the basic Bonferroni correction, which
 tells us that only the CpG-SNPs pairs with p-values less than 0.0001
 are significant.)
 
-```{r gwas-by-snp-ggsave, echo=FALSE, eval=TRUE}
+```{r gwas-by-snp-ggsave, echo=FALSE, eval=FALSE}
 ggsave("demo_gwas_by_snp.pdf",p2,height = 3,width = 3)
 ```
 
@@ -213,7 +213,7 @@ From the association test p-values alone it is quite clear that the
 affected CpG sites "cluster" in two continuous regions, but it is less
 clear exactly which CpG sites in these clusters are affected.
 
-```{r gwas-by-cpg-ggsave, echo=FALSE, eval=TRUE, message=FALSE}
+```{r gwas-by-cpg-ggsave, echo=FALSE, eval=FALSE, message=FALSE}
 ggsave("demo_gwas_by_cpg.pdf",
        p3 + scale_x_continuous(breaks = seq(1,32)),
 	   height = 3,width = 3.75)
@@ -268,7 +268,7 @@ Again, fSuSiE very confidently identified the correct three causal
 SNPs, whereas this was not the case in the QTL mapping. The key
 difference is that fSuSiE fits a single model to all the data.
 
-```{r fsusie-pip-plot-ggsave, echo=FALSE, eval=TRUE}
+```{r fsusie-pip-plot-ggsave, echo=FALSE, eval=FALSE}
 ggsave("demo_pip_plot.pdf",p4,height = 1.5,width = 3)
 ```
 
@@ -278,7 +278,7 @@ precisely, by the individual CSs). Here we use the *lfsr* (*local
 false sign rate*) estimates produced by the HMM (using the
 `post_processing = "HMM"` option):
 
-```{r fsusie-affected-cpgs, fig.height=2, fig.width=6, eval=TRUE}
+```{r fsusie-affected-cpgs, fig.height=2, fig.width=6, eval=FALSE}
 i <- sapply(fit$cs,function (x) intersect(x,c(1,3,9)))
 pdat <- data.frame(CS   = rep(c("L1","L2","L3"),each = m),
                    CpG  = rep(1:m,times = 3),
