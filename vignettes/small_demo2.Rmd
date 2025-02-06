@@ -290,14 +290,13 @@ pdat <- data.frame(CS   = rep(c("L1","L2","L3"),each = m),
 pdat <- transform(pdat,
                   CS   = factor(CS,c("L3","L2","L1")),
 				  lfsr = -log10(lfsr))
-p5 <- ggplot(pdat,aes(x = CpG,y = CS,size = lfsr,color = affected)) +
+ggplot(pdat,aes(x = CpG,y = CS,size = lfsr,color = affected)) +
   geom_point(shape = 1) +
   scale_x_continuous(breaks = c(0,seq(4,32,4))) +
   scale_color_manual(values = c("darkblue","darkorange")) +
   scale_size(range = c(0.5,10),breaks = c(1.3,5,10)) +
   labs(size = "-log10(lfsr)") +
   theme_cowplot(font_size = 10)
-print(p5)
 ```
 
 Indeed, the significance tests (local false sign rate) break down the
@@ -305,12 +304,6 @@ support for affected CpGs *separately for each CS* (i.e., for each
 causal SNP), and therefore it is quite evident from the fSuSiE results
 that two of the causal SNPs affect the same CpG cluster, and the other
 causal SNP affects a different CpG cluster.
-
-```{r fsusie-affected-cpgs-ggsave, echo=FALSE, eval=TRUE, message=FALSE}
-ggsave("demo_affected_cpgs.pdf",
-       p5 + scale_x_continuous(breaks = seq(1,32)),
-	   height = 1.75,width = 6)
-```
 
 The lfsrs quantify the support the CpG sites being affected, and in
 this example the CpG sites with the smallest lfsrs (largest circles in
@@ -356,7 +349,7 @@ pdat <-
 				   lower = fit_TI$cred_band[[3]]["low",],
 				   upper = fit_TI$cred_band[[3]]["up",]))
 pdat <- transform(pdat,CS = factor(CS))
-p6 <- ggplot(pdat,aes(x = cpg,y = est,color = CS)) +
+p5 <- ggplot(pdat,aes(x = cpg,y = est,color = CS)) +
   geom_line(linetype = "dashed") +
   geom_line(mapping = aes(x = cpg,y = upper,color = CS),linewidth = 0.85) +
   geom_line(mapping = aes(x = cpg,y = lower,color = CS),linewidth = 0.85) +
@@ -365,7 +358,7 @@ p6 <- ggplot(pdat,aes(x = cpg,y = est,color = CS)) +
   scale_color_manual(values = cs_colors) +
   labs(x = "CpG",y = "change in meth. level") +
   theme_cowplot(font_size = 11)
-print(p6)
+print(p5)
 ```
 
 ADD TEXT HERE.
