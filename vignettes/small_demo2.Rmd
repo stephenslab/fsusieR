@@ -355,7 +355,8 @@ plot_grid(effect_plot(1),
 		  nrow = 3,ncol = 1)
 ```
 
-ADD TEXT HERE.
+Notice that the effect estimates with (95%) credible bands outside
+zero predict very accurately the affected CpG sites.
 
 ```{r fsusie-affected-cpgs-TI-ggsave, echo=FALSE, message=FALSE}
 ggsave("demo_affected_cpgs.pdf",
