@@ -107,13 +107,11 @@ levels. The points show what the data look like and the lines show the
 mean methylation levels for the three SNP genotypes:
 
 ```{r plot-data, fig.height=2, fig.width=5}
-n1   <- 40
-rows <- sample(n,n1)
-pdat <- melt(Y[rows,])
-x    <- X[rows,3]
-pdat <- data.frame(cpg        = rep(1:m,each = n1) +
-                                runif(m*n1,min = -0.2,max = 0.2),
-                   meth_level = as.vector(Y[rows,]),
+pdat <- melt(Y)
+x    <- X[,3]
+pdat <- data.frame(cpg        = rep(1:m,each = n) +
+                                runif(m*n,min = -0.2,max = 0.2),
+                   meth_level = as.vector(Y),
 				   geno       = factor(x))
 pdat_lines <- data.frame(cpg = rep(1:m,times = 3),
                          geno = factor(rep(0:2,each = m)),
@@ -325,64 +323,47 @@ Note that the post-processing step doesn't change the CSs (nor the
 PIPs), only the estimated effects of the SNPs on the CpGs.
 
 ```{r fsusie-cs-TI}
+range(fit$pip - fit_TI$pip)
 fit_TI$cs
 ```
 
 These are the TI wavelet estimates of the effects on the CpG sites
 (and corresponding credible bands):
 
-```{r fsusie-affected-cpgs-TI, fig.height=2, fig.width=5}
-pdat <-
-  rbind(data.frame(CS = 1,
-                   cpg = 1:m,
-				   est = fit_TI$fitted_func[[1]],
-				   lower = fit_TI$cred_band[[1]]["low",],
-				   upper = fit_TI$cred_band[[1]]["up",]),
-        data.frame(CS = 2,
-		           cpg = 1:m,
-				   est = fit_TI$fitted_func[[2]],
-				   lower = fit_TI$cred_band[[2]]["low",],
-				   upper = fit_TI$cred_band[[2]]["up",]),
-		data.frame(CS = 3,
-		           cpg = 1:m,
-				   est = fit_TI$fitted_func[[3]],
-				   lower = fit_TI$cred_band[[3]]["low",],
-				   upper = fit_TI$cred_band[[3]]["up",]))
-pdat <- transform(pdat,CS = factor(CS))
-p5 <- ggplot(pdat,aes(x = cpg,y = est,color = CS)) +
-  geom_line(linetype = "dashed") +
-  geom_line(mapping = aes(x = cpg,y = upper,color = CS),linewidth = 0.85) +
-  geom_line(mapping = aes(x = cpg,y = lower,color = CS),linewidth = 0.85) +
-  geom_hline(yintercept = 0,color = "black",linewidth = 0.4) +
-  scale_x_continuous(breaks = c(0,seq(4,32,4))) +
-  scale_color_manual(values = cs_colors) +
-  labs(x = "CpG",y = "change in meth. level") +
-  theme_cowplot(font_size = 11)
-print(p5)
+```{r fsusie-affected-cpgs-TI, fig.height=4.5, fig.width=3.5}
+effect_plot <- function (i) {
+  pdat <- data.frame(cpg      = 1:m,
+                     estimate = fit_TI$fitted_func[[i]],
+					 lower    = fit_TI$cred_band[[i]]["low",],
+					 upper    = fit_TI$cred_band[[i]]["up",])
+  rows <- with(pdat,which(lower > 0 | upper < 0))
+  pdat2 <- data.frame(cpg = rows,estimate = 0)
+  return(ggplot(pdat,aes(x = cpg,y = estimate,ymin = lower,ymax = upper)) +
+         geom_point(color = cs_colors[i],size = 1) +
+         geom_errorbar(color = cs_colors[i],linewidth = 0.4) +
+         geom_hline(yintercept = 0,color = "black",linewidth = 0.4) +
+		 geom_point(data = pdat2,mapping = aes(x = cpg,y = estimate),
+		            shape = 20,color = "black",size = 1.5,
+					inherit.aes = FALSE) +
+         scale_x_continuous(breaks = c(0,seq(4,32,4))) +
+         labs(x = "CpG",y = "change",title = paste0("CS",i)) +
+		 theme_cowplot(font_size = 11))
+}
+plot_grid(effect_plot(1),
+          effect_plot(2),
+   	      effect_plot(3),
+		  nrow = 3,ncol = 1)
 ```
 
 ADD TEXT HERE.
 
-```{r fsusie-affected-cpgs-TI-2, fig.height=2, fig.width=5}
-pdat2 <- data.frame(CS   = rep(c("L1","L2","L3"),each = m),
-                    cpg  = rep(1:m,times = 3),
-                    lfsr = unlist(fit$lfsr_func),
-					affected = with(pdat,lower > 0 | upper < 0),
-                    stringsAsFactors = FALSE)
-pdat2 <- transform(pdat2,CS = factor(CS,c("L3","L2","L1")))
-p7 <- ggplot(pdat2,aes(x = cpg,y = CS,color = CS,shape = affected)) +
-  geom_point() +
-  scale_x_continuous(breaks = c(0,seq(4,32,4))) +
-  scale_color_manual(values = cs_colors) +
-  scale_shape_manual(values = c(1,19)) +
-  labs(x = "CpG") +
-  theme_cowplot(font_size = 11)
-print(p7)
-```
-
-ADD TEXT HERE.
-
-```{r fsusie-affected-cpgs-TI-ggsave, echo=FALSE, eval=FALSE, message=FALSE}
+```{r fsusie-affected-cpgs-TI-ggsave, echo=FALSE, message=FALSE}
+ggsave("demo_affected_cpgs.pdf",
+       plot_grid(effect_plot(1) + scale_x_continuous(breaks = 1:m),
+                 effect_plot(2) + scale_x_continuous(breaks = 1:m),
+   	             effect_plot(3) + scale_x_continuous(breaks = 1:m),
+		  nrow = 3,ncol = 1),
+	   height = 4.5,width = 4)
 ```
 
 Session info
