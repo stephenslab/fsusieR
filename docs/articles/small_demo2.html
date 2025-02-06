@@ -33,7 +33,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">fsusieR</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.2.85</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.2.87</span>
       </span>
     </div>
 
@@ -71,7 +71,7 @@ methylation data set</h1>
                         <h4 data-toc-skip class="author">William Denault
 and Peter Carbonetto</h4>
             
-            <h4 data-toc-skip class="date">2025-02-04</h4>
+            <h4 data-toc-skip class="date">2025-02-06</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/stephenslab/fsusieR/blob/HEAD/vignettes/small_demo2.Rmd" class="external-link"><code>vignettes/small_demo2.Rmd</code></a></small>
       <div class="hidden name"><code>small_demo2.Rmd</code></div>
@@ -85,6 +85,7 @@ fSuSiE by applying fSuSiE to analyze a toy methylation data set.</p>
 <p>Load the packages used in this vignette.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/stephenslab/fsusieR" class="external-link">fsusieR</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/hadley/reshape" class="external-link">reshape2</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://wilkelab.org/cowplot/" class="external-link">cowplot</a></span><span class="op">)</span></span></code></pre></div>
 <p>Set the seed so that the results can be reproduced.</p>
@@ -130,10 +131,45 @@ methylation levels.</p>
 <p>Simulate the methylation levels at the CpGs:</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">E</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fl">3</span><span class="op">*</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="va">n</span><span class="op">*</span><span class="va">m</span><span class="op">)</span>,<span class="va">n</span>,<span class="va">m</span><span class="op">)</span></span>
-<span><span class="va">Y</span> <span class="op">&lt;-</span> <span class="va">X</span> <span class="op"><a href="https://rdrr.io/r/base/matmult.html" class="external-link">%*%</a></span> <span class="cn">F</span> <span class="op">+</span> <span class="va">E</span></span>
-<span><span class="va">Y</span> <span class="op">&lt;-</span> <span class="va">Y</span> <span class="op">-</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">min</a></span><span class="op">(</span><span class="va">Y</span><span class="op">)</span></span></code></pre></div>
+<span><span class="va">Y</span> <span class="op">&lt;-</span> <span class="va">X</span> <span class="op"><a href="https://rdrr.io/r/base/matmult.html" class="external-link">%*%</a></span> <span class="cn">F</span></span>
+<span><span class="va">Y</span> <span class="op">&lt;-</span> <span class="va">Y</span> <span class="op">+</span> <span class="va">E</span></span>
+<span><span class="va">baseline</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">min</a></span><span class="op">(</span><span class="va">Y</span><span class="op">)</span></span>
+<span><span class="va">Y</span> <span class="op">&lt;-</span> <span class="va">Y</span> <span class="op">-</span> <span class="va">baseline</span></span></code></pre></div>
 <p>To make the example more realistic, the methylation levels are all
-zero or higher.</p>
+simulated to be zero or higher.</p>
+<p>To illustrate, this plot shows the effect of SNP 3 on the methylation
+levels. The points show what the data look like and the lines show the
+mean methylation levels for the three SNP genotypes:</p>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">pdat</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/reshape2/man/melt.html" class="external-link">melt</a></span><span class="op">(</span><span class="va">Y</span><span class="op">)</span></span>
+<span><span class="va">x</span>    <span class="op">&lt;-</span> <span class="va">X</span><span class="op">[</span>,<span class="fl">3</span><span class="op">]</span></span>
+<span><span class="va">pdat</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>cpg        <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="va">m</span>,each <span class="op">=</span> <span class="va">n</span><span class="op">)</span> <span class="op">+</span></span>
+<span>                                <span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif</a></span><span class="op">(</span><span class="va">m</span><span class="op">*</span><span class="va">n</span>,min <span class="op">=</span> <span class="op">-</span><span class="fl">0.2</span>,max <span class="op">=</span> <span class="fl">0.2</span><span class="op">)</span>,</span>
+<span>                   meth_level <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/vector.html" class="external-link">as.vector</a></span><span class="op">(</span><span class="va">Y</span><span class="op">)</span>,</span>
+<span>                   geno       <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">pdat_lines</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>cpg <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="va">m</span>,times <span class="op">=</span> <span class="fl">3</span><span class="op">)</span>,</span>
+<span>                         geno <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">0</span><span class="op">:</span><span class="fl">2</span>,each <span class="op">=</span> <span class="va">m</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>                         meth_level <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">8</span><span class="op">)</span>,<span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="op">-</span><span class="fl">0.75</span>,<span class="fl">8</span><span class="op">)</span>,<span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">16</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>                                          times <span class="op">=</span> <span class="fl">3</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">pdat_lines</span><span class="op">$</span><span class="va">meth_level</span> <span class="op">&lt;-</span> <span class="va">pdat_lines</span><span class="op">$</span><span class="va">meth_level</span> <span class="op">-</span> <span class="va">baseline</span></span>
+<span><span class="va">rows</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/which.html" class="external-link">which</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/with.html" class="external-link">with</a></span><span class="op">(</span><span class="va">pdat_lines</span>,<span class="va">geno</span> <span class="op">==</span> <span class="fl">1</span> <span class="op">&amp;</span> <span class="va">cpg</span> <span class="op">&gt;</span> <span class="fl">24</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">pdat_lines</span><span class="op">[</span><span class="va">rows</span>,<span class="st">"meth_level"</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="va">pdat_lines</span><span class="op">[</span><span class="va">rows</span>,<span class="st">"meth_level"</span><span class="op">]</span> <span class="op">+</span> <span class="fl">2</span></span>
+<span><span class="va">rows</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/which.html" class="external-link">which</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/with.html" class="external-link">with</a></span><span class="op">(</span><span class="va">pdat_lines</span>,<span class="va">geno</span> <span class="op">==</span> <span class="fl">2</span> <span class="op">&amp;</span> <span class="va">cpg</span> <span class="op">&gt;</span> <span class="fl">24</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">pdat_lines</span><span class="op">[</span><span class="va">rows</span>,<span class="st">"meth_level"</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="va">pdat_lines</span><span class="op">[</span><span class="va">rows</span>,<span class="st">"meth_level"</span><span class="op">]</span> <span class="op">+</span> <span class="fl">4</span></span>
+<span><span class="va">p1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">pdat</span>,<span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">cpg</span>,y <span class="op">=</span> <span class="va">meth_level</span>,color <span class="op">=</span> <span class="va">geno</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span>shape <span class="op">=</span> <span class="fl">20</span>,size <span class="op">=</span> <span class="fl">1.25</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html" class="external-link">scale_x_continuous</a></span><span class="op">(</span>breaks <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">4</span>,<span class="fl">32</span>,<span class="fl">4</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_manual.html" class="external-link">scale_color_manual</a></span><span class="op">(</span>values <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"darkblue"</span>,<span class="st">"limegreen"</span>,<span class="st">"darkorange"</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">pdat_lines</span>,size <span class="op">=</span> <span class="fl">0.75</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>x <span class="op">=</span> <span class="st">"CpG"</span>,y <span class="op">=</span> <span class="st">"methylation level"</span>,color <span class="op">=</span> <span class="st">"genotype"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://wilkelab.org/cowplot/reference/theme_cowplot.html" class="external-link">theme_cowplot</a></span><span class="op">(</span>font_size <span class="op">=</span> <span class="fl">11</span><span class="op">)</span></span>
+<span><span class="co"># Warning: Using `size` aesthetic for lines was deprecated in ggplot2 3.4.0.</span></span>
+<span><span class="co"># <span style="color: #00BBBB;">ℹ</span> Please use `linewidth` instead.</span></span>
+<span><span class="co"># <span style="color: #555555;">This warning is displayed once every 8 hours.</span></span></span>
+<span><span class="co"># <span style="color: #555555;">Call `lifecycle::last_lifecycle_warnings()` to see where this warning was</span></span></span>
+<span><span class="co"># <span style="color: #555555;">generated.</span></span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">p1</span><span class="op">)</span></span></code></pre></div>
+<p><img src="small_demo2_files/figure-html/plot-data-1.png" width="600" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level2">
 <h2 id="qtl-mapping">QTL mapping<a class="anchor" aria-label="anchor" href="#qtl-mapping"></a>
@@ -142,7 +178,7 @@ zero or higher.</p>
 association tests for all the CpG-SNP pairs. Here we will simply use the
 standard linear regression function in R, <code><a href="https://rdrr.io/r/stats/lm.html" class="external-link">lm()</a></code>, to perform
 the QTL mapping.</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">assoc</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fl">0</span>,<span class="va">m</span>,<span class="va">p</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">assoc</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="va">cpgids</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">colnames</a></span><span class="op">(</span><span class="va">assoc</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="va">snpids</span></span>
@@ -156,14 +192,14 @@ the QTL mapping.</p>
 <p>Having performed these tests for association, we can examine the
 associations in two different ways, by SNP and by CpG site. Let’s start
 with the SNP-centered view:</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">pdat</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>cpg    <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="va">m</span>,times <span class="op">=</span> <span class="va">p</span><span class="op">)</span>,</span>
 <span>                   snp    <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="va">p</span>,each <span class="op">=</span> <span class="va">m</span><span class="op">)</span>,</span>
 <span>                   effect <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/vector.html" class="external-link">as.vector</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/t.html" class="external-link">t</a></span><span class="op">(</span><span class="cn">F</span> <span class="op">!=</span> <span class="fl">0</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>                   pval   <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/vector.html" class="external-link">as.vector</a></span><span class="op">(</span><span class="va">assoc</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">pdat</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/transform.html" class="external-link">transform</a></span><span class="op">(</span><span class="va">pdat</span>,pval <span class="op">=</span> <span class="op">-</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log10</a></span><span class="op">(</span><span class="va">pval</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">threshold</span> <span class="op">&lt;-</span> <span class="op">-</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log10</a></span><span class="op">(</span><span class="fl">0.05</span><span class="op">/</span><span class="op">(</span><span class="va">m</span><span class="op">*</span><span class="va">p</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">p1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">pdat</span>,<span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">snp</span>,y <span class="op">=</span> <span class="va">pval</span>,shape <span class="op">=</span> <span class="va">effect</span>,color <span class="op">=</span> <span class="va">effect</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span><span class="va">p2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">pdat</span>,<span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">snp</span>,y <span class="op">=</span> <span class="va">pval</span>,shape <span class="op">=</span> <span class="va">effect</span>,color <span class="op">=</span> <span class="va">effect</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span>size <span class="op">=</span> <span class="fl">1.5</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_abline.html" class="external-link">geom_hline</a></span><span class="op">(</span>yintercept <span class="op">=</span> <span class="va">threshold</span>,color <span class="op">=</span> <span class="st">"black"</span>,linetype <span class="op">=</span> <span class="st">"dotted"</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html" class="external-link">scale_x_continuous</a></span><span class="op">(</span>breaks <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="va">p</span><span class="op">)</span> <span class="op">+</span></span>
@@ -171,7 +207,7 @@ with the SNP-centered view:</p>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_manual.html" class="external-link">scale_color_manual</a></span><span class="op">(</span>values <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"darkblue"</span>,<span class="st">"darkorange"</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>x <span class="op">=</span> <span class="st">"SNP"</span>,y <span class="op">=</span> <span class="st">"-log10 p-value"</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://wilkelab.org/cowplot/reference/theme_cowplot.html" class="external-link">theme_cowplot</a></span><span class="op">(</span>font_size <span class="op">=</span> <span class="fl">11</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">p1</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">p2</span><span class="op">)</span></span></code></pre></div>
 <p><img src="small_demo2_files/figure-html/gwas-by-snp-1.png" width="360" style="display: block; margin: auto;"></p>
 <p>Based on these simple association tests, we would identify two out of
 the three causal SNPs. (And perhaps we would identify all three causal
@@ -182,8 +218,8 @@ significant.)</p>
 <p><em>But more importantly</em>, this view alone doesn’t tell us which
 CPGs are affected by the SNPs.</p>
 <p>This is the CpG-centered view:</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">p2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">pdat</span>,<span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">cpg</span>,y <span class="op">=</span> <span class="va">pval</span>,shape <span class="op">=</span> <span class="va">effect</span>,color <span class="op">=</span> <span class="va">effect</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">p3</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">pdat</span>,<span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">cpg</span>,y <span class="op">=</span> <span class="va">pval</span>,shape <span class="op">=</span> <span class="va">effect</span>,color <span class="op">=</span> <span class="va">effect</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span>size <span class="op">=</span> <span class="fl">1.5</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_abline.html" class="external-link">geom_hline</a></span><span class="op">(</span>yintercept <span class="op">=</span> <span class="va">threshold</span>,linetype <span class="op">=</span> <span class="st">"dotted"</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html" class="external-link">scale_x_continuous</a></span><span class="op">(</span>breaks <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">4</span>,<span class="fl">32</span>,<span class="fl">4</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
@@ -191,7 +227,7 @@ CPGs are affected by the SNPs.</p>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_manual.html" class="external-link">scale_color_manual</a></span><span class="op">(</span>values <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"darkblue"</span>,<span class="st">"darkorange"</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>x <span class="op">=</span> <span class="st">"CpG"</span>,y <span class="op">=</span> <span class="st">"-log10 p-value"</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://wilkelab.org/cowplot/reference/theme_cowplot.html" class="external-link">theme_cowplot</a></span><span class="op">(</span>font_size <span class="op">=</span> <span class="fl">11</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">p2</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">p3</span><span class="op">)</span></span></code></pre></div>
 <p><img src="small_demo2_files/figure-html/gwas-by-cpg-1.png" width="420" style="display: block; margin: auto;"></p>
 <p>From the association test p-values alone it is quite clear that the
 affected CpG sites “cluster” in two continuous regions, but it is less
@@ -207,14 +243,14 @@ CpGs.</p>
 the methylation data using fSuSiE. First we fit the fSuSiE model to the
 data. <em>Notice that we only a fit a single model to all the
 data</em>:</p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/susiF.html">susiF</a></span><span class="op">(</span><span class="va">Y</span>,<span class="va">X</span>,L <span class="op">=</span> <span class="fl">3</span>,filter_cs <span class="op">=</span> <span class="cn">FALSE</span>,prior <span class="op">=</span> <span class="st">"mixture_normal"</span>,</span>
 <span>             post_processing <span class="op">=</span> <span class="st">"HMM"</span><span class="op">)</span></span></code></pre></div>
 <p>(In this example it is assumed that we know that there are three
 causal SNPs, but more generally this number can be estimated.)</p>
-<p>fSuSiE indeed correctly produced 3 credible sets (95% CSs) each
-containing one of the causal SNPs:</p>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<p>fSuSiE correctly produced 3 credible sets (95% CSs) each containing
+one of the causal SNPs:</p>
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fit</span><span class="op">$</span><span class="va">cs</span></span>
 <span><span class="co"># [[1]]</span></span>
 <span><span class="co"># SNP-9 </span></span>
@@ -229,28 +265,31 @@ containing one of the causal SNPs:</p>
 <span><span class="co">#     1</span></span></code></pre></div>
 <p>This result can be visualized using a “PIP plot” (PIP = posterior
 inclusion probability):</p>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">pdat</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>SNP <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="va">p</span>,</span>
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">cs_colors</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"dodgerblue"</span>,<span class="st">"darkorange"</span>,<span class="st">"red"</span><span class="op">)</span></span>
+<span><span class="va">pdat</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>SNP <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="va">p</span>,</span>
 <span>                   PIP <span class="op">=</span> <span class="va">fit</span><span class="op">$</span><span class="va">pip</span>,</span>
 <span>                   CS  <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="st">"none"</span>,<span class="va">p</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">pdat</span><span class="op">$</span><span class="va">CS</span><span class="op">[</span><span class="va">fit</span><span class="op">$</span><span class="va">cs</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="st">"L1"</span></span>
 <span><span class="va">pdat</span><span class="op">$</span><span class="va">CS</span><span class="op">[</span><span class="va">fit</span><span class="op">$</span><span class="va">cs</span><span class="op">[[</span><span class="fl">2</span><span class="op">]</span><span class="op">]</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="st">"L2"</span></span>
 <span><span class="va">pdat</span><span class="op">$</span><span class="va">CS</span><span class="op">[</span><span class="va">fit</span><span class="op">$</span><span class="va">cs</span><span class="op">[[</span><span class="fl">3</span><span class="op">]</span><span class="op">]</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="st">"L3"</span></span>
 <span><span class="va">pdat</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/transform.html" class="external-link">transform</a></span><span class="op">(</span><span class="va">pdat</span>,CS <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="va">CS</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">p3</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">pdat</span>,<span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">SNP</span>,y <span class="op">=</span> <span class="va">PIP</span>,fill <span class="op">=</span> <span class="va">CS</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span><span class="va">p4</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">pdat</span>,<span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">SNP</span>,y <span class="op">=</span> <span class="va">PIP</span>,fill <span class="op">=</span> <span class="va">CS</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span>shape <span class="op">=</span> <span class="fl">21</span>,size <span class="op">=</span> <span class="fl">2</span>,color <span class="op">=</span> <span class="st">"white"</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html" class="external-link">scale_x_continuous</a></span><span class="op">(</span>breaks <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="va">p</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_manual.html" class="external-link">scale_fill_manual</a></span><span class="op">(</span>values <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"dodgerblue"</span>,<span class="st">"darkorange"</span>,<span class="st">"red"</span>,<span class="st">"gray"</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_manual.html" class="external-link">scale_fill_manual</a></span><span class="op">(</span>values <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">cs_colors</span>,<span class="st">"gray"</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://wilkelab.org/cowplot/reference/theme_cowplot.html" class="external-link">theme_cowplot</a></span><span class="op">(</span>font_size <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">p3</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">p4</span><span class="op">)</span></span></code></pre></div>
 <p><img src="small_demo2_files/figure-html/fsusie-pip-plot-1.png" width="360" style="display: block; margin: auto;"></p>
 <p>Again, fSuSiE very confidently identified the correct three causal
 SNPs, whereas this was not the case in the QTL mapping. The key
 difference is that fSuSiE fits a single model to all the data.</p>
 <p>fSuSiE also gives a more coherent view of changes to the CpG sites
 and how they are affected by the individual causal SNPs (or, more
-precisely, by the individual CSs):</p>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+precisely, by the individual CSs). Here we use the <em>lfsr</em>
+(<em>local false sign rate</em>) estimates produced by the HMM (using
+the <code>post_processing = "HMM"</code> option):</p>
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">i</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">sapply</a></span><span class="op">(</span><span class="va">fit</span><span class="op">$</span><span class="va">cs</span>,<span class="kw">function</span> <span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/sets.html" class="external-link">intersect</a></span><span class="op">(</span><span class="va">x</span>,<span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">3</span>,<span class="fl">9</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">pdat</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>CS   <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"L1"</span>,<span class="st">"L2"</span>,<span class="st">"L3"</span><span class="op">)</span>,each <span class="op">=</span> <span class="va">m</span><span class="op">)</span>,</span>
 <span>                   CpG  <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="va">m</span>,times <span class="op">=</span> <span class="fl">3</span><span class="op">)</span>,</span>
@@ -260,31 +299,83 @@ precisely, by the individual CSs):</p>
 <span><span class="va">pdat</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/transform.html" class="external-link">transform</a></span><span class="op">(</span><span class="va">pdat</span>,</span>
 <span>                  CS   <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="va">CS</span>,<span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"L3"</span>,<span class="st">"L2"</span>,<span class="st">"L1"</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>                  lfsr <span class="op">=</span> <span class="op">-</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log10</a></span><span class="op">(</span><span class="va">lfsr</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">p4</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">pdat</span>,<span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">CpG</span>,y <span class="op">=</span> <span class="va">CS</span>,size <span class="op">=</span> <span class="va">lfsr</span>,color <span class="op">=</span> <span class="va">affected</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">pdat</span>,<span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">CpG</span>,y <span class="op">=</span> <span class="va">CS</span>,size <span class="op">=</span> <span class="va">lfsr</span>,color <span class="op">=</span> <span class="va">affected</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span>shape <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html" class="external-link">scale_x_continuous</a></span><span class="op">(</span>breaks <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">4</span>,<span class="fl">32</span>,<span class="fl">4</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_manual.html" class="external-link">scale_color_manual</a></span><span class="op">(</span>values <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"darkblue"</span>,<span class="st">"darkorange"</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_size.html" class="external-link">scale_size</a></span><span class="op">(</span>range <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.5</span>,<span class="fl">10</span><span class="op">)</span>,breaks <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1.3</span>,<span class="fl">5</span>,<span class="fl">10</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>size <span class="op">=</span> <span class="st">"-log10(lfsr)"</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://wilkelab.org/cowplot/reference/theme_cowplot.html" class="external-link">theme_cowplot</a></span><span class="op">(</span>font_size <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">p4</span><span class="op">)</span></span></code></pre></div>
-<p><img src="small_demo2_files/figure-html/fsusie-affected-cpgs-1.png" width="720" style="display: block; margin: auto;"></p>
+<span>  <span class="fu"><a href="https://wilkelab.org/cowplot/reference/theme_cowplot.html" class="external-link">theme_cowplot</a></span><span class="op">(</span>font_size <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span></code></pre></div>
 <p>Indeed, the significance tests (local false sign rate) break down the
 support for affected CpGs <em>separately for each CS</em> (i.e., for
 each causal SNP), and therefore it is quite evident from the fSuSiE
 results that two of the causal SNPs affect the same CpG cluster, and the
 other causal SNP affects a different CpG cluster.</p>
-<p>The <em>local false sign rates</em> (<em>lfsr</em>s) quantify the
-support the CpG sites being affected, and in this example the CpG sites
-with the smallest lfsrs (largest circles in the plot) are indeed the
-affected CpGs.</p>
+<p>The lfsrs quantify the support the CpG sites being affected, and in
+this example the CpG sites with the smallest lfsrs (largest circles in
+the plot) are indeed the affected CpGs.</p>
+</div>
+<div class="section level2">
+<h2 id="ti-wavelet-estimates">TI wavelet estimates<a class="anchor" aria-label="anchor" href="#ti-wavelet-estimates"></a>
+</h2>
+<p>An alternative to the HMM post-processing step is to use the TI
+(“translation invariant”) wavelets to estimate the effects and their
+credible bands:</p>
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">fit_TI</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/susiF.html">susiF</a></span><span class="op">(</span><span class="va">Y</span>,<span class="va">X</span>,L <span class="op">=</span> <span class="fl">3</span>,filter_cs <span class="op">=</span> <span class="cn">FALSE</span>,prior <span class="op">=</span> <span class="st">"mixture_normal"</span>,</span>
+<span>                post_processing <span class="op">=</span> <span class="st">"TI"</span><span class="op">)</span></span></code></pre></div>
+<p>Note that the post-processing step doesn’t change the CSs (nor the
+PIPs), only the estimated effects of the SNPs on the CpGs.</p>
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/range.html" class="external-link">range</a></span><span class="op">(</span><span class="va">fit</span><span class="op">$</span><span class="va">pip</span> <span class="op">-</span> <span class="va">fit_TI</span><span class="op">$</span><span class="va">pip</span><span class="op">)</span></span>
+<span><span class="va">fit_TI</span><span class="op">$</span><span class="va">cs</span></span>
+<span><span class="co"># [1] 0 0</span></span>
+<span><span class="co"># [[1]]</span></span>
+<span><span class="co"># SNP-9 </span></span>
+<span><span class="co">#     9 </span></span>
+<span><span class="co"># </span></span>
+<span><span class="co"># [[2]]</span></span>
+<span><span class="co"># SNP-3 SNP-4 </span></span>
+<span><span class="co">#     3     4 </span></span>
+<span><span class="co"># </span></span>
+<span><span class="co"># [[3]]</span></span>
+<span><span class="co"># SNP-1 </span></span>
+<span><span class="co">#     1</span></span></code></pre></div>
+<p>These are the TI wavelet estimates of the effects on the CpG sites
+(and corresponding credible bands):</p>
+<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">effect_plot</span> <span class="op">&lt;-</span> <span class="kw">function</span> <span class="op">(</span><span class="va">i</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="va">pdat</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>cpg      <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="va">m</span>,</span>
+<span>                     estimate <span class="op">=</span> <span class="va">fit_TI</span><span class="op">$</span><span class="va">fitted_func</span><span class="op">[[</span><span class="va">i</span><span class="op">]</span><span class="op">]</span>,</span>
+<span>                     lower    <span class="op">=</span> <span class="va">fit_TI</span><span class="op">$</span><span class="va">cred_band</span><span class="op">[[</span><span class="va">i</span><span class="op">]</span><span class="op">]</span><span class="op">[</span><span class="st">"low"</span>,<span class="op">]</span>,</span>
+<span>                     upper    <span class="op">=</span> <span class="va">fit_TI</span><span class="op">$</span><span class="va">cred_band</span><span class="op">[[</span><span class="va">i</span><span class="op">]</span><span class="op">]</span><span class="op">[</span><span class="st">"up"</span>,<span class="op">]</span><span class="op">)</span></span>
+<span>  <span class="va">rows</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/with.html" class="external-link">with</a></span><span class="op">(</span><span class="va">pdat</span>,<span class="fu"><a href="https://rdrr.io/r/base/which.html" class="external-link">which</a></span><span class="op">(</span><span class="va">lower</span> <span class="op">&gt;</span> <span class="fl">0</span> <span class="op">|</span> <span class="va">upper</span> <span class="op">&lt;</span> <span class="fl">0</span><span class="op">)</span><span class="op">)</span></span>
+<span>  <span class="va">pdat2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>cpg <span class="op">=</span> <span class="va">rows</span>,estimate <span class="op">=</span> <span class="fl">0</span><span class="op">)</span></span>
+<span>  <span class="kw"><a href="https://rdrr.io/r/base/function.html" class="external-link">return</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">pdat</span>,<span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">cpg</span>,y <span class="op">=</span> <span class="va">estimate</span>,ymin <span class="op">=</span> <span class="va">lower</span>,ymax <span class="op">=</span> <span class="va">upper</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>         <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span>color <span class="op">=</span> <span class="va">cs_colors</span><span class="op">[</span><span class="va">i</span><span class="op">]</span>,size <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op">+</span></span>
+<span>         <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_linerange.html" class="external-link">geom_errorbar</a></span><span class="op">(</span>color <span class="op">=</span> <span class="va">cs_colors</span><span class="op">[</span><span class="va">i</span><span class="op">]</span>,linewidth <span class="op">=</span> <span class="fl">0.4</span><span class="op">)</span> <span class="op">+</span></span>
+<span>         <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_abline.html" class="external-link">geom_hline</a></span><span class="op">(</span>yintercept <span class="op">=</span> <span class="fl">0</span>,color <span class="op">=</span> <span class="st">"black"</span>,linewidth <span class="op">=</span> <span class="fl">0.4</span><span class="op">)</span> <span class="op">+</span></span>
+<span>         <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">pdat2</span>,mapping <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">cpg</span>,y <span class="op">=</span> <span class="va">estimate</span><span class="op">)</span>,</span>
+<span>                    shape <span class="op">=</span> <span class="fl">20</span>,color <span class="op">=</span> <span class="st">"black"</span>,size <span class="op">=</span> <span class="fl">1.5</span>,</span>
+<span>                    inherit.aes <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span> <span class="op">+</span></span>
+<span>         <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html" class="external-link">scale_x_continuous</a></span><span class="op">(</span>breaks <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">4</span>,<span class="fl">32</span>,<span class="fl">4</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>         <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>x <span class="op">=</span> <span class="st">"CpG"</span>,y <span class="op">=</span> <span class="st">"change"</span>,title <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">"CS"</span>,<span class="va">i</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>         <span class="fu"><a href="https://wilkelab.org/cowplot/reference/theme_cowplot.html" class="external-link">theme_cowplot</a></span><span class="op">(</span>font_size <span class="op">=</span> <span class="fl">11</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="op">}</span></span>
+<span><span class="fu"><a href="https://wilkelab.org/cowplot/reference/plot_grid.html" class="external-link">plot_grid</a></span><span class="op">(</span><span class="fu">effect_plot</span><span class="op">(</span><span class="fl">1</span><span class="op">)</span>,</span>
+<span>          <span class="fu">effect_plot</span><span class="op">(</span><span class="fl">2</span><span class="op">)</span>,</span>
+<span>          <span class="fu">effect_plot</span><span class="op">(</span><span class="fl">3</span><span class="op">)</span>,</span>
+<span>          nrow <span class="op">=</span> <span class="fl">3</span>,ncol <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></code></pre></div>
+<p><img src="small_demo2_files/figure-html/fsusie-affected-cpgs-TI-1.png" width="420" style="display: block; margin: auto;"></p>
+<p>Notice that the effect estimates with (95%) credible bands outside
+zero predict very accurately the affected CpG sites.</p>
 </div>
 <div class="section level2">
 <h2 id="session-info">Session info<a class="anchor" aria-label="anchor" href="#session-info"></a>
 </h2>
 <p>This is the version of R and the packages that were used to generate
 these results.</p>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/sessionInfo.html" class="external-link">sessionInfo</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co"># R version 4.3.3 (2024-02-29)</span></span>
 <span><span class="co"># Platform: aarch64-apple-darwin20 (64-bit)</span></span>
@@ -304,25 +395,26 @@ these results.</p>
 <span><span class="co"># [1] stats     graphics  grDevices utils     datasets  methods   base     </span></span>
 <span><span class="co"># </span></span>
 <span><span class="co"># other attached packages:</span></span>
-<span><span class="co"># [1] cowplot_1.1.3  ggplot2_3.5.0  fsusieR_0.2.84</span></span>
+<span><span class="co"># [1] cowplot_1.1.3  ggplot2_3.5.0  reshape2_1.4.4 fsusieR_0.2.84</span></span>
 <span><span class="co"># </span></span>
 <span><span class="co"># loaded via a namespace (and not attached):</span></span>
-<span><span class="co">#  [1] generics_0.1.3     utf8_1.2.4         sass_0.4.8         ashr_2.2-66       </span></span>
-<span><span class="co">#  [5] lattice_0.22-5     digest_0.6.34      magrittr_2.0.3     evaluate_0.23     </span></span>
-<span><span class="co">#  [9] grid_4.3.3         fastmap_1.1.1      jsonlite_1.8.8     Matrix_1.6-5      </span></span>
-<span><span class="co"># [13] mixsqp_0.3-54      purrr_1.0.2        fansi_1.0.6        scales_1.3.0      </span></span>
-<span><span class="co"># [17] truncnorm_1.0-9    invgamma_1.1       textshaping_0.3.7  jquerylib_0.1.4   </span></span>
-<span><span class="co"># [21] cli_3.6.2          rlang_1.1.3        munsell_0.5.0      withr_3.0.0       </span></span>
-<span><span class="co"># [25] cachem_1.0.8       yaml_2.3.8         tools_4.3.3        SQUAREM_2021.1    </span></span>
-<span><span class="co"># [29] parallel_4.3.3     memoise_2.0.1      dplyr_1.1.4        wavethresh_4.7.2  </span></span>
-<span><span class="co"># [33] colorspace_2.1-0   Rfast_2.1.0        RcppZiggurat_0.1.6 vctrs_0.6.5       </span></span>
-<span><span class="co"># [37] R6_2.5.1           matrixStats_1.2.0  lifecycle_1.0.4    fs_1.6.3          </span></span>
-<span><span class="co"># [41] MASS_7.3-60.0.1    ragg_1.2.7         irlba_2.3.5.1      pkgconfig_2.0.3   </span></span>
-<span><span class="co"># [45] desc_1.4.3         pkgdown_2.0.7      RcppParallel_5.1.7 bslib_0.6.1       </span></span>
-<span><span class="co"># [49] pillar_1.9.0       gtable_0.3.4       glue_1.7.0         Rcpp_1.0.12       </span></span>
-<span><span class="co"># [53] systemfonts_1.0.6  highr_0.10         tidyselect_1.2.1   xfun_0.42         </span></span>
-<span><span class="co"># [57] tibble_3.2.1       knitr_1.45         farver_2.1.1       htmltools_0.5.7   </span></span>
-<span><span class="co"># [61] labeling_0.4.3     rmarkdown_2.26     compiler_4.3.3</span></span></code></pre></div>
+<span><span class="co">#  [1] gtable_0.3.4       xfun_0.42          bslib_0.6.1        lattice_0.22-5    </span></span>
+<span><span class="co">#  [5] vctrs_0.6.5        tools_4.3.3        generics_0.1.3     parallel_4.3.3    </span></span>
+<span><span class="co">#  [9] tibble_3.2.1       fansi_1.0.6        highr_0.10         pkgconfig_2.0.3   </span></span>
+<span><span class="co"># [13] Matrix_1.6-5       SQUAREM_2021.1     desc_1.4.3         RcppParallel_5.1.7</span></span>
+<span><span class="co"># [17] lifecycle_1.0.4    truncnorm_1.0-9    compiler_4.3.3     farver_2.1.1      </span></span>
+<span><span class="co"># [21] stringr_1.5.1      textshaping_0.3.7  wavethresh_4.7.2   munsell_0.5.0     </span></span>
+<span><span class="co"># [25] htmltools_0.5.7    sass_0.4.8         yaml_2.3.8         pillar_1.9.0      </span></span>
+<span><span class="co"># [29] pkgdown_2.0.7      crayon_1.5.2       jquerylib_0.1.4    MASS_7.3-60.0.1   </span></span>
+<span><span class="co"># [33] cachem_1.0.8       tidyselect_1.2.1   digest_0.6.34      stringi_1.8.3     </span></span>
+<span><span class="co"># [37] dplyr_1.1.4        purrr_1.0.2        ashr_2.2-66        labeling_0.4.3    </span></span>
+<span><span class="co"># [41] fastmap_1.1.1      grid_4.3.3         colorspace_2.1-0   cli_3.6.2         </span></span>
+<span><span class="co"># [45] invgamma_1.1       magrittr_2.0.3     Rfast_2.1.0        utf8_1.2.4        </span></span>
+<span><span class="co"># [49] withr_3.0.0        scales_1.3.0       RcppZiggurat_0.1.6 rmarkdown_2.26    </span></span>
+<span><span class="co"># [53] matrixStats_1.2.0  ragg_1.2.7         memoise_2.0.1      evaluate_0.23     </span></span>
+<span><span class="co"># [57] knitr_1.45         irlba_2.3.5.1      rlang_1.1.3        Rcpp_1.0.12       </span></span>
+<span><span class="co"># [61] mixsqp_0.3-54      glue_1.7.0         jsonlite_1.8.8     R6_2.5.1          </span></span>
+<span><span class="co"># [65] plyr_1.8.9         systemfonts_1.0.6  fs_1.6.3</span></span></code></pre></div>
 </div>
   </div>
 
