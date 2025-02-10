@@ -33,7 +33,7 @@ plot_colors <- c("black", "dodgerblue2", "green4", "#6A3D9A", "#FF7F00",
 #' 
 #' @param title The title of the plot.
 #'
-#' @param ldots additional arguments
+#' @param \dots additional arguments
 #' @importFrom ggplot2 ggplot
 #' @importFrom ggplot2 geom_line
 #' @importFrom ggplot2 facet_wrap

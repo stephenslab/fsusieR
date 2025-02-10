@@ -352,7 +352,7 @@ get_fitted_effect.susiF <- function(obj,
   }
   if(cred_band){
     
-    if( exits(!is.null(obj$fitted_var[[l]]))){
+    if(   !is.null(obj$fitted_var[[l]]) ){
       out_function =obj$fitted_func[[l]] 
       coeff= qnorm(1-(1-alpha)/2)
       
@@ -877,6 +877,9 @@ greedy_backfit.susiF <-  function(obj,
 #' @param greedy logical, if TRUE allow greedy search
 #
 #' @param backfit logical, if TRUE allow backfitting
+#' @param tol_null_prior threshold to consider prior to be null. If the estimated weight on the point mass at zero is larger than 1-tol_null_prior
+#' then set prior weight on point mass to be 1. In the mixture normal this corresponds to removing the effect. In the mixutre per scale prior this corresponds
+#' to setting the prior of a given scale to at point mass at 0.
 #' @param \dots Other arguments.
 #
 # @export
