@@ -31,6 +31,10 @@ init_susiF_obj(
 
 \item{backfit}{logical, if TRUE allow backfitting}
 
+\item{tol_null_prior}{threshold to consider prior to be null. If the estimated weight on the point mass at zero is larger than 1-tol_null_prior
+then set prior weight on point mass to be 1. In the mixture normal this corresponds to removing the effect. In the mixutre per scale prior this corresponds
+to setting the prior of a given scale to at point mass at 0.}
+
 \item{\dots}{Other arguments.}
 }
 \description{

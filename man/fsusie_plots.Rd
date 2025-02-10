@@ -90,9 +90,9 @@ has no effect unless the \code{\link{susiF}} option
 
 \item{title}{The title of the plot.}
 
-\item{x}{Output of the susiF function.}
+\item{\dots}{additional arguments}
 
-\item{ldots}{additional arguments}
+\item{x}{Output of the susiF function.}
 }
 \description{
 Various visualizations of fSuSiE results.
