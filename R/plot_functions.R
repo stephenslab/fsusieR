@@ -196,6 +196,8 @@ plot_susiF_effect <- function (obj,
                                line_width = 0.35,
                                dot_size = 0.5,
                                font_size = 10) {
+  # Declare variables to avoid R CMD check notes
+  lwr <- upr <- Start <- End <- ystart <- yend <- NULL
   L     <- obj$L
   n_wac <- obj$n_wac
   y     <- obj$pip
