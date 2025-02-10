@@ -18,7 +18,7 @@
   max_SNP_EM = 100,
   max_step_EM = 1,
   cor_small = FALSE,
-  tol_null_prior,
+  tol_null_prior = 0.001,
   ...
 )
 }

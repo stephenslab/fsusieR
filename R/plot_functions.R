@@ -33,7 +33,7 @@ plot_colors <- c("black", "dodgerblue2", "green4", "#6A3D9A", "#FF7F00",
 #' 
 #' @param title The title of the plot.
 #'
-#' @param ldots additional arguments
+#' @param \dots additional arguments
 #' @importFrom ggplot2 ggplot
 #' @importFrom ggplot2 geom_line
 #' @importFrom ggplot2 facet_wrap
@@ -196,6 +196,8 @@ plot_susiF_effect <- function (obj,
                                line_width = 0.35,
                                dot_size = 0.5,
                                font_size = 10) {
+  # Declare variables to avoid R CMD check notes
+  lwr <- upr <- Start <- End <- ystart <- yend <- NULL
   L     <- obj$L
   n_wac <- obj$n_wac
   y     <- obj$pip

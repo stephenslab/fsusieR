@@ -30,7 +30,8 @@ Suggests:
     graphics,
     rmarkdown,
     coloc,
-    testthat (>= 3.0.0)
+    testthat (>= 3.0.0),
+    reshape2
 License: BSD_3_clause + file LICENSE
 NeedsCompilation: yes
 RoxygenNote: 7.3.2

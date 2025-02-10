@@ -96,7 +96,9 @@
 #' The Bayes factor from Valen E Johnson JRSSB 2005 tends to have better coverage in small sample sizes. We advise using this parameter if n<50
 #'
 #' @param e threshold value is used to avoid computing posteriors that have low alpha values. Set it to 0 to compute the entire posterior. default value is 0.001
-#'
+#' @param tol_null_prior threshold to consider prior to be null. If the estimated weight on the point mass at zero is larger than 1-tol_null_prior
+#' then set prior weight on point mass to be 1. In the mixture normal this corresponds to removing the effect. In the mixutre per scale prior this corresponds
+#' to setting the prior of a given scale to at point mass at 0.
 #' @importFrom stats var
 #' 
 #' @return A \code{"susiF"} object with some or all of the following
