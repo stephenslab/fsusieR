@@ -326,7 +326,7 @@ expand_susiF_obj <- function(obj,L_extra)
 #' @param obj A fitted object.
 #' @param l Effect of interest.
 #' @param cred_band Logical, default set to `FALSE`. If `TRUE`, also returns the credible band.
-#' @param alpha Numerical, confidence level set to 0.99 by default.
+#' @param alpha Numerical, defined as 1 - conf_level   set to obtain  0.99 confidence level by default.
 #' @param ... Other arguments.
 #'
 #' @return The fitted effect.
@@ -343,18 +343,18 @@ get_fitted_effect <- function(obj, l,cred_band,alpha ,  ...) {
 get_fitted_effect.susiF <- function(obj,
                                     l=1,
                                     cred_band = FALSE,
-                                    alpha = 0.99, 
+                                    alpha = 0.01, 
                                     ...) {
-  
-  
+ 
   if (!cred_band){
+    
     return( unlist(obj$fitted_func[[l]]))
   }
   if(cred_band){
     
     if(   !is.null(obj$fitted_var[[l]]) ){
       out_function =obj$fitted_func[[l]] 
-      coeff= qnorm(1-(1-alpha)/2)
+      coeff= qnorm(1- alpha /2)
       
       cred_band_out = 0*obj$cred_band[[l]]
       cred_band_out[1, ]= out_function +  coeff* sqrt(obj$fitted_var[[l]])
@@ -366,7 +366,7 @@ get_fitted_effect.susiF <- function(obj,
     
     
   }else{
-    warning("FSuSiE was not fitted using TI post processing no credible band returned" , call. = FALSE)
+    warning("credible band option not available for post processing = HMM or none")
     return( unlist(obj$fitted_func[[l]]))
     
   }

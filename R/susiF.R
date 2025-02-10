@@ -309,17 +309,11 @@ susiF <- function(Y, X, L = 2,
   prior           <- match.arg(prior)
   post_processing <- match.arg( post_processing)
 
- if(post_processing=="TI"){
-   TI  <- TRUE
-   HMM <- FALSE
+ if(post_processing=="none"){
+  warning("Option none is not recommended and the effect estimate can be poor")
  }
-  if(post_processing=="HMM"){
-    TI  <- FALSE
-    HMM <- TRUE
-  }
-  if(post_processing=="none"){
-    TI  <- FALSE
-    HMM <- FALSE
+  if(post_processing=="smash"){
+    warning("Option is experimental, the credible band tend to be to narrow")
   }
 
   ####Cleaning input -----
