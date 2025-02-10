@@ -341,7 +341,7 @@ get_fitted_effect <- function(obj, l,cred_band,alpha ,  ...) {
 #'
 #' @export
 get_fitted_effect.susiF <- function(obj,
-                                    l,
+                                    l=1,
                                     cred_band = FALSE,
                                     alpha = 0.99, 
                                     ...) {
