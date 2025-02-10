@@ -5,7 +5,7 @@
 \alias{smash_regression.susiF}
 \title{Compute refined estimate using translation invariant wavelet transform}
 \usage{
-smash_regression(obj, Y, X, verbose, filter.number, family, ...)
+smash_regression(obj, Y, X, verbose, filter.number, family, alpha, ...)
 
 \method{smash_regression}{susiF}(
   obj,
@@ -14,6 +14,7 @@ smash_regression(obj, Y, X, verbose, filter.number, family, ...)
   verbose = TRUE,
   filter.number = 10,
   family = "DaubLeAsymm",
+  alpha = 0.99,
   ...
 )
 }
@@ -29,6 +30,8 @@ smash_regression(obj, Y, X, verbose, filter.number, family, ...)
 \item{filter.number}{see wd description in wavethresh package description}
 
 \item{family}{see wd description in wavethresh package description}
+
+\item{alpha}{required confidence level}
 
 \item{\dots}{Other arguments.}
 }

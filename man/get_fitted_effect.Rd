@@ -5,17 +5,27 @@
 \alias{get_fitted_effect.susiF}
 \title{Access fitted effect l}
 \usage{
-get_fitted_effect(obj, l, ...)
+get_fitted_effect(obj, l, cred_band, alpha, ...)
 
-\method{get_fitted_effect}{susiF}(obj, l, ...)
+\method{get_fitted_effect}{susiF}(obj, l, cred_band = FALSE, alpha = 0.99, ...)
 }
 \arguments{
-\item{obj}{a fitted objected}
+\item{obj}{A fitted object.}
 
-\item{l}{effect of interest}
+\item{l}{Effect of interest.}
 
-\item{\dots}{Other arguments.}
+\item{cred_band}{Logical, default set to `FALSE`. If `TRUE`, also returns the credible band.}
+
+\item{alpha}{Numerical, confidence level set to 0.99 by default.}
+
+\item{...}{Other arguments.}
+}
+\value{
+The fitted effect.
 }
 \description{
-Access fitted effect l
+Access fitted effect
+}
+\details{
+Retrieves the estimated effect from a fitted model.
 }

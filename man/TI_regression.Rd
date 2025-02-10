@@ -5,15 +5,16 @@
 \alias{TI_regression.susiF}
 \title{Compute refined estimate using translation invariant wavelet transform}
 \usage{
-TI_regression(obj, Y, X, verbose, filter.number, family, ...)
+TI_regression(obj, Y, X, verbose, filter.number, family, alpha, ...)
 
 \method{TI_regression}{susiF}(
   obj,
   Y,
   X,
   verbose = TRUE,
-  filter.number = 10,
+  filter.number = 1,
   family = "DaubLeAsymm",
+  alpha = 0.99,
   ...
 )
 }
@@ -29,6 +30,8 @@ TI_regression(obj, Y, X, verbose, filter.number, family, ...)
 \item{filter.number}{see wd description in wavethresh package description}
 
 \item{family}{see wd description in wavethresh package description}
+
+\item{alpha}{required confidence level}
 
 \item{\dots}{Other arguments.}
 }

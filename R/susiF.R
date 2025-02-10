@@ -1,6 +1,6 @@
 #' @title Sum of Single Function
 #'
-#' @description Implementation of the SuSiF method
+#' @description Implementation of the SuSiF method.
 #'
 #' @details Implementation of the SuSiF method
 #'

@@ -32,7 +32,7 @@ susiF(
   cor_small = FALSE,
   filter.number = 10,
   family = "DaubLeAsymm",
-  post_processing = c("TI", "HMM", "smash", "none"),
+  post_processing = c("TI", "smash", "HMM", "none"),
   e = 0.001,
   tol_null_prior = 0.001
 )
@@ -186,7 +186,7 @@ the lth effect.}
   a single effect.}
 }
 \description{
-Implementation of the SuSiF method
+Implementation of the SuSiF method.
 }
 \details{
 Implementation of the SuSiF method

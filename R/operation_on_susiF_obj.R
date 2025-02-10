@@ -318,25 +318,60 @@ expand_susiF_obj <- function(obj,L_extra)
   }
 
 }
-#' @title Access fitted effect l
-#' @param  obj a fitted objected
-#' @param l effect of interest
-#' @param \dots Other arguments.
-#' @export
-get_fitted_effect <- function(obj,l,... )
-  UseMethod("get_fitted_effect")
 
+#' Access fitted effect
+#'
+#' Retrieves the estimated effect from a fitted model.
+#' @title Access fitted effect l
+#' @param obj A fitted object.
+#' @param l Effect of interest.
+#' @param cred_band Logical, default set to `FALSE`. If `TRUE`, also returns the credible band.
+#' @param alpha Numerical, confidence level set to 0.99 by default.
+#' @param ... Other arguments.
+#'
+#' @return The fitted effect.
+#'
+#' @export
+get_fitted_effect <- function(obj, l,cred_band,alpha ,  ...) {
+  UseMethod("get_fitted_effect")
+}
 
 #' @rdname get_fitted_effect
-#
 #' @method get_fitted_effect susiF
-#
-#' @export get_fitted_effect.susiF
-#
+#'
 #' @export
-#
-get_fitted_effect.susiF <- function(obj, l, ...){
-  return( unlist(obj$fitted_func[[l]]))
+get_fitted_effect.susiF <- function(obj,
+                                    l,
+                                    cred_band = FALSE,
+                                    alpha = 0.99, 
+                                    ...) {
+  
+  
+  if (!cred_band){
+    return( unlist(obj$fitted_func[[l]]))
+  }
+  if(cred_band){
+    
+    if( exits(!is.null(obj$fitted_var[[l]]))){
+      out_function =obj$fitted_func[[l]] 
+      coeff= qnorm(1-(1-alpha)/2)
+      
+      cred_band_out = 0*obj$cred_band[[l]]
+      cred_band_out[1, ]= out_function +  coeff* sqrt(obj$fitted_var[[l]])
+      cred_band_out[2, ]= out_function -  coeff* sqrt(obj$fitted_var[[l]])
+      
+      return( list(effect= out_function,
+                   cred_band=  cred_band_out))
+    }
+    
+    
+  }else{
+    warning("FSuSiE was not fitted using TI post processing no credible band returned" , call. = FALSE)
+    return( unlist(obj$fitted_func[[l]]))
+    
+  }
+  
+  
 }
 
 #

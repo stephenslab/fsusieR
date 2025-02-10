@@ -1673,13 +1673,15 @@ post_mat_sd.mixture_normal_per_scale <-  function( G_prior,
 #' @param verbose logical
 #' @param filter.number see wd description in wavethresh package description
 #' @param family  see wd description in wavethresh package description
-#'
+#' @param alpha required confidence level 
 #' @param \dots Other arguments.
 #' @export
 
 
 TI_regression <- function (obj,Y,X, verbose ,
-                           filter.number , family   ,...)
+                           filter.number , family   ,
+                           alpha,
+                           ...)
   UseMethod("TI_regression")
 
 
@@ -1702,7 +1704,9 @@ TI_regression <- function (obj,Y,X, verbose ,
 
 
 TI_regression.susiF <- function( obj,Y,X, verbose=TRUE,
-                                 filter.number = 1, family = "DaubLeAsymm" ,... ){
+                                 filter.number = 1, family = "DaubLeAsymm" ,
+                                 alpha=0.99,
+                                 ... ){
   
   if(verbose){
     print( "Fine mapping done, refining effect estimates using cylce spinning wavelet transform")
@@ -1906,7 +1910,10 @@ TI_regression.susiF <- function( obj,Y,X, verbose=TRUE,
     
     
     
-  }
+  } 
+  
+  coeff= qnorm(1-(1-alpha)/2)
+  obj$fitted_var =list()
   for( l in 1:length(obj$cs)){
     
     dummy_station_wd$C <- refined_est$wdC[[l]]
@@ -1917,16 +1924,17 @@ TI_regression.susiF <- function( obj,Y,X, verbose=TRUE,
                                                         ix2 = 1, filter = mywst$filter) *1/(obj$csd_X[ which.max(obj$alpha[[l]])] )
     mv.wd = wd.var(rep(0, ncol(Y)),   type = "station")
     mv.wd$D <-  (refined_est$wd2[[l]])
-    
-    
-    refined_est$fitted_var[[l]]= AvBasis.var(convert.var(mv.wd))*(1/(obj$csd_X[ which.max(obj$alpha[[l]])] )^2)
-    
+   
+    obj$fitted_var[[l]]   <-  AvBasis.var(convert.var(mv.wd))*(1/(obj$csd_X[ which.max(obj$alpha[[l]])] )^2)
     obj$fitted_func[[l]] <-  refined_est$fitted_func[[l]]
-    up                         <-  obj$fitted_func[[l]]+ 3* sqrt(refined_est$fitted_var[[l]]) #*sqrt(obj$N-1)
-    low                        <-  obj$fitted_func[[l]]- 3*sqrt(refined_est$fitted_var[[l]]) #*sqrt(obj$N-1)
+    up                         <-  obj$fitted_func[[l]]+ coeff* sqrt(obj$fitted_var[[l]]) #*sqrt(obj$N-1)
+    low                        <-  obj$fitted_func[[l]]- coeff*sqrt(obj$fitted_var[[l]]) #*sqrt(obj$N-1)
     obj$cred_band[[l]]   <- rbind(up, low)
-    names(obj$cred_band[[l]]) <- c("up","low")
-    names(obj$cred_band)[l] <- paste("credible_band_effect_",l, sep = "")
+    rownames(obj$cred_band[[l]]) <- c("up","low")
+    
+    names(obj$fitted_func)[l] <- paste("Effect_estimate_",l, sep = "")
+    names(obj$fitted_var)[l]  <- paste("Variance_estimate_effect_",l, sep = "")
+    names(obj$cred_band)[l]   <- paste("credible_band_effect_",l, sep = "")
   }
   
   rm( refined_est)
@@ -1949,13 +1957,14 @@ TI_regression.susiF <- function( obj,Y,X, verbose=TRUE,
 #' @param verbose logical
 #' @param filter.number see wd description in wavethresh package description
 #' @param family  see wd description in wavethresh package description
-#'
+#' @param alpha required confidence level 
 #' @param \dots Other arguments.
 #' @export
 
 
 smash_regression <- function (obj,Y,X, verbose ,
-                              filter.number , family   ,...)
+                              filter.number , family  ,
+                              alpha  ,...)
   UseMethod("smash_regression")
 
 
@@ -1975,7 +1984,8 @@ smash_regression <- function (obj,Y,X, verbose ,
 #' @export
 #'
 smash_regression.susiF <- function(  obj,Y,X, verbose=TRUE,
-                                     filter.number = 10, family = "DaubLeAsymm" ,...
+                                     filter.number = 10, family = "DaubLeAsymm" ,
+                                     alpha=0.99,...
 ){
   
   if(verbose){
@@ -2084,13 +2094,13 @@ smash_regression.susiF <- function(  obj,Y,X, verbose=TRUE,
   
   obj$fitted_func <- fitted_trend
   
-  
+  coeff= qnorm(1-(1-alpha)/2)
   for( l in 1:length(obj$cs)){
     
     
     
-    up                         <-  obj$fitted_func[[l]]+ 3* sqrt(fitted_var[[l]])  
-    low                        <-  obj$fitted_func[[l]]- 3*sqrt(fitted_var[[l]])  
+    up                         <-  obj$fitted_func[[l]]+ coeff* sqrt(fitted_var[[l]])  
+    low                        <-  obj$fitted_func[[l]]- coeff*sqrt(fitted_var[[l]])  
     obj$cred_band[[l]]   <- rbind(up, low)
     names(obj$cred_band[[l]]) <- c("up","low")
     names(obj$cred_band)[l] <- paste("credible_band_effect_",l, sep = "")
