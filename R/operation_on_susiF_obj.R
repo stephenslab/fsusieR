@@ -345,11 +345,7 @@ get_fitted_effect.susiF <- function(obj,
                                     cred_band = FALSE,
                                     alpha = 0.01, 
                                     ...) {
- 
-  if (!cred_band){
-    
-    return( unlist(obj$fitted_func[[l]]))
-  }
+  
   if(cred_band){
     
     if(   !is.null(obj$fitted_var[[l]]) ){
@@ -362,13 +358,15 @@ get_fitted_effect.susiF <- function(obj,
       
       return( list(effect= out_function,
                    cred_band=  cred_band_out))
+    }else{
+      warning("credible band option not available for post processing = HMM or none")
+      return( unlist(obj$fitted_func[[l]]))
+      
     }
     
     
   }else{
-    warning("credible band option not available for post processing = HMM or none")
     return( unlist(obj$fitted_func[[l]]))
-    
   }
   
   
