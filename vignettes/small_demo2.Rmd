@@ -131,9 +131,7 @@ p1 <- ggplot(pdat, aes(x = cpg, y = meth_level, color = geno)) +
   geom_line(data = pdat_lines, size = 1.25) +  # Original colored lines
   labs(x = "CpG", y = "methylation level", color = "genotype") +
   theme_cowplot(font_size = 11)
-
 print(p1)
-
 ```
 
 ```{r plot-data-ggsave, echo=FALSE, eval=FALSE, message=FALSE}
