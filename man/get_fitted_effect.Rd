@@ -7,7 +7,7 @@
 \usage{
 get_fitted_effect(obj, l, cred_band, alpha, ...)
 
-\method{get_fitted_effect}{susiF}(obj, l, cred_band = FALSE, alpha = 0.99, ...)
+\method{get_fitted_effect}{susiF}(obj, l = 1, cred_band = FALSE, alpha = 0.01, ...)
 }
 \arguments{
 \item{obj}{A fitted object.}
@@ -16,7 +16,7 @@ get_fitted_effect(obj, l, cred_band, alpha, ...)
 
 \item{cred_band}{Logical, default set to `FALSE`. If `TRUE`, also returns the credible band.}
 
-\item{alpha}{Numerical, confidence level set to 0.99 by default.}
+\item{alpha}{Numerical, defined as 1 - conf_level   set to obtain  0.99 confidence level by default.}
 
 \item{...}{Other arguments.}
 }
