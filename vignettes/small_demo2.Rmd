@@ -122,14 +122,18 @@ rows <- which(with(pdat_lines,geno == 1 & cpg > 24))
 pdat_lines[rows,"meth_level"] <- pdat_lines[rows,"meth_level"] + 2
 rows <- which(with(pdat_lines,geno == 2 & cpg > 24))
 pdat_lines[rows,"meth_level"] <- pdat_lines[rows,"meth_level"] + 4
-p1 <- ggplot(pdat,aes(x = cpg,y = meth_level,color = geno)) +
-  geom_point(shape = 20,size = 1.25) +
-  scale_x_continuous(breaks = c(0,seq(4,32,4))) +
-  scale_color_manual(values = c("darkblue","limegreen","darkorange")) +
-  geom_line(data = pdat_lines,size = 0.75) +
-  labs(x = "CpG",y = "methylation level",color = "genotype") +
+p1 <- ggplot(pdat, aes(x = cpg, y = meth_level, color = geno)) +
+  geom_point(shape = 20, size = 1.25) +
+  scale_x_continuous(breaks = c(0, seq(4, 32, 4))) +
+  scale_color_manual(values = c("darkblue", "darkorange", "limegreen")) +
+  geom_line(data = pdat_lines, aes(x = cpg, y = meth_level, group = geno), 
+            color = "black", size = 1.9) +  # Black line for contrast
+  geom_line(data = pdat_lines, size = 1.25) +  # Original colored lines
+  labs(x = "CpG", y = "methylation level", color = "genotype") +
   theme_cowplot(font_size = 11)
+
 print(p1)
+
 ```
 
 ```{r plot-data-ggsave, echo=FALSE, eval=FALSE, message=FALSE}
