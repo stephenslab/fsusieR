@@ -330,14 +330,16 @@ fit_TI$cs
 ```
 
 These are the TI wavelet estimates of the effects on the CpG sites
-(and corresponding credible bands):
+(and corresponding 95% credible bands):
 
 ```{r fsusie-affected-cpgs-TI, fig.height=4.5, fig.width=3.5}
+out <- lapply(1:3,function (i) get_fitted_effect(fit_TI,l = i,cred_band = TRUE,
+			                                     alpha = 0.05))
 effect_plot <- function (i) {
   pdat <- data.frame(cpg      = 1:m,
-                     estimate = fit_TI$fitted_func[[i]],
-					 lower    = fit_TI$cred_band[[i]]["low",],
-					 upper    = fit_TI$cred_band[[i]]["up",])
+                     estimate = out[[i]]$effect,
+					 lower    = out[[i]]$cred_band["low",],
+					 upper    = out[[i]]$cred_band["up",])
   rows <- with(pdat,which(lower > 0 | upper < 0))
   pdat2 <- data.frame(cpg = rows,estimate = 0)
   return(ggplot(pdat,aes(x = cpg,y = estimate,ymin = lower,ymax = upper)) +
@@ -357,8 +359,8 @@ plot_grid(effect_plot(1),
 		  nrow = 3,ncol = 1)
 ```
 
-Notice that the effect estimates with (95%) credible bands outside
-zero predict very accurately the affected CpG sites.
+The effect estimates with 95% credible bands outside zero predict
+very accurately the affected CpG sites.
 
 ```{r fsusie-affected-cpgs-TI-ggsave, echo=FALSE, message=FALSE, eval=FALSE}
 ggsave("demo_affected_cpgs.pdf",
