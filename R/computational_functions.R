@@ -979,6 +979,45 @@ HMM_regression.susiF <- function( obj,
   return(obj)
 }
 
+
+#univariateHMM regression
+# Y is  a matrix of observed function
+# X is a 1 column matrix
+univariate_HMM_regression <- function( Y,X,
+                                       filter.number = 1 ,
+                                       family = "DaubExPhase",
+                                       alpha=0.05){
+  
+  tt <- lapply( 1: ncol(Y),
+                function(j){
+                  
+                  summary(lm(Y[,j]~-1+X[,1]))$coefficients[ ,c(1,2,4 )]
+                  
+                  
+                }
+                
+                
+  )
+  
+  
+  est  <- do.call(c, lapply( 1: length(tt) ,function (j) tt[[j]][ 1   ]))
+  
+  sds  <- do.call(c, lapply( 1: length(tt) ,function (j) tt[[j]][ 2]))
+  pvs  <- do.call(c, lapply( 1: length(tt) ,function (j) tt[[j]][ 3]))
+  tsds <- sds#pval2se(est,pvs) # t -likelihood correction usefull to contrl lfsr in small sample size
+  tsds[ which( tsds==0)]<- sds[ which( tsds==0)]
+  if (sum(is.na(tsds))>0){
+    est [ which( is.na(tsds))]<- 0
+    tsds[ which( is.na(tsds))]<- 1
+  }
+  s =  fit_hmm(x=est ,sd=tsds ,halfK=20 )
+  out = list( effect_estimate=s$x_post,
+              lfsr=s$lfsr)
+  return(out)
+  
+}
+
+
 #' @title Compute Log-Bayes Factor
 #'
 #' @description Compute Log-Bayes Factor
