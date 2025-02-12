@@ -125,7 +125,7 @@ pdat_lines[rows,"meth_level"] <- pdat_lines[rows,"meth_level"] + 4
 p1 <- ggplot(pdat, aes(x = cpg, y = meth_level, color = geno)) +
   geom_point(shape = 20, size = 1.25) +
   scale_x_continuous(breaks = c(0, seq(4, 32, 4))) +
-  scale_color_manual(values = c("darkblue", "darkorange", "limegreen")) +
+  scale_color_manual(values = c("darkblue", "limegreen", "darkorange")) +
   geom_line(data = pdat_lines, aes(x = cpg, y = meth_level, group = geno), 
             color = "black", size = 1.9) +  # Black line for contrast
   geom_line(data = pdat_lines, size = 1.25) +  # Original colored lines

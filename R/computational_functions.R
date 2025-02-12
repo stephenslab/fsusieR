@@ -1663,7 +1663,7 @@ post_mat_sd.mixture_normal_per_scale <-  function( G_prior,
 
 #'@title Compute refined estimate using translation invariant wavelet transform
 #'
-#' @description e Compute refined estimate using translation invariant wavelet transform
+#' @description  Compute refined estimate using translation invariant wavelet transform
 #'
 #' @param obj  a susiF object
 #'
@@ -1704,8 +1704,8 @@ TI_regression <- function (obj,Y,X, verbose ,
 
 
 TI_regression.susiF <- function( obj,Y,X, verbose=TRUE,
-                                 filter.number = 1, family = "DaubLeAsymm" ,
-                                 alpha=0.99,
+                                 filter.number = 1, family = "DaubExPhase" ,
+                                 alpha=0.01,
                                  ... ){
   
   if(verbose){
@@ -1912,7 +1912,7 @@ TI_regression.susiF <- function( obj,Y,X, verbose=TRUE,
     
   } 
   
-  coeff= qnorm(1-(1-alpha)/2)
+  coeff= qnorm(1-( alpha)/2)
   obj$fitted_var =list()
   for( l in 1:length(obj$cs)){
     
@@ -1943,6 +1943,106 @@ TI_regression.susiF <- function( obj,Y,X, verbose=TRUE,
 }
 
 
+#univariate TI regression
+# Y is  a matrix of observed function
+# X is a 1 column matrix
+univariate_TI_regression <- function( Y,X,
+                                      filter.number = 1 ,
+                                      family = "DaubExPhase",
+                                      alpha=0.05){
+  
+  
+  
+  dummy_station_wd <- wavethresh::wd(Y[1,], type="station",
+                                     filter.number = filter.number ,
+                                     family = family)
+  
+  
+  Y_f <- do.call(rbind, lapply(1:nrow(Y),
+                               function( i) wavethresh::wd(Y[i,],
+                                                           type="station",
+                                                           filter.number = filter.number ,
+                                                           family = family
+                               )$D))
+  Y_c <- do.call(rbind, lapply(1:nrow(Y),
+                               function( i)  wavethresh::wd(Y[i,],
+                                                            type="station",
+                                                            filter.number = filter.number ,
+                                                            family = family)$C))
+  
+  refined_est <- list(wd=rep( 0, ncol(Y_f)),
+                      wdC= rep( 0, ncol(Y_c)),
+                      wd2=rep( 0, ncol(Y_f)),
+                      fitted_func=list(),
+                      fitted_var=list(),
+                      idx_lead_cov = 1
+  )
+  
+  
+  
+  res <- cal_Bhat_Shat(Y_f, matrix(X[,1], ncol=1))
+  wd <- rep( 0 ,length(res$Bhat))
+  wd2 <- rep(0, length(res$Shat))
+  temp <-   lapply(1:nrow(dummy_station_wd$fl.dbase$first.last.d),
+                   function(s){
+                     level <- s
+                     n <- 2^wavethresh::nlevelsWT(dummy_station_wd)
+                     first.last.d <-dummy_station_wd$fl.dbase$first.last.d
+                     first.level <- first.last.d[level, 1]
+                     last.level <- first.last.d[level, 2]
+                     offset.level <- first.last.d[level, 3]
+                     first.level <- first.last.d[level, 1]
+                     idx <- (offset.level + 1 - first.level):(offset.level +n - first.level)
+                     t_ash <- ashr::ash(c( res$Bhat[idx]), (c(res$Shat[idx])), 
+                                        nullweight=400)
+                     
+                     wd [idx] <- t_ash$result$PosteriorMean
+                     wd2[idx] <- t_ash$result$PosteriorSD^2
+                     
+                     out  <- list( wd,
+                                   wd2)
+                   }
+  )
+  
+  
+  wd <- Reduce("+", lapply(1:length(temp), function(s) temp[[s]][[1]]))
+  wd2 <-  Reduce("+", lapply(1:length(temp), function(s) temp[[s]][[2]]))
+  
+  
+  refined_est$wd  <- wd
+  refined_est$wd2 <-  wd2
+  res <- cal_Bhat_Shat(Y_c, matrix(X[,1], ncol=1))
+  t_ash <- ashr::ash(c( res$Bhat),c(res$Shat), nullweight=400)
+  refined_est$wdC  <- t_ash$result$PosteriorMean
+  
+  
+  
+  coeff= qnorm(1-( alpha)/2)
+  
+  
+  
+  dummy_station_wd$C <- refined_est$wdC 
+  dummy_station_wd$D <- refined_est$wd 
+  mywst <- wavethresh::convert(dummy_station_wd  )
+  nlevels <-wavethresh::nlevelsWT(mywst)
+  refined_est$fitted_func =  wavethresh::av.basis(mywst, level = (dummy_station_wd$nlevels-1), ix1 = 0,
+                                                  ix2 = 1, filter = mywst$filter)  
+  mv.wd = wd.var(rep(0, ncol(Y)),   type = "station")
+  mv.wd$D <-  (refined_est$wd2 )
+  
+  fitted_var   <-  AvBasis.var(convert.var(mv.wd)) 
+  fitted_func  <-  refined_est$fitted_func 
+  up                         <-   fitted_func + coeff* sqrt( fitted_var ) #*sqrt(obj$N-1)
+  low                        <-   fitted_func - coeff*sqrt( fitted_var ) #*sqrt(obj$N-1)
+  cred_band   <- rbind(up, low)
+  
+  
+  rownames( cred_band ) <- c("up","low")
+  out = list( effect_estimate=fitted_func,
+              cred_band=cred_band)
+  return(out)
+  
+}
 
 
 #'@title Compute refined estimate using translation invariant wavelet transform
