@@ -450,7 +450,8 @@ susiF <- function(Y, X, L = 2,
                                  L_start=L_start,
                                  greedy=greedy,
                                  backfit=backfit,
-                                 tol_null_prior= tol_null_prior)
+                                 tol_null_prior= tol_null_prior,
+                           cov_lev=cov_lev)
 
   if(verbose){
     print("Initialization done")
