@@ -2078,7 +2078,8 @@ univariate_TI_regression <- function( Y,X,
   
   rownames( cred_band ) <- c("up","low")
   out = list( effect_estimate=fitted_func,
-              cred_band=cred_band)
+              cred_band=cred_band,
+              fitted_var= fitted_var)
   return(out)
   
 }
