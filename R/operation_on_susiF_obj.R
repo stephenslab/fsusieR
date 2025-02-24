@@ -878,6 +878,8 @@ greedy_backfit.susiF <-  function(obj,
 #' @param tol_null_prior threshold to consider prior to be null. If the estimated weight on the point mass at zero is larger than 1-tol_null_prior
 #' then set prior weight on point mass to be 1. In the mixture normal this corresponds to removing the effect. In the mixutre per scale prior this corresponds
 #' to setting the prior of a given scale to at point mass at 0.
+#' @param cov_lev numeric between 0 and 1, corresponding to the
+#' expected level of coverage of the CS if not specified, set to 0.95
 #' @param \dots Other arguments.
 #
 # @export
@@ -898,7 +900,16 @@ greedy_backfit.susiF <-  function(obj,
 # \item{lfsr_wc}{Local fasle sign rate of the fitted wavelet coefficients}
 #' @export
 #
-init_susiF_obj <- function(L_max, G_prior, Y,X,L_start,greedy,backfit, tol_null_prior=0.001,... )
+init_susiF_obj <- function(L_max,
+                           G_prior,
+                           Y,
+                           X,
+                           L_start,
+                           greedy,
+                           backfit,
+                           tol_null_prior=0.001,
+                           cov_lev=0.95,
+                           ... )
 {
 
 
@@ -969,7 +980,8 @@ init_susiF_obj <- function(L_max, G_prior, Y,X,L_start,greedy,backfit, tol_null_
                greedy_backfit_update=greedy_backfit_update,
                d               = d,
                lfsr_wc         = lfsr_wc,
-               tol_null_prior  = tol_null_prior)
+               tol_null_prior  = tol_null_prior,
+               cov_lev         = cov_lev)
 
   class(obj) <- "susiF"
   return(obj)
@@ -1193,7 +1205,7 @@ rename_format_output <- function(obj, names_colX, tidx, ...){
     tpip[-tidx] <- obj$pip 
     obj$pip  <- tpip
     names(obj$pip) <- names_colX
-    obj <- update_cal_cs(obj, cov_lev = 0.95)
+    obj <- update_cal_cs(obj, cov_lev =obj$cov_lev)
   }else{
     for ( l in 1:length(obj$cs)){
      
@@ -1202,7 +1214,7 @@ rename_format_output <- function(obj, names_colX, tidx, ...){
        
     }
     names(obj$pip) <- names_colX
-    obj <- update_cal_cs(obj, cov_lev = 0.95)
+    obj <- update_cal_cs(obj, cov_lev = obj$cov_lev)
   }
   }
   
@@ -1515,7 +1527,7 @@ update_susiF_obj.susiF <- function(obj,
   obj  <- update_lBF   (obj = obj,
                               l         = l,
                               lBF       = EM_pi$lBF)
-  obj <-  update_cal_cs(obj=obj,  cov_lev= cov_lev, l=l)
+  obj <-  update_cal_cs(obj=obj,  cov_lev=  cov_lev, l=l)
   # obj <-  update_lfsr  (obj=obj,
   #                             l=l ,
   #                            Bhat=Bhat,

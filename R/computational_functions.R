@@ -1989,8 +1989,8 @@ univariate_TI_regression <- function( Y,X,
                                       filter.number = 1 ,
                                       family = "DaubExPhase",
                                       alpha=0.05){
-  
-  
+  X     <- colScale(X)
+  csd_X <-   attr(X, "scaled:scale")
   
   dummy_station_wd <- wavethresh::wd(Y[1,], type="station",
                                      filter.number = filter.number ,
@@ -2065,11 +2065,11 @@ univariate_TI_regression <- function( Y,X,
   mywst <- wavethresh::convert(dummy_station_wd  )
   nlevels <-wavethresh::nlevelsWT(mywst)
   refined_est$fitted_func =  wavethresh::av.basis(mywst, level = (dummy_station_wd$nlevels-1), ix1 = 0,
-                                                  ix2 = 1, filter = mywst$filter)  
+                                                  ix2 = 1, filter = mywst$filter) *1/(csd_X) 
   mv.wd = wd.var(rep(0, ncol(Y)),   type = "station")
   mv.wd$D <-  (refined_est$wd2 )
   
-  fitted_var   <-  AvBasis.var(convert.var(mv.wd)) 
+  fitted_var   <-  AvBasis.var(convert.var(mv.wd)) *(1/(csd_X)^2)
   fitted_func  <-  refined_est$fitted_func 
   up                         <-   fitted_func + coeff* sqrt( fitted_var ) #*sqrt(obj$N-1)
   low                        <-   fitted_func - coeff*sqrt( fitted_var ) #*sqrt(obj$N-1)
@@ -2078,7 +2078,8 @@ univariate_TI_regression <- function( Y,X,
   
   rownames( cred_band ) <- c("up","low")
   out = list( effect_estimate=fitted_func,
-              cred_band=cred_band)
+              cred_band=cred_band,
+              fitted_var= fitted_var)
   return(out)
   
 }
