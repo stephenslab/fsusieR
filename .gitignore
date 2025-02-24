@@ -1,5 +1,3 @@
-vignettes/*.html
-vignettes/*.R
 .Rproj.user
 inst/doc
 inst/
