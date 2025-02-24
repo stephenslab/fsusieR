@@ -13,6 +13,7 @@ init_susiF_obj(
   greedy,
   backfit,
   tol_null_prior = 0.001,
+  cov_lev = 0.95,
   ...
 )
 }
@@ -34,6 +35,9 @@ init_susiF_obj(
 \item{tol_null_prior}{threshold to consider prior to be null. If the estimated weight on the point mass at zero is larger than 1-tol_null_prior
 then set prior weight on point mass to be 1. In the mixture normal this corresponds to removing the effect. In the mixutre per scale prior this corresponds
 to setting the prior of a given scale to at point mass at 0.}
+
+\item{cov_lev}{numeric between 0 and 1, corresponding to the
+expected level of coverage of the CS if not specified, set to 0.95}
 
 \item{\dots}{Other arguments.}
 }

@@ -13,8 +13,8 @@ TI_regression(obj, Y, X, verbose, filter.number, family, alpha, ...)
   X,
   verbose = TRUE,
   filter.number = 1,
-  family = "DaubLeAsymm",
-  alpha = 0.99,
+  family = "DaubExPhase",
+  alpha = 0.01,
   ...
 )
 }
@@ -36,5 +36,5 @@ TI_regression(obj, Y, X, verbose, filter.number, family, alpha, ...)
 \item{\dots}{Other arguments.}
 }
 \description{
-e Compute refined estimate using translation invariant wavelet transform
+Compute refined estimate using translation invariant wavelet transform
 }

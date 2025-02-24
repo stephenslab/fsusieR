@@ -20,8 +20,8 @@
 #'
 #' @param  post_processing character, use "TI" for translation invariant wavelet estimates,
 #' "HMM" for hidden Markov model (useful for estimating non-zero regions),
-#' "none" for simple wavelet estimate (not recommended). In general we recommend using TI as postprocessing,
-#'  nonetheless the HMM perform particularly well when analysing data with say few sampling points (i.e ncol(Y)<30).
+#' "none" for simple wavelet estimate (not recommended). In general we recommend using TI as post processing,
+#'  Nonetheless the HMM perform particularly well when analysing data with say few sampling points (i.e ncol(Y)<30) or when the data are particularly noisy (low singla noise ratio).
 #'  However, we found that the HMM post processing is quite sensitive to the Gaussian assumption and we advise to use data transformation if your data are not
 #'  normally distributed, e.g., using log1p( Y[i,]/si) for  count data data where si is the individual scaling factor as defined in  $s_i =
 #'\frac{\text{total count for cell} \; i}
