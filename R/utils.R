@@ -81,13 +81,15 @@ Quantile_transform  <- function(x)
 #' @param rows logical  https://www.r-bloggers.com/2016/02/a-faster-scale-function/
 #' @param  cols logical  https://www.r-bloggers.com/2016/02/a-faster-scale-function/
 #' @export
+
+
 colScale = function(x,
                     center = TRUE,
                     scale = TRUE,
                     add_attr = TRUE,
                     rows = NULL,
                     cols = NULL) {
-
+  
   if (!is.null(rows) && !is.null(cols)) {
     x <- x[rows, cols, drop = FALSE]
   } else if (!is.null(rows)) {
@@ -95,7 +97,7 @@ colScale = function(x,
   } else if (!is.null(cols)) {
     x <- x[, cols, drop = FALSE]
   }
-
+  
   ################
   # Get the column means
   ################
@@ -109,11 +111,20 @@ colScale = function(x,
     # just divide by 1 if not
     csd = rep(1, length = length(cm))
   }
+  
+  # Handle zero variance columns
+  zero_var_cols = which(csd == 0)
+  for (col in zero_var_cols) {
+    
+    csd[col] <- 1  # Set the scaled:scale attribute for this column to 1
+  }
+  
   if (!center) {
     # just subtract 0
     cm = rep(0, length = length(cm))
   }
-  x = t( (t(x) - cm) / csd )
+  x = t((t(x) - cm) / csd)
+  
   if (add_attr) {
     if (center) {
       attr(x, "scaled:center") <- cm
@@ -122,12 +133,14 @@ colScale = function(x,
       attr(x, "scaled:scale") <- csd
     }
     n <- nrow(x)
-    d = n*cm^2 + (n-1)*csd^2
-    d = (d - n*cm^2)/csd^2
+    d = n * cm^2 + (n - 1) * csd^2
+    d = (d - n * cm^2) / csd^2
     attr(x, "d") <- d
   }
+  
   return(x)
 }
+
 
 
 gen_EM_out <- function(tpi_k , lBF){

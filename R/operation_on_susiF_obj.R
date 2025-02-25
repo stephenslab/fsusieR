@@ -163,10 +163,9 @@ change_fit= function( obj,
   {
     pos <- 1:dim(Y)[2]
   }else{
-    pos=out$pos
+    pos=obj$pos
   }
   
-  indx_lst <-  gen_wavelet_indx(log2(length( outing_grid)))
   names_colX <-  colnames(X)  
   tidx <- which(apply(X,2,var)==0)
   if( length(tidx)>0){
@@ -181,6 +180,8 @@ change_fit= function( obj,
   outing_grid <- map_data$outing_grid
   Y           <- map_data$Y
   X <- colScale(X)
+  
+  indx_lst <-  gen_wavelet_indx(log2(length( outing_grid)))
   # centering input
   #Y0 <-  colScale(Y , scale=FALSE)
   Y  <- colScale(Y )
