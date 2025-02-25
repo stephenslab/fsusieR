@@ -2085,6 +2085,97 @@ univariate_TI_regression <- function( Y,X,
 }
 
 
+
+
+#univariate TI regression
+# Y is  a matrix of observed function
+# X is a 1 column matrix
+univariate_TI_regression_IS <- function( Y,X,
+                                         filter.number = 1 ,
+                                         family = "DaubExPhase",
+                                         alpha=0.05){
+  X     <- colScale(X)
+  csd_X <-   attr(X, "scaled:scale")
+  
+  dummy_station_wd <- wavethresh::wd(Y[1,], type="station",
+                                     filter.number = filter.number ,
+                                     family = family)
+  
+  
+  Y_f <- do.call(rbind, lapply(1:nrow(Y),
+                               function( i) wavethresh::wd(Y[i,],
+                                                           type="station",
+                                                           filter.number = filter.number ,
+                                                           family = family
+                               )$D))
+  Y_c <- do.call(rbind, lapply(1:nrow(Y),
+                               function( i)  wavethresh::wd(Y[i,],
+                                                            type="station",
+                                                            filter.number = filter.number ,
+                                                            family = family)$C))
+  
+  refined_est <- list(wd=rep( 0, ncol(Y_f)),
+                      wdC= rep( 0, ncol(Y_c)),
+                      wd2=rep( 0, ncol(Y_f)),
+                      fitted_func=list(),
+                      fitted_var=list(),
+                      idx_lead_cov = 1
+  )
+  
+  
+  
+  res <- cal_Bhat_Shat(Y_f, matrix(X[,1], ncol=1))
+  wd <- rep( 0 ,length(res$Bhat))
+  wd2 <- rep(0, length(res$Shat))
+  
+  
+  
+  
+  
+  t_ash <- ashr::ash(c( res$Bhat ), (c(res$Shat )), 
+                     nullweight=400)
+  
+  wd <- t_ash$result$PosteriorMean
+  wd2 <-t_ash$result$PosteriorSD^2
+  
+  
+  refined_est$wd  <- wd
+  refined_est$wd2 <-  wd2
+  res <- cal_Bhat_Shat(Y_c, matrix(X[,1], ncol=1))
+  t_ash <- ashr::ash(c( res$Bhat),c(res$Shat), nullweight=400)
+  refined_est$wdC  <- t_ash$result$PosteriorMean
+  
+  
+  
+  coeff= qnorm(1-( alpha)/2)
+  
+  
+  
+  dummy_station_wd$C <- refined_est$wdC 
+  dummy_station_wd$D <- refined_est$wd 
+  mywst <- wavethresh::convert(dummy_station_wd  )
+  nlevels <-wavethresh::nlevelsWT(mywst)
+  refined_est$fitted_func =  wavethresh::av.basis(mywst, level = (dummy_station_wd$nlevels-1), ix1 = 0,
+                                                  ix2 = 1, filter = mywst$filter) *1/(csd_X) 
+  mv.wd = wd.var(rep(0, ncol(Y)),   type = "station")
+  mv.wd$D <-  (refined_est$wd2 )
+  
+  fitted_var   <-  AvBasis.var(convert.var(mv.wd)) *(1/(csd_X)^2)
+  fitted_func  <-  refined_est$fitted_func 
+  up                         <-   fitted_func + coeff* sqrt( fitted_var ) #*sqrt(obj$N-1)
+  low                        <-   fitted_func - coeff*sqrt( fitted_var ) #*sqrt(obj$N-1)
+  cred_band   <- rbind(up, low)
+  
+  
+  rownames( cred_band ) <- c("up","low")
+  out = list( effect_estimate=fitted_func,
+              cred_band=cred_band,
+              fitted_var= fitted_var)
+  return(out)
+  
+}
+
+
 #'@title Compute refined estimate using translation invariant wavelet transform
 #'
 #' @description e Compute refined estimate using translation invariant wavelet transform

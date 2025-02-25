@@ -125,6 +125,84 @@ cal_partial_resid.susiF  <- function(  obj, l, X, D, C,  indx_lst,... )
   return(update_Y)
 }
 
+
+#' @title Change postprocessing used in susiF object
+#' @param   obj a fitted susiF  object  
+#
+#' @param Y functional phenotype used in the original fit
+#'
+#' @param X matrix of  covariates  used in the original fit
+#' @param to name of the type of postprocessing you wish to change the susiF  object  to be fitted with
+#' current option "TI" or "hMM"
+#' @param verbose If \code{verbose = TRUE}, the algorithm's progress,
+#' and a summary of the optimization settings are printed on the
+#' console.
+#' @param filter_cs logical, if TRUE filters the credible set (removing low-purity)
+#' cs and cs with estimated prior equal to 0). Set as TRUE by default.
+#' @param max_scale numeric, define the maximum of wavelet coefficients used in the analysis (2^max_scale).
+#'        Set 10 true by default.
+#' @param filter.number see documentation of wd from wavethresh package
+#'
+#' @param family see documentation of wd from wavethresh package
+#' @export
+
+change_fit= function( obj,
+                      Y,
+                      X, 
+                      to="TI",
+                      verbose=TRUE,
+                      max_scale=10,
+                      filter_cs =TRUE,
+                      filter.number = 10,
+                      family =  "DaubLeAsymm" 
+){
+  
+  
+  post_processing=to
+  if (is.null( obj$pos))
+  {
+    pos <- 1:dim(Y)[2]
+  }else{
+    pos=out$pos
+  }
+  
+  indx_lst <-  gen_wavelet_indx(log2(length( outing_grid)))
+  names_colX <-  colnames(X)  
+  tidx <- which(apply(X,2,var)==0)
+  if( length(tidx)>0){
+    warning(paste("Some of the columns of X are constants, we removed" ,length(tidx), "columns"))
+    X <- X[,-tidx]
+  }
+  map_data <- remap_data(Y=Y,
+                         pos= pos,
+                         verbose=vebose,
+                         max_scale=max_scale)
+  
+  outing_grid <- map_data$outing_grid
+  Y           <- map_data$Y
+  X <- colScale(X)
+  # centering input
+  #Y0 <-  colScale(Y , scale=FALSE)
+  Y  <- colScale(Y )
+  out <- out_prep(     obj            = obj, 
+                       Y             =   sweep(Y  , 2, attr(Y , "scaled:scale"),  "*"),
+                       X             = X,
+                       indx_lst      = indx_lst,
+                       filter_cs     = filter_cs,
+                       outing_grid   = outing_grid,
+                       filter.number = filter.number,
+                       family        = family,
+                       post_processing=  post_processing,
+                       tidx          = tidx,
+                       names_colX    = names_colX,
+                       pos           = pos
+  )
+  return( out)
+  
+  
+}
+
+
 #' @title Check purity credible sets
 #
 #' @param obj a susif object defined by init_susiF_obj function
