@@ -299,3 +299,37 @@ update_Shat_pois <- function(Shat, indx_lst, lowc_wc){
   }
   return(Shat)
 }
+
+#' @title Binned reponsed data 
+#' 
+#' @param  Y a matrix of observed individual function measure in more than 1024 positions
+# (i.e., the result of running fsusie)
+#' @param base_pair the corresponding position of each column
+#' @param n_bins number of bins for the ouput
+#' @export
+
+#' @export
+bin_Y <- function(Y, base_pair, n_bins = 1024) {
+  total_bp    <- ncol(Y)
+  bin_size    <- total_bp / n_bins
+  binned_data <- matrix(ncol = n_bins, nrow = nrow(Y))
+  start_bin   <- rep(NA, n_bins)
+  
+  for (i in 1:n_bins) {
+    # Calculate exact start and end positions of bins
+    start_col <- min(which(base_pair >= (min(base_pair) + (i - 1) * bin_size)))
+    end_col   <- max(which(base_pair < (min(base_pair) + i * bin_size)))
+    
+    if (!is.na(start_col) & !is.na(end_col) & start_col <= end_col) {
+      binned_data[, i] <- rowSums(Y[, start_col:end_col, drop = FALSE], na.rm = TRUE)
+    } else {
+      binned_data[, i] <- 0  # Prevent missing values
+    }
+    
+    start_bin[i] <- base_pair[start_col]  # Ensure correct bin placement
+  }
+  
+  return(list(binned_data = binned_data,
+              pos = start_bin,
+              bin_size = bin_size))
+}

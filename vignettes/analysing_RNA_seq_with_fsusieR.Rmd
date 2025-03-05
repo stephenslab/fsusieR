@@ -1,0 +1,247 @@
+---
+title: "analysing_RNA_seq_with_fsusieR"
+author: William Denault and Peter Carbonetto
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    toc: no
+    highlight: textmate
+    theme: readable
+vignette: >
+  %\VignetteIndexEntry{}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+
+In this vignette we illustrate how to use fsusieR to fine map *seq data (ATACsaq, RNAseq, CHIPseq).
+In this example we focus on RNAseq data, but the process is similar for other *seq data
+
+```{r knitr-opts, include=FALSE}
+knitr::opts_chunk$set(comment = "#",collapse = TRUE,results = "hold",
+                      fig.align = "center",dpi = 120)
+```
+
+Let's first load the data
+
+
+
+
+```{r}
+library(fsusieR)
+data("RNA_seq_example")
+Y=RNAseqData$Y
+X=RNAseqData$X
+base_pair=RNAseqData$pos
+```
+
+This are some synthetic data generated to mimic the RNAseq read in ENSG00000168710 in cortex and the corresponding SNPs effect ont the reads.
+the $Y$ matrix contains the RNAseq information of 96 individuals along that ENSG00000168710 spans over
+39077 base pairs. The $X$ matrix contains information about the individual genotype level
+
+
+```{r}
+print(dim(Y))
+plot( base_pair, Y[1,], main=" Observed base pair count for individual 1")
+```
+
+
+To limit the computational burden we "bin" the data by the dividing the gene body into 
+1024 equally large bins. For each individual we sum up the individual counts  over each the bin using
+the bin_Y function. The output of the function returns,
+** the binned Y data
+** The corresponding bin position
+** the bon size
+
+
+
+```{r}
+Y_binned= bin_Y(Y,base_pair = base_pair)
+Y=Y_binned$binned_data
+print( dim( Y))
+pos = Y_binned$pos
+print(pos[1:10])
+bin_size=Y_binned$bin_size
+print( bin_size)
+```
+
+Here the corresponding binned count 
+```{r}
+plot(pos, Y[1,], main=" Observed binned count for individual 1")
+```
+
+### Normalization 
+Now we want to assert the effect of the genotype of the RNAsea profile
+We scale individual count profile by normalizing in a gene-wise fashion as
+follow.  Thus allowing to  assess the change of the individual profile 
+We asses the effect of the SNP using the $f(x) =log(1+x)$ transform
+
+
+```{r}
+size_factor=rowSums(Y)/ mean(rowSums(Y))
+Y_cor =   (  Y /as.vector(size_factor))
+
+plot(pos, log1p(Y[1,] ))
+```
+
+
+
+### Univariate regression 
+
+the fsusieR package provide a series of function to gauge the effect of genotype of the observed counts.
+The simplest function to start with is the **univariate_functional_regression** that allow you to compute the conditional count distribution given a covariate.
+
+Here we look at the effect of SNP 261 on  the observed  log1p counts.
+
+
+```{r}
+uni_res= univariate_functional_regression(Y=log1p(Y_cor),
+                                          X=as.matrix(X[,261],
+                                                      ncol=1)
+                                          )
+```
+
+```{r}
+plot(pos, uni_res$effect_estimate, 
+     ylab = "estimated effect",
+     xlab="base pair",
+     type="l",
+     lwd=1.4,
+     col="royalblue",
+     ylim=c (min(uni_res$cred_band),max(uni_res$cred_band)))
+lines( pos,uni_res$cred_band[1,], 
+       lty=2,
+       lwd=1.4,
+       col="royalblue")
+lines(pos, uni_res$cred_band[2,], 
+        lty=2,
+       lwd=1.4,
+       col="royalblue")
+abline(h=0)
+
+```
+
+
+### Visualize effect in context
+Great you have estimate the effect of a SNP on some count. Let's improve this visualization a bit so we can get some biological interpretation. Below a quick tutorial to put this results in context  using GViz
+
+```{r}
+library(AnnotationHub)
+library(org.Hs.eg.db)
+library(GenomicRanges)
+library(Gviz)
+library(TxDb.Hsapiens.UCSC.hg38.knownGene)
+
+
+txdb <- TxDb.Hsapiens.UCSC.hg38.knownGene
+pos0 = pos[1]
+pos1= pos[length(pos)]+bin_size
+positions=pos
+chr=RNAseqData$chr
+```
+
+
+### Create the effect track
+ 
+```{r}
+effect=effect=rbind(uni_res$effect_estimate,
+             uni_res$cred_band,
+             rep(0,length(uni_res$effect_estimate)))
+group_colors <- c("black" ,"royalblue","royalblue","royalblue" )
+group_lwd= c(1,2,1,1)
+
+group_cred= c(1:3,0)  
+effect_track <-
+    DataTrack(range = GRanges(seqnames = chr,
+                                          ranges = IRanges(start = positions,
+                                                           end = positions + 1)),
+                          data = effect, genome = "hg38",
+                          groups= group_cred,
+              name = "Effect SNP 261",type = "l",   lwd= group_lwd,
+                          col = group_colors,
+              track.margin = 0.05,cex.title = 0.6,cex.axis = 0.6,
+              col.axis = "black",col.title = "black",
+              fontface = "plain",background.title = "white",
+              fontface.title = 1, 
+                          legend=FALSE)
+```
+
+
+#### Create the gene track
+
+```{r}
+
+  # Create a "gene region" track.
+  gene_track <- GeneRegionTrack(txdb,genome = "hg38",chromosome = chr,
+                                pos0 = pos0,pos1 = pos1,name = "",
+                                showId = TRUE,geneSymbol = TRUE,
+                                col.axis = "black",col.title = "black",
+                                transcriptAnnotation = "symbol",
+                                rotation.title = 0,cex.title = 0.6,
+                                col = "salmon",fill = "salmon",
+                                background.title = "white")
+```
+
+
+#### Create the observed data point track
+
+```{r}
+x       <- X[,261]
+
+read_counts <-  rbind( colMeans(log1p(Y[x == 1,])),
+                       colMeans(log1p(Y[x == 0,])) 
+                           )
+ 
+groups <- c("SNP 261 = 0",
+                "SNP 261 = 1" )
+geno_colors <- c("turquoise", "navyblue" )
+lab_y = "avg. log1p count" 
+  data_track <- DataTrack(range = GRanges(seqnames = chr,
+                                          ranges = IRanges(start = positions,
+                                                           end = positions + 1)),
+                          data = read_counts,genome = "hg38",
+                          groups = groups,
+                          name = lab_y  , type = "p" , #"p",#type = "l",
+                          col = geno_colors  ,
+                          track.margin = 0.05,cex.title = 0.6,cex.axis = 0.6,
+                          col.axis = "black",col.title = "black",
+                          fontface = "plain",background.title = "white",
+                          fontface.title = 1,cex.legend = 0.6, cex=0.2)
+```
+
+
+
+
+```{r}
+ tracks <- c( 
+      effect_track,
+      data_track,
+      gene_track 
+    )
+
+plotTracks(tracks, from = pos0, to = pos1, sizes = c(  3, 4, 4 ))
+```
+
+
+### Fine mapping SNP effect on RNA seq
+
+The example above is nice, however, this naive approach cannot allow to asses if the effect of SNP 261 4
+is real or do to linkage disequilbrium with another SNP.
+
+To solve this problem with developed susiF. It can be run as follow
+```{r running_fsusie}
+library(fsusieR)
+result= susiF(Y=log1p(Y_cor),X=as.matrix(X), L=10)
+```
+
+
+
+```{r}
+plot(result$fitted_func[[1
+                         ]])
+```
+  
+  
+  
+
+ 

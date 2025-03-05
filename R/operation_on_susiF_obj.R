@@ -152,7 +152,7 @@ change_fit= function( obj,
                       to="TI",
                       verbose=TRUE,
                       max_scale=10,
-                      filter_cs =TRUE,
+                      filter_cs =FALSE,
                       filter.number = 10,
                       family =  "DaubLeAsymm" 
 ){
@@ -185,19 +185,27 @@ change_fit= function( obj,
   # centering input
   #Y0 <-  colScale(Y , scale=FALSE)
   Y  <- colScale(Y )
-  out <- out_prep(     obj            = obj, 
-                       Y             =   sweep(Y  , 2, attr(Y , "scaled:scale"),  "*"),
-                       X             = X,
-                       indx_lst      = indx_lst,
-                       filter_cs     = filter_cs,
-                       outing_grid   = outing_grid,
-                       filter.number = filter.number,
-                       family        = family,
-                       post_processing=  post_processing,
-                       tidx          = tidx,
-                       names_colX    = names_colX,
-                       pos           = pos
-  )
+  # out <- out_prep(     obj            = obj, 
+  #                      
+  #                     X             = X,
+  #                     indx_lst      = indx_lst,
+  #                     filter_cs     = filter_cs,
+  #                      outing_grid   = outing_grid,
+  #                     filter.number = filter.number,
+  #                     family        = family,
+  #                      post_processing=  post_processing,
+  #                     tidx          = tidx,
+  #                     names_colX    = names_colX,
+  #                     pos           = pos
+  #)
+  
+  obj <-  update_cal_fit_func(obj,
+                              Y             =     sweep(Y  , 2, attr(Y , "scaled:scale"),  "*"),
+                              X             = X,
+                              indx_lst      = indx_lst,
+                              post_processing = post_processing, 
+                              filter.number = filter.number,
+                              family        = family)
   return( out)
   
   
@@ -1244,8 +1252,7 @@ out_prep.susiF <- function(obj ,
 
 
     }
-  #
-  #
+ 
 
 
   obj             <-  rename_format_output (obj        = obj, 

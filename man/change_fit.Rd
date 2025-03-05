@@ -11,7 +11,7 @@ change_fit(
   to = "TI",
   verbose = TRUE,
   max_scale = 10,
-  filter_cs = TRUE,
+  filter_cs = FALSE,
   filter.number = 10,
   family = "DaubLeAsymm"
 )

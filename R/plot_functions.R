@@ -301,3 +301,251 @@ plot_susiF_effect <- function (obj,
          labs(x = "position",y = "estimated effect",title = title) +
          theme_cowplot(font_size = font_size))
 }
+
+
+#' @title fSuSiE Plots using Gviz 
+#' 
+#' @param obj is the fsusie object
+# (i.e., the result of running fsusie)
+#' @param chr the chromosome number
+#' @param pos0 the start of the RNAseq count (genomic position of the first column of
+#' the Y matrix used to fit the fsusie object) description
+#' @param pos1 the end of the RNAseq count (genomic position of the last column of
+#' the Y matrix used to fit the fsusie object) description
+#' 
+#' @param X the X matrix used to fit fsusie
+#' @param Y  the Y matrix used to fit fsusie
+#' @param snp_info 'optional) a matrix containing the information of the genotype matrix see vignette on RNaseq
+#' @param cs the cs number to be plotted
+#' @param log1p_count logical (default to FALSE) show the observe count conditional on the leads SNP in the 
+#' using log1p_count
+#' @param effect_log logical (set to TRUE) , the plot assume that you fitted the fsusie object
+#' on log +1 count and so if you set this parameter to FALSE the displayed effect will be the expected 
+#' difference in count instead of the fitted curve
+#' @param thresh_lfsr if the susiF object is fitted using HMM postprocessing you can use this argument
+#' to set to 0 the estimated effect that have an local false sign rate higher than a given threshold (e.g., 0.05) description
+#' @param  type_data  set to "p" change the type of plot for the observed count conditional of the lead SNP
+#' see GViz documentation
+# (scaled) read count matrices, respectively.
+fsusie_log_plot <- function (obj, chr, pos0, pos1, X, Y, snp_info, cs = 1,
+                             log1p_count=FALSE,
+                             effect_log=TRUE,
+                             thresh_lfsr=NULL,
+                             data_splice=NULL,
+                             type_data="p") {
+  
+  # Extract the relevant genes and exons in the specified region
+  region_genes <- genes(txdb,columns = c("tx_id","gene_id"))
+  
+  # Subset the genes and exons to the region of interest.
+  region_genes <- subsetByOverlaps(region_genes,
+                                   GRanges(seqnames = chr,
+                                           ranges = IRanges(pos0,pos1)))
+  
+  # Generate a sequence of positions with a length of 1,024.
+  positions <- seq(pos0,pos1,length.out = 1024)
+  
+  markers <- obj$cs[[cs]]
+  j       <- which.max(obj$pip[markers])
+  marker  <- markers[j]
+  x       <- X[,marker]
+  
+  
+  
+  
+  if(log1p_count){
+    if (! length(which(x==2))>1){
+      read_counts <- rbind(colMeans(log1p(Y[x == 0,])),
+                           colMeans(log1p(Y[x == 1,])) )
+    }else{
+      read_counts <- rbind(colMeans(log1p(Y[x == 0,])),
+                           colMeans(log1p(Y[x == 1,])),
+                           colMeans(log1p(Y[x == 2,])))
+    }
+    
+  }else{
+    if (! length(which(x==2))>1){
+      
+      read_counts <- rbind(colMeans(Y[x == 0,]),
+                           colMeans(Y[x == 1,]) )
+    }else{
+      read_counts <- rbind(colMeans(Y[x == 0,]),
+                           colMeans(Y[x == 1,]),
+                           colMeans(Y[x == 2,]))
+    }
+    
+  }
+  
+  if(effect_log){
+    effect=obj$fitted_func[[cs]]
+    
+    if(!is.null(thresh_lfsr)){
+      effect=(obj$fitted_func[[cs]]) * ifelse(obj$lfsr_func[[cs]]< thresh_lfsr,1,0 )
+      
+      
+    }
+    
+    
+  }else{
+    
+    
+    
+    Y_mean= colMeans(log1p(Y[x == 0,]))
+    effect <-  exp(Y_mean)* exp(obj$fitted_func[[cs]] )-exp(Y_mean)
+    if(!is.null(thresh_lfsr)){
+      effect=  exp(Y_mean)* exp(obj$fitted_func[[cs]] * ifelse(obj$lfsr_func[[cs]]< thresh_lfsr,1,0 ))-exp(Y_mean)
+    }
+    
+    
+    
+  }
+  
+  
+  # Create a "data track" to show the CS effect.
+  cex <- 0.6
+  
+  effect_track <-
+    DataTrack(range = GRanges(seqnames = chr,
+                              ranges = IRanges(start = positions,
+                                               end = positions + 1)),
+              data = effect, genome = "hg38",
+              name = paste("CS",cs),type = "l",col = "royalblue",
+              track.margin = 0.05,cex.title = cex,cex.axis = cex,
+              col.axis = "black",col.title = "black",
+              fontface = "plain",background.title = "white",
+              fontface.title = 1)
+  
+  # Create another "data track" to show the read counts.
+  
+  n0  <- sum(x == 0)
+  n1  <- sum(x == 1)
+  n2  <- sum(x == 2)
+  id  <- snp_info[marker,"ID"]
+  ref <- snp_info[marker,"REF"]
+  alt <- snp_info[marker,"ALT"]
+  
+  if (! length(which(x==2))>1){
+    groups <- c(sprintf("%s %s%s (n = %d)",id,ref,ref,n0),
+                sprintf("%s %s%s (n = %d)",id,ref,alt,n1) )
+    geno_colors <- c("navyblue","turquoise" )
+  }else{
+    groups <- c(sprintf("%s %s%s (n = %d)",id,ref,ref,n0),
+                sprintf("%s %s%s (n = %d)",id,ref,alt,n1),
+                sprintf("%s %s%s (n = %d)",id,alt,alt,n2))
+    geno_colors <- c("navyblue","turquoise","darkorange")
+  }
+  
+  
+  if (mean(effect) > 0) {
+    groups <- factor(groups,rev(groups))
+    geno_colors <- rev(geno_colors)
+  } else {
+    groups <- factor(groups,groups)
+  }
+  
+  
+  lab_y =ifelse(log1p_count, "avg. log1p count","avg. count")
+  data_track <- DataTrack(range = GRanges(seqnames = chr,
+                                          ranges = IRanges(start = positions,
+                                                           end = positions + 1)),
+                          data = read_counts,genome = "hg38",
+                          groups = groups,
+                          name = lab_y  , type = type_data, #"p",#type = "l",
+                          col = geno_colors  ,
+                          track.margin = 0.05,cex.title = cex,cex.axis = cex,
+                          col.axis = "black",col.title = "black",
+                          fontface = "plain",background.title = "white",
+                          fontface.title = 1,cex.legend = cex, cex=0.2)
+  
+  # Create an "ideogram" track.
+  ideo_track <- IdeogramTrack(genome = "hg38",chromosome = chr)
+  
+  # Create a "genome axis" track.
+  genome_track <- GenomeAxisTrack(col.axis = "black",col.title = "black")
+  
+  # Create a "gene region" track.
+  gene_track <- GeneRegionTrack(txdb,genome = "hg38",chromosome = chr,
+                                pos0 = pos0,pos1 = pos1,name = "",
+                                showId = TRUE,geneSymbol = TRUE,
+                                col.axis = "black",col.title = "black",
+                                transcriptAnnotation = "symbol",
+                                rotation.title = 0,cex.title = cex,
+                                col = "salmon",fill = "salmon",
+                                background.title = "white")
+  
+  # Map gene IDs to gene symbols.
+  gene_ids <- unique(unlist(region_genes$gene_id))
+  
+  # Map to gene symbols using org.Hs.eg.db
+  gene_symbols <- AnnotationDbi::select(org.Hs.eg.db,keys = gene_ids,
+                                        columns = "SYMBOL",
+                                        keytype = "ENTREZID")
+  n <- nrow(gene_symbols)
+  if (n > 0) {
+    for (i in 1:n) {
+      j <- which(gene_track@range@elementMetadata@listData$gene ==
+                   gene_symbols$ENTREZID[i])
+      gene_track@range@elementMetadata@listData$id[j]     <- gene_symbols$SYMBOL[i]
+      gene_track@range@elementMetadata@listData$symbol[j] <- gene_symbols$SYMBOL[i]
+    }
+  }
+  
+  
+  if( !is.null(data_splice)){
+    junction_ranges <- GRanges(
+      seqnames = chr,
+      ranges = IRanges(
+        start = as.numeric(sub(".*_(\\d+)_.*", "\\1", data_splice$Name)),
+        end = as.numeric(sub(".*_(\\d+)$", "\\1", data_splice$Name))
+      ),
+      names = data_splice$Description
+    )
+    
+    # Offset overlapping junctions for better visualization
+    # Create AnnotationTrack for splicing junctions with adjusted thickness
+    junction_track <- AnnotationTrack(
+      range = junction_ranges,
+      genome = "hg38",
+      chromosome = chr,
+      name = "Splicing Junctions",
+      stacking = "squish",
+      col = "darkgreen",
+      fill = "lightgreen",
+      track.margin = 0.05,
+      cex.title = cex,
+      cex.axis = cex,
+      col.axis = "black",
+      col.title = "black",
+      fontface = "plain",
+      background.title = "white",
+      height = 0.3  # Adjust height here to make rectangles thinner
+    )
+    # Combine all tracks into a single plot
+    tracks <- c(
+      ideo_track,
+      genome_track,
+      effect_track,
+      data_track,
+      gene_track,
+      junction_track
+    )
+    
+    # Plot the tracks
+    return(plotTracks(tracks, from = pos0, to = pos1, sizes = c(1, 1.75, 2, 4, 5, 1)))
+  }else{
+    # Combine all tracks into a single plot.
+    tracks <- c(ideo_track,
+                genome_track,
+                effect_track,
+                data_track,
+                gene_track)
+    return(plotTracks(tracks,from = pos0,to = pos1,sizes = c(1,1.75,2,4,5)))
+  }
+  
+  
+}
+
+
+
+
+
