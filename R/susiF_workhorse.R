@@ -83,6 +83,7 @@ susiF.workhorse <- function(obj,
   }else{
     df =NULL
   }
+  
 
   if( obj$L_max==1)
   {

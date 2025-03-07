@@ -206,7 +206,7 @@ change_fit= function( obj,
                               post_processing = post_processing, 
                               filter.number = filter.number,
                               family        = family)
-  return( out)
+  return( obj )
   
   
 }

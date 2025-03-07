@@ -863,44 +863,6 @@ HMM_regression.susiF <- function( obj,
 }
 
 
-#univariateHMM regression
-# Y is  a matrix of observed function
-# X is a 1 column matrix
-univariate_HMM_regression <- function( Y,X,
-                                       filter.number = 1 ,
-                                       family = "DaubExPhase",
-                                       alpha=0.05){
-  
-  tt <- lapply( 1: ncol(Y),
-                function(j){
-                  
-                  summary(lm(Y[,j]~-1+X[,1]))$coefficients[ ,c(1,2,4 )]
-                  
-                  
-                }
-                
-                
-  )
-  
-  
-  est  <- do.call(c, lapply( 1: length(tt) ,function (j) tt[[j]][ 1   ]))
-  
-  sds  <- do.call(c, lapply( 1: length(tt) ,function (j) tt[[j]][ 2]))
-  pvs  <- do.call(c, lapply( 1: length(tt) ,function (j) tt[[j]][ 3]))
-  tsds <- sds#pval2se(est,pvs) # t -likelihood correction usefull to contrl lfsr in small sample size
-  tsds[ which( tsds==0)]<- sds[ which( tsds==0)]
-  if (sum(is.na(tsds))>0){
-    est [ which( is.na(tsds))]<- 0
-    tsds[ which( is.na(tsds))]<- 1
-  }
-  s =  fit_hmm(x=est ,sd=tsds ,halfK=20 )
-  out = list( effect_estimate=s$x_post,
-              lfsr=s$lfsr)
-  return(out)
-  
-}
-
-
 #' @title Compute Log-Bayes Factor
 #'
 #' @description Compute Log-Bayes Factor
@@ -1688,7 +1650,7 @@ TI_regression.susiF <- function( obj,Y,X, verbose=TRUE,
                          first.level  <- first.last.d[level, 1]
                          idx   <- (offset.level + 1 - first.level):(offset.level +n - first.level)
                          t_ash <- ashr::ash(c( res$Bhat[idx]), (c(res$Shat[idx])), 
-                                            nullweight=400,mixcompdist = "normal")
+                                            nullweight=3,mixcompdist = "normal")
                          
                          wd [idx] <- t_ash$result$PosteriorMean
                          wd2[idx] <- t_ash$result$PosteriorSD^2
@@ -1712,20 +1674,20 @@ TI_regression.susiF <- function( obj,Y,X, verbose=TRUE,
       
       res <- cal_Bhat_Shat(Y_c, matrix(X[,refined_est$idx_lead_cov[[1]]],
                                        ncol=1))
-      t_ash <-ashr::ash(c( res$Bhat),c(res$Shat), nullweight=400,mixcompdist = "normal")
+      t_ash <-ashr::ash(c( res$Bhat),c(res$Shat), nullweight=3,mixcompdist = "normal")
       refined_est$wdC[[l]] <- t_ash$result$PosteriorMean
       
     }
     if(inherits(get_G_prior(obj),"mixture_normal" )){
       res <- cal_Bhat_Shat(Y_f, matrix(X[,refined_est$idx_lead_cov[[1]]],
                                        ncol=1))
-      t_ash <-  ashr::ash(c( res$Bhat),c(res$Shat), nullweight=400,mixcompdist = "normal")
+      t_ash <-  ashr::ash(c( res$Bhat),c(res$Shat), nullweight=3,mixcompdist = "normal")
       refined_est$wd[[1]] <- t_ash$result$PosteriorMean
       refined_est$wd2[[1]]<- t_ash$result$PosteriorSD^2
       
       res <- cal_Bhat_Shat(Y_c, matrix(X[,refined_est$idx_lead_cov[[1]]],
                                        ncol=1))
-      t_ash <- ashr::ash(c( res$Bhat),c(res$Shat), nullweight=400,mixcompdist = "normal")
+      t_ash <- ashr::ash(c( res$Bhat),c(res$Shat), nullweight=3,mixcompdist = "normal")
       refined_est$wdC[[l]] <- t_ash$result$PosteriorMean
       
     }
@@ -1760,7 +1722,7 @@ TI_regression.susiF <- function( obj,Y,X, verbose=TRUE,
                              first.level <- first.last.d[level, 1]
                              idx <- (offset.level + 1 - first.level):(offset.level +n - first.level)
                              t_ash <- ashr::ash(c( res$Bhat[idx]), (c(res$Shat[idx])), 
-                                                nullweight=400,mixcompdist = "normal")
+                                                nullweight=3,mixcompdist = "normal")
                              
                              wd [idx] <- t_ash$result$PosteriorMean
                              wd2[idx] <- t_ash$result$PosteriorSD^2
@@ -1788,7 +1750,7 @@ TI_regression.susiF <- function( obj,Y,X, verbose=TRUE,
           )
           
           res <- cal_Bhat_Shat(par_resc, matrix(X[,refined_est$idx_lead_cov[[l]]], ncol=1))
-          t_ash <- ashr::ash(c( res$Bhat),c(res$Shat), nullweight=400,mixcompdist = "normal")
+          t_ash <- ashr::ash(c( res$Bhat),c(res$Shat), nullweight=3,mixcompdist = "normal")
           refined_est$wdC[[l]] <- t_ash$result$PosteriorMean
           
           
@@ -1809,7 +1771,7 @@ TI_regression.susiF <- function( obj,Y,X, verbose=TRUE,
           )
           
           res <- cal_Bhat_Shat(par_res, matrix(X[,refined_est$idx_lead_cov[[l]]], ncol=1))
-          t_ash <- ashr::ash(c( res$Bhat),c(res$Shat), nullweight=400,mixcompdist = "normal")
+          t_ash <- ashr::ash(c( res$Bhat),c(res$Shat), nullweight=3,mixcompdist = "normal")
           refined_est$wd[[l]] <- t_ash$result$PosteriorMean
           refined_est$wd2[[l]]<- t_ash$result$PosteriorSD^2
           
@@ -1822,7 +1784,7 @@ TI_regression.susiF <- function( obj,Y,X, verbose=TRUE,
           )
           
           res <- cal_Bhat_Shat(par_resc, matrix(X[,refined_est$idx_lead_cov[[l]]], ncol=1))
-          t_ash <- ashr::ash(c( res$Bhat),c(res$Shat), nullweight=400,mixcompdist = "normal")
+          t_ash <- ashr::ash(c( res$Bhat),c(res$Shat), nullweight=3,mixcompdist = "normal")
           refined_est$wdC[[l]] <- t_ash$result$PosteriorMean
           
           
@@ -1862,6 +1824,50 @@ TI_regression.susiF <- function( obj,Y,X, verbose=TRUE,
   rm( refined_est)
   
   return(obj)
+}
+
+
+
+
+#univariateHMM regression
+# Y is  a matrix of observed function
+# X is a 1 column matrix
+univariate_HMM_regression <- function( Y,X,
+                                       filter.number = 1 ,
+                                       family = "DaubExPhase",
+                                       alpha=0.05){
+  
+  
+  X     <- colScale(X)
+  csd_X <-   attr(X, "scaled:scale")
+  
+  tt <- lapply( 1: ncol(Y),
+                function(j){
+                  
+                  summary(lm(Y[,j]~-1+X[,1]))$coefficients[ ,c(1,2,4 )]
+                  
+                  
+                }
+                
+                
+  )
+  
+  
+  est  <- do.call(c, lapply( 1: length(tt) ,function (j) tt[[j]][ 1   ]))
+  
+  sds  <- do.call(c, lapply( 1: length(tt) ,function (j) tt[[j]][ 2]))
+  pvs  <- do.call(c, lapply( 1: length(tt) ,function (j) tt[[j]][ 3]))
+  tsds <- sds#pval2se(est,pvs) # t -likelihood correction usefull to contrl lfsr in small sample size
+  tsds[ which( tsds==0)]<- sds[ which( tsds==0)]
+  if (sum(is.na(tsds))>0){
+    est [ which( is.na(tsds))]<- 0
+    tsds[ which( is.na(tsds))]<- 1
+  }
+  s =  fit_hmm(x=est ,sd=tsds ,halfK=20 )
+  out = list( effect_estimate=s$x_post*1/(csd_X),
+              lfsr=s$lfsr)
+  return(out)
+  
 }
 
 
@@ -1916,7 +1922,7 @@ univariate_TI_regression <- function( Y,X,
                      first.level <- first.last.d[level, 1]
                      idx <- (offset.level + 1 - first.level):(offset.level +n - first.level)
                      t_ash <- ashr::ash(c( res$Bhat[idx]), (c(res$Shat[idx])), 
-                                        nullweight=400,mixcompdist = "normal")
+                                        nullweight=3,mixcompdist = "normal")
                      
                      wd [idx] <- t_ash$result$PosteriorMean
                      wd2[idx] <- t_ash$result$PosteriorSD^2
@@ -1934,7 +1940,7 @@ univariate_TI_regression <- function( Y,X,
   refined_est$wd  <- wd
   refined_est$wd2 <-  wd2
   res <- cal_Bhat_Shat(Y_c, matrix(X[,1], ncol=1))
-  t_ash <- ashr::ash(c( res$Bhat),c(res$Shat), nullweight=400,mixcompdist = "normal")
+  t_ash <- ashr::ash(c( res$Bhat),c(res$Shat), nullweight=3,mixcompdist = "normal")
   refined_est$wdC  <- t_ash$result$PosteriorMean
   
   
@@ -2016,7 +2022,7 @@ univariate_TI_regression_IS <- function( Y,X,
   
   
   t_ash <- ashr::ash(c( res$Bhat ), (c(res$Shat )), 
-                     nullweight=400,mixcompdist = "normal")
+                     nullweight=3,mixcompdist = "normal")
   
   wd <- t_ash$result$PosteriorMean
   wd2 <-t_ash$result$PosteriorSD^2
@@ -2025,7 +2031,7 @@ univariate_TI_regression_IS <- function( Y,X,
   refined_est$wd  <- wd
   refined_est$wd2 <-  wd2
   res <- cal_Bhat_Shat(Y_c, matrix(X[,1], ncol=1))
-  t_ash <- ashr::ash(c( res$Bhat),c(res$Shat), nullweight=400,mixcompdist = "normal")
+  t_ash <- ashr::ash(c( res$Bhat),c(res$Shat), nullweight=3,mixcompdist = "normal")
   refined_est$wdC  <- t_ash$result$PosteriorMean
   
   

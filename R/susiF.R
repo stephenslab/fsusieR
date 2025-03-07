@@ -52,7 +52,7 @@
 #' @param filter_cs logical, if TRUE filters the credible set (removing low-purity)
 #' cs and cs with estimated prior equal to 0). Set as TRUE by default.
 #'
-#' @param init_pi0_w starting value of weight on null compoenent in mixsqp
+#' @param init_pi0_w starting value of weight on null component in mixsqp
 #'  (between 0 and 1)
 #'
 #' @param control_mixsqp list of parameter for mixsqp function see  mixsqp package
@@ -281,7 +281,7 @@ susiF <- function(Y, X, L = 2,
                   min_purity=0.5,
                   filter_cs =TRUE,
                   init_pi0_w= 1,
-                  nullweight= 10 ,
+                  nullweight= .001 ,
                   control_mixsqp =  list(verbose=FALSE,
                                          eps = 1e-6,
                                          numiter.em = 4
