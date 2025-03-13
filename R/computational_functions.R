@@ -12,17 +12,17 @@
 #' @export
 #' @keywords internal
 cal_cor_cs <- function(obj,X){
-
+  
   if(length(obj$cs)==1)
   {return(obj)}else{
-
+    
     mat_cor <- matrix(NA, ncol = length(obj$cs),
                       nrow= length(obj$cs))
-
+    
     for ( l in 1:length(obj$cs)){
-
+      
       for ( k in 1:length(obj$cs)){
-
+        
         temp <- max(do.call( c,
                              sapply( 1:length(obj$cs[[l]]),
                                      function(l1)
@@ -35,7 +35,7 @@ cal_cor_cs <- function(obj,X){
         )
         mat_cor[l,k] <-temp
         mat_cor[k,l] <-temp
-
+        
       }
     }
   }
@@ -209,7 +209,7 @@ cal_clfsr.mixture_normal  <- function(G_prior,
     data <-  ashr::set_data(Bhat[t,] ,Shat[t,] )
     return(calc_lfsr( m ,data))
   }
-
+  
   out <- lapply(1:(dim(Bhat)[1] ),t_col_post )
   out <- t(Reduce("cbind", out))
   class(out) <- "clfsr_wc"
@@ -238,10 +238,10 @@ cal_clfsr.mixture_normal_per_scale <- function( G_prior ,
                                                 indx_lst,...  )
 {
   t_col_post <- function(t ){
-
+    
     t_m_post <- function(s){
       m <- G_prior [[ s]]
-
+      
       data <-  ashr::set_data(Bhat[t,indx_lst[[s]] ],
                               Shat[t, indx_lst[[s]] ]
       )
@@ -250,11 +250,11 @@ cal_clfsr.mixture_normal_per_scale <- function( G_prior ,
     return(unlist(lapply( c((length(indx_lst)  -1): 1,length(indx_lst)   ), #important to maintain the ordering of the wavethresh package !!!!
                           t_m_post )))
   }
-
+  
   out <- lapply( 1:(dim(Bhat)[1]),
                  FUN= t_col_post)
-
-
+  
+  
   out <- t(Reduce("cbind", out))
   class(out) <- "clfsr_wc"
   return(out)
@@ -319,35 +319,35 @@ cal_zeta <- function(lBF)
 #
 fit_lm <- function( l,j,Y,X,v1, lowc_wc =NULL ,...)  ## Speed Gain
 {
-
+  
   if( !is.null(lowc_wc)){
-
+    
     if (l %in%lowc_wc){
       return(c(0,
                1
-               )
-            )
-
+      )
+      )
+      
     }else{
-
-
+      
+      
       return(  fast_lm(x=X[,j] ,
                        y= Y[,l]
-                      )
-            )
+      )
+      )
     }
-
+    
   }else{
     return(  fast_lm(X[,j] ,
-                    Y[,l]
-                    )
-           )
+                     Y[,l]
+    )
+    )
   }
-
-
-
-
-
+  
+  
+  
+  
+  
 }
 
 # @title Fit ash of coefficient from scale s
@@ -373,32 +373,32 @@ fit_lm <- function( l,j,Y,X,v1, lowc_wc =NULL ,...)  ## Speed Gain
 fit_ash_level <- function (Bhat, Shat, s, indx_lst, lowc_wc,...)
 {
   if( !is.null(lowc_wc)){
-
-
+    
+    
     t_ind <-indx_lst[[s]]
     t_ind <-  t_ind[which(t_ind %!in% lowc_wc)]
-
-
+    
+    
     if( length(t_ind)==0){ #create a ash object with full weight on null comp
       out <- ashr::ash(rnorm(100, sd=0.1),
-                 rep(1,100),
-                 mixcompdist = "normal" ,
-                 outputlevel=0)
+                       rep(1,100),
+                       mixcompdist = "normal" ,
+                       outputlevel=0)
       out$fitted_g$pi  <- c(1, rep(0, (length(out$fitted_g$pi )-1) ))
     }else{
       out <- ashr::ash(as.vector(Bhat[,t_ind]),
-                 as.vector(Shat[,t_ind]),
-                 mixcompdist = "normal" ,
-                 outputlevel=0)
+                       as.vector(Shat[,t_ind]),
+                       mixcompdist = "normal" ,
+                       outputlevel=0)
     }
-
+    
   }else{
     out <- ashr::ash(as.vector(Bhat[,indx_lst[[s]]]),
-               as.vector(Shat[,indx_lst[[s]]]),
-               mixcompdist = "normal" ,
-               outputlevel=0)
+                     as.vector(Shat[,indx_lst[[s]]]),
+                     mixcompdist = "normal" ,
+                     outputlevel=0)
   }
-
+  
   return(out)
 }
 
@@ -746,7 +746,7 @@ HMM_regression.susiF <- function( obj,
                                   verbose=TRUE,
                                   fit_indval=TRUE ,...
 ){
-
+  
   if(verbose){
     print( "Fine mapping done, refining effect estimates using HMM regression")
   }
@@ -759,7 +759,7 @@ HMM_regression.susiF <- function( obj,
   
   
   
- 
+  
   N <- nrow(X)
   sub_X <- data.frame (X[, idx])
   if(length(idx)> length(unique(idx))){
@@ -770,95 +770,95 @@ HMM_regression.susiF <- function( obj,
   
   fitted_trend  <- list()
   fitted_lfsr   <- list()
-
-
+  
+  
   tt <- lapply( 1: ncol(Y),
                 function(j){
-
+                  
                   summary(lm(Y[,j]~-1+.,data=sub_X))$coefficients[ ,c(1,2,4 )]
-
-
+                  
+                  
                 }
-
-
+                
+                
   )
-
-
-
+  
+  
+  
   fitted_trend <- list()
   fitted_lfsr   <- list()
-
-
+  
+  
   for ( l in 1: length(idx)){
-     fitted_lfsr [[l]] <- rep(1 , ncol(Y))
-     fitted_trend[[l]] <- rep(0 , ncol(Y))
- }
-
-
- if (length(idx) ==1){
-   est  <- do.call(c, lapply( 1: length(tt) ,function (j) tt[[j]][ 1]))
-   sds  <- do.call(c, lapply( 1: length(tt) ,function (j) tt[[j]][ 2]))
-   pvs  <- do.call(c, lapply( 1: length(tt) ,function (j) tt[[j]][ 3]))
-
-   tsds <- sds#pval2se(est,pvs) # t -likelihood correction usefull to contrl lfsr in small sample size
-   tsds[ which( tsds==0)]   <- sds[ which( tsds==0)]
-   if (sum(is.na(tsds))>0){
-     est [ which( is.na(tsds))]<- 0
-     tsds[ which( is.na(tsds))]<- 1
-   }
-
-
-   s =  fit_hmm(x=est ,sd=tsds ,halfK=20 )
-   fitted_lfsr [[1]] <- s$lfsr
-   fitted_trend[[1]] <- s$x_post
- }else{
-   for (  lp in 1: length(idx))
-   {
-
-     idx_cs <-  which( colnames(sub_X) %in% rownames(tt[[1]])[lp] )
-     est  <- do.call(c, lapply( 1: length(tt) ,function (j) tt[[j]][ lp  ,1]))
-
-     sds  <- do.call(c, lapply( 1: length(tt) ,function (j) tt[[j]][lp,2]))
-     pvs  <- do.call(c, lapply( 1: length(tt) ,function (j) tt[[j]][lp,3]))
-     tsds <- sds#pval2se(est,pvs) # t -likelihood correction usefull to contrl lfsr in small sample size
-     tsds[ which( tsds==0)]<- sds[ which( tsds==0)]
-     if (sum(is.na(tsds))>0){
-       est [ which( is.na(tsds))]<- 0
-       tsds[ which( is.na(tsds))]<- 1
-     }
-     s =  fit_hmm(x=est ,sd=tsds ,halfK=20 )
-     fitted_lfsr [[idx_cs]] <- s$lfsr
-     fitted_trend[[idx_cs]] <- s$x_post
-
-   }
-
- }
-
-
+    fitted_lfsr [[l]] <- rep(1 , ncol(Y))
+    fitted_trend[[l]] <- rep(0 , ncol(Y))
+  }
+  
+  
+  if (length(idx) ==1){
+    est  <- do.call(c, lapply( 1: length(tt) ,function (j) tt[[j]][ 1]))
+    sds  <- do.call(c, lapply( 1: length(tt) ,function (j) tt[[j]][ 2]))
+    pvs  <- do.call(c, lapply( 1: length(tt) ,function (j) tt[[j]][ 3]))
+    
+    tsds <- sds#pval2se(est,pvs) # t -likelihood correction usefull to contrl lfsr in small sample size
+    tsds[ which( tsds==0)]   <- sds[ which( tsds==0)]
+    if (sum(is.na(tsds))>0){
+      est [ which( is.na(tsds))]<- 0
+      tsds[ which( is.na(tsds))]<- 1
+    }
+    
+    
+    s =  fit_hmm(x=est ,sd=tsds ,halfK=20 )
+    fitted_lfsr [[1]] <- s$lfsr
+    fitted_trend[[1]] <- s$x_post
+  }else{
+    for (  lp in 1: length(idx))
+    {
+      
+      idx_cs <-  which( colnames(sub_X) %in% rownames(tt[[1]])[lp] )
+      est  <- do.call(c, lapply( 1: length(tt) ,function (j) tt[[j]][ lp  ,1]))
+      
+      sds  <- do.call(c, lapply( 1: length(tt) ,function (j) tt[[j]][lp,2]))
+      pvs  <- do.call(c, lapply( 1: length(tt) ,function (j) tt[[j]][lp,3]))
+      tsds <- sds#pval2se(est,pvs) # t -likelihood correction usefull to contrl lfsr in small sample size
+      tsds[ which( tsds==0)]<- sds[ which( tsds==0)]
+      if (sum(is.na(tsds))>0){
+        est [ which( is.na(tsds))]<- 0
+        tsds[ which( is.na(tsds))]<- 1
+      }
+      s =  fit_hmm(x=est ,sd=tsds ,halfK=20 )
+      fitted_lfsr [[idx_cs]] <- s$lfsr
+      fitted_trend[[idx_cs]] <- s$x_post
+      
+    }
+    
+  }
+  
+  
   fitted_trend <- lapply(1:length(idx), function(l)
     fitted_trend[[l]]/obj$csd_X[idx[l]]
   )
-
-
+  
+  
   obj$fitted_func <- fitted_trend
   obj$lfsr_func   <- fitted_lfsr
-
+  
   if( fit_indval ){
-
+    
     mean_Y <- attr(Y, "scaled:center")
     obj$ind_fitted_func <- matrix(mean_Y,
-                                        byrow=TRUE,
-                                        nrow=nrow(Y),
-                                        ncol=ncol(Y))+Reduce("+",
-                                                             lapply(1:length(obj$alpha),
-                                                                    function(l)
-                                                                      matrix( X[,idx[[l]]] , ncol=1)%*%
-                                                                      t(obj$fitted_func[[l]] )*(attr(X, "scaled:scale")[idx[[l]]])
-                                                             )
-                                        )
-
+                                  byrow=TRUE,
+                                  nrow=nrow(Y),
+                                  ncol=ncol(Y))+Reduce("+",
+                                                       lapply(1:length(obj$alpha),
+                                                              function(l)
+                                                                matrix( X[,idx[[l]]] , ncol=1)%*%
+                                                                t(obj$fitted_func[[l]] )*(attr(X, "scaled:scale")[idx[[l]]])
+                                                       )
+                                  )
+    
   }
-
+  
   return(obj)
 }
 
@@ -908,30 +908,30 @@ log_BF.mixture_normal <- function (G_prior,
                                    lowc_wc,
                                    indx_lst,
                                    df=NULL, ...) {
-
- 
+  
+  
   
   
   ## Deal with overfitted cases
   Shat[ Shat<=0 ] <- 1e-32
   if (is.null(df)){
-
+    
     t_col_post <- function (t,lowc_wc) {
-
+      
       m    <- G_prior[[1]]
       if(!is.null(lowc_wc)){
         tt   <- rep(0,length(Shat[t,-lowc_wc] ))
       }else{
         tt   <- rep(0,length(Shat[t,]))
       }
-
+      
       pi_k <- m$fitted_g$pi
       sd_k <- m$fitted_g$sd
-
+      
       # Speed Gain: could potential skip the one that are exactly zero.
       # Speed Gain: could potential skip the one that are exactly zero.
-
-
+      
+      
       if (!is.null(lowc_wc)) {
         tt <- Reduce("+", lapply(1:length(m$fitted_g$pi), function(k) {
           pi_k[k] * dnorm(Bhat[t, -lowc_wc], sd = sqrt(sd_k[k]^2 + Shat[t, -lowc_wc]^2))
@@ -944,29 +944,29 @@ log_BF.mixture_normal <- function (G_prior,
         out <- sum(log(tt) - dnorm(Bhat[t, ], sd = Shat[t, ], log = TRUE))
       }
       
-
+      
       # tt <- ifelse(tt==Inf,max(10000, 100*max(tt[-which(tt==Inf)])),tt)
-
+      
       return(out)
     }
   }else{
-
-
+    
+    
     t_col_post <- function (t,lowc_wc) {
-
+      
       m    <- G_prior[[1]]
       if(!is.null(lowc_wc)){
         tt   <- rep(0,length(Shat[t,-lowc_wc] ))
       }else{
         tt   <- rep(0,length(Shat[t,]))
       }
-
+      
       pi_k <- m$fitted_g$pi
       sd_k <- m$fitted_g$sd
-
+      
       # Speed Gain: could potential skip the one that are exactly zero.
       # Speed Gain: could potential skip the one that are exactly zero.
-
+      
       if(!is.null(lowc_wc)){
         for (k in 1:length(m$fitted_g$pi))
         {
@@ -980,24 +980,24 @@ log_BF.mixture_normal <- function (G_prior,
         }
         out <- sum(log(tt) - LaplacesDemon::dstp(Bhat[t,],tau = 1/Shat[t, ]^2,nu=df,log = TRUE))
       }
-
+      
       # tt <- ifelse(tt==Inf,max(10000, 100*max(tt[-which(tt==Inf)])),tt)
-
+      
       return(out)
     }
   }
-
-
+  
+  
   out <- lapply(1:nrow(Bhat),function(k) t_col_post(k, lowc_wc))
   lBF <- do.call(c,out)
-
+  
   # Avoid extreme overflow problem when little noise is present.
   if (prod(is.finite(lBF)) == 0) {
     lBF <- ifelse(lBF==Inf,max(10000, 100*max(lBF[-which(lBF==Inf)])),lBF)
     lBF <- ifelse(lBF== -Inf,max(-10000, -100*max(lBF[-which(lBF== -Inf)])),
                   lBF)
   }
-
+  
   return(lBF)
 }
 
@@ -1020,20 +1020,20 @@ log_BF.mixture_normal_per_scale <- function (G_prior,
                                              indx_lst,
                                              df=NULL, 
                                              ...) {
-
-
+  
+  
   ## Deal with overfitted cases
   Shat[ Shat<=0 ] <- 1e-32
   if (is.null(df)){
     t_col_post <- function (t) {
       t_s_post <- function (s) {
-
+        
         if( !is.null(lowc_wc)){
-
-
+          
+          
           t_ind <-indx_lst[[s]]
           t_ind <-  t_ind[which(t_ind %!in% lowc_wc)]
-
+          
           if( length(t_ind)==0){ #create a ash object with full weight on null comp
             return(0)
           }else{
@@ -1042,78 +1042,78 @@ log_BF.mixture_normal_per_scale <- function (G_prior,
             return(ashr::calc_logLR(ashr::get_fitted_g(m),data))
           }
         }
-
+        
         else{
           m <- G_prior[[s]] # Speed Gain: could potential skip the one that are exactly zero.
           data <- ashr::set_data(Bhat[t,indx_lst[[s]]],Shat[t,indx_lst[[s]]])
           return(ashr::calc_logLR(ashr::get_fitted_g(m),data))
         }
-
+        
       }
-
+      
       # NOTE: Maybe replace unlist(lapply(...)) with sapply(...).
       return(sum(unlist(lapply(1:(log2(ncol(Bhat))+1), # Important to maintain the ordering of the wavethresh package !!!!
                                t_s_post))))
     }
   }
-    else{
-      t_col_post <- function (t) {
-        t_s_post <- function (s) {
-          m <- G_prior[[s]]
-
-
-          pi_k <- m$fitted_g$pi
-          sd_k <- m$fitted_g$sd
-          if( !is.null(lowc_wc)){
-
-
-            t_ind <-indx_lst[[s]]
-            t_ind <-  t_ind[which(t_ind %!in% lowc_wc)]
-            tt   <- rep(0,length(Shat[t, t_ind]))
-
-            if( length(t_ind)==0){ #create a ash object with full weight on null comp
-              return(0)
-            }else{
-              for (k in 1:length(m$fitted_g$pi))
-              {
-
-                tt <- tt + pi_k[k] *LaplacesDemon::dstp(Bhat[t,t_ind],tau = 1/(sd_k[k]^2 + Shat[t,t_ind]^2), nu=df)
-              }
-              out <- sum(log(tt) - LaplacesDemon::dstp(Bhat[t,t_ind],tau = 1/Shat[t,t_ind]^2,nu=df,log = TRUE))
-
-              return(out)
-            }
-          }
-
-          else{
-          # Speed Gain: could potential skip the one that are exactly zero.
-            t_ind <-indx_lst[[s]]
-            t_ind <-  t_ind[which(t_ind %!in% lowc_wc)]
-            tt   <- rep(0,length(Shat[t, t_ind]))
-
+  else{
+    t_col_post <- function (t) {
+      t_s_post <- function (s) {
+        m <- G_prior[[s]]
+        
+        
+        pi_k <- m$fitted_g$pi
+        sd_k <- m$fitted_g$sd
+        if( !is.null(lowc_wc)){
+          
+          
+          t_ind <-indx_lst[[s]]
+          t_ind <-  t_ind[which(t_ind %!in% lowc_wc)]
+          tt   <- rep(0,length(Shat[t, t_ind]))
+          
+          if( length(t_ind)==0){ #create a ash object with full weight on null comp
+            return(0)
+          }else{
             for (k in 1:length(m$fitted_g$pi))
             {
+              
               tt <- tt + pi_k[k] *LaplacesDemon::dstp(Bhat[t,t_ind],tau = 1/(sd_k[k]^2 + Shat[t,t_ind]^2), nu=df)
             }
             out <- sum(log(tt) - LaplacesDemon::dstp(Bhat[t,t_ind],tau = 1/Shat[t,t_ind]^2,nu=df,log = TRUE))
-
-
-            return(out )
+            
+            return(out)
           }
-
         }
-
-        # NOTE: Maybe replace unlist(lapply(...)) with sapply(...).
-        return(sum(unlist(lapply(1:(log2(ncol(Bhat))+1), # Important to maintain the ordering of the wavethresh package !!!!
-                                 t_s_post))))
+        
+        else{
+          # Speed Gain: could potential skip the one that are exactly zero.
+          t_ind <-indx_lst[[s]]
+          t_ind <-  t_ind[which(t_ind %!in% lowc_wc)]
+          tt   <- rep(0,length(Shat[t, t_ind]))
+          
+          for (k in 1:length(m$fitted_g$pi))
+          {
+            tt <- tt + pi_k[k] *LaplacesDemon::dstp(Bhat[t,t_ind],tau = 1/(sd_k[k]^2 + Shat[t,t_ind]^2), nu=df)
+          }
+          out <- sum(log(tt) - LaplacesDemon::dstp(Bhat[t,t_ind],tau = 1/Shat[t,t_ind]^2,nu=df,log = TRUE))
+          
+          
+          return(out )
+        }
+        
       }
+      
+      # NOTE: Maybe replace unlist(lapply(...)) with sapply(...).
+      return(sum(unlist(lapply(1:(log2(ncol(Bhat))+1), # Important to maintain the ordering of the wavethresh package !!!!
+                               t_s_post))))
     }
-
-
-
+  }
+  
+  
+  
   out <- lapply(1:nrow(Bhat),FUN = t_col_post)
   lBF <- do.call(c,out)
-
+  
   if( prod(is.finite(lBF) )==0) # Avoid extreme overflow problem when little noise is present
   {
     lBF <-  ifelse(lBF==Inf,max(10000, 100*max(lBF[-which(lBF==Inf)])),lBF)
@@ -1172,65 +1172,65 @@ post_mat_mean.mixture_normal  <- function( G_prior,
                                            indx_lst,
                                            e=0.001,...  )
 {
-
-
-
+  
+  
+  
   if( !is.null( lBF)){
-
+    
     alpha  <- cal_zeta(   lBF)
     idx_c <-  which( alpha >e )
   }else{
     idx_c=NULL
   }
-
+  
   if ( length(idx_c)==0|| is.null( lBF)){
-
+    
     t_col_post <- function(t){
       m <- G_prior [[1]]
       data <-  ashr::set_data(Bhat[t, ] ,Shat[t,] )
       return(ashr::postmean(ashr::get_fitted_g(m),data))
     }
-
-
-
+    
+    
+    
     out <- lapply( 1:(dim(Bhat)[1]),
                    FUN= t_col_post)
-
+    
     out <- t(Reduce("cbind", out))
-
-
+    
+    
     if( !is.null(lowc_wc)){
       out[, lowc_wc] <-0
     }
   }else{
     t_out <- 0*Bhat
-
-
-
+    
+    
+    
     t_col_post <- function(t){
       m <- G_prior [[1]]
       data <-  ashr::set_data(Bhat[t, ] ,Shat[t,] )
       return(ashr::postmean(ashr::get_fitted_g(m),data))
     }
-
-
-
+    
+    
+    
     out <- lapply(idx_c,
-                   FUN= t_col_post)
-
+                  FUN= t_col_post)
+    
     out <- t(Reduce("cbind", out))
-
-
-
+    
+    
+    
     t_out[idx_c,] <- out
     out <- t_out
     if( !is.null(lowc_wc)){
       out[, lowc_wc] <-0
     }
   }
-
-
-
+  
+  
+  
   return(out)
 }
 
@@ -1255,25 +1255,25 @@ post_mat_mean.mixture_normal_per_scale <- function( G_prior,
                                                     e=0.001,
                                                     ...  )
 {
-
-
-
+  
+  
+  
   if( !is.null( lBF)){
-
+    
     alpha  <- cal_zeta(   lBF)
     idx_c <-  which( alpha >e )
   }else{
     idx_c=NULL
   }
-
-
+  
+  
   if ( length(idx_c)==0|| is.null( lBF)){
-
+    
     t_col_post <- function(t  ){
-
+      
       t_m_post <- function(s ){
         m <- G_prior [[ s]]
-
+        
         data <-  ashr::set_data(Bhat[t,indx_lst[[s]] ],
                                 Shat[t, indx_lst[[s]] ]
         )
@@ -1284,27 +1284,27 @@ post_mat_mean.mixture_normal_per_scale <- function( G_prior,
       )
       )
     }
-
-
-
+    
+    
+    
     out <- lapply( 1:(dim(Bhat)[1]),
                    FUN= t_col_post)
-
+    
     out <- t(Reduce("cbind", out))
-
-
+    
+    
     if( !is.null(lowc_wc)){
       out[, lowc_wc] <-0
     }
   }else{
-
+    
     t_out <- 0*Bhat
-
+    
     t_col_post <- function(t  ){
-
+      
       t_m_post <- function(s ){
         m <- G_prior [[ s]]
-
+        
         data <-  ashr::set_data(Bhat[t,indx_lst[[s]] ],
                                 Shat[t, indx_lst[[s]] ]
         )
@@ -1315,25 +1315,25 @@ post_mat_mean.mixture_normal_per_scale <- function( G_prior,
       )
       )
     }
-
-
-
+    
+    
+    
     out <- lapply( idx_c,
                    FUN= t_col_post)
-
+    
     out <- t(Reduce("cbind", out))
-
+    
     t_out[idx_c,] <- out
     out <- t_out
     if( !is.null(lowc_wc)){
       out[, lowc_wc] <-0
     }
-
+    
   }
-
-
+  
+  
   return(out)
-
+  
 }
 
 
@@ -1387,59 +1387,59 @@ post_mat_sd.mixture_normal  <- function( G_prior,
                                          indx_lst,
                                          e=0.001,...  )
 {
-
+  
   if( !is.null( lBF)){
-
+    
     alpha  <- cal_zeta(   lBF)
     idx_c <-  which( alpha >e )
   }else{
     idx_c=NULL
   }
-
+  
   if ( length(idx_c)==0|| is.null( lBF)){
     t_col_post <- function(t){
       m <- G_prior [[1]]
       data <-  ashr::set_data(Bhat[t,  ] ,Shat[t, ] )
       return(ashr::postsd(ashr::get_fitted_g(m),data))
     }
-
-
-
+    
+    
+    
     out <- lapply(1:(dim(Bhat)[1] ),t_col_post )
-
-
+    
+    
     out <- t(Reduce("cbind", out))
-
-
+    
+    
     if( !is.null(lowc_wc)){
       out[, lowc_wc] <-1
     }
   }else{
-
-
+    
+    
     t_out <- 0*Shat+1
     t_col_post <- function(t){
       m <- G_prior [[1]]
       data <-  ashr::set_data(Bhat[t,  ] ,Shat[t, ] )
       return(ashr::postsd(ashr::get_fitted_g(m),data))
     }
-
-
-
+    
+    
+    
     out <- lapply(idx_c,t_col_post )
-
-
+    
+    
     out <- t(Reduce("cbind", out))
-
+    
     t_out[idx_c,] <- out
     out <- t_out
     if( !is.null(lowc_wc)){
       out[, lowc_wc] <-1
     }
-
+    
   }
-
-
+  
+  
   return(out)
 }
 
@@ -1464,23 +1464,23 @@ post_mat_sd.mixture_normal_per_scale <-  function( G_prior,
                                                    indx_lst,
                                                    e=0.001,...  )
 {
-
-
+  
+  
   if( !is.null( lBF)){
-
+    
     alpha  <- cal_zeta(   lBF)
     idx_c <-  which( alpha >e )
   }else{
     idx_c=NULL
   }
-
+  
   if ( length(idx_c)==0|| is.null( lBF)){
-
+    
     t_col_post <- function(t  ){
-
+      
       t_sd_post <- function(s ){
         m <- G_prior [[ s]]
-
+        
         data <-  ashr::set_data(Bhat[t,indx_lst[[s]] ],
                                 Shat[t, indx_lst[[s]] ]
         )
@@ -1491,27 +1491,27 @@ post_mat_sd.mixture_normal_per_scale <-  function( G_prior,
       )
       )
     }
-
-
-
+    
+    
+    
     out <- lapply(1:(dim(Bhat)[1] ),t_col_post )
-
-
+    
+    
     out <- t(Reduce("cbind", out))
-
-
+    
+    
     if( !is.null(lowc_wc)){
       out[, lowc_wc] <-1
     }
   }else{
-
+    
     t_out <- 0*Shat+1
-
+    
     t_col_post <- function(t  ){
-
+      
       t_sd_post <- function(s ){
         m <- G_prior [[ s]]
-
+        
         data <-  ashr::set_data(Bhat[t,indx_lst[[s]] ],
                                 Shat[t, indx_lst[[s]] ]
         )
@@ -1522,23 +1522,23 @@ post_mat_sd.mixture_normal_per_scale <-  function( G_prior,
       )
       )
     }
-
-
-
+    
+    
+    
     out <- lapply(idx_c,t_col_post )
-
-
+    
+    
     out <- t(Reduce("cbind", out))
-
+    
     t_out[idx_c,] <- out
     out <- t_out
     if( !is.null(lowc_wc)){
       out[, lowc_wc] <-1
     }
-
-
+    
+    
   }
-
+  
   return(out)
 }
 
@@ -1620,7 +1620,7 @@ TI_regression.susiF <- function( obj,Y,X, verbose=TRUE,
                       fitted_var=list(),
                       idx_lead_cov = list()
   )
-   
+  
   
   
   for ( l in 1: length(obj$cs)){
@@ -1808,7 +1808,7 @@ TI_regression.susiF <- function( obj,Y,X, verbose=TRUE,
                                                         ix2 = 1, filter = mywst$filter) *1/(obj$csd_X[ which.max(obj$alpha[[l]])] )
     mv.wd = wd.var(rep(0, ncol(Y)),   type = "station")
     mv.wd$D <-  (refined_est$wd2[[l]])
-   
+    
     obj$fitted_var[[l]]   <-  AvBasis.var(convert.var(mv.wd))*(1/(obj$csd_X[ which.max(obj$alpha[[l]])] )^2)
     obj$fitted_func[[l]] <-  refined_est$fitted_func[[l]]
     up                         <-  obj$fitted_func[[l]]+ coeff* sqrt(obj$fitted_var[[l]]) #*sqrt(obj$N-1)
@@ -1974,6 +1974,63 @@ univariate_TI_regression <- function( Y,X,
 }
 
 
+
+univariate_smash_regression=  function( Y,X, alpha=0.05){
+  
+  coeff= qnorm(1-( alpha)/2)
+  X     <- colScale(X)
+  csd_X <-   attr(X, "scaled:scale")
+  
+  tt <- lapply( 1: ncol(Y),
+                function(j){
+                  
+                  summary(lm(Y[,j]~-1+X[,1]))$coefficients[ ,c(1,2,4 )]
+                  
+                  
+                }
+                
+                
+  )
+  est  <- do.call(c, lapply( 1: length(tt) ,function (j) tt[[j]][ 1   ]))
+  
+  sds  <- do.call(c, lapply( 1: length(tt) ,function (j) tt[[j]][ 2]))
+  pvs  <- do.call(c, lapply( 1: length(tt) ,function (j) tt[[j]][ 3]))
+  tsds <- sds#pval2se(est,pvs) # t -likelihood correction usefull to contrl lfsr in small sample size
+  tsds[ which( tsds==0)]<- sds[ which( tsds==0)]
+  if (sum(is.na(tsds))>0){
+    est [ which( is.na(tsds))]<- 0
+    tsds[ which( is.na(tsds))]<- 1
+  }
+  
+  s =  smashr::smash.gaus(x=est ,
+                          sigma =  sqrt(tsds),
+                          ashparam = list(optmethod="mixVBEM" ), 
+                          post.var = TRUE  )
+  
+  
+  
+  
+  
+  fitted_trend   <- s$mu.est
+  fitted_var <- s$mu.est.var
+  fitted_func <- fitted_trend
+  
+  coeff= qnorm(1-(1-alpha)/2)
+  
+  
+  
+  
+  up                         <-   fitted_func + coeff* sqrt(fitted_var )  
+  low                        <-   fitted_func - coeff*sqrt(fitted_var )  
+  cred_band    <- rbind(up, low)
+  
+  out = list( effect_estimate=fitted_func,
+              cred_band=cred_band,
+              fitted_var= fitted_var)
+  return(out)
+  
+  
+}
 
 
 #univariate TI regression
@@ -2214,10 +2271,10 @@ smash_regression.susiF <- function(  obj,Y,X, verbose=TRUE,
       tsds[ which( is.na(tsds))]<- 1
     }
     
-     s =  smashr::smash.gaus(x=est ,
+    s =  smashr::smash.gaus(x=est ,
                             sigma =  sqrt(tsds),
-                             ashparam = list(optmethod="mixVBEM" ), 
-                             post.var = TRUE  )
+                            ashparam = list(optmethod="mixVBEM" ), 
+                            post.var = TRUE  )
     #s =  smash_2lw(noisy_signal=est ,
     #                noise_level  =   tsds)
     fitted_trend[[1]] <- s$mu.est
@@ -2240,10 +2297,10 @@ smash_regression.susiF <- function(  obj,Y,X, verbose=TRUE,
       }
       
       
-       s =  smashr::smash.gaus(x=est ,
-                                sigma =   (tsds),
+      s =  smashr::smash.gaus(x=est ,
+                              sigma =   (tsds),
                               ashparam =list(optmethod="mixVBEM"),  
-                             post.var = TRUE  )
+                              post.var = TRUE  )
       #s =  smash_2lw(noisy_signal=est ,
       #               noise_level  =   tsds)
       fitted_trend[[idx_cs]]  <- s$mu.est
