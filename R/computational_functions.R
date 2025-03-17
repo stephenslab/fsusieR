@@ -2142,7 +2142,7 @@ univariate_TI_regression_IS <- function( Y,X,
 
 
 univariate_functional_regression <- function(Y,X,
-                                             method=c("TI", "HMM"),
+                                             method=c("TI", "HMM","smash"),
                                              filter.number = 1 ,
                                              family = "DaubExPhase",
                                              alpha=0.05){
@@ -2162,6 +2162,12 @@ univariate_functional_regression <- function(Y,X,
                                     family = family,
                                     alpha=  alpha)
     
+  }
+  if(method=="smash"){
+    out= univariate_smash_regression ( Y=Y,
+                                       X=X,
+                                       alpha=  alpha
+    )
   }
   
   return(out)
