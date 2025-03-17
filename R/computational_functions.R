@@ -2003,7 +2003,7 @@ univariate_smash_regression=  function( Y,X, alpha=0.05){
   }
   
   s =  smashr::smash.gaus(x=est ,
-                          sigma =  sqrt(tsds),
+                          sigma =  mean(tsds),
                           ashparam = list(optmethod="mixVBEM" ), 
                           post.var = TRUE  )
   
@@ -2278,7 +2278,7 @@ smash_regression.susiF <- function(  obj,Y,X, verbose=TRUE,
     }
     
     s =  smashr::smash.gaus(x=est ,
-                            sigma =  sqrt(tsds),
+                            sigma =  mean(tsds),
                             ashparam = list(optmethod="mixVBEM" ), 
                             post.var = TRUE  )
     #s =  smash_2lw(noisy_signal=est ,
@@ -2304,7 +2304,7 @@ smash_regression.susiF <- function(  obj,Y,X, verbose=TRUE,
       
       
       s =  smashr::smash.gaus(x=est ,
-                              sigma =   (tsds),
+                              sigma =   mean(tsds),
                               ashparam =list(optmethod="mixVBEM"),  
                               post.var = TRUE  )
       #s =  smash_2lw(noisy_signal=est ,
