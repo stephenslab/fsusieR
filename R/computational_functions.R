@@ -2003,7 +2003,7 @@ univariate_smash_regression=  function( Y,X, alpha=0.05){
   }
   
   s =  smashr::smash.gaus(x=est ,
-                          sigma =  sqrt(obj$sigma2 ),#mean(tsds),,
+                          sigma =   mean(sds) ,#mean(tsds),,
                           ashparam = list(optmethod="mixVBEM" ), 
                           post.var = TRUE  )
   
@@ -2139,7 +2139,7 @@ univariate_TI_regression_IS <- function( Y,X,
 #' @examples
 #' library(susiF)
 #'
-
+ 
 
 univariate_functional_regression <- function(Y,X,
                                              method=c("TI", "HMM","smash"),
@@ -2259,8 +2259,12 @@ smash_regression.susiF <- function(  obj,Y,X, verbose=TRUE,
   
   fitted_trend <- list()
   fitted_var   <- list()
-  
-  sigma2= (do.call(c, lapply( 1: length(tt) ,function (j) mean (tt[[j]][  ,3]))))
+  #some problem with low variance counts
+  sigma = (do.call(c, lapply( 1: length(tt) ,function (j) mean (tt[[j]][  ,2]))))
+  if( sum(is.na(sigma ))>0){
+    sigma [which(is.na(sigma ))]= mean (sigma , na.rm=TRUE)
+  } 
+ # sigma2=mean(sigma2)
   for ( l in 1: length(idx)){
     fitted_lfsr [[l]] <- rep(1 , ncol(Y))
     fitted_trend[[l]] <- rep(0 , ncol(Y))
@@ -2280,7 +2284,7 @@ smash_regression.susiF <- function(  obj,Y,X, verbose=TRUE,
     }
     
     s =  smashr::smash.gaus(x=est ,
-                            sigma =  sigma2,#mean(tsds),,
+                            sigma =  ( sigma ),#mean(tsds),,
                             ashparam = list(optmethod="mixVBEM" ), 
                             post.var = TRUE  )
     #s =  smash_2lw(noisy_signal=est ,
@@ -2306,7 +2310,7 @@ smash_regression.susiF <- function(  obj,Y,X, verbose=TRUE,
       
       
       s =  smashr::smash.gaus(x=est ,
-                              sigma =   sqrt(sigma2 ),#mean(tsds),,
+                              sigma =    (sigma  ),#mean(tsds),,
                               ashparam =list(optmethod="mixVBEM"),  
                               post.var = TRUE  )
       #s =  smash_2lw(noisy_signal=est ,
