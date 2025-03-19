@@ -94,19 +94,22 @@ The simplest function to start with is the **univariate_functional_regression** 
 Here we look at the effect of SNP 261 on  the observed  log1p counts.
 
 
+We fit the data using an HMM model, you can also use wavelet re
 ```{r}
 uni_res= univariate_functional_regression(Y=log1p(Y_cor),
                                           X=as.matrix(X[,261],
-                                                      ncol=1)
+                                                      ncol=1),
+                                          method="smash"
                                           )
 ```
+
 
 ```{r}
 plot(pos, uni_res$effect_estimate, 
      ylab = "estimated effect",
      xlab="base pair",
      type="l",
-     lwd=1.4,
+     lwd=2,
      col="royalblue",
      ylim=c (min(uni_res$cred_band),max(uni_res$cred_band)))
 lines( pos,uni_res$cred_band[1,], 
@@ -125,7 +128,7 @@ abline(h=0)
 ### Visualize effect in context
 Great you have estimate the effect of a SNP on some count. Let's improve this visualization a bit so we can get some biological interpretation. Below a quick tutorial to put this results in context  using GViz
 
-```{r}
+```{r message=FALSE, warning=FALSE}
 library(AnnotationHub)
 library(org.Hs.eg.db)
 library(GenomicRanges)
@@ -150,20 +153,37 @@ effect=effect=rbind(uni_res$effect_estimate,
 group_colors <- c("black" ,"royalblue","royalblue","royalblue" )
 group_lwd= c(1,2,1,1)
 
+
+read_counts <-  rbind( colMeans(log1p(Y_cor[x == 1,])),
+                       colMeans(log1p(Y_cor[x == 0,])) 
+                           )
+obs_effect=rbind (read_counts[2,]-read_counts[1,],
+                      rep(0, length(read_counts[2,] )) ) 
+
+ylim= c( min( c(effect,obs_effect)), max(c(  effect,obs_effect)))
+
 group_cred= c(1:3,0)  
 effect_track <-
     DataTrack(range = GRanges(seqnames = chr,
-                                          ranges = IRanges(start = positions,
-                                                           end = positions + 1)),
-                          data = effect, genome = "hg38",
-                          groups= group_cred,
-              name = "Effect SNP 261",type = "l",   lwd= group_lwd,
-                          col = group_colors,
-              track.margin = 0.05,cex.title = 0.6,cex.axis = 0.6,
-              col.axis = "black",col.title = "black",
-              fontface = "plain",background.title = "white",
+                              ranges = IRanges(start = positions,
+                                                 end = positions + 1)),
+              ylim=ylim,
+              data = effect,
+              genome = "hg38",
+               groups= group_cred,
+              name = "Effect SNP 261",
+              type = "l",   
+              lwd= group_lwd,  
+              col = group_colors,
+              track.margin = 0.05,
+              cex.title = 0.6,
+              cex.axis = 0.6,
+              col.axis = "black",
+              col.title = "black",
+              fontface = "plain",
+              background.title = "white",
               fontface.title = 1, 
-                          legend=FALSE)
+              legend=FALSE)
 ```
 
 
@@ -172,13 +192,21 @@ effect_track <-
 ```{r}
 
   # Create a "gene region" track.
-  gene_track <- GeneRegionTrack(txdb,genome = "hg38",chromosome = chr,
-                                pos0 = pos0,pos1 = pos1,name = "",
-                                showId = TRUE,geneSymbol = TRUE,
-                                col.axis = "black",col.title = "black",
+  gene_track <- GeneRegionTrack(txdb,
+                                genome = "hg38",
+                                chromosome = chr,
+                                pos0 = pos0,
+                                pos1 = pos1,
+                                name = "",
+                                showId = TRUE,
+                                geneSymbol = TRUE,
+                                col.axis = "black",
+                                col.title = "black",
                                 transcriptAnnotation = "symbol",
-                                rotation.title = 0,cex.title = 0.6,
-                                col = "salmon",fill = "salmon",
+                                rotation.title = 0,
+                                cex.title = 0.6,
+                                col = "salmon",
+                                fill = "salmon",
                                 background.title = "white")
 ```
 
@@ -188,8 +216,8 @@ effect_track <-
 ```{r}
 x       <- X[,261]
 
-read_counts <-  rbind( colMeans(log1p(Y[x == 1,])),
-                       colMeans(log1p(Y[x == 0,])) 
+read_counts <-  rbind( colMeans(log1p(Y_cor[x == 1,])),
+                       colMeans(log1p(Y_cor[x == 0,])) 
                            )
  
 groups <- c("SNP 261 = 0",
@@ -199,49 +227,176 @@ lab_y = "avg. log1p count"
   data_track <- DataTrack(range = GRanges(seqnames = chr,
                                           ranges = IRanges(start = positions,
                                                            end = positions + 1)),
-                          data = read_counts,genome = "hg38",
+                          data = read_counts,
+                          genome = "hg38",
                           groups = groups,
-                          name = lab_y  , type = "p" , #"p",#type = "l",
+                          name = lab_y  , 
+                          type = "p" , #"p",#type = "l",
                           col = geno_colors  ,
-                          track.margin = 0.05,cex.title = 0.6,cex.axis = 0.6,
-                          col.axis = "black",col.title = "black",
-                          fontface = "plain",background.title = "white",
-                          fontface.title = 1,cex.legend = 0.6, cex=0.2)
+                          track.margin = 0.05,
+                          cex.title = 0.6,
+                          cex.axis = 0.6,
+                          col.axis = "black",
+                          col.title = "black",
+                          fontface = "plain",
+                          background.title = "white",
+                          fontface.title = 1,
+                          cex.legend = 0.6,
+                          cex=0.2)
 ```
 
 
 
+```{r}
+obs_diff_track <-
+    DataTrack(range = GRanges(seqnames = chr,
+                                          ranges = IRanges(start = positions,
+                                                           end = positions + 1)),
+                          data =  read_counts[1,]- read_counts[2,],
+              genome = "hg38",
+              ylim=ylim,             
+              name = "observed difference \n between genotype",
+              type = "p", 
+              lwd= 2,
+              col = "blue",
+              track.margin = 0.05,
+              cex.title = 0.6,
+              cex.axis = 0.6,
+              col.axis = "black",
+              col.title = "black",
+              fontface = "plain",
+              background.title = "white",
+              fontface.title = 1, 
+              legend=FALSE)
+obs_diff_track2 <-
+    DataTrack(range = GRanges(seqnames = chr,
+                              ranges = IRanges(start = positions,
+                                               end = positions + 1)),
+              data =  rep(0, 1024), 
+              genome = "hg38",
+              ylim= ylim, 
+              name ="Observed difference ",
+              type = c("l"  ),
+              col = c("black" ),
+              track.margin = 0.05,
+              cex.title =  0.6,
+              cex.axis =  0.6,
+              col.axis = "black",
+              col.title = "black",
+              fontface = "plain",
+              background.title = "white",
+              fontface.title = 1,
+              legend = FALSE )
+  obs_diff_track =OverlayTrack(trackList = list(obs_diff_track,
+                                                  obs_diff_track2),background.title = "white")
+  
+  
+```
+
+
+Now you can stack the track to visualize them together
 
 ```{r}
  tracks <- c( 
       effect_track,
+      obs_diff_track,
       data_track,
       gene_track 
     )
 
-plotTracks(tracks, from = pos0, to = pos1, sizes = c(  3, 4, 4 ))
+plotTracks(tracks, from = pos0, to = pos1, sizes = c(  3,3, 3, 1 ))
 ```
 
+
+Ze might have an effect of SNP 261 but it not a given, now let's fine map this data using fsusie
 
 ### Fine mapping SNP effect on RNA seq
 
-The example above is nice, however, this naive approach cannot allow to asses if the effect of SNP 261 4
+The example above is nice, however, this naive approach cannot asses if the effect of SNP 261 4
 is real or do to linkage disequilbrium with another SNP.
 
-To solve this problem with developed susiF. It can be run as follow
+To solve this problem with developed susiF. It can be run as follow. Note that it 
+will take a bit of time so you can load the results instead if you are not patient
 ```{r running_fsusie}
 library(fsusieR)
-result= susiF(Y=log1p(Y_cor),X=as.matrix(X), L=10)
+result= susiF(Y=log1p(Y_cor),X=as.matrix(X), L=20 , post_processing = "smash"             )
+#result= RNAseqData$results
 ```
+
+
+Notice that our candidate in not part of the SNP being selected by susiF
 
 
 
 ```{r}
-plot(result$fitted_func[[1
-                         ]])
+result$cs
+```
+
+
+
+
+
+Congrats you have fine map the SNP on our mock RNAseq data. You can visualize the results 
+using our custom functions **plot_susiF** to plot both the PIP and the fitted functio, or **plot_susiF_pip** for th PIPS only and **plot_susiF_effect** for visualizing just the effect
+
+
+ 
+
+```{r}
+plot_susiF(result
+           )
+```
+
+
+
+
+
+```{r}
+res_HMM = change_fit   ( result,
+                      log1p(Y_cor),
+                      X, 
+                      to="HMM"
+)
+```
+
+
+
+
+You can also acces the results directly as follow
+
+```{r}
+cs=2 
+pos=  result$outing_grid
+plot(x= pos ,
+     y= result$fitted_func[[cs
+                         ]], 
+     ylab = paste("estimated effect for CS  ",cs),
+     xlab="base pair",
+     type="l",
+     lwd=2,
+     col="royalblue",
+     ylim=c (min(result$cred_band[[cs]]),max(result$cred_band[[cs]])))
+lines( x= pos ,
+       y= result$cred_band[[cs]][1,], 
+       lty=2,
+       lwd=1.4,
+       col="royalblue")
+lines(  x= pos ,
+        y= result$cred_band[[cs]][2,], 
+        lty=2,
+       lwd=1.4,
+       col="royalblue")
+abline(h=0)
 ```
   
-  
-  
+```{r}
+tt= do.call( rbind , result$lBF)
+
+plot(apply(tt,2,max), col =ifelse(result$pip>0.2,2,3), pch=20)
+
+```  
+We also developped a custom function to visualize the fSuSiE results using GViZ  
+
+You can use the 
 
  

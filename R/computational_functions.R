@@ -1977,6 +1977,7 @@ univariate_TI_regression <- function( Y,X,
 
 univariate_smash_regression=  function( Y,X, alpha=0.05){
   
+  
   coeff= qnorm(1-( alpha)/2)
   X     <- colScale(X)
   csd_X <-   attr(X, "scaled:scale")
@@ -1995,7 +1996,7 @@ univariate_smash_regression=  function( Y,X, alpha=0.05){
   
   sds  <- do.call(c, lapply( 1: length(tt) ,function (j) tt[[j]][ 2]))
   pvs  <- do.call(c, lapply( 1: length(tt) ,function (j) tt[[j]][ 3]))
-  tsds <- sds#pval2se(est,pvs) # t -likelihood correction usefull to contrl lfsr in small sample size
+  tsds <-  sds#pval2se(est,pvs) # t -likelihood correction usefull to contrl lfsr in small sample size
   tsds[ which( tsds==0)]<- sds[ which( tsds==0)]
   if (sum(is.na(tsds))>0){
     est [ which( is.na(tsds))]<- 0
@@ -2003,9 +2004,15 @@ univariate_smash_regression=  function( Y,X, alpha=0.05){
   }
   
   s =  smashr::smash.gaus(x=est ,
-                          sigma =   mean(sds) ,#mean(tsds),,
+                          sigma = tsds,#  sqrt(tsds) ,#mean(tsds),,
                           ashparam = list(optmethod="mixVBEM" ), 
                           post.var = TRUE  )
+  
+  
+ # s =  smashr::smash.gaus(x=est ,
+ # #                        sigma = sd (  X %*%s$mu.est  - Y)/sqrt(nrow(Y))  ,#(tsds) ,#mean(tsds),,
+ #                         ashparam = list(optmethod="mixVBEM" ), 
+ #                         post.var = TRUE  )
   
   
   
@@ -2013,11 +2020,7 @@ univariate_smash_regression=  function( Y,X, alpha=0.05){
   
   fitted_trend   <- s$mu.est
   fitted_var <- s$mu.est.var
-  fitted_func <- fitted_trend
-  
-  coeff= qnorm(1-(1-alpha)/2)
-  
-  
+  fitted_func <- fitted_trend 
   
   
   up                         <-   fitted_func + coeff* sqrt(fitted_var )  

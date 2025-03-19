@@ -299,7 +299,7 @@ susiF <- function(Y, X, L = 2,
                   cor_small=FALSE,
                   filter.number = 10,
                   family =  "DaubLeAsymm",
-                  post_processing=c("TI","smash","HMM","none"),
+                  post_processing=c("smash","TI","HMM","none"),
                   e = 0.001,
                   tol_null_prior=0.001
 
@@ -318,7 +318,7 @@ susiF <- function(Y, X, L = 2,
   warning("Option none is not recommended and the effect estimate can be poor")
  }
   if(post_processing=="smash"){
-    warning("Option is experimental, the credible band tend to be to narrow")
+    #warning("Option is experimental, the credible band tend to be to narrow")
   }
 
   ####Cleaning input -----
@@ -376,7 +376,7 @@ susiF <- function(Y, X, L = 2,
     X <- X[,-tidx]
   }
   if( verbose){
-    print("scaling columns of X and Y to have unit variance")
+    print("Scaling columns of X and Y to have unit variance")
   }
   X <- colScale(X)
   # centering input
