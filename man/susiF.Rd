@@ -17,7 +17,7 @@ susiF(
   min_purity = 0.5,
   filter_cs = TRUE,
   init_pi0_w = 1,
-  nullweight = 10,
+  nullweight = 0.001,
   control_mixsqp = list(verbose = FALSE, eps = 1e-06, numiter.em = 4),
   thresh_lowcount = 0,
   cal_obj = FALSE,
@@ -32,7 +32,7 @@ susiF(
   cor_small = FALSE,
   filter.number = 10,
   family = "DaubLeAsymm",
-  post_processing = c("TI", "smash", "HMM", "none"),
+  post_processing = c("smash", "TI", "HMM", "none"),
   e = 0.001,
   tol_null_prior = 0.001
 )
@@ -75,7 +75,7 @@ expected level of coverage of the CS if not specified, set to 0.95}
 \item{filter_cs}{logical, if TRUE filters the credible set (removing low-purity)
 cs and cs with estimated prior equal to 0). Set as TRUE by default.}
 
-\item{init_pi0_w}{starting value of weight on null compoenent in mixsqp
+\item{init_pi0_w}{starting value of weight on null component in mixsqp
 (between 0 and 1)}
 
 \item{nullweight}{numeric value for penalizing likelihood at point mass 0 (should be between 0 and 1)
@@ -125,12 +125,12 @@ The Bayes factor from Valen E Johnson JRSSB 2005 tends to have better coverage i
 
 \item{post_processing}{character, use "TI" for translation invariant wavelet estimates,
 "HMM" for hidden Markov model (useful for estimating non-zero regions),
-"none" for simple wavelet estimate (not recommended). In general we recommend using TI as post processing,
- Nonetheless the HMM perform particularly well when analysing data with say few sampling points (i.e ncol(Y)<30) or when the data are particularly noisy (low singla noise ratio).
+"none" for simple wavelet estimate (not recommended) and "smashr" experimental. In general we recommend using TI as post processing,
+ Nonetheless the HMM perform particularly well when analysing data with say few sampling points (i.e ncol(Y)<30) or when the data are particularly noisy (low signal noise ratio).
  However, we found that the HMM post processing is quite sensitive to the Gaussian assumption and we advise to use data transformation if your data are not
- normally distributed, e.g., using log1p( Y[i,]/si) for  count data data where si is the individual scaling factor as defined in  $s_i =
-\frac{\text{total count for cell} \; i}
-{\text{average across all cells}}$ or using M-value instead of Beta value when analysing DNA methylation data}
+ normally distributed, e.g., using log1p( Y[i,]/si) for  count data data where si is the individual scaling factor as defined in  $s_i = \frac{\sum_{j=1}^p \tilde{Y}_{ij} }{\frac{1}{n}\sum_{i=1}^n\sum_{j=1}^p \tilde{Y}_{ij}}$
+ or using M-value instead of Beta value when analysing DNA methylation data. The option smashr is experimental and tend to give good point estimate but the credible band 
+ can be to narrow and so should be used with caution.}
 
 \item{e}{threshold value is used to avoid computing posteriors that have low alpha values. Set it to 0 to compute the entire posterior. default value is 0.001}
 

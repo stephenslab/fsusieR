@@ -67,7 +67,7 @@ expected level of coverage of the cs if not specified set to 0.95}
 
 \item{maxit}{Maximum number of IBSS iterations.}
 
-\item{tt}{output of the cal_Bhat_Shat function}
+\item{tt}{output of the cal_Bhat_Shat function, if provided allow skipping the first step of the IBSS}
 
 \item{parallel}{if true use parallel computation}
 

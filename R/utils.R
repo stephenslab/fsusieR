@@ -333,3 +333,75 @@ bin_Y <- function(Y, base_pair, n_bins = 1024) {
               pos = start_bin,
               bin_size = bin_size))
 }
+
+
+
+
+log1pexp = function (x){
+  indx <- .bincode(x, c(-Inf, -37, 18, 33.3, Inf), right = TRUE,
+                   include.lowest = TRUE)
+  kk <- which(indx == 1)
+  if (length(kk)) {
+    x[kk] <- exp(x[kk])
+  }
+  kk <- which(indx == 2)
+  if (length(kk)) {
+    x[kk] <- log1p(exp(x[kk]))
+  }
+  kk <- which(indx == 3)
+  if (length(kk)) {
+    x[kk] <- x[kk] + exp(-x[kk])
+  }
+  return(x)
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+reflect_vec <- function (x)
+{
+  n = length(x)
+  J = log2(n)
+  if ((J%%1) == 0) {
+    x = c(x, x[n:1])
+    return(list(x = x, idx = 1:n))
+  }
+  else {
+    n.ext = 2^ceiling(J)
+    lnum = round((n.ext - n)/2)
+    rnum = n.ext - n - lnum
+    if (lnum == 0) {
+      x.lmir = NULL
+    }
+    else {
+      x.lmir = x[lnum:1]
+    }
+    if (rnum == 0) {
+      x.rmir = NULL
+    }
+    else {
+      x.rmir = x[n:(n - rnum + 1)]
+    }
+    x.ini = c(x.lmir, x, x.rmir)
+    x.mir = x.ini[n.ext:1]
+    x = c(x.ini, x.mir)
+    return(list(x = x, idx = (lnum + 1):(lnum + n)))
+  }
+}
+
+
+
+
+

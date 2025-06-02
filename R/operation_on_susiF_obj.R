@@ -768,7 +768,7 @@ greedy_backfit.susiF <-  function(obj,
 
   dummy.cs <-  which_dummy_cs(obj,
                               min_purity = min_purity,
-                              median_crit=TRUE,
+                              median_crit=FALSE,
                               X=X)
 
 
@@ -1745,7 +1745,7 @@ update_cal_indf.susiF <- function(obj, Y, X, indx_lst, TI=FALSE,...)
 {
 
 
-  if( TI){
+ # if( TI){
 
     idx_lead_cov <- list()
 
@@ -1764,48 +1764,48 @@ update_cal_indf.susiF <- function(obj, Y, X, indx_lst, TI=FALSE,...)
                                                )
                                         )
 
-    return( obj)
-  }else{
-    mean_Y          <- attr(Y, "scaled:center")
-    if(sum( is.na(unlist(obj$alpha))))
-    {
-      stop("Error: some alpha value not updated, please update alpha value first")
-    }
-    temp <- wavethresh::wd(rep(0, obj$n_wac)) #create dummy wd object
+   # return( obj)
+  #}else{
+   # mean_Y          <- attr(Y, "scaled:center")
+   # if(sum( is.na(unlist(obj$alpha))))
+  #  {
+  #    stop("Error: some alpha value not updated, please update alpha value first")
+  #  }
+  #  temp <- wavethresh::wd(rep(0, obj$n_wac)) #create dummy wd object
 
 
-    if(inherits(get_G_prior(obj),"mixture_normal_per_scale" ))
-    {
-      for ( i in 1:obj$N)
-      {
-        obj$ind_fitted_func[i,]  <- mean_Y#fitted_baseline future implementation
-        for ( l in 1:obj$L)
-        {
+  #  if(inherits(get_G_prior(obj),"mixture_normal_per_scale" ))
+  #  {
+  #    for ( i in 1:obj$N)
+  #    {
+ #       obj$ind_fitted_func[i,]  <- mean_Y#fitted_baseline future implementation
+ #       for ( l in 1:obj$L)
+ #       {
           #add wavelet coefficient
-          temp$D                         <-    ( obj$alpha[[l]] * X [i,])%*%obj$fitted_wc[[l]][,-indx_lst[[length(indx_lst)]]]
-          temp$C[length(temp$C)]         <-    ( obj$alpha[[l]] * X [i,])%*%obj$fitted_wc[[l]][,indx_lst[[length(indx_lst)]]]
+ #         temp$D                         <-    ( obj$alpha[[l]] * X [i,])%*%obj$fitted_wc[[l]][,-indx_lst[[length(indx_lst)]]]
+ #         temp$C[length(temp$C)]         <-    ( obj$alpha[[l]] * X [i,])%*%obj$fitted_wc[[l]][,indx_lst[[length(indx_lst)]]]
           #transform back
-          obj$ind_fitted_func[i,]  <-  obj$ind_fitted_func[i,]+wavethresh::wr(temp)
-        }
-      }
-    }
-    if(inherits(get_G_prior(obj),"mixture_normal" ))
-    {
-      for ( i in 1:obj$N)
-      {
-        obj$ind_fitted_func[i,]  <- mean_Y#fitted_baseline
-        for ( l in 1:obj$L)
-        {
+ #         obj$ind_fitted_func[i,]  <-  obj$ind_fitted_func[i,]+wavethresh::wr(temp)
+ #       }
+ #     }
+ #   }
+  #  if(inherits(get_G_prior(obj),"mixture_normal" ))
+ #   {
+ #     for ( i in 1:obj$N)
+ #     {
+ #       obj$ind_fitted_func[i,]  <- mean_Y#fitted_baseline
+  #      for ( l in 1:obj$L)
+  #      {
           #add wavelet coefficient
-          temp$D                         <-    (obj$alpha[[l]] * X [i,])%*%obj$fitted_wc[[l]][,-dim(obj$fitted_wc[[l]])[2]]
-          temp$C[length(temp$C)]         <-    (obj$alpha[[l]] * X [i,]) %*%obj$fitted_wc[[l]][,dim(obj$fitted_wc[[l]])[2]]
+  #        temp$D                         <-    (obj$alpha[[l]] * X [i,])%*%obj$fitted_wc[[l]][,-dim(obj$fitted_wc[[l]])[2]]
+  #        temp$C[length(temp$C)]         <-    (obj$alpha[[l]] * X [i,]) %*%obj$fitted_wc[[l]][,dim(obj$fitted_wc[[l]])[2]]
           #transform back
-          obj$ind_fitted_func[i,]  <-  obj$ind_fitted_func[i,]+wavethresh::wr(temp)
-        }
-      }
-    }
+ #         obj$ind_fitted_func[i,]  <-  obj$ind_fitted_func[i,]+wavethresh::wr(temp)
+ #       }
+ #     }
+ #   }
     return( obj)
-  }
+# }
 
 
 }

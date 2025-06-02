@@ -271,8 +271,7 @@ test_stop_cond.EBmvFR <- function(obj, check, cal_obj, Y, X, D, C, indx_lst,...)
 #' @keywords internal
 
 out_prep.EBmvFR <- function( obj,  Y,  X, indx_lst,    outing_grid,...)
-{
-  obj <- obj
+{ 
 
   obj             <-  update_cal_fit_func(obj, indx_lst)
   obj             <-  update_cal_indf    (obj, X = X)

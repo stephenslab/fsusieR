@@ -7,7 +7,7 @@
 univariate_functional_regression(
   Y,
   X,
-  method = c("TI", "HMM"),
+  method = c("TI", "HMM", "smash"),
   filter.number = 1,
   family = "DaubExPhase",
   alpha = 0.05

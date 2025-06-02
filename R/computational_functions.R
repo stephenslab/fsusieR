@@ -541,7 +541,9 @@ fit_hmm <- function (x,sd,
   }
   
   transition=matrix( 0, ncol=ncol(P), nrow=length(X))
-  P <- xi / rowSums(xi)
+  row_sums <- rowSums(xi)
+  row_sums[row_sums == 0] <- 1  # prevent division by zero
+  P <- xi / row_sums
   
   
   idx_comp <- which( apply(prob, 2, mean) >thresh )
@@ -682,7 +684,9 @@ fit_hmm <- function (x,sd,
     }
     
     transition=matrix( 0, ncol=ncol(P), nrow=length(X))
-    P <- xi / rowSums(xi)
+    row_sums <- rowSums(xi)
+    row_sums[row_sums == 0] <- 1  # prevent division by zero
+    P <- xi / row_sums
     iter =iter +1
     #lines( x_post, col=iter)
     
@@ -1591,7 +1595,7 @@ TI_regression.susiF <- function( obj,Y,X, verbose=TRUE,
                                  filter.number = 1, family = "DaubExPhase" ,
                                  alpha=0.01,
                                  ... ){
-  
+ 
   if(verbose){
     print( "Fine mapping done, refining effect estimates using cylce spinning wavelet transform")
   }
@@ -1650,7 +1654,7 @@ TI_regression.susiF <- function( obj,Y,X, verbose=TRUE,
                          first.level  <- first.last.d[level, 1]
                          idx   <- (offset.level + 1 - first.level):(offset.level +n - first.level)
                          t_ash <- ashr::ash(c( res$Bhat[idx]), (c(res$Shat[idx])), 
-                                            nullweight=3,mixcompdist = "normal")
+                                            nullweight=300,mixcompdist = "normal")
                          
                          wd [idx] <- t_ash$result$PosteriorMean
                          wd2[idx] <- t_ash$result$PosteriorSD^2
@@ -1681,7 +1685,7 @@ TI_regression.susiF <- function( obj,Y,X, verbose=TRUE,
     if(inherits(get_G_prior(obj),"mixture_normal" )){
       res <- cal_Bhat_Shat(Y_f, matrix(X[,refined_est$idx_lead_cov[[1]]],
                                        ncol=1))
-      t_ash <-  ashr::ash(c( res$Bhat),c(res$Shat), nullweight=3,mixcompdist = "normal")
+      t_ash <-  ashr::ash(c( res$Bhat),c(res$Shat), nullweight=300,mixcompdist = "normal")
       refined_est$wd[[1]] <- t_ash$result$PosteriorMean
       refined_est$wd2[[1]]<- t_ash$result$PosteriorSD^2
       
@@ -1722,7 +1726,7 @@ TI_regression.susiF <- function( obj,Y,X, verbose=TRUE,
                              first.level <- first.last.d[level, 1]
                              idx <- (offset.level + 1 - first.level):(offset.level +n - first.level)
                              t_ash <- ashr::ash(c( res$Bhat[idx]), (c(res$Shat[idx])), 
-                                                nullweight=3,mixcompdist = "normal")
+                                                nullweight=300,mixcompdist = "normal")
                              
                              wd [idx] <- t_ash$result$PosteriorMean
                              wd2[idx] <- t_ash$result$PosteriorSD^2
@@ -1750,7 +1754,7 @@ TI_regression.susiF <- function( obj,Y,X, verbose=TRUE,
           )
           
           res <- cal_Bhat_Shat(par_resc, matrix(X[,refined_est$idx_lead_cov[[l]]], ncol=1))
-          t_ash <- ashr::ash(c( res$Bhat),c(res$Shat), nullweight=3,mixcompdist = "normal")
+          t_ash <- ashr::ash(c( res$Bhat),c(res$Shat), nullweight=300,mixcompdist = "normal")
           refined_est$wdC[[l]] <- t_ash$result$PosteriorMean
           
           
@@ -1771,7 +1775,7 @@ TI_regression.susiF <- function( obj,Y,X, verbose=TRUE,
           )
           
           res <- cal_Bhat_Shat(par_res, matrix(X[,refined_est$idx_lead_cov[[l]]], ncol=1))
-          t_ash <- ashr::ash(c( res$Bhat),c(res$Shat), nullweight=3,mixcompdist = "normal")
+          t_ash <- ashr::ash(c( res$Bhat),c(res$Shat), nullweight=300,mixcompdist = "normal")
           refined_est$wd[[l]] <- t_ash$result$PosteriorMean
           refined_est$wd2[[l]]<- t_ash$result$PosteriorSD^2
           
@@ -1784,7 +1788,7 @@ TI_regression.susiF <- function( obj,Y,X, verbose=TRUE,
           )
           
           res <- cal_Bhat_Shat(par_resc, matrix(X[,refined_est$idx_lead_cov[[l]]], ncol=1))
-          t_ash <- ashr::ash(c( res$Bhat),c(res$Shat), nullweight=3,mixcompdist = "normal")
+          t_ash <- ashr::ash(c( res$Bhat),c(res$Shat), nullweight=300,mixcompdist = "normal")
           refined_est$wdC[[l]] <- t_ash$result$PosteriorMean
           
           
@@ -1922,7 +1926,7 @@ univariate_TI_regression <- function( Y,X,
                      first.level <- first.last.d[level, 1]
                      idx <- (offset.level + 1 - first.level):(offset.level +n - first.level)
                      t_ash <- ashr::ash(c( res$Bhat[idx]), (c(res$Shat[idx])), 
-                                        nullweight=3,mixcompdist = "normal")
+                                        nullweight=300,mixcompdist = "normal")
                      
                      wd [idx] <- t_ash$result$PosteriorMean
                      wd2[idx] <- t_ash$result$PosteriorSD^2
@@ -2286,12 +2290,13 @@ smash_regression.susiF <- function(  obj,Y,X, verbose=TRUE,
       tsds[ which( is.na(tsds))]<- 1
     }
     
-    s =  smashr::smash.gaus(x=est ,
-                            sigma =  ( sigma ),#mean(tsds),,
-                            ashparam = list(optmethod="mixVBEM" ), 
+     s =  smashr::smash.gaus(x=est ,
+                             sigma =  ( sigma ),#mean(tsds),,
+                             ashparam = list(optmethod="mixVBEM" ), 
                             post.var = TRUE  )
-    #s =  smash_2lw(noisy_signal=est ,
-    #                noise_level  =   tsds)
+    #browser()
+    # s =  smash_lw(noisy_signal=est ,
+    #               noise_level  =   tsds)
     fitted_trend[[1]] <- s$mu.est
     fitted_var  [[1]] <- s$mu.est.var
   }else{
@@ -2312,12 +2317,12 @@ smash_regression.susiF <- function(  obj,Y,X, verbose=TRUE,
       }
       
       
-      s =  smashr::smash.gaus(x=est ,
-                              sigma =    (sigma  ),#mean(tsds),,
-                              ashparam =list(optmethod="mixVBEM"),  
-                              post.var = TRUE  )
-      #s =  smash_2lw(noisy_signal=est ,
-      #               noise_level  =   tsds)
+       s =  smashr::smash.gaus(x=est ,
+                               sigma =    (sigma  ),#mean(tsds),,
+                               ashparam =list(optmethod="mixVBEM"),  
+                             post.var = TRUE  )
+      # s =  smash_lw(noisy_signal=est ,
+      #                noise_level  =   tsds)
       fitted_trend[[idx_cs]]  <- s$mu.est
       fitted_var[[idx_cs]]  <- s$mu.est.var
     }
@@ -2347,9 +2352,103 @@ smash_regression.susiF <- function(  obj,Y,X, verbose=TRUE,
   
   return(obj)
 }
-
-
-
+smash_lw  <- function(noisy_signal, noise_level = 1, n.shifts = 50,
+                      family = "DaubExPhase", filter.number = 10 ) {
+  library(wavethresh)
+  library(ashr)
+  #browser()
+  x <- noisy_signal 
+  n <- length(x)
+  if( length(noise_level)==1){
+    
+    sds <- rep(noise_level, n)
+  }else{
+    sds=noise_level
+  }
+  if ((log2(n) %% 1) != 0) {
+    next_pow2 <- 2^ceiling(log2(n))
+    extra <- next_pow2 - n
+    reflect_part <- rev(x[1:extra])
+    x_padded <- c(x, reflect_part)
+    sds_padded <- c(sds, rev(sds[1:extra]))
+  } else {
+    x_padded <- x
+    sds_padded <- sds
+  }
+  
+  x_reflect <- c(x_padded, rev(x_padded))
+  s_reflect <- c(sds_padded, rev(sds_padded))
+  pos_interest <- 1:n
+  pos_interest_padded <- (length(x_padded) + 1):(length(x_padded) + n)
+  
+  n_r <- length(x_reflect)
+  k <- floor(n / n.shifts)
+  
+  W <- GenW(n = length(x_reflect), filter.number = filter.number, family = family)
+  wavelet_var <- apply(W^2, 1, function(row) sum(row * (s_reflect^2)))
+  
+  est <- list()
+  est_var <- list()
+  
+  for (i in 1:n.shifts) {
+    shifted_x <- c(x_reflect[(i * k + 1):n_r], x_reflect[1:(i * k)])
+    shifted_var <- wavelet_var
+    wd_shifted <- wavethresh::wd(shifted_x, filter.number = filter.number, family = family)
+    
+    idx_wave <- gen_wavelet_indx(log2(length(shifted_x)))
+    
+    temp <- lapply(1:(length(idx_wave) - 1), function(s) {
+      t_ash <- ashr::ash(wd_shifted$D[idx_wave[[s]]],
+                         sqrt(shifted_var[idx_wave[[s]]]),
+                         nullweight = 300)
+      list(wd = t_ash$result$PosteriorMean,
+           wd2 = t_ash$result$PosteriorSD^2)
+    })
+    
+    d <- rep(0, length(wd_shifted$D))
+    d2 <- rep(0, length(wd_shifted$D)  +1 )
+    for (s in 1:(length(idx_wave) - 1)) {
+      d[idx_wave[[s]]] <-  temp[[s]]$wd
+      d2[idx_wave[[s]]] <- temp[[s]]$wd2
+    }
+    
+    wd_shifted$D <- d
+    tt <- wavethresh::wr(wd_shifted)
+    
+    #mv.wd = wd.var(rep(0,length(noisy_signal)),   type = "station")
+    # mv.wd$D=d2
+    #ab_var=   AvBasis.var(convert.var( mv.wd))
+    s_var <- apply(W^2, 1, function(row) sum(row * d2))
+    
+    est[[i]] <- tt
+    est_var[[i]] <- s_var
+  }
+  
+  recover_x <- function(shifted_x, i, k) {
+    n <- length(shifted_x)
+    shift_back <- (n - i * k) %% n
+    c(shifted_x[(shift_back + 1):n], shifted_x[1:shift_back])
+  }
+  
+  est_f <- lapply(1:length(est), function(i) recover_x(est[[i]], i, k = k))
+  est_v_f <- lapply(1:length(est_var), function(i) recover_x(est_var[[i]], i, k = k))
+  
+  est_f <- do.call(rbind, est_f)
+  est_v_f <- do.call(rbind, est_v_f)
+  
+  est_final <- list()
+  est_var_final <- list()
+  
+  for (i in 1:nrow(est_f)) {
+    est_final[[i]] <- 0.5 * (est_f[i, pos_interest] + rev(est_f[i, pos_interest_padded]))
+    est_var_final[[i]] <- 0.5 * (est_v_f[i, pos_interest] + rev(est_v_f[i, pos_interest_padded]))
+  }
+  
+  est_mean <- colMeans(do.call(rbind, est_final))
+  est_var <- colMeans(do.call(rbind, est_var_final))
+  
+  return(list(mu.est = est_mean, mu.est.var = est_var))
+}
 
 smash_2lw= function( noisy_signal, noise_level=1, n.shifts=50 ){
   
@@ -2474,8 +2573,8 @@ smash_2lw= function( noisy_signal, noise_level=1, n.shifts=50 ){
   
   
   
-  return( list(mu.est=  apply(do.call(rbind, est_final),2,median) , # colMeans(do.call(rbind, est_final)),
-               mu.est.var=   apply(do.call(rbind, est_var_final),2,median) )# colMeans(do.call(rbind, est_var_final)))
+  return( list(mu.est=  apply(do.call(rbind, est_final),2,mean) , # colMeans(do.call(rbind, est_final)),
+               mu.est.var=   apply(do.call(rbind, est_var_final),2,mean) )# colMeans(do.call(rbind, est_var_final)))
   )
   
   

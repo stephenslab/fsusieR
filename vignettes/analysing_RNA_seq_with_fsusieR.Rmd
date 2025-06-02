@@ -99,7 +99,8 @@ We fit the data using an HMM model, you can also use wavelet re
 uni_res= univariate_functional_regression(Y=log1p(Y_cor),
                                           X=as.matrix(X[,261],
                                                       ncol=1),
-                                          method="smash"
+                                          method="smash",
+                                          alpha = 0.1
                                           )
 ```
 
@@ -152,8 +153,7 @@ effect=effect=rbind(uni_res$effect_estimate,
              rep(0,length(uni_res$effect_estimate)))
 group_colors <- c("black" ,"royalblue","royalblue","royalblue" )
 group_lwd= c(1,2,1,1)
-
-
+x=X[,261]
 read_counts <-  rbind( colMeans(log1p(Y_cor[x == 1,])),
                        colMeans(log1p(Y_cor[x == 0,])) 
                            )
