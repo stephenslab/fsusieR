@@ -458,19 +458,19 @@ pois_mean_GG = function(x,
 }
 
 #'calculate objective function
-pois_mean_GG_opt_obj = function(theta,x,s,beta,sigma2,n){
+pois_mean_GG_opt_obj = function(theta, ..., x, s, beta, sigma2, n){
   m = theta[1:n]
   v = theta[(n+1):(2*n)]
-  return(-sum(x*m-s*exp(m+exp(v)/2)-(m^2+exp(v)-2*m*beta)/2/sigma2+v/2))
+  return(-sum(x*m - s*exp(m+exp(v)/2) - (m^2+exp(v)-2*m*beta)/2/sigma2 + v/2))
 }
 
 #'calculate gradient vector
-pois_mean_GG_opt_obj_gradient = function(theta,x,s,beta,sigma2,n){
+pois_mean_GG_opt_obj_gradient = function(theta, ..., x, s, beta, sigma2, n){
   m = theta[1:n]
   v = theta[(n+1):(2*n)]
-  g1 = -(x-s*exp(m+exp(v)/2)-m/sigma2+beta/sigma2)
-  g2 = -(-exp(v)/2*s*exp(m+exp(v)/2) - exp(v)/2/sigma2 + 1/2)
-  return(c(g1,g2))
+  g1 = -(x - s*exp(m+exp(v)/2) - m/sigma2 + beta/sigma2)
+  g2 = -(-exp(v)/2 * s * exp(m+exp(v)/2) - exp(v)/(2*sigma2) + 0.5)
+  return(c(g1, g2))
 }
 
 

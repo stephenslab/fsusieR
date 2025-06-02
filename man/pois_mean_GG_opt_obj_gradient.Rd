@@ -4,7 +4,7 @@
 \alias{pois_mean_GG_opt_obj_gradient}
 \title{calculate gradient vector}
 \usage{
-pois_mean_GG_opt_obj_gradient(theta, x, s, beta, sigma2, n)
+pois_mean_GG_opt_obj_gradient(theta, ..., x, s, beta, sigma2, n)
 }
 \description{
 calculate gradient vector
