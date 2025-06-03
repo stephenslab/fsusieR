@@ -404,4 +404,22 @@ reflect_vec <- function (x)
 
 
 
+#' @title Perform Haar-Fisz tranform on  count matrix
+#
+#' @param   count.data a N by T matrix of count data where each row is an observed Poisson processt  
+#
+# 
+#
+#' @return a matrix of size N by T  of the Haar-Fisz transformed data
+#
+#' @export
+#'@export
+HFT<- function(count.data){
+  lst <- list()
+  for ( i in 1:nrow(count.data)){
+    lst[[i]] <-haarfisz::hft(count.data[i,])
+  }
+  out <- do.call( rbind,lst)
+  return(out)
+}
 

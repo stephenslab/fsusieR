@@ -1,7 +1,7 @@
 Encoding: UTF-8
 Type: Package
 Package: fsusieR
-Version: 0.2.97
+Version: 0.2.98
 Date: 2025-02-11
 Title: Sum of Single Functions
 Authors@R: c(person("William R. P.","Denault",role = c("aut","cre"),
@@ -36,6 +36,7 @@ Suggests:
     org.Hs.eg.db,
     GenomicRanges,
     Gviz,
+    haarfisz,
     TxDb.Hsapiens.UCSC.hg38.knownGene,
 License: BSD_3_clause + file LICENSE
 NeedsCompilation: yes

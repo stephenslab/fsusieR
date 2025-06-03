@@ -12,7 +12,7 @@ Pois_fSuSiE <- function(Y,
                         
                         scaling= NULL,
                         L_start=3,
-                        max.iter=3,
+                        max.iter=10,
                         
                         post_processing=c("smash","TI","HMM","none"),
                         maxit.fsusie=50,
@@ -48,7 +48,8 @@ Pois_fSuSiE <- function(Y,
                         tol_vga_pois=1e-5, 
                         nullweight_fsusie= .001,
                         reflect =FALSE,
-                        init_pi0_w= 1
+                        init_pi0_w= 1,
+                        plot_evo=FALSE
 )
 {
   ####Changer les calcul d'objective -----
@@ -133,9 +134,9 @@ Pois_fSuSiE <- function(Y,
     
     if ( iter ==1 ){
       tt= ebpm_normal(c(Y),s= rep( scaling, ncol(Y)) )
-      Mu_pm <- matrix( tt$posterior$mean_log,byrow = FALSE, ncol=ncol(Y))
-      
-      
+      Mu_pm <- matrix( tt$posterior$mean_log ,byrow = FALSE, ncol=ncol(Y))
+      Mu_pv <- matrix( tt$posterior$var_log  ,byrow = FALSE, ncol=ncol(Y))
+   
     }else{
       
       
@@ -155,8 +156,12 @@ Pois_fSuSiE <- function(Y,
     
     
     
-    
-    plot( log1p(Y) , (Mu_pm   ))
+    if(plot_evo){
+      
+      plot( log1p(Y) , (Mu_pm   ),
+            ylab=paste("Posterior mean of the log  intensity iter", iter),
+            main=paste( "posterior mean of the log intensity vs log1p of Y iter", iter))
+    }
     
     if(init){
       
@@ -322,9 +327,8 @@ Pois_fSuSiE <- function(Y,
       
       fm_pm <- susiF.obj$ind_fitted_func
       
+     
       
-      plot(  (fm_pm) , (Mu_pm   ))
-       
     }else{
       fm_pm <-0* tmp_Mu_pm_fm
       susiF.obj   <- NULL
@@ -334,6 +338,10 @@ Pois_fSuSiE <- function(Y,
     resid <- Mu_pm   -fm_pm-b_pm
     #not correct to work on later
     sigma2_pois <- var(c(resid ))
+    
+   
+    sigma2_pois = mean (  c(Mu_pm^2 +Mu_pv+ fm_pm^2 +b_pm^2   -2*Mu_pm*(fm_pm+b_pm)))
+    
     #print(sigma2_pois)
     Mu_pm <-  fm_pm+b_pm#update
     Mu_pm_init <-Mu_pm
@@ -347,15 +355,15 @@ Pois_fSuSiE <- function(Y,
     #points ( exp(Mu_pm  [1,]))
     # lines(exp(Mu_pm  [1,]), col="green")
     
-    
-     plot( Y ,exp(Mu_pm   ))
-    
+ 
     #abline(a=0,b=1)
     #par (mfrow=c(1,1))
   }
   
   
-  
+  tt <-    pois_mean_GG(c(Y), prior_mean = c(Mu_pm_init),
+                        prior_var = sigma2_pois )
+  Mu_pm <- matrix( tt$posterior$posteriorMean_latent,byrow = FALSE, ncol=ncol(Y))
   
   tt_all= exp(Mu_pm)
   

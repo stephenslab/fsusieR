@@ -1,0 +1,198 @@
+---
+title: "Poisson fSuSiE"
+author: "William R.P. Denault"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    toc: no
+    highlight: textmate
+    theme: readable
+vignette: >
+  %\VignetteIndexEntry{Poisson fSuSiE}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+**Note:** This vignette describes a development version of Poisson-fSuSiE.
+
+## Inhomogeneous Poisson Process
+
+We developed **Poisson-fSuSiE** to fine-map read counts over gene bodies or other sequence-based assays.
+We assume the data arise from an overdispersed inhomogeneous Poisson process, where genetic variants (SNPs) affect the intensity in specific regions.
+
+Below, we simulate such a dataset. In this example, two causal SNPs influence specific regions of the intensity function.
+
+```{r}
+library(fsusieR)
+library(susieR)
+library(ebnm)
+
+set.seed(1)
+"%!in%" <- function(x, y) !(x %in% y)
+
+data(N3finemapping)
+X_raw <- N3finemapping$X
+N <- 200
+mysd <- 1.1
+genotype <- X_raw[sample(1:nrow(X_raw), size = N), 1:100]
+idx_zero_var <- which(apply(genotype, 2, var) < 1e-15)
+if (length(idx_zero_var) > 0) genotype <- genotype[, -idx_zero_var]
+X <- (genotype - 0.99 * min(genotype)) / (0.5 * max(genotype))
+G <- X
+
+lev_res <- 6
+L <- 2
+lf <- list()
+lf[[1]] <- rep(0, 2^lev_res); lf[[1]][20:30] <- 1.5
+lf[[2]] <- rep(0, 2^lev_res); lf[[2]][50:60] <- 1.5
+
+true_pos <- sample(1:ncol(G), replace = FALSE, size = L)
+
+plot(lf[[1]], type = "l", main = paste("Effect of SNP", true_pos[1]), ylab = "Effect", xlab = "Position")
+plot(lf[[2]], type = "l", main = paste("Effect of SNP", true_pos[2]), ylab = "Effect", xlab = "Position")
+
+count.data <- vector("list", N)
+True_intensity <- list()
+for (i in 1:N) {
+  predictor <- rep(0, 2^lev_res)
+  for (l in 1:L) {
+    G[, true_pos[l]] <- G[, true_pos[l]] - min(G[, true_pos[l]])
+    predictor <- predictor + G[i, true_pos[l]] * lf[[l]] + 0.3
+  }
+  lambda <- exp(predictor + rnorm(length(predictor), sd = mysd))
+  count.data[[i]] <- rpois(n = length(predictor), lambda = lambda)
+  True_intensity[[i]] <- log(lambda)
+}
+Y <- do.call(rbind, count.data)
+True_intensity <- do.call(rbind, True_intensity)
+```
+
+
+
+## Comparison of Fine-Mapping Methods
+
+We compare three methods for fine-mapping this data:
+
+1. Log1p transformation of counts with fSuSiE
+2. Haar-Fisz transformed data with fSuSiE
+3. Poisson-fSuSiE using an overdispersed Poisson model
+
+
+```{r}
+res0 <- susiF(Y = log1p(Y), X = X, L = 3)
+res1 <- susiF(Y = HFT(Y), X = X, L = 3)
+res <- Pois_fSuSiE(Y = Y, X = X, L = 3 , post_processing = "smash")
+```
+
+### Credible Sets
+In this example all the methods succeed to corner the correct CS. 
+But both fSuSiE log1p using Haar-fisz transform added an extra CS 
+
+```{r}
+true_pos
+res0$cs
+res1$cs
+res$susiF.obj$cs
+```
+
+### Estimated Intensity Functions
+
+We can compare  the estimated intensity function (note the log1p nor the Haar-Fisz transform do  really estimate the Poisson process intensity)
+
+```{r}
+plot(res0$ind_fitted_func, True_intensity, pch = 19, xlab = "Estimated Intensity", ylab = "True Intensity", main = "Comparison of Estimated Intensities")
+points(res1$ind_fitted_func, True_intensity, col = "green", pch = 19)
+points(res$susiF.obj$ind_fitted_func, True_intensity, col = "blue", pch = 19)
+abline(a = 0, b = 1, lty = 2)
+legend("bottomright", legend = c("log1p", "Haar-Fisz", "Poisson-fSuSiE"), col = c("black", "green", "blue"), pch = 19)
+```
+
+### Mean Squared Error (MSE)
+
+
+```{r}
+mean((c(res1$ind_fitted_func) - c(True_intensity))^2)
+mean((c(res0$ind_fitted_func) - c(True_intensity))^2)
+mean((c(res$susiF.obj$ind_fitted_func) - c(True_intensity))^2)
+```
+
+
+
+### Recovered Effect Functions
+
+
+
+```{r}
+
+plot(lf[[1]], lwd = 2, lty = 2, type = "l", main = "Recovered Function 1", ylab = "Effect", xlab = "Position")
+lines(res0$fitted_func[[1]], col = "black")
+lines(res1$fitted_func[[1]], col = "green")
+lines(res$susiF.obj$fitted_func[[1]], col = "blue")
+legend("topright", legend = c("True", "log1p", "Haar-Fisz", "Poisson-fSuSiE"), col = c("black", "black", "green", "blue"), lty = c(2, 1, 1, 1))
+
+plot(lf[[2]], lwd = 2, lty = 2, type = "l", main = "Recovered Function 2", ylab = "Effect", xlab = "Position")
+lines(res0$fitted_func[[2]], col = "black")
+lines(res1$fitted_func[[2]], col = "green")
+lines(res$susiF.obj$fitted_func[[2]], col = "blue")
+legend("topleft", legend = c("True", "log1p", "Haar-Fisz", "Poisson-fSuSiE"), col = c("black", "black", "green", "blue"), lty = c(2, 1, 1, 1))
+```
+
+
+
+## Speed–Accuracy Trade-Off
+
+Poisson-fSuSiE performs iterative updates that require repeatedly fitting fSuSiE models. This can be computationally expensive.
+
+We find that **just two iterations** of coordinate ascent typically yield credible sets that are sufficiently calibrated for fine-mapping, though with less accurate effect estimates.
+
+```{r}
+res_2iter <- Pois_fSuSiE(Y = Y, X = X, L = 3, max.iter = 2, post_processing = "smash")
+res_2iter$susiF.obj$cs
+
+plot(res_2iter$susiF.obj$ind_fitted_func, True_intensity, col = "lightblue", pch = 19, xlab = "Estimated Intensity", ylab = "True Intensity")
+points(res$susiF.obj$ind_fitted_func, True_intensity, col = "blue", pch = 19)
+abline(a = 0, b = 1)
+```
+
+ 
+
+You can see that for the lowest intensity the estimated intensity differ
+
+However we observe a slight gain in terms of effect estimation precision 
+
+```{r}
+mean ( (res_2iter$susiF.obj$fitted_func[[2]] -  lf[[2]])^2)
+mean ( (res $susiF.obj$fitted_func[[2]] -  lf[[2]])^2)
+```
+
+
+```{r}
+
+plot(lf[[1]], lwd = 2, lty = 2, type = "l", main = "Effect Function 1 (2 vs 20 iterations)")
+lines(res_2iter$susiF.obj$fitted_func[[1]], col = "lightblue")
+lines(res$susiF.obj$fitted_func[[1]], col = "blue")
+legend("topright", legend = c("True", "2-iter", "10-iter"), col = c("black", "lightblue", "blue"), lty = c(2, 1, 1))
+
+plot(lf[[2]], lwd = 2, lty = 2, type = "l", main = "Effect Function 2 (2 vs 20 iterations)")
+lines(res_2iter$susiF.obj$fitted_func[[2]], col = "lightblue")
+lines(res$susiF.obj$fitted_func[[2]], col = "blue")
+legend("topright", legend = c("True", "2-iter", "10-iter"), col = c("black", "lightblue", "blue"), lty = c(2, 1, 1))
+
+``` 
+
+
+## Evolution of the Posterior intensity 
+
+You can visualized how the posterior intensity are update using the plot_evo argument
+
+```{r}
+
+res <- Pois_fSuSiE(Y = Y, X = X, L = 3 ,max.iter=20, post_processing = "HMM", plot_evo = TRUE)
+```
+

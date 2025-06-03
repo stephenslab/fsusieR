@@ -1,0 +1,151 @@
+---
+title: "Gaussian approximation to Poisson mean problem"
+author: "William R.P. Denault"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    toc: no
+    highlight: textmate
+    theme: readable
+vignette: >
+  %\VignetteIndexEntry{Poisson fSuSiE}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+
+##  Gaussian approximation to Poisson mean problem
+
+This vignette examplify the benefit of the solbing the Poisson mean problem 
+using informative prior. THis is an adaptation of the work of Dongyue Xie https://github.com/DongyueXie/vebpm/
+
+
+We start by simulating some Poisson count with a sinusoidual intensity
+
+```{r}
+library(fsusieR)
+set.seed(1)
+n =200
+
+intensities= exp( 3*sin( 1:n/20)+0.1 + rnorm(n, sd=0.5) )
+x = rpois(n,intensities)
+ 
+plot(x,  pch=19)
+lines(exp(3*sin( 1:n/20)), lwd=3, col="lightgreen")
+
+```
+
+Now let's try to infer the underlying intensity using a Poisson Gaussian model 
+where the prior is $N(b, \sigma^2)$ where both $b$ and $\sigma^2$ are learn via Empirical Bayes
+
+```{r}
+ 
+ tt= ebpm_normal(x)
+tt$fitted_g
+plot(log(intensities), type="l",lwd=3, col="lightgreen")
+points(tt$posterior$mean_log, pch=19) 
+```
+
+The estimated prior mean for the log intensity is $0.79$ and prior variance is $2.76$
+
+
+Suppose we are an oracle and we know the  prior 
+
+```{r}
+ tt2= pois_mean_GG(x, prior_mean = 3*sin( 1:n/20) ,
+                   prior_var = 1)
+ 
+ plot(tt2$posterior$posteriorMean_latent, pch=19, col="blue")
+points(tt$posterior$mean_log, pch=19)
+ lines(log(intensities), ,lwd=3, col="lightgreen")
+ 
+legend("bottomright", legend = c(  "Split VA Poisson Gaussian", "Poisson Gaussian with prior mean"), col = c(  "black" , "blue"), pch = 19)
+ 
+ mean((3*sin( 1:n/20)- tt$posterior$mean_log)^2)
+ mean((3*sin( 1:n/20)- tt2$posterior$posteriorMean_latent)^2)
+```
+ 
+#Comparison with log x+1 transform
+ 
+```{r}
+ 
+ plot(tt2$posterior$posteriorMean_latent, pch=19, col="blue")
+points(tt$posterior$mean_log, pch=19)
+points(log(x+1),col="red3" ,pch=19)
+
+ lines(log(intensities),lwd=3, col="lightgreen")
+ 
+legend("bottomright", legend = c("log1p", "Split VA Poisson Gaussian", "Poisson Gaussian with prior mean"), col = c("red3", "black" , "blue"), pch = 19)
+ mean((3*sin( 1:n/20)- tt$posterior$mean_log)^2)
+ mean((3*sin( 1:n/20)- tt2$posterior$posteriorMean_latent)^2)
+```
+ 
+ 
+ 
+ 
+ 
+## Smoothing Possoin data via  Split VA  
+
+
+Let now exemplifies how split VA work.
+
+
+Let's start building a starting guess for our prior mean and variance function.
+We start our first guess using a posterior mean for the log intensity of a Poisson Normal model.
+Then estimate the prior variance by computing the residual variance between the smoothed posterior log intensity and the posterior intensity
+ 
+
+```{r}
+init= ebpm_normal(x,s,g_init = list(mean=log(sum(x)/sum(s)),var=NULL),fix_g = c(T,F))
+m =init$posterior$mean_log
+sigma2 = var(  m - smashr::smash.gaus( m))   
+```
+
+
+Then we iterate between learning the prior mean and then learn the posterior 
+log intensity
+
+```{r}
+for ( k in 1:10){
+    qb=smashr::smash.gaus(m,sqrt(sigma2), post.var = TRUE)
+    Eb = qb$mu.est
+    Eb2 = Eb^2+qb$mu.est.var
+    
+    opt = vga_pois_solver(init_val=m,
+                          x=x,s=s,
+                          beta= Eb ,
+                          sigma2=sigma2,
+                          tol=1e-05,
+                          maxiter = 100)
+    
+    
+    
+    m = opt$m
+    v = opt$v
+    
+    sigma2_new = mean(m^2+v+ Eb2+ 2* Eb -2*m*  Eb  ) 
+    
+    
+}
+```
+
+
+
+
+
+```{r}
+plot(log(intensities),lwd=3, col="lightgreen" , type="l")
+lines(m) 
+ 
+```
+
+
+
+
+ 
