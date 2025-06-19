@@ -22,7 +22,8 @@ interpol_mat <- function(Y, pos, max_scale=10)
   Y_new <- t(apply(Y,
                    1, 
                    interpolKS2, 
-                   bp=bp))
+                   bp=bp,
+                   max_scale=max_scale))
   grid  <- wavethresh::makegrid(t=bp,
                                 y = 1:dim(Y)[2],
                                 gridn = min( 2^max_scale, 

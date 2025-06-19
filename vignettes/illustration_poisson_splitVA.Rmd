@@ -141,8 +141,9 @@ for ( k in 1:10){
 
 ```{r}
 plot(log(intensities),lwd=3, col="lightgreen" , type="l")
-lines(m) 
- 
+points(m, pch=19, col="blue") 
+points(log(x+1), pch=19 ) 
+legend("bottomright", legend = c("log1p of the count", "smooth Split VA Poisson Gaussian" ), col = c( "black" , "blue"), pch = 19)
 ```
 
 
