@@ -102,6 +102,7 @@ Then estimate the prior variance by computing the residual variance between the 
  
 
 ```{r}
+s=rep(1, length(x))
 init= ebpm_normal(x,s,g_init = list(mean=log(sum(x)/sum(s)),var=NULL),fix_g = c(T,F))
 m =init$posterior$mean_log
 sigma2 = var(  m - smashr::smash.gaus( m))   
@@ -112,7 +113,7 @@ Then we iterate between learning the prior mean and then learn the posterior
 log intensity
 
 ```{r}
-for ( k in 1:10){
+for ( k in 1:20){
     qb=smashr::smash.gaus(m,sqrt(sigma2), post.var = TRUE)
     Eb = qb$mu.est
     Eb2 = Eb^2+qb$mu.est.var
