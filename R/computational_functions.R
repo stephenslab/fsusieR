@@ -2333,6 +2333,9 @@ smash_regression.susiF <- function(  obj,Y,X, verbose=TRUE,
   fitted_trend <- lapply(1:length(idx), function(l)
     fitted_trend[[l]]/obj$csd_X[idx[l]]
   )
+  fitted_var <- lapply(1:length(idx), function(l)
+    fitted_var[[l]]/(obj$csd_X[idx[l]]^2)
+  )
   
   
   obj$fitted_func <- fitted_trend
