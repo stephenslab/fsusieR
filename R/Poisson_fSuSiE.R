@@ -9,54 +9,47 @@ Pois_fSuSiE <- function(Y,
                         Z,
                         X,
                         L=3,
-                        
                         scaling= NULL,
                         L_start=3,
-                        max.iter=10,
-                        
-                        post_processing=c("smash","TI","HMM","none"),
-                        maxit.fsusie=50,
-                        
-                        cov_lev=0.95,
-                        verbose=TRUE,  
-                        
-                        filter_cs=TRUE,
+                        reflect =FALSE,
+                        verbose=TRUE,
+                        init_b_pm,
+                        tol= 1e-3,
+                        tol_vga_pois=1e-5,
                         control_mixsqp=  list(verbose=FALSE,
                                               eps = 1e-6,
                                               numiter.em = 4
                         ),
+                        thresh_lowcount=1e-2,
                         prior_mv=  "mixture_normal_per_scale",
-                        
-                        filter.number = 10 ,
-                        family =  "DaubLeAsymm",
-                        min_purity     =0.5,
-                        greedy=TRUE,
-                        backfit=TRUE,
-                        cor_small=FALSE,
-                        verbose.mrash=TRUE,
-                        maxit.mrash=10,
-                        cal_obj.mrash=FALSE,
-                        cal_obj.fsusie=FALSE,
-                        max_SNP_EM     = 100,
-                        max_step_EM    = 1,
+                        post_processing=c( "HMM","smash","TI","none"),
                         gridmult=sqrt(2),
                         nullweight.mrash=10,
                         init_pi0_w.mrash=10,
-                        thresh_lowcount=1e-2,
+                        cov_lev=0.95,
+                        min_purity     =0.5,
+                        greedy=TRUE,
+                        backfit=TRUE,
                         tol.mrash=1e-3,
-                        tol= 1e-3,
-                        tol_vga_pois=1e-5, 
+                        verbose.mrash=TRUE,
+                        maxit.mrash=10,
+                        cal_obj.mrash=FALSE,
+                        maxit.fsusie=50,
+                        cal_obj.fsusie=FALSE,
+                        max_SNP_EM     = 100,
+                        max_step_EM    = 1,
+                        cor_small=FALSE,
+                        max.iter=3,
+                        init_pi0_w=1,
                         nullweight_fsusie= .001,
-                        reflect =FALSE,
-                        init_pi0_w= 1,
-                        plot_evo=FALSE
+                        print=FALSE
 )
 {
   ####Changer les calcul d'objective -----
   if(missing(X)&missing(Z)){
     stop("Please provide a Z or a X matrix")
   }
-  post_processing <- match.arg( post_processing)
+  
   fit_approach <- "both"
   if(missing(X)){
     print("No correlated covariate provided, the algorithm will perform penalized regression only")
@@ -88,7 +81,7 @@ Pois_fSuSiE <- function(Y,
       warning(paste("Some of the columns of X are constants, we removed" ,length(tidx), "columns"))
       X <- X[,-tidx]
     }
-    X <-  colScale(X)
+    X <- fsusieR:::colScale(X)
     names_colX <-  colnames(X)
   }
   
@@ -98,8 +91,6 @@ Pois_fSuSiE <- function(Y,
       warning(paste("Some of the columns of Z are constants, we removed" ,length(tidx), "columns"))
       Z <- Z[,-tidx]
     }
-    Z <-  colScale(Z)
-    names_colZ <-  colnames(Z)
   }
   
   if( is.null( scaling)){
@@ -134,14 +125,14 @@ Pois_fSuSiE <- function(Y,
     
     if ( iter ==1 ){
       tt= ebpm_normal(c(Y),s= rep( scaling, ncol(Y)) )
-      Mu_pm <- matrix( tt$posterior$mean_log ,byrow = FALSE, ncol=ncol(Y))
-      Mu_pv <- matrix( tt$posterior$var_log  ,byrow = FALSE, ncol=ncol(Y))
-   
+      Mu_pm <- matrix( tt$posterior$mean_log,byrow = FALSE, ncol=ncol(Y))
+      
     }else{
       
       
-      
-      tt <-    pois_mean_GG(c(Y), prior_mean = c(Mu_pm_init),
+      tt <-    pois_mean_GP(x=c(Y),
+                            prior_mean = c(Mu_pm_init),
+                            s =  rep( scaling, ncol(Y)),
                             prior_var = sigma2_pois )
       Mu_pm <- matrix( tt$posterior$posteriorMean_latent,byrow = FALSE, ncol=ncol(Y))
       Mu_pv <- matrix( tt$posterior$posteriorVar_latent ,byrow = FALSE, ncol=ncol(Y))
@@ -156,12 +147,7 @@ Pois_fSuSiE <- function(Y,
     
     
     
-    if(plot_evo){
-      
-      plot( log1p(Y) , (Mu_pm   ),
-            ylab=paste("Posterior mean of the log  intensity iter", iter),
-            main=paste( "posterior mean of the log intensity vs log1p of Y iter", iter))
-    }
+    
     
     if(init){
       
@@ -199,7 +185,7 @@ Pois_fSuSiE <- function(Y,
         print('Done initializing EBmvFR.obj')
       }
       if(fit_approach %in%c("both","fine_mapping")){
-     
+        
         temp <- fsusieR:: init_prior(    Y              = tmp_Mu_pm,
                                          X              = X ,
                                          prior          = prior_mv ,
@@ -220,9 +206,9 @@ Pois_fSuSiE <- function(Y,
                                                 L_start = L_start,
                                                 greedy  = greedy,
                                                 backfit = backfit
-        ) 
+        )
         print('Done initializing susiF.obj')
-      
+        
       }
       tmp_Mu_pm_pen <- 0*tmp_Mu_pm
       tmp_Mu_pm_fm  <- 0*tmp_Mu_pm
@@ -233,13 +219,10 @@ Pois_fSuSiE <- function(Y,
     if(fit_approach%in% c("both", "penalized")){
       tmp_Mu_pm_pen <- Mu_pm  -  fm_pm#potentially run smash on colmean
       
-       
+      t_mean_EBmvFR <-  apply(tmp_Mu_pm_pen,2, mean )
       tmp_Mu_pm_pen <- fsusieR::colScale(tmp_Mu_pm_pen, scale=FALSE)
-      
-      
-      W <- DWT2(tmp_Mu_pm_pen,
-                filter.number = filter.number,
-                family        = family) 
+      W <- list( D = tmp_Mu_pm [, -ncol(tmp_Mu_pm_pen )],
+                 C = tmp_Mu_pm [,  ncol(tmp_Mu_pm_pen )])
       
       
       ### TODO: Maybe use better restarting point for EBmvFR.obj
@@ -260,21 +243,11 @@ Pois_fSuSiE <- function(Y,
       if(verbose){
         print( paste('Posterior of EB regression coefficient computed for iter ',iter))
       }
+      b_pm <-   Z%*%  EBmvFR.obj$fitted_wc[[1]]
       
-      EBmvFR.obj <- out_prep(       obj         = EBmvFR.obj,
-                             Y           = W,
-                             X           = Z,
-                             indx_lst    = indx_lst,
-                             outing_grid = 1:ncol(Z)
-      )
-      
-      b_pm <-EBmvFR.obj$ind_fitted_func
-      
-      
-       
-      
-      
-       
+      if( fit_approach== "penalized")
+        mat_mean <-   matrix( t_mean_EBmvFR , byrow = TRUE,
+                              nrow=nrow(X), ncol=ncol(Y))
       
     }else{
       b_pm <- 0* tmp_Mu_pm_pen
@@ -283,89 +256,73 @@ Pois_fSuSiE <- function(Y,
     
     if(fit_approach%in% c("both", "fine_mapping")){
       tmp_Mu_pm_fm <- Mu_pm -  b_pm#potentially run smash on colmean
-      tmp_Mu_pm_fm <- fsusieR::colScale(tmp_Mu_pm_fm )
-      W <- list( D = tmp_Mu_pm [, -ncol(tmp_Mu_pm_fm )],
-                 C = tmp_Mu_pm [,  ncol(tmp_Mu_pm_fm )])
-    
-      susiF.obj <-  susiF.workhorse     (obj            = susiF.obj,
-                                         W              = W,
-                                         X              = X,
-                                         tol            = tol,
-                                         init_pi0_w     = init_pi0_w ,
-                                         control_mixsqp = control_mixsqp ,
-                                         indx_lst       = indx_lst,
-                                         lowc_wc        = lowc_wc,
-                                         nullweight     = nullweight_fsusie,
-                                         cal_obj        = cal_obj.fsusie,
-                                         verbose        = verbose,
-                                         cov_lev        = cov_lev,
-                                         min_purity     = min_purity,
-                                         maxit          = maxit.fsusie,
-                                         max_SNP_EM     = max_SNP_EM,
-                                         max_step_EM    = max_step_EM,
-                                         cor_small      = cor_small,
-                                         e              = e)
+      tmp_Mu_pm_fm <- fsusieR::colScale(tmp_Mu_pm_fm, scale=FALSE)
+      susiF.obj     <- susiF (
+        Y              =  tmp_Mu_pm_fm ,
+        X               = X ,
+        L               = L,
+        tol             = tol,
+        control_mixsqp  = control_mixsqp ,
+        nullweight      = nullweight.mrash,
+        cal_obj         = cal_obj.fsusie,
+        verbose         = verbose,
+        cov_lev         = cov_lev,
+        min_purity      = min_purity,
+        
+        cor_small       = cor_small,
+        maxit           = maxit.fsusie,
+        post_processing = post_processing)
       
-      susiF.obj  <- out_prep(     obj             =  susiF.obj,
-                                  Y               =  sweep(tmp_Mu_pm_fm  , 2, attr(tmp_Mu_pm_fm , "scaled:scale"),  "*"),
-                                  X               = X,
-                                  indx_lst        = indx_lst,
-                                  filter_cs       = filter_cs,
-                                  outing_grid     =  1:ncol(Y),
-                                  filter.number   = filter.number,
-                                  family          = family,
-                                  post_processing = post_processing,
-                                  tidx            = tidx,
-                                  names_colX      = names_colX,
-                                  pos             = 1:ncol(Y)
+      
+      
+      
+      
+      
+      fm_pm <- X%*%Reduce("+",lapply(1:length(susiF.obj$cs),
+                                     function(l)
+                                       t(susiF.obj$fitted_func[[l]]%*% t(susiF.obj$alpha[[l]]))
       )
-      
-      
-      
-      var(c(Mu_pm))
-      var(c(Mu_pm-susiF.obj$ind_fitted_func))
-      
-      fm_pm <- susiF.obj$ind_fitted_func
-      
-     
-      
+      )
+      mat_mean <-   matrix(Mu_pm -fm_pm , byrow = TRUE,
+                           nrow=nrow(X), ncol=ncol(Y))
     }else{
       fm_pm <-0* tmp_Mu_pm_fm
       susiF.obj   <- NULL
     }
     
     
-    resid <- Mu_pm   -fm_pm-b_pm
+    resid <- Mu_pm -mat_mean -fm_pm-b_pm
     #not correct to work on later
     sigma2_pois <- var(c(resid ))
-    
-   
-    sigma2_pois = mean (  c(Mu_pm^2 +Mu_pv+ fm_pm^2 +b_pm^2   -2*Mu_pm*(fm_pm+b_pm)))
-    
     #print(sigma2_pois)
-    Mu_pm <-  fm_pm+b_pm#update
+    Mu_pm <- mat_mean +fm_pm+b_pm#update
     Mu_pm_init <-Mu_pm
-    #print(    susiF.obj$cs)
+    print(    susiF.obj$cs)
     iter=iter+1
     ##include mr.ash
     
-    #  par (mfrow=c(1,2))
+    if (print){
+      par (mfrow=c(1,2))
+      
+      plot ( Y[1,], col="blue")
+      points ( exp(Mu_pm  [1,]))
+      lines(exp(Mu_pm  [1,]), col="green")
+      
+      
+      plot( Y[1,],exp(Mu_pm  [1,]))
+      
+      abline(a=0,b=1)
+      par (mfrow=c(1,1))
+    }
     
-    # plot ( Y[1,], col="blue")
-    #points ( exp(Mu_pm  [1,]))
-    # lines(exp(Mu_pm  [1,]), col="green")
-    
- 
-    #abline(a=0,b=1)
-    #par (mfrow=c(1,1))
   }
   
   
-  tt <-    pois_mean_GG(c(Y), prior_mean = c(Mu_pm_init),
-                        prior_var = sigma2_pois )
-  Mu_pm <- matrix( tt$posterior$posteriorMean_latent,byrow = FALSE, ncol=ncol(Y))
   
-  tt_all= exp(Mu_pm)
+  
+  
+  tt_all <-exp(Mu_pm   )
+  
   
   
   if( fit_approach ==   "both" )

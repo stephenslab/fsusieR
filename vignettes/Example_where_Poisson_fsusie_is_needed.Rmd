@@ -82,7 +82,7 @@ true_pos
 
 ```{r}
 
-res_poisF = Pois_fSuSiE(Y=Y,X=X ,L=3 , max.iter=10)
+res_poisF = Pois_fSuSiE(Y=Y,X=X ,L=3 , max.iter=1)
 
 ```
  It contains a single CS with lead SNP being the causal SNPS
@@ -91,5 +91,12 @@ res_poisF = Pois_fSuSiE(Y=Y,X=X ,L=3 , max.iter=10)
 res_poisF$susiF.obj$cs
 ```
  
+ 
+ 
+```{r}
+plot(res_poisF$susiF.obj$fitted_func[[1]])
+lines(example$lf )
+```
+
  
   
