@@ -362,7 +362,7 @@ pois_mean_GP = function(x,
   # init the posterior mean and variance?
   n = length(x)
   m = log(x+0.1)
-  v = rep(1/n,n)
+  v = rep(1/sqrt(n),n)
   if(is.null(s)){
     s = 1
   }

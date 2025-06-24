@@ -53,7 +53,8 @@ The effect of the SNP  on the count is
 ```{r}
  
 plot(example$lf , type="l", main = "effect of the causal SNP") 
-
+X=example$X
+Y=example$Y
  
 ```
 
@@ -62,8 +63,7 @@ A simple to handle count for fine mapping is to use $log(x+1)$ transform or the 
 when dealing with structured sequence of count as we are doing
 
 ```{r}
-X=example$X
-Y=example$Y
+
 res0 = susiF(X=X, Y=log1p(Y),L=3)
 res1= susiF(X=X,Y=HFT(Y),L=3)
 ```
@@ -82,7 +82,7 @@ true_pos
 
 ```{r}
 
-res_poisF = Pois_fSuSiE(Y=Y,X=X ,L=3 , max.iter=1)
+res_poisF = Pois_fSuSiE(Y=Y,X=X ,L=3 , max.iter=2)
 
 ```
  It contains a single CS with lead SNP being the causal SNPS
