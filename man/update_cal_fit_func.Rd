@@ -19,6 +19,7 @@ update_cal_fit_func(obj, indx_lst, ...)
   post_processing = "TI",
   filter.number = 10,
   family = "DaubLeAsymm",
+  verbose = TRUE,
   ...
 )
 }

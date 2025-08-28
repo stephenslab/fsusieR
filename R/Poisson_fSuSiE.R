@@ -256,7 +256,12 @@ Pois_fSuSiE <- function(Y,
     
     if(fit_approach%in% c("both", "fine_mapping")){
       tmp_Mu_pm_fm <- Mu_pm -  b_pm#potentially run smash on colmean
-      tmp_Mu_pm_fm <- fsusieR::colScale(tmp_Mu_pm_fm, scale=FALSE)
+      
+      if ( iter == max.iter){
+        t_post_processing=post_processing
+      }else{
+        t_post_processing="none"
+      }
       susiF.obj     <- susiF (
         Y              =  tmp_Mu_pm_fm ,
         X               = X ,
@@ -271,7 +276,7 @@ Pois_fSuSiE <- function(Y,
         
         cor_small       = cor_small,
         maxit           = maxit.fsusie,
-        post_processing = post_processing)
+        post_processing =  t_post_processing)
       
       
       

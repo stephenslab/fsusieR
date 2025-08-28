@@ -1187,6 +1187,8 @@ name_cs.susiF <- function(obj,X,...){
 #' @param outing_grid grid use to fit fsusie
 #' 
 #' @param pos the original position of the Y column
+#' 
+#' @param verbose TRUE or FALSE verbose 
 #' @return susiF object
 #
 #' @export
@@ -1216,6 +1218,7 @@ out_prep.susiF <- function(obj ,
                            tidx =NULL ,
                            names_colX =NULL,
                            pos,
+                           verbose=TRUE,
                            ...)
 {
 
@@ -1849,7 +1852,9 @@ update_cal_fit_func.susiF <- function(obj,
                                       X,
                                       post_processing="TI",
                                       filter.number = 10,
-                                      family = "DaubLeAsymm" ,...)
+                                      family = "DaubLeAsymm" ,
+                                      verbose=TRUE,
+                                      ...)
 {
 
 
@@ -1872,14 +1877,16 @@ update_cal_fit_func.susiF <- function(obj,
                                Y=Y,
                                X=X,
                                filter.number = 1 ,
-                               family = "DaubExPhase"
+                               family = "DaubExPhase",
+                               verbose= verbose
 
     )
   }
   if( post_processing =="HMM"){
     obj <- HMM_regression(obj=obj,
                           Y=Y,
-                          X=X
+                          X=X,
+                          verbose= verbose
     )
     obj$cred_band <- NULL
   }
@@ -1888,7 +1895,8 @@ update_cal_fit_func.susiF <- function(obj,
                          Y=Y,
                          X=X,
                          filter.number = filter.number,
-                         family = family
+                         family = family,
+                         verbose= verbose
                          
     )
   }

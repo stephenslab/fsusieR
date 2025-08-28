@@ -281,10 +281,10 @@ susiF <- function(Y, X, L = 2,
                   min_purity=0.5,
                   filter_cs =TRUE,
                   init_pi0_w= 1,
-                  nullweight= .001 ,
+                  nullweight= 10 ,
                   control_mixsqp =  list(verbose=FALSE,
                                          eps = 1e-6,
-                                         numiter.em = 4
+                                         numiter.em = 40
                   ),
                   thresh_lowcount=0,
                   cal_obj=FALSE,
@@ -498,7 +498,8 @@ susiF <- function(Y, X, L = 2,
                         post_processing=  post_processing,
                         tidx          = tidx,
                         names_colX    = names_colX,
-                        pos           = pos
+                        pos           = pos,
+                        verbose       = verbose
   )
   obj$runtime <- proc.time()-pt
   return(obj)
