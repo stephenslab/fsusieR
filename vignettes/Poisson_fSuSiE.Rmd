@@ -193,6 +193,6 @@ You can visualized how the posterior intensity are update using the plot_evo arg
 
 ```{r}
 
-res <- Pois_fSuSiE(Y = Y, X = X, L = 3 ,max.iter=20, post_processing = "HMM", plot_evo = TRUE)
+res <- Pois_fSuSiE(Y = Y, X = X, L = 3 ,max.iter=20, post_processing = "HMM", print=TRUE )
 ```
 

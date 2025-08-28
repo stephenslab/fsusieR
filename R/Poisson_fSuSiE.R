@@ -60,7 +60,7 @@ Pois_fSuSiE <- function(Y,
     fit_approach <- "fine_mapping"
     
   }
-  
+  post_processing= match.arg(post_processing)
   ##initiatilzation -----
   init=TRUE
   J = log2(ncol(Y)); if((J%%1) != 0) reflect=TRUE
@@ -81,7 +81,7 @@ Pois_fSuSiE <- function(Y,
       warning(paste("Some of the columns of X are constants, we removed" ,length(tidx), "columns"))
       X <- X[,-tidx]
     }
-    X <- fsusieR:::colScale(X)
+    X <-  colScale(X)
     names_colX <-  colnames(X)
   }
   
@@ -101,7 +101,7 @@ Pois_fSuSiE <- function(Y,
     }
   }
   
-  indx_lst <-  fsusieR::gen_wavelet_indx(log2(ncol(Y)))
+  indx_lst <-   gen_wavelet_indx(log2(ncol(Y)))
   
   
   
@@ -120,7 +120,7 @@ Pois_fSuSiE <- function(Y,
   fm_pm <- 0* Mu_pm
   
   
-  while( check >tol & iter <=  max.iter ){
+  while( check >tol & iter <=  max.iter ){ #start while ----
     
     
     if ( iter ==1 ){
@@ -151,7 +151,7 @@ Pois_fSuSiE <- function(Y,
     
     if(init){
       
-      tmp_Mu_pm <- fsusieR::colScale(Mu_pm, scale = FALSE)#potentially run smash on colmean
+      tmp_Mu_pm <- colScale(Mu_pm, scale = FALSE)#potentially run smash on colmean
       lowc_wc <-  which_lowcount(tmp_Mu_pm,
                                  thresh_lowcount=thresh_lowcount)
       
@@ -165,7 +165,7 @@ Pois_fSuSiE <- function(Y,
       W <- list( D = tmp_Mu_pm [, -ncol(tmp_Mu_pm )],
                  C = tmp_Mu_pm [,  ncol(tmp_Mu_pm )])
       if (fit_approach %in% c("both", "penalized")){
-        temp <- fsusieR:: init_prior(Y              = tmp_Mu_pm,
+        temp <-  init_prior(Y              = tmp_Mu_pm,
                                      X              = Z ,
                                      prior          = prior_mv ,
                                      v1             = v1,
@@ -178,7 +178,7 @@ Pois_fSuSiE <- function(Y,
         
         
         #Recycled for the first step of the while loop
-        EBmvFR.obj   <-  fsusieR::init_EBmvFR_obj(G_prior = G_prior,
+        EBmvFR.obj   <-  init_EBmvFR_obj(G_prior = G_prior,
                                                   Y       = Y,
                                                   X       = Z
         )
@@ -186,7 +186,7 @@ Pois_fSuSiE <- function(Y,
       }
       if(fit_approach %in%c("both","fine_mapping")){
         
-        temp <- fsusieR:: init_prior(    Y              = tmp_Mu_pm,
+        temp <-  init_prior(    Y              = tmp_Mu_pm,
                                          X              = X ,
                                          prior          = prior_mv ,
                                          
@@ -199,7 +199,7 @@ Pois_fSuSiE <- function(Y,
         
         
         #Recycled for the first step of the while loop
-        susiF.obj   <-  fsusieR::init_susiF_obj(L_max   = L,
+        susiF.obj   <-  init_susiF_obj(L_max   = L,
                                                 G_prior = G_prior,
                                                 Y       = tmp_Mu_pm,
                                                 X       = X,
@@ -220,13 +220,13 @@ Pois_fSuSiE <- function(Y,
       tmp_Mu_pm_pen <- Mu_pm  -  fm_pm#potentially run smash on colmean
       
       t_mean_EBmvFR <-  apply(tmp_Mu_pm_pen,2, mean )
-      tmp_Mu_pm_pen <- fsusieR::colScale(tmp_Mu_pm_pen, scale=FALSE)
+      tmp_Mu_pm_pen <- colScale(tmp_Mu_pm_pen, scale=FALSE)
       W <- list( D = tmp_Mu_pm [, -ncol(tmp_Mu_pm_pen )],
                  C = tmp_Mu_pm [,  ncol(tmp_Mu_pm_pen )])
       
       
       ### TODO: Maybe use better restarting point for EBmvFR.obj
-      EBmvFR.obj   <- fsusieR::EBmvFR.workhorse( obj     = EBmvFR.obj,
+      EBmvFR.obj   <- EBmvFR.workhorse( obj     = EBmvFR.obj,
                                                  W              = W,
                                                  X              = Z,
                                                  tol            = tol.mrash,
@@ -259,6 +259,7 @@ Pois_fSuSiE <- function(Y,
       
       if ( iter == max.iter){
         t_post_processing=post_processing
+ 
       }else{
         t_post_processing="none"
       }
@@ -306,21 +307,15 @@ Pois_fSuSiE <- function(Y,
     iter=iter+1
     ##include mr.ash
     
-    if (print){
-      par (mfrow=c(1,2))
+    if (print){ 
       
-      plot ( Y[1,], col="blue")
-      points ( exp(Mu_pm  [1,]))
-      lines(exp(Mu_pm  [1,]), col="green")
-      
-      
-      plot( Y[1,],exp(Mu_pm  [1,]))
+      plot( log1p(Y ), exp(Mu_pm  ))
       
       abline(a=0,b=1)
       par (mfrow=c(1,1))
     }
     
-  }
+  }###--- end while 
   
   
   
@@ -332,7 +327,7 @@ Pois_fSuSiE <- function(Y,
   
   if( fit_approach ==   "both" )
   {
-    susiF.obj <- fsusieR::update_cal_pip(susiF.obj)
+    susiF.obj <- update_cal_pip(susiF.obj)
     out <- list( Mu_pm=Mu_pm,
                  susiF.obj=susiF.obj,
                  EBmvFR.obj=EBmvFR.obj,
@@ -341,7 +336,7 @@ Pois_fSuSiE <- function(Y,
   
   if( fit_approach ==   "fine_mapping" )
   {
-    susiF.obj <- fsusieR::update_cal_pip(susiF.obj)
+    susiF.obj <- update_cal_pip(susiF.obj)
     out <- list( Mu_pm=Mu_pm,
                  susiF.obj=susiF.obj,
                  fitted = tt_all[,idx_out]  )
