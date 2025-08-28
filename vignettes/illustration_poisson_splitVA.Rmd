@@ -58,7 +58,7 @@ The estimated prior mean for the log intensity is $0.79$ and prior variance is $
 Suppose we are an oracle and we know the  prior 
 
 ```{r}
- tt2= pois_mean_GG(x, prior_mean = 3*sin( 1:n/20) ,
+ tt2= pois_mean_GP(x, prior_mean = 3*sin( 1:n/20) ,
                    prior_var = 1)
  
  plot(tt2$posterior$posteriorMean_latent, pch=19, col="blue")
