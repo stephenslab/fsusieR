@@ -71,7 +71,7 @@ See the [package website](https://stephenslab.github.io/fsusieR) for detailed tu
 
 If you use `fsusieR` in your work, please cite:
 
-> Denault, W.R.P., Miao, Y., Sun, H., Li, A., Carbonetto, P., De Luca, P., Wang, G. & Stephens, M. (2024). fSuSiE enables fine-mapping of QTLs from genome-scale molecular profiles. *bioRxiv* 2024.08.01.606194. https://doi.org/10.1101/2024.08.01.606194
+> Denault, W.R.P., Sun, H., Carbonetto, P., Li, A.,  De Jager, LP, Bennett, D, The Alzheimer’s Disease Functional Genomics Consortium, Wang, G. & Stephens, M. (2025). fSuSiE enables fine-mapping of QTLs from genome-scale molecular profiles. *bioRxiv* [https://doi.org/10.1101/2024.08.01.606194](https://doi.org/10.1101/2025.08.17.670732)
 
 ## License
 
