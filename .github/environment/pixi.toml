@@ -46,4 +46,5 @@ r44 = {features = ["r44"]}
 "r-knitr" = "*"
 "r-rmarkdown" = "*"
 "r-reshape2" = "*"
+"r-pkgdown" = "*"
 "qpdf" = "*"
