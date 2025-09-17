@@ -15,7 +15,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Create TOML from recipe  
         run: .github/workflows/create_toml_from_yaml.sh
