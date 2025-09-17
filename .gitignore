@@ -18,3 +18,9 @@ inst/
 *-Ex.R
 # RStudio files
 .Rproj.user/
+
+# Auto-generated documentation
+docs/
+
+# Pixi files
+pixi.lock
