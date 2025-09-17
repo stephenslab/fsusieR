@@ -3,13 +3,21 @@ Type: Package
 Package: fsusieR
 Version: 0.3.01
 Date: 2025-02-11
-Title: Sum of Single Functions
+Title: Sum of Single Functions (fSuSiE): Fine-mapping QTLs from Spatially Structured Molecular Traits
 Authors@R: c(person("William R. P.","Denault",role = c("aut","cre"),
                     email = "wdenault@uchicago.edu"),
-             person("Peter","Carbonetto",role="ctb"))
+             person("Peter","Carbonetto",role="ctb"),
+             person("Gao","Wang",role="ctb"),
+             person("Matthew","Stephens",role="ctb"))
 URL: https://github.com/stephenslab/fsusieR
 BugReports: https://github.com/stephenslab/fsusieR
-Description: Implements the "Sum of Single Functions" (fSuSiE) method.
+Description: Implements the "Sum of Single Functions" (fSuSiE) method for 
+    fine-mapping molecular QTLs from spatially structured traits like DNA 
+    methylation and histone modifications. fSuSiE extends the Sum of Single 
+    Effects (SuSiE) framework using wavelet-based functional regression to 
+    capture spatial correlations in molecular traits along the genome. The 
+    package provides efficient algorithms for identifying causal variants and 
+    their spatial effects in high-dimensional molecular phenotype data.
 Depends:
     R (>= 3.5.0)
 Imports:
@@ -38,7 +46,7 @@ Suggests:
     Gviz,
     haarfisz,
     TxDb.Hsapiens.UCSC.hg38.knownGene,
-License: BSD_3_clause + file LICENSE
+License: MIT + file LICENSE
 NeedsCompilation: yes
 RoxygenNote: 7.3.2
 ByteCompile: yes

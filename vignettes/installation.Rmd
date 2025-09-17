@@ -1,0 +1,66 @@
+---
+title: "Installation"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Installation}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+## System Requirements
+
+### Software Dependencies
+- R (≥ 3.5.0)
+- Required R packages: wavethresh (≥ 4.6.8), ashr (≥ 2.2-47), mixsqp (≥ 0.3-43), matrixStats (≥ 0.62.0), Rfast (≥ 2.0.5), smashr
+- Optional: susieR for comparative analyses
+
+### Operating Systems
+Tested on:
+- macOS 12.0+
+- Ubuntu 20.04+  
+- Windows 10+
+
+### Hardware
+No special hardware required. Standard desktop computer with 8GB RAM sufficient for typical analyses.
+
+## Installation
+
+Install the latest version from GitHub (typical install time: < 1 minute):
+
+```{r eval=FALSE}
+# install.packages("remotes")
+remotes::install_github("stephenslab/smashr")
+remotes::install_github("stephenslab/fsusieR")
+```
+
+Load the package:
+
+```{r eval=FALSE}
+library(fsusieR)
+```
+
+## Verify Installation
+
+To verify that the package is working correctly, run the following:
+
+```{r eval=FALSE}
+# Load example data
+data(N3finemapping)
+
+# Run a quick test
+X <- N3finemapping$X[1:50, 1:100]  
+Y <- N3finemapping$Y[1:50, 1:128]  
+fit <- susiF(X, Y, L = 2)
+
+# Check results
+print(fit$cs)
+```
+
+If this runs without errors, your installation is successful!

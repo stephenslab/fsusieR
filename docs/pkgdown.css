@@ -13,6 +13,38 @@
  *
  */
 
+/* Typography improvements */
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.navbar-brand {
+  font-weight: 700;
+  font-size: 1.25rem;
+}
+
+/* Code styling improvements */
+code {
+  font-family: "SFMono-Regular", "Consolas", "Liberation Mono", "Menlo", "Courier", monospace;
+  font-size: 0.9em;
+  background-color: #f8f9fa;
+  padding: 0.2em 0.4em;
+  border-radius: 3px;
+}
+
+pre code {
+  background-color: transparent;
+  padding: 0;
+}
+
 html, body {
   height: 100%;
 }
@@ -381,4 +413,55 @@ div.csl-right-inline {
 }
 div.csl-indent {
   margin-left: 2em;
+}
+
+/* Additional layout improvements */
+.contents {
+  padding-top: 2rem;
+}
+
+.contents h1 {
+  margin-top: 0;
+  padding-top: 1rem;
+  border-bottom: 2px solid #e9ecef;
+  padding-bottom: 0.5rem;
+}
+
+.contents h2 {
+  margin-top: 2rem;
+  padding-top: 1rem;
+  border-bottom: 1px solid #e9ecef;
+  padding-bottom: 0.3rem;
+}
+
+/* Improved sidebar styling */
+#pkgdown-sidebar {
+  background-color: #f8f9fa;
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+  margin-top: 2rem;
+}
+
+#pkgdown-sidebar h2 {
+  color: #495057;
+  font-size: 1.1rem;
+  margin-bottom: 1rem;
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+/* Navigation improvements */
+.navbar {
+  box-shadow: 0 2px 4px rgba(0,0,0,.1);
+}
+
+/* Button styling */
+.btn-primary {
+  background-color: #007bff;
+  border-color: #007bff;
+}
+
+.btn-primary:hover {
+  background-color: #0056b3;
+  border-color: #0056b3;
 }

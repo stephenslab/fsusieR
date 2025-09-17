@@ -1,11 +1,66 @@
+url: https://stephenslab.github.io/fsusieR
+
+template:
+  bootstrap: 5
+
+home:
+  title: "fsusieR: Fine-mapping QTLs from Spatially Structured Molecular Traits"
+  description: >
+    The fsusieR package implements the Sum of Single Functions (fSuSiE) method for 
+    fine-mapping molecular QTLs from spatially structured traits like DNA methylation 
+    and histone modifications. fSuSiE extends the SuSiE framework using wavelet-based 
+    functional regression to capture spatial correlations in molecular traits.
+
 navbar:
   left:
     - text: "Home"
       href: index.html
-    - text: "Vignettes"
+    - text: "Installation"
+      href: articles/installation.html
+    - text: "Tutorials"
       href: articles/index.html
     - text: "Functions"
       href: reference/index.html
   right:
-    - text: "Source"
-      href: https://github.com/stephenslab/susiF.alpha
+    - icon: fa-github
+      href: https://github.com/stephenslab/fsusieR
+
+articles:
+  - title: "Getting Started"
+    desc: "Introduction and basic usage of fsusieR"
+    contents:
+    - methyl_demo
+    
+  - title: "Advanced Topics"
+    desc: "Advanced analysis and specialized use cases"
+    contents:
+    - Coloc_fsusie
+    - Example_where_Poisson_fsusie_is_needed
+
+reference:
+  - title: "Main Functions"
+    desc: "Core functions for fine-mapping analysis"
+    contents:
+    - susiF
+    - Pois_fSuSiE
+    - EBmvFR
+
+  - title: "Plotting and Visualization"
+    desc: "Functions for visualizing results"
+    contents:
+    - starts_with("plot")
+    - starts_with("fitted_")
+
+  - title: "Data and Examples"
+    desc: "Example datasets and utilities"
+    contents:
+    - N3finemapping
+    - starts_with("simu")
+
+  - title: "Utilities and Helpers"
+    desc: "Helper functions and computational utilities"
+    contents:
+    - starts_with("predict")
+    - starts_with("summary")
+    - starts_with("init_")
+    - starts_with("get_")
