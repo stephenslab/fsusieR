@@ -7,17 +7,19 @@ The `fsusieR` package implements the Sum of Single Functions (fSuSiE) method for
 ## System Requirements
 
 ### Software Dependencies
+
 - R (≥ 3.5.0)
 - Required R packages: wavethresh (≥ 4.6.8), ashr (≥ 2.2-47), mixsqp (≥ 0.3-43), matrixStats (≥ 0.62.0), Rfast (≥ 2.0.5), smashr
 - Optional: susieR and mvsusieR for comparation with fSuSiE
 
 ### Operating Systems
-Tested on:
+
 - macOS 12.0+
 - Ubuntu 20.04+  
 - Windows 10+
 
 ### Hardware
+
 No special hardware required. Standard desktop computer with 8GB RAM sufficient for typical analyses.
 
 ## Installation
