@@ -40,7 +40,7 @@ Suggests:
     Gviz,
     haarfisz,
     TxDb.Hsapiens.UCSC.hg38.knownGene,
-License: MIT + file LICENSE
+License: BSD_3_clause + file LICENSE
 NeedsCompilation: yes
 RoxygenNote: 7.3.2
 ByteCompile: yes

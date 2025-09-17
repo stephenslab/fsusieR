@@ -1,6 +1,6 @@
 # fsusieR
 
-[![License](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![License](https://img.shields.io/badge/License-BSD_3--Clause-blue.svg)](https://opensource.org/licenses/BSD-3-Clause)
 
 The `fsusieR` package implements the Sum of Single Functions (fSuSiE) method for fine-mapping molecular QTLs from spatially structured traits like DNA methylation and histone modifications. fSuSiE extends the Sum of Single Effects (SuSiE) framework using wavelet-based functional regression to capture spatial correlations in molecular traits along the genome.
 
@@ -77,7 +77,7 @@ If you use `fsusieR` in your work, please cite:
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the BSD-3-Clause License - see the [LICENSE](LICENSE) file for details.
 
 ## Support
 
