@@ -1,5 +1,5 @@
 ---
-title: "fSuSiE: introduction to the key ideas with a toy methylation data set"
+title: "Key ideas for molecular profile QTL fine-mapping with applications to DNAm QTL"
 author: William Denault and Peter Carbonetto
 date: "`r Sys.Date()`"
 output:
@@ -8,7 +8,7 @@ output:
     highlight: textmate
     theme: readable
 vignette: >
-  %\VignetteIndexEntry{}
+  %\VignetteIndexEntry{Key ideas for molecular profile QTL fine-mapping with applications to DNAm QTL}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---

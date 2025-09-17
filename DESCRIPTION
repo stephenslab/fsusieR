@@ -6,7 +6,9 @@ Date: 2025-02-11
 Title: Sum of Single Functions
 Authors@R: c(person("William R. P.","Denault",role = c("aut","cre"),
                     email = "wdenault@uchicago.edu"),
-             person("Peter","Carbonetto",role="ctb"))
+             person("Peter","Carbonetto",role="aut"),
+             person("Gao","Wang",role="aut"),
+             person("Matthew","Stephens",role="aut"))
 URL: https://github.com/stephenslab/fsusieR
 BugReports: https://github.com/stephenslab/fsusieR
 Description: Implements the "Sum of Single Functions" (fSuSiE) method.
@@ -38,7 +40,7 @@ Suggests:
     Gviz,
     haarfisz,
     TxDb.Hsapiens.UCSC.hg38.knownGene,
-License: BSD_3_clause + file LICENSE
+License: MIT + file LICENSE
 NeedsCompilation: yes
 RoxygenNote: 7.3.2
 ByteCompile: yes
