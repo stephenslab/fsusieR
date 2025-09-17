@@ -1,3 +1,7 @@
+url: https://stephenslab.github.io/fsusieR/
+template:
+  bootstrap: 5
+
 navbar:
   left:
     - text: "Home"
@@ -8,4 +12,17 @@ navbar:
       href: reference/index.html
   right:
     - text: "Source"
-      href: https://github.com/stephenslab/susiF.alpha
+      href: https://github.com/stephenslab/fsusieR
+
+articles:
+- title: Getting Started
+  navbar: ~
+  contents:
+  - fsusie_intro
+  - methyl_demo
+- title: Advanced Topics
+  navbar: ~
+  contents:
+  - Limitation_SuSiE
+  - Adjusting_covariate
+  - Coloc_fsusie

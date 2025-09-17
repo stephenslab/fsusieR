@@ -18,3 +18,6 @@ inst/
 *-Ex.R
 # RStudio files
 .Rproj.user/
+
+# Auto-generated documentation
+docs/
