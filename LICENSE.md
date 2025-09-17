@@ -1,6 +1,7 @@
 BSD 3-Clause License
 
 Copyright (c) 2025, William R.P. Denault, Peter Carbonetto, Gao Wang and Matthew Stephens
+
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
