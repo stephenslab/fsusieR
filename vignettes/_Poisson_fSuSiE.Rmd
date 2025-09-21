@@ -189,7 +189,7 @@ legend("topright", legend = c("True", "2-iter", "10-iter"), col = c("black", "li
 
 ## Evolution of the Posterior intensity 
 
-You can visualized how the posterior intensity are update using the plot_evo argument
+You can visualized how the posterior intensity are update using the print argument
 
 ```{r}
 

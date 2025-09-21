@@ -1,3 +1,4 @@
+
 #copied from https://github.com/DongyueXie/vebpm/
 
 #'@title Solve Gaussian approximation to Poisson mean problem
@@ -38,17 +39,17 @@ ebpm_normal = function(x,
                        vga_tol=1e-5,
                        conv_type='sigma2abs',
                        return_sigma2_trace=FALSE){
-  
+
   # init the posterior mean and variance?
   n = length(x)
-  
+
   if(is.null(s)){
     s = 1
   }
   if(length(s)==1){
     s = rep(s,n)
   }
-  
+
   if(is.null(q_init)){
     m = log(x/s+1)
     v = rep(1/n,n)
@@ -67,11 +68,11 @@ ebpm_normal = function(x,
   if(length(v)==1){
     v = rep(v,n)
   }
-  
+
   const = sum((x-1)*log(s)) - sum(lfactorial(x))
   #
   t_start = Sys.time()
-  
+
   if(is.null(g_init)){
     prior_mean = NULL
     prior_var = NULL
@@ -79,7 +80,7 @@ ebpm_normal = function(x,
     prior_mean = g_init$mean
     prior_var = g_init$var
   }
-  
+
   if(length(fix_g)==1){
     est_prior_mean = !fix_g
     est_prior_var = !fix_g
@@ -89,10 +90,10 @@ ebpm_normal = function(x,
   }else{
     stop('fix_g can be either length 1 or 2')
   }
-  
+
   sigma2_trace = prior_var
   if(est_prior_mean | est_prior_var){
-    
+
     if(is.null(prior_mean)){
       est_prior_mean = TRUE
       beta = mean(m)
@@ -105,7 +106,7 @@ ebpm_normal = function(x,
     }else{
       sigma2=prior_var
     }
-    
+
     obj = rep(0,maxiter+1)
     obj[1] = -Inf
     sigma2_trace = sigma2
@@ -114,7 +115,7 @@ ebpm_normal = function(x,
       m = vga_pois_solver(m,x,s,beta,sigma2,tol=vga_tol)
       v =  m$v
       m = m$m
-      
+
       if(est_prior_mean){
         beta = mean(m)
       }
@@ -124,7 +125,7 @@ ebpm_normal = function(x,
           sigma2_trace[iter+1] = sigma2
         }
       }
-      
+
       if(conv_type=='elbo'){
         obj[iter+1] = ebpm_normal_obj(x,s,beta,sigma2,m,v,const)
         if((obj[iter+1] - obj[iter])/n <tol){
@@ -142,9 +143,9 @@ ebpm_normal = function(x,
           break
         }
       }
-      
+
     }
-    
+
   }else{
     beta = prior_mean
     sigma2 = prior_var
@@ -152,10 +153,10 @@ ebpm_normal = function(x,
     v = m$v
     m = m$m
     obj = ebpm_normal_obj(x,s,prior_mean,prior_var,m,v,const)
-    
+
   }
   t_end = Sys.time()
-  
+
   return(list(posterior = list(mean_log = m,
                                var_log = v,
                                mean = exp(m + v/2)),
@@ -164,14 +165,14 @@ ebpm_normal = function(x,
               obj_trace = obj,
               sigma2_trace=sigma2_trace,
               run_time = difftime(t_end,t_start,units='secs')))
-  
+
 }
 
 
 ebpm_normal_obj = function(x,s,beta,sigma2,m,v,const){
   return(sum(x*m-s*exp(m+v/2)-log(sigma2)/2-(m^2+v-2*m*beta+beta^2)/2/sigma2+log(v)/2)+const)
 }
-  
+
 
 
 
@@ -185,7 +186,7 @@ ebpm_normal_obj = function(x,s,beta,sigma2,m,v,const){
 #'@param beta,sigma2 prior mean and variance. Their length should be equal to n=length(x)
 #'@export
 vga_pois_solver = function(init_val,x,s,beta,sigma2,maxiter=1000,tol=1e-5,method = 'newton'){
-  
+
   n = length(x)
   if(length(sigma2)==1){
     sigma2 = rep(sigma2,n)
@@ -222,8 +223,8 @@ vga_pois_solver = function(init_val,x,s,beta,sigma2,maxiter=1000,tol=1e-5,method
   }else{
     stop('Only Newton and bisection are supported.')
   }
-  
-  
+
+
 }
 
 #'@title Optimize vga poisson problem 1 iteration.
@@ -291,22 +292,22 @@ vga_pois_solver_bisection = function(x,s,beta,sigma2,maxiter=1000,tol=1e-5){
 
 #'@export
 vga_pois_solver_Newton = function(m,x,s,beta,sigma2,maxiter=1000,tol=1e-5){
-  
+
   const0 = sigma2*x+beta + 1
   const1 = 1/sigma2
   const2 = sigma2/2
   const3 = beta/sigma2
-  
+
   # make sure m < sigma2*x+beta
   m = pmin(m,const0-1)
   # idx = (m>(const0-1))
   # if(sum(idx)>0){
   #   m[idx] =suppressWarnings(vga_pois_solver_bisection(x[idx],s[idx],beta[idx],sigma2[idx],maxiter = 10)$m)
   # }
-  
-  
+
+
   for(i in 1:maxiter){
-    
+
     temp = (const0-m)
     sexp = s*exp(m+const2/temp)
     # f = x - sexp - (m-beta)/sigma2
@@ -321,9 +322,9 @@ vga_pois_solver_Newton = function(m,x,s,beta,sigma2,maxiter=1000,tol=1e-5){
     warnings('Newton method not converged yet.')
   }
   return(list(m=m,v=sigma2/temp))
-  
+
 }
- 
+
 
 
 #'@title Solve Gaussian approximation to Poisson mean problem
@@ -346,7 +347,7 @@ vga_pois_solver_Newton = function(m,x,s,beta,sigma2,maxiter=1000,tol=1e-5){
 #'  n = 10000
 #'  mu = rnorm(n)
 #'  x = rpois(n,exp(mu))
-#'  pois_mean_GG(x)
+#'  pois_mean_GP(x)
 #'@details The problem is
 #'\deqn{x_i\sim Poisson(\exp(\mu_i)),}
 #'\deqn{\mu_i\sim N(\beta,\sigma^2).}
@@ -358,7 +359,7 @@ pois_mean_GP = function(x,
                         optim_method = 'L-BFGS-B',
                         maxiter = 1000,
                         tol = 1e-5){
-  
+
   # init the posterior mean and variance?
   n = length(x)
   m = log(x+0.1)
@@ -371,7 +372,7 @@ pois_mean_GP = function(x,
   }
   #
   if(is.null(prior_mean) | is.null(prior_var)){
-    
+
     if(is.null(prior_mean)){
       est_beta = TRUE
     }else{
@@ -384,7 +385,7 @@ pois_mean_GP = function(x,
       est_sigma2 = FALSE
       sigma2=prior_var
     }
-    
+
     obj = rep(0,maxiter+1)
     obj[1] = -Inf
     for(iter in 1:maxiter){
@@ -395,7 +396,7 @@ pois_mean_GP = function(x,
         sigma2 = mean(m^2+v-2*m*beta+beta^2)
       }
       # for(i in 1:n){
-      #   temp = pois_mean_GG1(x[i],s[i],beta,sigma2,optim_method,m[i],v[i])
+      #   temp = pois_mean_GP1(x[i],s[i],beta,sigma2,optim_method,m[i],v[i])
       #   m[i] = temp$m
       #   v[i] = temp$v
       # }
@@ -410,18 +411,18 @@ pois_mean_GP = function(x,
                   method = optim_method)
       m = opt$par[1:n]
       v = exp(opt$par[(n+1):(2*n)])
-      obj[iter+1] = pois_mean_GG_obj(x,s,beta,sigma2,m,v)
+      obj[iter+1] = pois_mean_GP_obj(x,s,beta,sigma2,m,v)
       if((obj[iter+1] - obj[iter])<tol){
         obj = obj[1:(iter+1)]
         break
       }
     }
-    
+
   }else{
     beta = prior_mean
     sigma2 = prior_var
     # for(i in 1:n){
-    #   temp = pois_mean_GG1(x[i],s[i],prior_mean,prior_var,optim_method,m[i],v[i])
+    #   temp = pois_mean_GP1(x[i],s[i],prior_mean,prior_var,optim_method,m[i],v[i])
     #   m[i] = temp$m
     #   v[i] = temp$v
     # }
@@ -436,18 +437,18 @@ pois_mean_GP = function(x,
                 method = optim_method)
     m = opt$par[1:n]
     v = exp(opt$par[(n+1):(2*n)])
-    obj = pois_mean_GG_obj(x,s,prior_mean,prior_var,m,v)
-    
+    obj = pois_mean_GP_obj(x,s,prior_mean,prior_var,m,v)
+
   }
-  
+
   return(list(posterior = list(posteriorMean_latent = m,
                                posteriorVar_latent = v,
                                posteriorMean_mean = exp(m + v/2)),
               fitted_g = list(mean = beta, var=sigma2),
               obj_value=obj))
-  
+
   #return(list(posteriorMean=m,priorMean=beta,priorVar=sigma2,posteriorVar=v,obj_value=obj))
-  
+
 }
 #'calculate objective function
 pois_mean_GP_opt_obj = function(theta,x,s,beta,sigma2,n){
@@ -465,6 +466,6 @@ pois_mean_GP_opt_obj_gradient = function(theta,x,s,beta,sigma2,n){
 }
 
 
-pois_mean_GG_obj = function(x,s,beta,sigma2,m,v){
+pois_mean_GP_obj = function(x,s,beta,sigma2,m,v){
   return(sum(x*m-s*exp(m+v/2)-log(sigma2)/2-(m^2+v-2*m*beta+beta^2)/2/sigma2+log(v)/2))
 }
