@@ -1,3 +1,4 @@
+
 #copied from https://github.com/DongyueXie/vebpm/
 
 #'@title Solve Gaussian approximation to Poisson mean problem
@@ -171,7 +172,7 @@ ebpm_normal = function(x,
 ebpm_normal_obj = function(x,s,beta,sigma2,m,v,const){
   return(sum(x*m-s*exp(m+v/2)-log(sigma2)/2-(m^2+v-2*m*beta+beta^2)/2/sigma2+log(v)/2)+const)
 }
-  
+
 
 
 
@@ -323,7 +324,7 @@ vga_pois_solver_Newton = function(m,x,s,beta,sigma2,maxiter=1000,tol=1e-5){
   return(list(m=m,v=sigma2/temp))
   
 }
- 
+
 
 
 #'@title Solve Gaussian approximation to Poisson mean problem
@@ -346,7 +347,7 @@ vga_pois_solver_Newton = function(m,x,s,beta,sigma2,maxiter=1000,tol=1e-5){
 #'  n = 10000
 #'  mu = rnorm(n)
 #'  x = rpois(n,exp(mu))
-#'  pois_mean_GG(x)
+#'  pois_mean_GP(x)
 #'@details The problem is
 #'\deqn{x_i\sim Poisson(\exp(\mu_i)),}
 #'\deqn{\mu_i\sim N(\beta,\sigma^2).}
@@ -395,7 +396,7 @@ pois_mean_GP = function(x,
         sigma2 = mean(m^2+v-2*m*beta+beta^2)
       }
       # for(i in 1:n){
-      #   temp = pois_mean_GG1(x[i],s[i],beta,sigma2,optim_method,m[i],v[i])
+      #   temp = pois_mean_GP1(x[i],s[i],beta,sigma2,optim_method,m[i],v[i])
       #   m[i] = temp$m
       #   v[i] = temp$v
       # }
@@ -410,7 +411,7 @@ pois_mean_GP = function(x,
                   method = optim_method)
       m = opt$par[1:n]
       v = exp(opt$par[(n+1):(2*n)])
-      obj[iter+1] = pois_mean_GG_obj(x,s,beta,sigma2,m,v)
+      obj[iter+1] = pois_mean_GP_obj(x,s,beta,sigma2,m,v)
       if((obj[iter+1] - obj[iter])<tol){
         obj = obj[1:(iter+1)]
         break
@@ -421,7 +422,7 @@ pois_mean_GP = function(x,
     beta = prior_mean
     sigma2 = prior_var
     # for(i in 1:n){
-    #   temp = pois_mean_GG1(x[i],s[i],prior_mean,prior_var,optim_method,m[i],v[i])
+    #   temp = pois_mean_GP1(x[i],s[i],prior_mean,prior_var,optim_method,m[i],v[i])
     #   m[i] = temp$m
     #   v[i] = temp$v
     # }
@@ -436,7 +437,7 @@ pois_mean_GP = function(x,
                 method = optim_method)
     m = opt$par[1:n]
     v = exp(opt$par[(n+1):(2*n)])
-    obj = pois_mean_GG_obj(x,s,prior_mean,prior_var,m,v)
+    obj = pois_mean_GP_obj(x,s,prior_mean,prior_var,m,v)
     
   }
   
@@ -465,6 +466,6 @@ pois_mean_GP_opt_obj_gradient = function(theta,x,s,beta,sigma2,n){
 }
 
 
-pois_mean_GG_obj = function(x,s,beta,sigma2,m,v){
+pois_mean_GP_obj = function(x,s,beta,sigma2,m,v){
   return(sum(x*m-s*exp(m+v/2)-log(sigma2)/2-(m^2+v-2*m*beta+beta^2)/2/sigma2+log(v)/2))
 }
