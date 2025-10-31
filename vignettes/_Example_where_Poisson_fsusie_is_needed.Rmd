@@ -52,7 +52,7 @@ The effect of the SNP  on the count is
 
 ```{r}
  
-plot(example$lf , type="l", main = "effect of the causal SNP") 
+plot(example$lf[[1]] , type="l", main = "effect of the causal SNP") 
 X=example$X
 Y=example$Y
  
