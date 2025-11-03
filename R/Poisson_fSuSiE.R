@@ -136,7 +136,7 @@ Pois_fSuSiE <- function(Y,
   alpha_0 <- rowMeans(Mu_pm)  # Intercept per sample
   Theta_pm <- matrix(0, nrow = nrow(Y), ncol = ncol(Y))  # Z effects
 
-  sigma2 <-  .01  # Initial variance
+  sigma2 <-  .1  # Initial variance
 
   print(dim(est_effect_fm))
   # ============================================================================
@@ -261,7 +261,7 @@ Pois_fSuSiE <- function(Y,
 
     # Residualize: A_{-(Theta,B)} = A - Z*Theta - X*B
     resid_for_alpha0 <- Mu_pm - Theta_pm - B_pm
-    alpha_0 <- rowMeans(resid_for_alpha0)  # Simple mean across positions
+    alpha_0 <- 0*rowMeans(resid_for_alpha0)  # Simple mean across positions
 
     # Could use EBNM for more sophisticated shrinkage
     # alpha_0 <- ebnm(rowMeans(resid_for_alpha0), s = sqrt(sigma2 / ncol(Y)))$posterior$mean
