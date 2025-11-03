@@ -1,5 +1,5 @@
 #' @export
-Pois_fSuSiE <- function(Y,
+Pois_fSuSiE2 <- function(Y,
                         Z = NULL,
                         X = NULL,
                         L = 3,

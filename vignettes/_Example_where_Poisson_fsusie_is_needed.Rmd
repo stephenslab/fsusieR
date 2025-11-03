@@ -82,7 +82,7 @@ true_pos
 
 ```{r}
 
-res_poisF = Pois_fSuSiE(Y=Y,X=X ,L=3 , max.iter=2)
+res_poisF = Pois_fSuSiE(Y=Y,X=X ,L=3  )
 
 ```
  It contains a single CS with lead SNP being the causal SNPS

@@ -68,6 +68,11 @@ Pois_fSuSiE <- function(Y,
       warning(paste("Removed", length(tidx), "constant columns from X"))
       X <- X[, -tidx, drop = FALSE]
     }
+
+    est_effect_fm <- matrix(0, nrow =ncol(X), ncol = ncol(Y))      # X effects
+  }else{
+
+    est_effect_fm <-0     # X effects
   }
 
   if (has_Z) {
@@ -130,9 +135,10 @@ Pois_fSuSiE <- function(Y,
   # Initialize components
   alpha_0 <- rowMeans(Mu_pm)  # Intercept per sample
   Theta_pm <- matrix(0, nrow = nrow(Y), ncol = ncol(Y))  # Z effects
-  B_pm <- matrix(0, nrow = nrow(Y), ncol = ncol(Y))      # X effects
-  sigma2 <- 0.1  # Initial variance
 
+  sigma2 <-  .01  # Initial variance
+
+  print(dim(est_effect_fm))
   # ============================================================================
   # COORDINATE ASCENT ALGORITHM (Algorithm 5 from supplement)
   # ============================================================================
@@ -147,13 +153,14 @@ Pois_fSuSiE <- function(Y,
     # Store old values for convergence
     alpha_0_old <- alpha_0
     Theta_pm_old <- Theta_pm
-    B_pm_old <- B_pm
+    B_pm_old <- est_effect_fm
 
     # ------------------------------------------------------------------------
     # STEP 1: Update Mu_pm | current estimates (optional, expensive)
     # ------------------------------------------------------------------------
     if (update_Mu_each_iter && iter > 1) {
       if (verbose) cat("Step 1: Updating Mu_pm...\n")
+
       # Re-solve Poisson-Normal mean problem with current mean structure
       b_it <- matrix(rep(alpha_0, ncol(Y)), ncol = ncol(Y)) + Theta_pm + B_pm
 
@@ -161,7 +168,7 @@ Pois_fSuSiE <- function(Y,
       # For efficiency, paper suggests skipping this for fine-mapping
       # Mu_pm <- update_Mu_pm_split_VA(Y, b_it, sigma2, scaling)
       tt <-    pois_mean_GP(x=c(Y),
-                            prior_mean = c(Mu_pm_init),
+                            prior_mean = c(B_pm),
                             s =  rep( scaling, ncol(Y)),
                             prior_var = sigma2 )
       Mu_pm <- matrix( tt$posterior$posteriorMean_latent,byrow = FALSE, ncol=ncol(Y))
@@ -228,9 +235,13 @@ Pois_fSuSiE <- function(Y,
 
       # Reconstruct fitted values
       if (length(susiF.obj$cs) > 0) {
-        B_pm <- X %*% Reduce("+", lapply(1:length(susiF.obj$cs), function(l) {
+        est_effect_fm=Reduce("+", lapply(1:length(susiF.obj$cs), function(l) {
           t(susiF.obj$fitted_func[[l]] %*% t(susiF.obj$alpha[[l]]))
         }))
+        print(dim(est_effect_fm))
+
+        print(dim(B_pm_old))
+        B_pm <- X %*% est_effect_fm
       } else {
         B_pm <- matrix(0, nrow = nrow(Y), ncol = ncol(Y))
       }
@@ -261,8 +272,7 @@ Pois_fSuSiE <- function(Y,
     if (verbose) cat("Step 3: Updating sigma2...\n")
 
     residuals <- Mu_pm - matrix(rep(alpha_0, ncol(Y)), ncol = ncol(Y)) - Theta_pm - B_pm
-    sigma2 <- var(residuals)
-
+    sigma2= var(c(residuals))
     if (verbose) cat("  sigma2 =", round(sigma2, 6), "\n")
 
     # ------------------------------------------------------------------------
@@ -270,7 +280,7 @@ Pois_fSuSiE <- function(Y,
     # ------------------------------------------------------------------------
     diff_alpha <- max(abs(alpha_0 - alpha_0_old))
     diff_Theta <- max(abs(Theta_pm - Theta_pm_old))
-    diff_B <- max(abs(B_pm - B_pm_old))
+    diff_B <- max(abs(est_effect_fm - B_pm_old))
     max_diff <- max(diff_alpha, diff_Theta, diff_B)
 
     if (verbose) {
@@ -280,8 +290,10 @@ Pois_fSuSiE <- function(Y,
       cat("  |ΔB| =", round(diff_B, 8), "\n")
     }
     if (print){
-
+par (mfrow=c(3,1))
       plot( log1p(Y ),  (Mu_pm  ))
+      plot(susiF.obj$fitted_func[[1]])
+      plot(susiF.obj$fitted_func[[2]])
 
       abline(a=0,b=1)
       par (mfrow=c(1,1))

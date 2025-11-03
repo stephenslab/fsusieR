@@ -85,9 +85,9 @@ We compare three methods for fine-mapping this data:
 
 
 ```{r}
+res <- Pois_fSuSiE(Y = Y, X = X, L = 3  )
 res0 <- susiF(Y = log1p(Y), X = X, L = 3)
 res1 <- susiF(Y = HFT(Y), X = X, L = 3)
-res <- Pois_fSuSiE(Y = Y, X = X, L = 3  )
 ```
 
 ### Credible Sets
@@ -169,6 +169,13 @@ However we observe a slight gain in terms of effect estimation precision
 ```{r}
 mean ( (res_2iter$susiF.obj$fitted_func[[2]] -  lf[[2]])^2)
 mean ( (res $susiF.obj$fitted_func[[2]] -  lf[[2]])^2)
+
+
+mean((c(res1$ind_fitted_func) - c(True_intensity))^2)
+mean((c(res0$ind_fitted_func) - c(True_intensity))^2)
+mean((c(res$susiF.obj$ind_fitted_func) - c(True_intensity))^2)
+
+mean((c(res_2iter$susiF.obj$ind_fitted_func) - c(True_intensity))^2)
 ```
 
 
@@ -193,6 +200,6 @@ You can visualized how the posterior intensity are update using the print argume
 
 ```{r}
 library(mvf.susie.alpha)
-res <- fsusieR:::Pois_fSuSiE2 (Y = Y, X = X, L = 3 ,max.iter=20, post_processing = "HMM", print=TRUE )
+res <- Pois_fSuSiE  (Y = Y, X = X, L = 3 ,   print=TRUE )
 ```
 
