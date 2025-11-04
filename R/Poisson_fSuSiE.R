@@ -170,7 +170,7 @@ Pois_fSuSiE <- function(Y,
       tt <-    pois_mean_GP(x=c(Y),
                             prior_mean = c(B_pm),
                             s =  rep( scaling, ncol(Y)),
-                            prior_var = sigma2 )
+                            prior_var = sigma2 )1
 
 
       Mu_pm <- matrix( tt$posterior$posteriorMean_latent,byrow = FALSE, ncol=ncol(Y))

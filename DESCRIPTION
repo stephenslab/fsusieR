@@ -20,11 +20,9 @@ Imports:
     ashr (>= 2.2-47),
     mixsqp (>= 0.3-43),
     matrixStats (>= 0.62.0),
-    Rfast (>= 2.0.5),
     ggplot2,
     cowplot(>= 1.1.3),
-    smashr,
-    LaplacesDemon
+    smashr
 Suggests:
     susieR,
     knitr,
@@ -39,7 +37,9 @@ Suggests:
     GenomicRanges,
     Gviz,
     haarfisz,
+    Rfast (>= 2.0.5),
     TxDb.Hsapiens.UCSC.hg38.knownGene,
+    LaplacesDemon
 License: BSD_3_clause + file LICENSE
 NeedsCompilation: yes
 RoxygenNote: 7.3.2
