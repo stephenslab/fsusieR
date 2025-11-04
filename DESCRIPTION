@@ -36,8 +36,7 @@ Suggests:
     org.Hs.eg.db,
     GenomicRanges,
     Gviz,
-    haarfisz,
-    Rfast (>= 2.0.5),
+    haarfisz, 
     TxDb.Hsapiens.UCSC.hg38.knownGene,
     LaplacesDemon
 License: BSD_3_clause + file LICENSE
