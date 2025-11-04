@@ -24,7 +24,8 @@ Pois_fSuSiE <- function(Y,
                         cor_small = TRUE,
                         post_processing = "HMM",
                             print=TRUE,
-                        update_Mu_each_iter = TRUE) {
+                        update_Mu_each_iter = TRUE,
+                        True_intensity=NULL) {
 
   # Validate inputs
   if (is.null(X) && is.null(Z)) {
@@ -138,7 +139,6 @@ Pois_fSuSiE <- function(Y,
 
   sigma2 <-  .1  # Initial variance
 
-  print(dim(est_effect_fm))
   # ============================================================================
   # COORDINATE ASCENT ALGORITHM (Algorithm 5 from supplement)
   # ============================================================================
@@ -171,8 +171,19 @@ Pois_fSuSiE <- function(Y,
                             prior_mean = c(B_pm),
                             s =  rep( scaling, ncol(Y)),
                             prior_var = sigma2 )
+
+
       Mu_pm <- matrix( tt$posterior$posteriorMean_latent,byrow = FALSE, ncol=ncol(Y))
       Mu_pv <- matrix( tt$posterior$posteriorVar_latent ,byrow = FALSE, ncol=ncol(Y))
+
+      Mu_pm <- matrix(0, nrow = nrow(Y), ncol = ncol(Y))
+      for (i in 1:nrow(Y)) {
+        Mu_pm[i, ] <- log( mvPoisVA::: pois_smooth_split(Y[i, ], s = scaling[i],
+                                            Eb_init =  B_pm[i, ],
+                                            maxiter = 20)$Emean)
+      }
+
+
     }
 
     # Transform to wavelet space (if needed by downstream functions)
@@ -272,7 +283,9 @@ Pois_fSuSiE <- function(Y,
     if (verbose) cat("Step 3: Updating sigma2...\n")
 
     residuals <- Mu_pm - matrix(rep(alpha_0, ncol(Y)), ncol = ncol(Y)) - Theta_pm - B_pm
+    print(susiF.obj$sigma2)
     sigma2= var(c(residuals))
+    print(sigma2)
     if (verbose) cat("  sigma2 =", round(sigma2, 6), "\n")
 
     # ------------------------------------------------------------------------
@@ -290,13 +303,34 @@ Pois_fSuSiE <- function(Y,
       cat("  |ΔB| =", round(diff_B, 8), "\n")
     }
     if (print){
-par (mfrow=c(3,1))
-      plot( log1p(Y ),  (Mu_pm  ))
-      plot(susiF.obj$fitted_func[[1]])
-      plot(susiF.obj$fitted_func[[2]])
 
-      abline(a=0,b=1)
-      par (mfrow=c(1,1))
+      if (is.null(True_intensity)){
+        par (mfrow=c(3,1))
+        plot( log1p(Y ),  (Mu_pm  ))
+        abline(a=0,b=1)
+        plot(susiF.obj$fitted_func[[1]])
+        plot(susiF.obj$fitted_func[[2]])
+
+        par (mfrow=c(1,1))
+      }else{
+        par (mfrow=c(2,2))
+        plot( log1p(Y ),  (Mu_pm  ))
+
+        abline(a=0,b=1)
+        trmse= mean((c(Mu_pm) - c(True_intensity))^2)
+
+
+        plot(True_intensity,  (Mu_pm  ),
+             main=  paste( " MSE" , trmse ))
+
+        abline(a=0,b=1)
+        plot(susiF.obj$fitted_func[[1]])
+        plot(susiF.obj$fitted_func[[2]])
+
+
+        par (mfrow=c(1,1))
+      }
+
     }
 
     converged <- max_diff < tol

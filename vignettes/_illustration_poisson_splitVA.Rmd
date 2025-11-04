@@ -113,15 +113,17 @@ Then we iterate between learning the prior mean and then learn the posterior
 log intensity
 
 ```{r}
-for ( k in 1:20){
-    qb=smashr::smash.gaus(m,sqrt(sigma2), post.var = TRUE)
+
+ sigma2_new =1
+for ( k in 1:200){
+    qb=smashr::smash.gaus(m,sqrt( sigma2_new ), post.var = TRUE)
     Eb = qb$mu.est
     Eb2 = Eb^2+qb$mu.est.var
     
     opt = vga_pois_solver(init_val=m,
                           x=x,s=s,
                           beta= Eb ,
-                          sigma2=sigma2,
+                          sigma2= sigma2_new ,
                           tol=1e-05,
                           maxiter = 100)
     

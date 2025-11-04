@@ -1,31 +1,31 @@
 #' @export
 Pois_fSuSiE2 <- function(Y,
-                        Z = NULL,
-                        X = NULL,
-                        L = 3,
-                        scaling = NULL,
-                        ebps_method = c("ebpm",
-                                        'pois_mean_split',
-                                        'ind_pois_mean_split',
-                                        'ind_ebps',
-                                        'ind_poisson_smoothing',
-                                        'nugget'),
-                        reflect = FALSE,
-                        verbose = TRUE,
-                        tol = 1e-3,
-                        maxit_outer = 10,
-                        maxit_inner = 100,
-                        control_mixsqp = list(verbose = FALSE,
-                                              eps = 1e-6,
-                                              numiter.em = 4),
-                        nullweight = 10,
-                        cov_lev = 0.95,
-                        min_purity = 0.5,
-                        cor_small = TRUE,
-                        post_processing = "HMM",
-                        print = TRUE,
-                        update_Mu_each_iter = TRUE,
-                        sigma2_damping = 0.5) {  # NEW: damping parameter
+                         Z = NULL,
+                         X = NULL,
+                         L = 3,
+                         scaling = NULL,
+                         ebps_method = c("ebpm",
+                                         'pois_mean_split',
+                                         'ind_pois_mean_split',
+                                         'ind_ebps',
+                                         'ind_poisson_smoothing',
+                                         'nugget'),
+                         reflect = FALSE,
+                         verbose = TRUE,
+                         tol = 1e-3,
+                         maxit_outer = 10,
+                         maxit_inner = 100,
+                         control_mixsqp = list(verbose = FALSE,
+                                               eps = 1e-6,
+                                               numiter.em = 4),
+                         nullweight = 10,
+                         cov_lev = 0.95,
+                         min_purity = 0.5,
+                         cor_small = TRUE,
+                         post_processing = "HMM",
+                         print=TRUE,
+                         update_Mu_each_iter = TRUE,
+                         True_intensity=NULL) {
 
   # Validate inputs
   if (is.null(X) && is.null(Z)) {
@@ -69,6 +69,11 @@ Pois_fSuSiE2 <- function(Y,
       warning(paste("Removed", length(tidx), "constant columns from X"))
       X <- X[, -tidx, drop = FALSE]
     }
+
+    est_effect_fm <- matrix(0, nrow =ncol(X), ncol = ncol(Y))      # X effects
+  }else{
+
+    est_effect_fm <-0     # X effects
   }
 
   if (has_Z) {
@@ -131,14 +136,8 @@ Pois_fSuSiE2 <- function(Y,
   # Initialize components
   alpha_0 <- rowMeans(Mu_pm)  # Intercept per sample
   Theta_pm <- matrix(0, nrow = nrow(Y), ncol = ncol(Y))  # Z effects
-  B_pm <- matrix(0, nrow = nrow(Y), ncol = ncol(Y))      # X effects
 
-  # Initial variance estimate (more robust)
-  fitted_mean <- matrix(rep(alpha_0, ncol(Y)), ncol = ncol(Y))
-  residuals_init <- Mu_pm - fitted_mean
-  sigma2 <- median(residuals_init^2)  # Use median for robustness
-
-  Mu_pv <- NULL  # Posterior variance (will be updated if update_Mu_each_iter=TRUE)
+  sigma2 <-  .1  # Initial variance
 
   # ============================================================================
   # COORDINATE ASCENT ALGORITHM (Algorithm 5 from supplement)
@@ -154,9 +153,7 @@ Pois_fSuSiE2 <- function(Y,
     # Store old values for convergence
     alpha_0_old <- alpha_0
     Theta_pm_old <- Theta_pm
-    B_pm_old <- B_pm
-    sigma2_old <- sigma2
-    Mu_pm_old <- Mu_pm
+    B_pm_old <- est_effect_fm
 
     # ------------------------------------------------------------------------
     # STEP 1: Update Mu_pm | current estimates (optional, expensive)
@@ -164,25 +161,47 @@ Pois_fSuSiE2 <- function(Y,
     if (update_Mu_each_iter && iter > 1) {
       if (verbose) cat("Step 1: Updating Mu_pm...\n")
 
-      # Current mean structure
+      # Re-solve Poisson-Normal mean problem with current mean structure
       b_it <- matrix(rep(alpha_0, ncol(Y)), ncol = ncol(Y)) + Theta_pm + B_pm
 
-      # Re-solve Poisson-Normal mean problem
-      tt <- pois_mean_GP(
-        x = c(Y),
-        prior_mean = c(b_it),  # Use current fit, not Mu_pm_init
-        s = rep(scaling, ncol(Y)),
-        prior_var = sigma2
-      )
+      # This would require re-running split-VA step
+      # For efficiency, paper suggests skipping this for fine-mapping
+      # Mu_pm <- update_Mu_pm_split_VA(Y, b_it, sigma2, scaling)
+      tt <-    pois_mean_GP(x=c(Y),
+                            prior_mean = c(B_pm),
+                            s =  rep( scaling, ncol(Y)),
+                            prior_var = sigma2 )
 
-      Mu_pm <- matrix(tt$posterior$posteriorMean_latent, byrow = FALSE, ncol = ncol(Y))
-      Mu_pv <- matrix(tt$posterior$posteriorVar_latent, byrow = FALSE, ncol = ncol(Y))
 
-      if (verbose) {
-        cat("  Mu_pm: change =", round(max(abs(Mu_pm - Mu_pm_old)), 6), "\n")
-        cat("  Mu_pv: mean =", round(mean(Mu_pv), 6), "\n")
+      Mu_pm <- matrix( tt$posterior$posteriorMean_latent,byrow = FALSE, ncol=ncol(Y))
+      Mu_pv <- matrix( tt$posterior$posteriorVar_latent ,byrow = FALSE, ncol=ncol(Y))
+
+      Mu_pm <- matrix(0, nrow = nrow(Y), ncol = ncol(Y))
+      for (i in 1:nrow(Y)) {
+
+
+        opt = vga_pois_solver(init_val=log1p(Y[i,]),
+                              x=Y[i,],s=scaling[i],
+                              beta=   B_pm[i, ]  ,
+                              sigma2= sigma2  ,
+                              tol=1e-05,
+                              maxiter = 100)
+
+
+
+        Mu_pm[i, ] = opt$m
+        Mu_pv[i, ] = opt$v
+
+
+
       }
+
+     # Eb2+ 2* Eb -2*m*  Eb
+       sigma2  =  mean(Mu_pm^2+Mu_pv +(B_pm^2) +2*B_pm-2*Mu_pm*B_pm  )
     }
+
+    # Transform to wavelet space (if needed by downstream functions)
+    # A = Mu_pm %*% W (wavelet transform)
 
     # ------------------------------------------------------------------------
     # STEP 2a: Update Theta (Z effects) via EBmvFR
@@ -208,8 +227,7 @@ Pois_fSuSiE2 <- function(Y,
       Theta_pm <- Z %*% EBmvFR.obj$fitted_func
 
       if (verbose) {
-        cat("  Z effects: max =", round(max(abs(Theta_pm)), 4),
-            ", change =", round(max(abs(Theta_pm - Theta_pm_old)), 6), "\n")
+        cat("  Z effects: max =", round(max(abs(Theta_pm)), 4), "\n")
       }
     } else {
       EBmvFR.obj <- NULL
@@ -242,17 +260,20 @@ Pois_fSuSiE2 <- function(Y,
 
       # Reconstruct fitted values
       if (length(susiF.obj$cs) > 0) {
-        B_pm <- X %*% Reduce("+", lapply(1:length(susiF.obj$cs), function(l) {
+        est_effect_fm=Reduce("+", lapply(1:length(susiF.obj$cs), function(l) {
           t(susiF.obj$fitted_func[[l]] %*% t(susiF.obj$alpha[[l]]))
         }))
+        print(dim(est_effect_fm))
+
+        print(dim(B_pm_old))
+        B_pm <- X %*% est_effect_fm
       } else {
         B_pm <- matrix(0, nrow = nrow(Y), ncol = ncol(Y))
       }
 
       if (verbose) {
         cat("  Found", length(susiF.obj$cs), "credible sets\n")
-        cat("  X effects: max =", round(max(abs(B_pm)), 4),
-            ", change =", round(max(abs(B_pm - B_pm_old)), 6), "\n")
+        cat("  X effects: max =", round(max(abs(B_pm)), 4), "\n")
       }
     } else {
       susiF.obj <- NULL
@@ -265,82 +286,66 @@ Pois_fSuSiE2 <- function(Y,
 
     # Residualize: A_{-(Theta,B)} = A - Z*Theta - X*B
     resid_for_alpha0 <- Mu_pm - Theta_pm - B_pm
-    alpha_0 <- rowMeans(resid_for_alpha0)
+    alpha_0 <- 0*rowMeans(resid_for_alpha0)  # Simple mean across positions
 
-    if (verbose) {
-      cat("  alpha_0: change =", round(max(abs(alpha_0 - alpha_0_old)), 6), "\n")
-    }
+    # Could use EBNM for more sophisticated shrinkage
+    # alpha_0 <- ebnm(rowMeans(resid_for_alpha0), s = sqrt(sigma2 / ncol(Y)))$posterior$mean
 
     # ------------------------------------------------------------------------
-    # STEP 3: Update variance sigma2 (IMPROVED)
+    # STEP 3: Update variance sigma2
     # ------------------------------------------------------------------------
     if (verbose) cat("Step 3: Updating sigma2...\n")
 
-    # Compute residuals
-    fitted_mean <- matrix(rep(alpha_0, ncol(Y)), ncol = ncol(Y)) + Theta_pm + B_pm
-    residuals <- Mu_pm - fitted_mean
 
-    # NEW: Account for posterior uncertainty in Mu_pm
-    if (!is.null(Mu_pv) && update_Mu_each_iter) {
-      # Variance should include both squared residuals AND posterior uncertainty
-      sigma2_new <- mean(residuals^2 + Mu_pv)
-    } else {
-      # Original approach (but use median for robustness)
-      sigma2_new <- median(residuals^2)
-    }
-
-    # NEW: Damped update to prevent oscillations
-    sigma2 <- sigma2_damping * sigma2 + (1 - sigma2_damping) * sigma2_new
-
-    # Keep sigma2 bounded away from zero
-    sigma2 <- max(sigma2, 1e-6)
-
-    if (verbose) {
-      cat("  sigma2 =", round(sigma2, 6),
-          " (change =", round(abs(sigma2 - sigma2_old), 6), ")\n")
-      cat("  Mean residual^2 =", round(mean(residuals^2), 6), "\n")
-      if (!is.null(Mu_pv)) {
-        cat("  Mean posterior var =", round(mean(Mu_pv), 6), "\n")
-      }
-    }
-
-    # ------------------------------------------------------------------------
-    # Diagnostic plot
-    # ------------------------------------------------------------------------
-    if (print) {
-      par(mfrow = c(1, 2))
-      plot(log1p(c(Y)), c(Mu_pm),
-           main = paste("Iter", iter, "- Mu_pm vs log(Y+1)"),
-           xlab = "log(Y+1)", ylab = "Mu_pm",
-           pch = 20, cex = 0.5, col = rgb(0, 0, 0, 0.3))
-      abline(a = 0, b = 1, col = "red", lwd = 2)
-
-      plot(c(fitted_mean), c(Mu_pm),
-           main = "Mu_pm vs fitted mean",
-           xlab = "Fitted mean", ylab = "Mu_pm",
-           pch = 20, cex = 0.5, col = rgb(0, 0, 0, 0.3))
-      abline(a = 0, b = 1, col = "red", lwd = 2)
-      par(mfrow = c(1, 1))
-    }
+    print(sigma2)
+    if (verbose) cat("  sigma2 =", round(sigma2, 6), "\n")
 
     # ------------------------------------------------------------------------
     # Check convergence
     # ------------------------------------------------------------------------
     diff_alpha <- max(abs(alpha_0 - alpha_0_old))
     diff_Theta <- max(abs(Theta_pm - Theta_pm_old))
-    diff_B <- max(abs(B_pm - B_pm_old))
-    diff_sigma2 <- abs(sigma2 - sigma2_old)
+    diff_B <- max(abs(est_effect_fm - B_pm_old))
     max_diff <- max(diff_alpha, diff_Theta, diff_B)
 
     if (verbose) {
-      cat("\nConvergence: max change =", round(max_diff, 8), "\n")
+      cat("Convergence: max change =", round(max_diff, 8), "\n")
       cat("  |Δalpha_0| =", round(diff_alpha, 8), "\n")
       cat("  |ΔTheta| =", round(diff_Theta, 8), "\n")
       cat("  |ΔB| =", round(diff_B, 8), "\n")
-      cat("  |Δsigma2| =", round(diff_sigma2, 8), "\n")
+    }
+    if (print){
+
+      if (is.null(True_intensity)){
+        par (mfrow=c(3,1))
+        plot( log1p(Y ),  (Mu_pm  ))
+        abline(a=0,b=1)
+        plot(susiF.obj$fitted_func[[1]])
+        plot(susiF.obj$fitted_func[[2]])
+
+        par (mfrow=c(1,1))
+      }else{
+        par (mfrow=c(2,2))
+        plot( log1p(Y ),  (Mu_pm  ))
+
+        abline(a=0,b=1)
+        trmse= mean((c(Mu_pm) - c(True_intensity))^2)
+
+
+        plot(True_intensity,  (Mu_pm  ),
+             main=  paste( " MSE" , trmse ))
+
+        abline(a=0,b=1)
+        plot(susiF.obj$fitted_func[[1]])
+        plot(susiF.obj$fitted_func[[2]])
+
+
+        par (mfrow=c(1,1))
+      }
+
     }
 
-    converged <- max_diff < tol && diff_sigma2 < tol
+    converged <- max_diff < tol
     iter <- iter + 1
   }
 
@@ -362,7 +367,6 @@ Pois_fSuSiE2 <- function(Y,
   # Prepare output
   out <- list(
     Mu_pm = Mu_pm,
-    Mu_pv = Mu_pv,
     alpha_0 = alpha_0,
     Theta_pm = Theta_pm,
     B_pm = B_pm,
