@@ -42,7 +42,7 @@ a list of
  n = 10000
  mu = rnorm(n)
  x = rpois(n,exp(mu))
- pois_mean_GG(x)
+ pois_mean_GP(x)
 }
 \description{
 Gaussian prior, Gaussian posterior in Poisson mean problem.
