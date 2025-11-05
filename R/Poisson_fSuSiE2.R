@@ -1,31 +1,31 @@
 #' @export
-Pois_fSuSiE <- function(Y,
-                        Z = NULL,
-                        X = NULL,
-                        L = 3,
-                        scaling = NULL,
-                        ebps_method = c("ebpm",
-                                        'pois_mean_split',
-                                        'ind_pois_mean_split',
-                                        'ind_ebps',
-                                        'ind_poisson_smoothing',
-                                        'nugget'),
-                        reflect = FALSE,
-                        verbose = TRUE,
-                        tol = 1e-3,
-                        maxit_outer = 10,
-                        maxit_inner = 100,
-                        control_mixsqp = list(verbose = FALSE,
-                                              eps = 1e-6,
-                                              numiter.em = 4),
-                        nullweight = 10,
-                        cov_lev = 0.95,
-                        min_purity = 0.5,
-                        cor_small = TRUE,
-                        post_processing = "HMM",
-                            print=TRUE,
-                        update_Mu_each_iter = TRUE,
-                        True_intensity=NULL) {
+Pois_fSuSiE2 <- function(Y,
+                         Z = NULL,
+                         X = NULL,
+                         L = 3,
+                         scaling = NULL,
+                         ebps_method = c("ebpm",
+                                         'pois_mean_split',
+                                         'ind_pois_mean_split',
+                                         'ind_ebps',
+                                         'ind_poisson_smoothing',
+                                         'nugget'),
+                         reflect = FALSE,
+                         verbose = TRUE,
+                         tol = 1e-3,
+                         maxit_outer = 10,
+                         maxit_inner = 100,
+                         control_mixsqp = list(verbose = FALSE,
+                                               eps = 1e-6,
+                                               numiter.em = 4),
+                         nullweight = 10,
+                         cov_lev = 0.95,
+                         min_purity = 0.5,
+                         cor_small = TRUE,
+                         post_processing = "HMM",
+                         print=TRUE,
+                         update_Mu_each_iter = TRUE,
+                         True_intensity=NULL) {
 
   # Validate inputs
   if (is.null(X) && is.null(Z)) {
@@ -178,12 +178,26 @@ Pois_fSuSiE <- function(Y,
 
       Mu_pm <- matrix(0, nrow = nrow(Y), ncol = ncol(Y))
       for (i in 1:nrow(Y)) {
-        Mu_pm[i, ] <- log( mvPoisVA::: pois_smooth_split(Y[i, ], s = scaling[i],
-                                            Eb_init =  B_pm[i, ],
-                                            maxiter = 20)$Emean)
+
+
+        opt = vga_pois_solver(init_val=log1p(Y[i,]),
+                              x=Y[i,],s=scaling[i],
+                              beta=   B_pm[i, ]  ,
+                              sigma2= sigma2  ,
+                              tol=1e-05,
+                              maxiter = 100)
+
+
+
+        Mu_pm[i, ] = opt$m
+        Mu_pv[i, ] = opt$v
+
+
+
       }
 
-
+     # Eb2+ 2* Eb -2*m*  Eb
+       sigma2  =  mean(Mu_pm^2+Mu_pv +(B_pm^2) +2*B_pm-2*Mu_pm*B_pm  )
     }
 
     # Transform to wavelet space (if needed by downstream functions)
@@ -282,9 +296,7 @@ Pois_fSuSiE <- function(Y,
     # ------------------------------------------------------------------------
     if (verbose) cat("Step 3: Updating sigma2...\n")
 
-    residuals <- Mu_pm - matrix(rep(alpha_0, ncol(Y)), ncol = ncol(Y)) - Theta_pm - B_pm
-    print(susiF.obj$sigma2)
-    sigma2= var(c(residuals))
+
     print(sigma2)
     if (verbose) cat("  sigma2 =", round(sigma2, 6), "\n")
 

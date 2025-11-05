@@ -78,8 +78,10 @@ cs and cs with estimated prior equal to 0). Set as TRUE by default.}
 \item{init_pi0_w}{starting value of weight on null component in mixsqp
 (between 0 and 1)}
 
-\item{nullweight}{numeric value for penalizing likelihood at point mass 0 (should be between 0 and 1)
-(useful in small sample size)}
+\item{nullweight}{numeric value for penalizing likelihood at point mass 0. This number roughly corresponds
+to the number of zeros observation you add  (useful in small sample size). Default is 10 as recommended by Stephens in
+False discovery rate a new deal. Setting it too low tend lead to adding false discoveries. Setting it too
+high may reduce power.}
 
 \item{control_mixsqp}{list of parameter for mixsqp function see  mixsqp package}
 

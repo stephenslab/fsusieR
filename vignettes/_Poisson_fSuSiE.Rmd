@@ -85,9 +85,9 @@ We compare three methods for fine-mapping this data:
 
 
 ```{r}
+res <- Pois_fSuSiE(Y = Y, X = X, L = 3  )
 res0 <- susiF(Y = log1p(Y), X = X, L = 3)
 res1 <- susiF(Y = HFT(Y), X = X, L = 3)
-res <- Pois_fSuSiE(Y = Y, X = X, L = 3 , post_processing = "smash")
 ```
 
 ### Credible Sets
@@ -152,7 +152,7 @@ Poisson-fSuSiE performs iterative updates that require repeatedly fitting fSuSiE
 We find that **just two iterations** of coordinate ascent typically yield credible sets that are sufficiently calibrated for fine-mapping, though with less accurate effect estimates.
 
 ```{r}
-res_2iter <- Pois_fSuSiE(Y = Y, X = X, L = 3, max.iter = 2, post_processing = "smash")
+res_2iter <- Pois_fSuSiE(Y = Y, X = X, L = 3, maxit_outer = 1 )
 res_2iter$susiF.obj$cs
 
 plot(res_2iter$susiF.obj$ind_fitted_func, True_intensity, col = "lightblue", pch = 19, xlab = "Estimated Intensity", ylab = "True Intensity")
@@ -169,6 +169,13 @@ However we observe a slight gain in terms of effect estimation precision
 ```{r}
 mean ( (res_2iter$susiF.obj$fitted_func[[2]] -  lf[[2]])^2)
 mean ( (res $susiF.obj$fitted_func[[2]] -  lf[[2]])^2)
+
+
+mean((c(res1$ind_fitted_func) - c(True_intensity))^2)
+mean((c(res0$ind_fitted_func) - c(True_intensity))^2)
+mean((c(res$susiF.obj$ind_fitted_func) - c(True_intensity))^2)
+
+mean((c(res_2iter$susiF.obj$ind_fitted_func) - c(True_intensity))^2)
 ```
 
 
@@ -192,7 +199,7 @@ legend("topright", legend = c("True", "2-iter", "10-iter"), col = c("black", "li
 You can visualized how the posterior intensity are update using the print argument
 
 ```{r}
-
-res <- Pois_fSuSiE(Y = Y, X = X, L = 3 ,max.iter=20, post_processing = "HMM", print=TRUE )
+library(mvf.susie.alpha)
+res <- Pois_fSuSiE  (Y = Y, X = X, L = 3 ,   print=TRUE )
 ```
 
