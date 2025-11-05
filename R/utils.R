@@ -26,15 +26,15 @@ is.wholenumber <- function (x, tol = .Machine$double.eps^0.5)
 '%!in%' <- function(x,y)!('%in%'(x,y))
 
 # Based on Rfast implementation.
-#
+#' @importFrom Rfast cova
 fast_lm <- function(x,y)
 {
 
-    be <- solve(crossprod(x),crossprod(x,y))
-    sd <-  sqrt(covCpp(y - x %*% be) /(length(x)-1))
+  be <- solve(crossprod(x),crossprod(x,y))
+  sd <-  sqrt(Rfast::cova(y - x %*% be) /(length(x)-1))
 
 
-    return(c(be,sd))
+  return(c(be,sd))
 }
 
 

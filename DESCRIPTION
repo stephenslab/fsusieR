@@ -25,6 +25,7 @@ Imports:
     smashr,
     Rcpp,
     ebnm,
+    Rfast,
 Suggests:
     susieR,
     knitr,
