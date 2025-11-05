@@ -205,11 +205,8 @@ export(vga_pois_solver_newton_1iter)
 export(which_dummy_cs)
 export(which_dummy_cs.susiF)
 export(which_lowcount)
-<<<<<<< Updated upstream
-=======
 import(ebnm)
 import(wavethresh)
->>>>>>> Stashed changes
 importFrom(ashr,ash)
 importFrom(ashr,calc_loglik)
 importFrom(ashr,cdf_post)
