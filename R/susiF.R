@@ -20,12 +20,12 @@
 #'
 #' @param  post_processing character, use "TI" for translation invariant wavelet estimates,
 #' "HMM" for hidden Markov model (useful for estimating non-zero regions),
-#' "none" for simple wavelet estimate (not recommended). In general we recommend using TI as postprocessing,
-#'  nonetheless the HMM perform particularly well when analysing data with say few sampling points (i.e ncol(Y)<30).
+#' "none" for simple wavelet estimate (not recommended) and "smashr" experimental. In general we recommend using TI as post processing,
+#'  Nonetheless the HMM perform particularly well when analysing data with say few sampling points (i.e ncol(Y)<30) or when the data are particularly noisy (low signal noise ratio).
 #'  However, we found that the HMM post processing is quite sensitive to the Gaussian assumption and we advise to use data transformation if your data are not
-#'  normally distributed, e.g., using log1p( Y[i,]/si) for  count data data where si is the individual scaling factor as defined in  $s_i =
-#'\frac{\text{total count for cell} \; i}
-#'{\text{average across all cells}}$ or using M-value instead of Beta value when analysing DNA methylation data
+#'  normally distributed, e.g., using log1p( Y[i,]/si) for  count data data where si is the individual scaling factor as defined in  $s_i = \frac{\sum_{j=1}^p \tilde{Y}_{ij} }{\frac{1}{n}\sum_{i=1}^n\sum_{j=1}^p \tilde{Y}_{ij}}$
+#'  or using M-value instead of Beta value when analysing DNA methylation data. The option smashr is experimental and tend to give good point estimate but the credible band 
+#'  can be to narrow and so should be used with caution.
 #'
 #' @param prior specify the prior used in susiF. The two available choices are
 #' available "mixture_normal_per_scale", "mixture_normal". Default "mixture_normal_per_scale",
@@ -52,7 +52,7 @@
 #' @param filter_cs logical, if TRUE filters the credible set (removing low-purity)
 #' cs and cs with estimated prior equal to 0). Set as TRUE by default.
 #'
-#' @param init_pi0_w starting value of weight on null compoenent in mixsqp
+#' @param init_pi0_w starting value of weight on null component in mixsqp
 #'  (between 0 and 1)
 #'
 #' @param control_mixsqp list of parameter for mixsqp function see  mixsqp package
@@ -64,8 +64,10 @@
 #'
 #' @param L_start number of effect initialized at the start of the algorithm
 #'
-#' @param nullweight numeric value for penalizing likelihood at point mass 0 (should be between 0 and 1)
-#' (useful in small sample size)
+#' @param nullweight numeric value for penalizing likelihood at point mass 0. This number roughly corresponds
+#' to the number of zeros observation you add  (useful in small sample size). Default is 10 as recommended by Stephens in
+#' False discovery rate a new deal. Setting it too low tend lead to adding false discoveries. Setting it too
+#' high may reduce power. 
 #'
 #' @param thresh_lowcount numeric, used to check the wavelet coefficients have
 #'  problematic distribution (very low dispersion even after standardization).
@@ -284,7 +286,7 @@ susiF <- function(Y, X, L = 2,
                   nullweight= 10 ,
                   control_mixsqp =  list(verbose=FALSE,
                                          eps = 1e-6,
-                                         numiter.em = 4
+                                         numiter.em = 40
                   ),
                   thresh_lowcount=0,
                   cal_obj=FALSE,
@@ -299,7 +301,7 @@ susiF <- function(Y, X, L = 2,
                   cor_small=FALSE,
                   filter.number = 10,
                   family =  "DaubLeAsymm",
-                  post_processing=c("TI","smash","HMM","none"),
+                  post_processing=c("smash","TI","HMM","none"),
                   e = 0.001,
                   tol_null_prior=0.001
 
@@ -318,7 +320,7 @@ susiF <- function(Y, X, L = 2,
   warning("Option none is not recommended and the effect estimate can be poor")
  }
   if(post_processing=="smash"){
-    warning("Option is experimental, the credible band tend to be to narrow")
+    #warning("Option is experimental, the credible band tend to be to narrow")
   }
 
   ####Cleaning input -----
@@ -376,7 +378,7 @@ susiF <- function(Y, X, L = 2,
     X <- X[,-tidx]
   }
   if( verbose){
-    print("scaling columns of X and Y to have unit variance")
+    print("Scaling columns of X and Y to have unit variance")
   }
   X <- colScale(X)
   # centering input
@@ -498,7 +500,8 @@ susiF <- function(Y, X, L = 2,
                         post_processing=  post_processing,
                         tidx          = tidx,
                         names_colX    = names_colX,
-                        pos           = pos
+                        pos           = pos,
+                        verbose       = verbose
   )
   obj$runtime <- proc.time()-pt
   return(obj)

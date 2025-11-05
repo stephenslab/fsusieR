@@ -1,10 +1,10 @@
 ---
-title: "Accounting for covariate in functional fine-mapping"
+title: "Accounting for covariates in fSuSiE"
 author: "William R.P. Denault"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Accounting for covariate in functional fine-mapping}
+  %\VignetteIndexEntry{Accounting for covariates in fSuSiE}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---

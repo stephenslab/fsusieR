@@ -1,5 +1,5 @@
 Version: 1.0
-ProjectId: 39c6cccb-b446-44aa-82af-1242ec0e978b
+ProjectId: e8e2681a-88d6-479e-8fb0-c87a3168e645
 
 RestoreWorkspace: Default
 SaveWorkspace: Default
@@ -13,7 +13,9 @@ Encoding: UTF-8
 RnwWeave: Sweave
 LaTeX: pdfLaTeX
 
+AutoAppendNewline: Yes
+StripTrailingWhitespace: Yes
+
 BuildType: Package
 PackageUseDevtools: Yes
 PackageInstallArgs: --no-multiarch --with-keep.source
-PackageRoxygenize: rd,collate,namespace,vignette

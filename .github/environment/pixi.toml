@@ -1,0 +1,62 @@
+[project]
+name = "r-fsusier"
+channels = ["dnachun", "conda-forge", "bioconda"]
+platforms = ["linux-64"]
+
+[system-requirements]
+libc = { family="glibc", version="2.17" }
+
+[tasks]
+install_missing_packages="cd $GITHUB_WORKSPACE; R -e 'Sys.setenv(GITHUB_PAT = Sys.getenv(\"GITHUB_TOKEN\")); tryCatch({ packages <- c(\"haarfisz\"); for (pkg in packages) { if (!requireNamespace(pkg, quietly = TRUE)) { cat(\"Installing\", pkg, \"...\n\"); if (pkg %in% c(\"smashr\", \"mvsusieR\", \"fsusieR\")) { remotes::install_github(paste0(\"stephenslab/\", pkg), quiet = TRUE) } else { install.packages(pkg, repos = \"https://cloud.r-project.org\", quiet = TRUE) } } }; cat(\"All packages installed successfully.\n\") }, error = function(e) { cat(\"Warning: Some packages failed to install:\", e$message, \"\n\"); cat(\"Continuing with available packages...\n\") })'"
+devtools_document = "cd $GITHUB_WORKSPACE; R -e 'devtools::document()'"
+devtools_test = "cd $GITHUB_WORKSPACE; R -e 'devtools::test()'"
+codecov = "cd $GITHUB_WORKSPACE; R -e 'covr::codecov(quiet = FALSE)'"
+build = "cd $GITHUB_WORKSPACE; R -e 'devtools::build(vignettes = FALSE)'"
+rcmdcheck = "cd $GITHUB_WORKSPACE; R -e 'pkg <- list.files(\"..\", pattern = \".tar.gz\", full.names = TRUE); rcmdcheck::rcmdcheck(path = pkg[1], args = c(\"--as-cran\", \"--no-manual\"))'"
+use_major_version = "cd $GITHUB_WORKSPACE; R -e 'usethis::use_version(which = \"major\", push = FALSE)'"
+use_minor_version = "cd $GITHUB_WORKSPACE; R -e 'usethis::use_version(which = \"minor\", push = FALSE)'"
+use_patch_version = "cd $GITHUB_WORKSPACE; R -e 'usethis::use_version(which = \"patch\", push = FALSE)'"
+pkgdown_build = "cd $GITHUB_WORKSPACE; R -e 'pkgdown::build_site_github_pages(new_process = FALSE, install = TRUE)'"
+
+
+[feature.r44]
+dependencies = {"r-base" = "4.4.*"}
+
+[environments]
+r44 = {features = ["r44"]}
+
+[dependencies]
+"r-ashr" = "*"
+"r-covr" = "*"
+"r-devtools" = "*"
+"r-mass" = "*"
+"r-rcmdcheck" = "*"
+"r-susier" = "*"
+"r-smashr" = "*"
+"r-mvsusier" = "*"
+"r-fsusier" = "*"
+"r-tidyverse" = "*"
+"r-wavethresh" = "*"
+"r-mixsqp" = "*"
+"r-matrixstats" = "*"
+"r-rfast" = "*"
+"r-ggplot2" = "*"
+"r-cowplot" = "*"
+"r-laplacesdemon" = "*"
+"r-knitr" = "*"
+"r-rmarkdown" = "*"
+"r-reshape2" = "*"
+"r-pkgdown" = "*"
+"qpdf" = "*"
+# Additional dependencies required by vignettes
+"r-coloc" = "*"
+"r-ebnm" = "*"
+"r-gridextra" = "*"
+"r-testthat" = "*"
+# Bioconductor packages
+"bioconductor-annotationhub" = "*"
+"bioconductor-org.hs.eg.db" = "*"
+"bioconductor-genomicranges" = "*"
+"bioconductor-gviz" = "*"
+"bioconductor-txdb.hsapiens.ucsc.hg38.knowngene" = "*"
+"bioconductor-genomeinfodbdata" = "*"

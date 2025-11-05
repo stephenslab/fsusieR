@@ -1,11 +1,57 @@
+url: https://stephenslab.github.io/fsusieR/
+template:
+  bootstrap: 5
+  bootswatch: flatly
+  math-rendering: katex
+  bslib:
+    primary: "#8B5CF6"        # Purple primary color
+    secondary: "#6B7280"      # Gray secondary
+    success: "#10B981"        # Green success
+    info: "#3B82F6"          # Blue info
+    warning: "#F59E0B"       # Amber warning
+    danger: "#EF4444"        # Red danger
+    light: "#F3F4F6"         # Light gray
+    dark: "#111827"          # Very dark
+    bg: "white"               # white background
+    fg: "#333333"             # dark text for readability
+    "navbar-bg": "#8B5CF6"    # purple navbar
+    "navbar-dark-bg": "#8B5CF6"
+    base_font:
+      google: "Source Sans Pro"
+    heading_font: 
+      google: "Source Sans Pro"
+    code_font:
+      google: "Source Code Pro"
+  theme: arrow-light  #light syntax highlighting
+
 navbar:
+  bg: primary  # uses the purple primary color
+  type: dark   # Keep dark to have white text on purple navbar
   left:
     - text: "Home"
       href: index.html
     - text: "Vignettes"
       href: articles/index.html
-    - text: "Functions"
+    - text: "Functions"  
       href: reference/index.html
   right:
     - text: "Source"
-      href: https://github.com/stephenslab/susiF.alpha
+      href: https://github.com/stephenslab/fsusieR
+      
+footer:
+  structure:
+    left: developed_by
+    right: built_with
+
+articles:
+- title: Getting Started
+  navbar: ~
+  contents:
+  - fsusie_intro
+  - methyl_demo
+- title: Advanced Topics
+  navbar: ~
+  contents:
+  - Limitation_SuSiE
+  - Adjusting_covariate
+  - Coloc_fsusie

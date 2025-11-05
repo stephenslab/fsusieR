@@ -27,12 +27,11 @@ is.wholenumber <- function (x, tol = .Machine$double.eps^0.5)
 
 # Based on Rfast implementation.
 #
-#' @importFrom Rfast cova
 fast_lm <- function(x,y)
 {
 
     be <- solve(crossprod(x),crossprod(x,y))
-    sd <-  sqrt(Rfast::cova(y - x %*% be) /(length(x)-1))
+    sd <-  sqrt(covCpp(y - x %*% be) /(length(x)-1))
 
 
     return(c(be,sd))
@@ -67,7 +66,7 @@ Quantile_transform  <- function(x)
   #x.rank = rank(x, ties.method="average")
   return(qqnorm(x.rank,plot.it = F)$x)
 }
- 
+
 
 #' @title  Scaling function from r-blogger
 #'
@@ -81,6 +80,8 @@ Quantile_transform  <- function(x)
 #' @param rows logical  https://www.r-bloggers.com/2016/02/a-faster-scale-function/
 #' @param  cols logical  https://www.r-bloggers.com/2016/02/a-faster-scale-function/
 #' @export
+
+
 colScale = function(x,
                     center = TRUE,
                     scale = TRUE,
@@ -109,11 +110,20 @@ colScale = function(x,
     # just divide by 1 if not
     csd = rep(1, length = length(cm))
   }
+
+  # Handle zero variance columns
+  zero_var_cols = which(csd == 0)
+  for (col in zero_var_cols) {
+
+    csd[col] <- 1  # Set the scaled:scale attribute for this column to 1
+  }
+
   if (!center) {
     # just subtract 0
     cm = rep(0, length = length(cm))
   }
-  x = t( (t(x) - cm) / csd )
+  x = t((t(x) - cm) / csd)
+
   if (add_attr) {
     if (center) {
       attr(x, "scaled:center") <- cm
@@ -122,12 +132,14 @@ colScale = function(x,
       attr(x, "scaled:scale") <- csd
     }
     n <- nrow(x)
-    d = n*cm^2 + (n-1)*csd^2
-    d = (d - n*cm^2)/csd^2
+    d = n * cm^2 + (n - 1) * csd^2
+    d = (d - n * cm^2) / csd^2
     attr(x, "d") <- d
   }
+
   return(x)
 }
+
 
 
 gen_EM_out <- function(tpi_k , lBF){
@@ -171,67 +183,67 @@ cal_purity <- function(l_cs,X){
 #' the second column corresponds to the start of the region  and the third to the end of the affected region
 #'
 #' @param obj at fitted obj object
-#' @param lfsr_thresh threshold for affected region when using HMM postprocessing 
+#' @param lfsr_thresh threshold for affected region when using HMM postprocessing
 #' @importFrom stats complete.cases
 #'
 #' @export
 #'
 affected_reg <- function( obj, lfsr_thresh=0.05){
   outing_grid <- obj$outing_grid
-  
+
   reg <-  list()
   h <- 1
   if(!is.null (obj$cred_band)){
-    
+
     for (   l in 1:length(obj$cs)){
-      
+
       pos_up <-  which(obj$cred_band[[l]][1,]<0)
       pos_low <- which(obj$cred_band[[l]][2,]>0)
-      
-      
+
+
       reg_up <- split( pos_up,cumsum(c(1,diff( pos_up)!=1)))
-      
+
       reg_low <- split( pos_low,cumsum(c(1,diff( pos_low)!=1)))
       if( length(reg_up[[1]]) >0){
         for( k in 1:length(reg_up)){
           reg[[h]] <- c(l, outing_grid[reg_up[[k]][1]], outing_grid[reg_up[[k]][length(reg_up[[k]])]])
-          
+
           h <- h+1
         }
       }
-      
+
       if( length(reg_low[[1]]) >0){
         for( k in 1:length(reg_low )){
           reg[[h]] <- c(l, outing_grid[reg_low [[k]][1]], outing_grid[reg_low [[k]][length(reg_low [[k]])]])
-          
+
           h <- h+1
         }
       }
-      
-      
-      
+
+
+
     }
   }
-  
+
   if(!is.null(obj$lfsr_func)){
-    
+
     for (   l in 1:length(obj$cs)){
-      
+
       pos_up <-  which(obj$lfsr_func[[l]] < lfsr_thresh)
       pos_low <- which(obj$cred_band[[l]][2,]>0)
-      
+
       reg_up <- split( pos_up,cumsum(c(1,diff( pos_up)!=1)))
       for( k in 1:length(reg_up)){
         reg[[h]] <- c(l, outing_grid[reg_up[[k]][1]], outing_grid[reg_up[[k]][length(reg_up[[k]])]])
-        
+
         h <- h+1
       }
-      
-      
-      
+
+
+
     }
   }
-  
+
   reg <-  do.call(rbind, reg)
   colnames(reg) <- c("CS", "Start","End")
   reg <- as.data.frame(reg)
@@ -262,7 +274,7 @@ effective.effect=function(betahat,se,df){
 pval2se = function(bhat,p){
   z = qnorm(1-p/2)
 s = abs(bhat/z)
- 
+
 return(s)}
 
 
@@ -286,3 +298,127 @@ update_Shat_pois <- function(Shat, indx_lst, lowc_wc){
   }
   return(Shat)
 }
+
+#' @title Binned reponsed data
+#'
+#' @param  Y a matrix of observed individual function measure in more than 1024 positions
+# (i.e., the result of running fsusie)
+#' @param base_pair the corresponding position of each column
+#' @param n_bins number of bins for the ouput
+#' @export
+
+#' @export
+bin_Y <- function(Y, base_pair, n_bins = 1024) {
+  total_bp    <- ncol(Y)
+  bin_size    <- total_bp / n_bins
+  binned_data <- matrix(ncol = n_bins, nrow = nrow(Y))
+  start_bin   <- rep(NA, n_bins)
+
+  for (i in 1:n_bins) {
+    # Calculate exact start and end positions of bins
+    start_col <- min(which(base_pair >= (min(base_pair) + (i - 1) * bin_size)))
+    end_col   <- max(which(base_pair < (min(base_pair) + i * bin_size)))
+
+    if (!is.na(start_col) & !is.na(end_col) & start_col <= end_col) {
+      binned_data[, i] <- rowSums(Y[, start_col:end_col, drop = FALSE], na.rm = TRUE)
+    } else {
+      binned_data[, i] <- 0  # Prevent missing values
+    }
+
+    start_bin[i] <- base_pair[start_col]  # Ensure correct bin placement
+  }
+
+  return(list(binned_data = binned_data,
+              pos = start_bin,
+              bin_size = bin_size))
+}
+
+
+
+
+log1pexp = function (x){
+  indx <- .bincode(x, c(-Inf, -37, 18, 33.3, Inf), right = TRUE,
+                   include.lowest = TRUE)
+  kk <- which(indx == 1)
+  if (length(kk)) {
+    x[kk] <- exp(x[kk])
+  }
+  kk <- which(indx == 2)
+  if (length(kk)) {
+    x[kk] <- log1p(exp(x[kk]))
+  }
+  kk <- which(indx == 3)
+  if (length(kk)) {
+    x[kk] <- x[kk] + exp(-x[kk])
+  }
+  return(x)
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+reflect_vec <- function (x)
+{
+  n = length(x)
+  J = log2(n)
+  if ((J%%1) == 0) {
+    x = c(x, x[n:1])
+    return(list(x = x, idx = 1:n))
+  }
+  else {
+    n.ext = 2^ceiling(J)
+    lnum = round((n.ext - n)/2)
+    rnum = n.ext - n - lnum
+    if (lnum == 0) {
+      x.lmir = NULL
+    }
+    else {
+      x.lmir = x[lnum:1]
+    }
+    if (rnum == 0) {
+      x.rmir = NULL
+    }
+    else {
+      x.rmir = x[n:(n - rnum + 1)]
+    }
+    x.ini = c(x.lmir, x, x.rmir)
+    x.mir = x.ini[n.ext:1]
+    x = c(x.ini, x.mir)
+    return(list(x = x, idx = (lnum + 1):(lnum + n)))
+  }
+}
+
+
+
+
+#' @title Perform Haar-Fisz tranform on  count matrix
+#
+#' @param   count.data a N by T matrix of count data where each row is an observed Poisson processt
+#
+#
+#
+#' @return a matrix of size N by T  of the Haar-Fisz transformed data
+#
+#' @export
+#'@export
+HFT<- function(count.data){
+  lst <- list()
+  for ( i in 1:nrow(count.data)){
+    lst[[i]] <-haarfisz::hft(count.data[i,])
+  }
+  out <- do.call( rbind,lst)
+  return(out)
+}
+

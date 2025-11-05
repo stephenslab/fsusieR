@@ -24,6 +24,7 @@ out_prep(obj, Y, X, indx_lst, outing_grid, ...)
   tidx = NULL,
   names_colX = NULL,
   pos,
+  verbose = TRUE,
   ...
 )
 }
@@ -41,6 +42,8 @@ out_prep(obj, Y, X, indx_lst, outing_grid, ...)
 \item{filter_cs}{logical, if TRUE filter the credible set (removing low purity cs and cs with estimated prior equal to 0)}
 
 \item{pos}{the original position of the Y column}
+
+\item{verbose}{TRUE or FALSE verbose}
 }
 \value{
 susiF object
