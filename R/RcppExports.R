@@ -2,14 +2,14 @@
 # Generator token: 10BE3573-1514-4C36-9D1C-5A225CD40393
 
 colSumsCpp <- function(x) {
-    .Call('_fsusieR_colSumsCpp', PACKAGE = 'fsusieR', x)
+    .Call(`_fsusieR_colSumsCpp`, x)
 }
 
 colVarsCpp <- function(x) {
-    .Call('_fsusieR_colVarsCpp', PACKAGE = 'fsusieR', x)
+    .Call(`_fsusieR_colVarsCpp`, x)
 }
 
 covCpp <- function(x) {
-    .Call('_fsusieR_covCpp', PACKAGE = 'fsusieR', x)
+    .Call(`_fsusieR_covCpp`, x)
 }
 
