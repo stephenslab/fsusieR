@@ -272,10 +272,11 @@ Pois_fSuSiE <- function(Y,
         plot( log1p(Y ),  (Mu_pm  ))
 
         abline(a=0,b=1)
-        trmse= mean((c(Mu_pm) - c(True_intensity))^2)
+        trmse= mean( (c(susiF.obj$ind_fitted_func)  - c(True_intensity)) ^2)
 
 
-        plot(True_intensity,  (Mu_pm  ),
+
+        plot(True_intensity,  (susiF.obj$ind_fitted_func  ),
              main=  paste( " MSE" , trmse ))
 
         abline(a=0,b=1)
