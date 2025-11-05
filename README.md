@@ -9,7 +9,7 @@ The `fsusieR` package implements the Sum of Single Functions (fSuSiE) method for
 ### Software Dependencies
 
 - R (≥ 3.5.0)
-- Required R packages: wavethresh (≥ 4.6.8), ashr (≥ 2.2-47), mixsqp (≥ 0.3-43), matrixStats (≥ 0.62.0), Rfast (≥ 2.0.5), smashr
+- Required R packages: wavethresh (≥ 4.6.8), ashr (≥ 2.2-47), mixsqp (≥ 0.3-43), matrixStats (≥ 0.62.0), smashr
 - Optional: susieR and mvsusieR for comparation with fSuSiE
 
 ### Operating Systems
