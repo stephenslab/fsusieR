@@ -694,6 +694,14 @@ Eloglik_GP = function(x, s, Et, Et2) {
   Et2 = Et2[idx]
   return(-0.5 * sum(log(2*pi*s^2) + (1/s^2) * (Et2 - 2*x*Et + x^2)))
 }
+output_default <- ebnm:::ebnm_output_default
 
-
-
+ebnm_params_default = function(){
+  return(list(prior_family='point_laplace',
+              mode='estimate',
+              scale = "estimate",
+              g_init = NULL,
+              fix_g = FALSE,
+              output = output_default(),
+              optmethod = NULL))
+}

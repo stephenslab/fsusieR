@@ -8,7 +8,7 @@ Pois_fSuSiE <- function(Y,
                         verbose = TRUE,
                         tol = 1e-3,
                         maxit_outer = 10,
-                        maxit_inner = 100,
+                        maxit_inner = 10,
                         control_mixsqp = list(verbose = FALSE,
                                               eps = 1e-6,
                                               numiter.em = 4),
@@ -143,7 +143,7 @@ Pois_fSuSiE <- function(Y,
           Y[i, ],
           s = scaling[i],
           Eb_init = B_pm[i, ],
-          maxiter = 20
+          maxiter = 100
         )$Emean)
       }, numeric(ncol(Y))))
 
@@ -277,11 +277,15 @@ Pois_fSuSiE <- function(Y,
 
 
         plot(True_intensity,  (susiF.obj$ind_fitted_func  ),
-             main=  paste( " MSE" , trmse ))
+             main=  paste( " MSE" , trmse ),
+             ylab="Estimated intensity")
 
         abline(a=0,b=1)
         plot(susiF.obj$fitted_func[[1]])
-        plot(susiF.obj$fitted_func[[2]])
+        if ( length(susiF.obj$fitted_func >1)){
+
+          plot(susiF.obj$fitted_func[[2]])
+        }
 
 
         par (mfrow=c(1,1))
