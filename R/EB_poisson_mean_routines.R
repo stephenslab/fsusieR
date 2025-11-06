@@ -508,20 +508,23 @@ pois_mean_GP_obj = function(x,s,beta,sigma2,m,v){
 #'\deqn{\b_i\sim g(.).}
 #'@export
 
-pois_smooth_split = function(x,
-                             s = NULL,
-                             Eb_init = NULL,
-                             sigma2_init = NULL,
-                             est_sigma2 = TRUE,
-                             maxiter = 100,
-                             tol=1e-5,
-                             filter.number = 1,
-                             family = 'DaubExPhase',
-                             verbose=FALSE,
-                             printevery = 10,
-                             ebnm_params=list(mode=0),
-                             optim_method='L-BFGS-B'){
+pois_smooth_split <- function(x,
+                                                s = NULL,
+                                                Eb_init = NULL,
+                                                sigma2_init = NULL,
+                                                est_sigma2 = TRUE,
+                                                maxiter = 100,
+                                                tol = 1e-5,
+                                                filter.number = 1,
+                                                family = 'DaubExPhase',
+                                                verbose = FALSE,
+                                                printevery = 10,
+                                                ebnm_params = list(mode = 0),
+                                                optim_method = 'L-BFGS-B',
+                                                link = c("log", "log1p"))
 
+  {
+  link <- match.arg(link)
   n = length(x)
   if(is.null(s)){
     s = 1
@@ -545,18 +548,23 @@ pois_smooth_split = function(x,
   mu_pm = rep(0,n)
   mu_pv = rep(1/n,n)
   obj = -Inf
+  if (link == "log") {
+    obj_fn <- pois_mean_GP_opt_obj
+    grad_fn <- pois_mean_GP_opt_obj_gradient
+  } else if (link == "log1p") {
+    obj_fn <- pois_mean_GP_log1p_opt_obj
+    grad_fn <- pois_mean_GP_log1p_opt_obj_gradient
+  }
 
   for(iter in 1:maxiter){
     # get m, s^2
-    opt = optim(c(mu_pm,log(mu_pv)),
-                fn = pois_mean_GP_opt_obj,
-                gr = pois_mean_GP_opt_obj_gradient,
-                x=x,
-                s=s,
-                beta=Eb,
-                sigma2=sigma2,
-                n=n,
+    opt = optim(c(mu_pm, log(mu_pv)),
+                fn = obj_fn,
+                gr = grad_fn,
+                x = x, s = s, beta = Eb,
+                sigma2 = sigma2, n = n,
                 method = optim_method)
+
     mu_pm = opt$par[1:n]
     mu_pv = exp(opt$par[(n+1):(2*n)])
     qb = smash_dwt(x=mu_pm,

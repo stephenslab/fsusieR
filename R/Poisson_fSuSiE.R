@@ -16,8 +16,8 @@ Pois_fSuSiE <- function(Y,
                         cov_lev = 0.95,
                         min_purity = 0.5,
                         cor_small = TRUE,
-                        post_processing = "HMM",
-                            print=TRUE,
+                        post_processing = "smash",
+                            print=FALSE,
                         update_Mu_each_iter = TRUE,
                         True_intensity=NULL) {
 
