@@ -282,7 +282,7 @@ Pois_fSuSiE <- function(Y,
 
         abline(a=0,b=1)
         plot(susiF.obj$fitted_func[[1]])
-        if ( length(susiF.obj$fitted_func >1)){
+        if ( length(susiF.obj$fitted_func )>1){
 
           plot(susiF.obj$fitted_func[[2]])
         }

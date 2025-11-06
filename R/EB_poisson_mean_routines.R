@@ -458,10 +458,21 @@ pois_mean_GP_opt_obj = function(theta,x,s,beta,sigma2,n){
 }
 #'calculate gradient vector
 pois_mean_GP_opt_obj_gradient = function(theta,x,s,beta,sigma2,n){
+  #m = theta[1:n]
+  #v = theta[(n+1):(2*n)]
+  #g1 = -(x-s*exp(m+exp(v)/2)-m/sigma2+beta/sigma2)
+  #g2 = -(-exp(v)/2*s*exp(m+exp(v)/2) - exp(v)/2/sigma2 + 1/2)
   m = theta[1:n]
   v = theta[(n+1):(2*n)]
-  g1 = -(x-s*exp(m+exp(v)/2)-m/sigma2+beta/sigma2)
-  g2 = -(-exp(v)/2*s*exp(m+exp(v)/2) - exp(v)/2/sigma2 + 1/2)
+  v = pmin(pmax(v, log(1e-6)), log(1e2))   # constrain log(v)
+  sigma2 = max(sigma2, 1e-6)
+  eta = m + exp(v)/2
+  eta[eta > 20] <- 20
+  g1 = -(x - s*exp(eta) - m/sigma2 + beta/sigma2)
+  g2 = -(-exp(v)/2*s*exp(eta) - exp(v)/(2*sigma2) + 1/2)
+
+
+
   return(c(g1,g2))
 }
 
