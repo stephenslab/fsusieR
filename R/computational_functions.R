@@ -63,9 +63,6 @@ cal_cor_cs <- function(obj,X){
 # \item{Shat}{ matrix pxJ standard error, Shat[j,t] corresponds to standard error of the regression coefficient of Y[,t] on X[,j] }
 #
 # @export
-#' @importFrom Rfast colsums
-#' @importFrom Rfast colVars
-#' @importFrom Rfast cova
 cal_Bhat_Shat   <- function(Y,
                             X ,
                             v1 ,
@@ -79,12 +76,12 @@ cal_Bhat_Shat   <- function(Y,
   if(missing(ind_analysis)){
 
 
-    d <- colSums(X^2)
+    d <- colSumsCpp(X^2)
     Bhat <- (t(X)%*%Y )/d
 
     Shat  <- do.call( cbind,
                       lapply( 1:ncol(Bhat),
-                              function(i)  (Rfast::colVars(  Y [,i] -sweep( X,2, Bhat[,i], "*")))
+                              function(i)  ( colVarsCpp(  Y [,i] -sweep( X,2, Bhat[,i], "*")))
                       )
     )
 
@@ -97,7 +94,7 @@ cal_Bhat_Shat   <- function(Y,
 
       Bhat <-  do.call(cbind,lapply(1:length(ind_analysis),
                                     function(l){
-                                      d   <- Rfast::colsums(X[ind_analysis[[l]], ]^2)
+                                      d   <-  colSumsCpp(X[ind_analysis[[l]], ]^2)
                                       out <- (t(X[ind_analysis[[l]], ])%*%Y[ind_analysis[[l]], l])/d
                                       return(out)
                                     }
@@ -107,7 +104,7 @@ cal_Bhat_Shat   <- function(Y,
 
 
       Shat  <-   matrix(mapply(function(l,j)
-        (Rfast::cova(matrix(Y[ind_analysis[[l]],l] - X[ind_analysis[[l]], j]  *  Bhat[j,l])) /(length(ind_analysis[[l]])-1)),
+        ( covCpp(matrix(Y[ind_analysis[[l]],l] - X[ind_analysis[[l]], j]  *  Bhat[j,l])) /(length(ind_analysis[[l]])-1)),
         l=rep(1:dim(Y)[2],each= ncol(X)),
         j=rep(1:dim(X)[2], ncol(Y))
       ),
@@ -116,12 +113,12 @@ cal_Bhat_Shat   <- function(Y,
       Shat<- sqrt( pmax(Shat, 1e-64))
 
     }else{
-      d <- Rfast::colsums(X[ind_analysis , ]^2)
+      d <-  colSumsCpp(X[ind_analysis , ]^2)
       Bhat <- (t(X[ind_analysis , ])%*%Y[ind_analysis , ])/d
 
       Shat  <- do.call( cbind,
                         lapply( 1:ncol(Bhat),
-                                function(i) (Rfast::colVars(Y [ind_analysis,i] -sweep( X[ind_analysis,],2, Bhat[ ,i], "*")))
+                                function(i) ( colVarsCpp(Y [ind_analysis,i] -sweep( X[ind_analysis,],2, Bhat[ ,i], "*")))
                         )
       )
       Shat<- sqrt( pmax(Shat, 1e-64))
