@@ -51,9 +51,12 @@ into a grid of length 2^J}
 the observed column in Y, if missing, suppose that the observation
 are evenly spaced}
 
-\item{prior}{specify the prior used in susiF. The two available choices are
-available "mixture_normal_per_scale", "mixture_normal". Default "mixture_normal_per_scale",
-if this susiF is too slow, consider using  "mixture_normal"  using  "mixture_normal" which  is up to 40\% faster but may lead to slight power loss}
+\item{prior}{specify the prior used in susiF. The two available
+choices are available "mixture_normal_per_scale",
+"mixture_normal". Default "mixture_normal_per_scale", if this
+susiF is too slow, consider using "mixture_normal" using
+"mixture_normal" which is up to 40\% faster but may lead to
+slight power loss}
 
 \item{verbose}{If \code{verbose = TRUE}, the algorithm's progress,
 and a summary of the optimization settings are printed on the
@@ -78,20 +81,24 @@ cs and cs with estimated prior equal to 0). Set as TRUE by default.}
 \item{init_pi0_w}{starting value of weight on null component in mixsqp
 (between 0 and 1)}
 
-\item{nullweight}{numeric value for penalizing likelihood at point mass 0. This number roughly corresponds
-to the number of zeros observation you add  (useful in small sample size). Default is 10 as recommended by Stephens in
-False discovery rate a new deal. Setting it too low tend lead to adding false discoveries. Setting it too
-high may reduce power.}
+\item{nullweight}{numeric value for penalizing likelihood at point
+mass 0. This number roughly corresponds to the number of zeros
+observation you add (useful in small sample size). Default is
+10 as recommended by Stephens in False discovery rate a new
+deal. Setting it too low tend lead to adding false
+discoveries. Setting it too high may reduce power.}
 
 \item{control_mixsqp}{list of parameter for mixsqp function see  mixsqp package}
 
-\item{thresh_lowcount}{numeric, used to check the wavelet coefficients have
-problematic distribution (very low dispersion even after standardization).
-Basically, check if the median of the absolute value of the distribution of
- a wavelet coefficient is below this threshold. If yes, the algorithm discards
- this wavelet coefficient (setting its estimate effect to 0 and estimate sd to 1).
- Set to 0 by default. It can be useful when analyzing sparse data from sequence
-  based assay or small samples.}
+\item{thresh_lowcount}{numeric, used to check the wavelet
+coefficients have problematic distribution (very low dispersion
+even after standardization).  Basically, check if the median of
+the absolute value of the distribution of a wavelet coefficient
+is below this threshold. If yes, the algorithm discards this
+wavelet coefficient (setting its estimate effect to 0 and
+estimate sd to 1).  Set to 0 by default. It can be useful when
+analyzing sparse data from sequence based assay or small
+samples.}
 
 \item{cal_obj}{logical if set as TRUE compute ELBO for convergence monitoring}
 
@@ -106,39 +113,64 @@ on wavelet coefficients}
 \item{backfit}{logical, if TRUE, allow discarding effect via back fitting.
 Set as true by default as TRUE. We advise keeping it as TRUE.}
 
-\item{gridmult}{numeric used to control the number of components used in the mixture prior (see ashr package
-for more details). From the ash function:  multiplier by which the default grid values for mixed differ from one another.
- (Smaller values produce finer grids.). Increasing this value may reduce computational time.}
+\item{gridmult}{numeric used to control the number of components
+used in the mixture prior (see ashr package for more
+details). From the ash function: multiplier by which the
+default grid values for mixed differ from one another.
+(Smaller values produce finer grids.). Increasing this value
+may reduce computational time.}
 
-\item{max_scale}{numeric, define the maximum of wavelet coefficients used in the analysis (2^max_scale).
-Set 10 true by default.}
+\item{max_scale}{numeric, define the maximum of wavelet
+coefficients used in the analysis (2^max_scale).  Set 10 true
+by default.}
 
-\item{max_SNP_EM}{maximum number of SNP used for learning the prior. By default, set to 1000. Reducing this may help reduce
-the computational time. We advise to keep it at least larger than 50}
+\item{max_SNP_EM}{maximum number of SNP used for learning the
+prior. By default, set to 1000. Reducing this may help reduce
+the computational time. We advise to keep it at least larger
+than 50}
 
 \item{max_step_EM}{max_step_EM}
 
-\item{cor_small}{logical set to FALSE by default. If TRUE used the Bayes factor from Valen E Johnson JRSSB 2005 instead of Wakefield approximation for Gen Epi 2009
-The Bayes factor from Valen E Johnson JRSSB 2005 tends to have better coverage in small sample sizes. We advise using this parameter if n<50}
+\item{cor_small}{logical set to FALSE by default. If TRUE used the
+Bayes factor from Valen E Johnson JRSSB 2005 instead of
+Wakefield approximation for Gen Epi 2009 The Bayes factor from
+Valen E Johnson JRSSB 2005 tends to have better coverage in
+small sample sizes. We advise using this parameter if n<50}
 
 \item{filter.number}{see documentation of wd from wavethresh package}
 
 \item{family}{see documentation of wd from wavethresh package}
 
-\item{post_processing}{character, use "TI" for translation invariant wavelet estimates,
-"HMM" for hidden Markov model (useful for estimating non-zero regions),
-"none" for simple wavelet estimate (not recommended) and "smashr" experimental. In general we recommend using TI as post processing,
- Nonetheless the HMM perform particularly well when analysing data with say few sampling points (i.e ncol(Y)<30) or when the data are particularly noisy (low signal noise ratio).
- However, we found that the HMM post processing is quite sensitive to the Gaussian assumption and we advise to use data transformation if your data are not
- normally distributed, e.g., using log1p( Y[i,]/si) for  count data data where si is the individual scaling factor as defined in  $s_i = \frac{\sum_{j=1}^p \tilde{Y}_{ij} }{\frac{1}{n}\sum_{i=1}^n\sum_{j=1}^p \tilde{Y}_{ij}}$
- or using M-value instead of Beta value when analysing DNA methylation data. The option smashr is experimental and tend to give good point estimate but the credible band 
- can be to narrow and so should be used with caution.}
+\item{post_processing}{character, use "TI" for translation
+invariant wavelet estimates, "HMM" for hidden Markov model
+(useful for estimating non-zero regions), "none" for simple
+wavelet estimate (not recommended) and "smashr"
+experimental. In general we recommend using TI as post
+processing, Nonetheless the HMM perform particularly well when
+analysing data with say few sampling points (i.e ncol(Y)<30) or
+when the data are particularly noisy (low signal noise ratio).
+However, we found that the HMM post processing is quite
+sensitive to the Gaussian assumption and we advise to use data
+transformation if your data are not normally distributed, e.g.,
+using log1p( Y[i,]/si) for count data data where si is the
+individual scaling factor as defined in
+\deqn{s_i = \frac{\sum_{j=1}^p \tilde{Y}_{ij}
+}{\frac{1}{n}\sum_{i=1}^n\sum_{j=1}^p \tilde{Y}_{ij}}} or using
+M-value instead of Beta value when analysing DNA methylation
+data. The option smashr is experimental and tend to give good
+point estimate but the credible band can be to narrow and so
+should be used with caution.}
 
-\item{e}{threshold value is used to avoid computing posteriors that have low alpha values. Set it to 0 to compute the entire posterior. default value is 0.001}
+\item{e}{threshold value is used to avoid computing posteriors that
+have low alpha values. Set it to 0 to compute the entire
+posterior. default value is 0.001}
 
-\item{tol_null_prior}{threshold to consider prior to be null. If the estimated weight on the point mass at zero is larger than 1-tol_null_prior
-then set prior weight on point mass to be 1. In the mixture normal this corresponds to removing the effect. In the mixutre per scale prior this corresponds
-to setting the prior of a given scale to at point mass at 0.}
+\item{tol_null_prior}{threshold to consider prior to be null. If
+the estimated weight on the point mass at zero is larger than
+1-tol_null_prior then set prior weight on point mass to be
+1. In the mixture normal this corresponds to removing the
+effect. In the mixutre per scale prior this corresponds to
+setting the prior of a given scale to at point mass at 0.}
 }
 \value{
 A \code{"susiF"} object with some or all of the following
@@ -198,9 +230,6 @@ the lth effect.}
 }
 \description{
 Implementation of the SuSiF method.
-}
-\details{
-Implementation of the SuSiF method
 }
 \examples{
 library(ashr)

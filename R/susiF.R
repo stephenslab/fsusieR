@@ -2,9 +2,6 @@
 #'
 #' @description Implementation of the SuSiF method.
 #'
-#' @details Implementation of the SuSiF method
-#'
-#'
 #' @param Y functional phenotype, matrix of size N by size J. The
 #'   underlying algorithm uses wavelet, which assumes that J is of the
 #'   form J^2. If J is not a power of 2, susiF internally remaps the data
@@ -18,23 +15,36 @@
 #' the observed column in Y, if missing, suppose that the observation
 #' are evenly spaced
 #'
-#' @param  post_processing character, use "TI" for translation invariant wavelet estimates,
-#' "HMM" for hidden Markov model (useful for estimating non-zero regions),
-#' "none" for simple wavelet estimate (not recommended) and "smashr" experimental. In general we recommend using TI as post processing,
-#'  Nonetheless the HMM perform particularly well when analysing data with say few sampling points (i.e ncol(Y)<30) or when the data are particularly noisy (low signal noise ratio).
-#'  However, we found that the HMM post processing is quite sensitive to the Gaussian assumption and we advise to use data transformation if your data are not
-#'  normally distributed, e.g., using log1p( Y[i,]/si) for  count data data where si is the individual scaling factor as defined in  $s_i = \frac{\sum_{j=1}^p \tilde{Y}_{ij} }{\frac{1}{n}\sum_{i=1}^n\sum_{j=1}^p \tilde{Y}_{ij}}$
-#'  or using M-value instead of Beta value when analysing DNA methylation data. The option smashr is experimental and tend to give good point estimate but the credible band 
-#'  can be to narrow and so should be used with caution.
+#' @param post_processing character, use "TI" for translation
+#'   invariant wavelet estimates, "HMM" for hidden Markov model
+#'   (useful for estimating non-zero regions), "none" for simple
+#'   wavelet estimate (not recommended) and "smashr"
+#'   experimental. In general we recommend using TI as post
+#'   processing, Nonetheless the HMM perform particularly well when
+#'   analysing data with say few sampling points (i.e ncol(Y)<30) or
+#'   when the data are particularly noisy (low signal noise ratio).
+#'   However, we found that the HMM post processing is quite
+#'   sensitive to the Gaussian assumption and we advise to use data
+#'   transformation if your data are not normally distributed, e.g.,
+#'   using log1p( Y[i,]/si) for count data data where si is the
+#'   individual scaling factor as defined in
+#'   \deqn{s_i = \frac{\sum_{j=1}^p \tilde{Y}_{ij}
+#'   }{\frac{1}{n}\sum_{i=1}^n\sum_{j=1}^p \tilde{Y}_{ij}}} or using
+#'   M-value instead of Beta value when analysing DNA methylation
+#'   data. The option smashr is experimental and tend to give good
+#'   point estimate but the credible band can be to narrow and so
+#'   should be used with caution.
 #'
-#' @param prior specify the prior used in susiF. The two available choices are
-#' available "mixture_normal_per_scale", "mixture_normal". Default "mixture_normal_per_scale",
-#' if this susiF is too slow, consider using  "mixture_normal"  using  "mixture_normal" which  is up to 40\% faster but may lead to slight power loss
+#' @param prior specify the prior used in susiF. The two available
+#'     choices are available "mixture_normal_per_scale",
+#'     "mixture_normal". Default "mixture_normal_per_scale", if this
+#'     susiF is too slow, consider using "mixture_normal" using
+#'     "mixture_normal" which is up to 40\% faster but may lead to
+#'     slight power loss
 #'
 #' @param verbose If \code{verbose = TRUE}, the algorithm's progress,
 #' and a summary of the optimization settings are printed on the
 #' console.
-#'
 #'
 #' @param tol a small, non-negative number specifying the convergence
 #' tolerance for the IBSS fitting procedure. The fitting procedure
@@ -64,18 +74,22 @@
 #'
 #' @param L_start number of effect initialized at the start of the algorithm
 #'
-#' @param nullweight numeric value for penalizing likelihood at point mass 0. This number roughly corresponds
-#' to the number of zeros observation you add  (useful in small sample size). Default is 10 as recommended by Stephens in
-#' False discovery rate a new deal. Setting it too low tend lead to adding false discoveries. Setting it too
-#' high may reduce power. 
+#' @param nullweight numeric value for penalizing likelihood at point
+#'     mass 0. This number roughly corresponds to the number of zeros
+#'     observation you add (useful in small sample size). Default is
+#'     10 as recommended by Stephens in False discovery rate a new
+#'     deal. Setting it too low tend lead to adding false
+#'     discoveries. Setting it too high may reduce power.
 #'
-#' @param thresh_lowcount numeric, used to check the wavelet coefficients have
-#'  problematic distribution (very low dispersion even after standardization).
-#'  Basically, check if the median of the absolute value of the distribution of
-#'   a wavelet coefficient is below this threshold. If yes, the algorithm discards
-#'   this wavelet coefficient (setting its estimate effect to 0 and estimate sd to 1).
-#'   Set to 0 by default. It can be useful when analyzing sparse data from sequence
-#'    based assay or small samples.
+#' @param thresh_lowcount numeric, used to check the wavelet
+#'     coefficients have problematic distribution (very low dispersion
+#'     even after standardization).  Basically, check if the median of
+#'     the absolute value of the distribution of a wavelet coefficient
+#'     is below this threshold. If yes, the algorithm discards this
+#'     wavelet coefficient (setting its estimate effect to 0 and
+#'     estimate sd to 1).  Set to 0 by default. It can be useful when
+#'     analyzing sparse data from sequence based assay or small
+#'     samples.
 #'
 #' @param greedy logical, if TRUE allows greedy search for extra effect
 #'  (up to L specified by the user). Set as TRUE by default
@@ -83,12 +97,16 @@
 #' @param backfit logical, if TRUE, allow discarding effect via back fitting.
 #'  Set as true by default as TRUE. We advise keeping it as TRUE.
 #'
-#' @param gridmult numeric used to control the number of components used in the mixture prior (see ashr package
-#'  for more details). From the ash function:  multiplier by which the default grid values for mixed differ from one another.
-#'   (Smaller values produce finer grids.). Increasing this value may reduce computational time.
+#' @param gridmult numeric used to control the number of components
+#'   used in the mixture prior (see ashr package for more
+#'   details). From the ash function: multiplier by which the
+#'   default grid values for mixed differ from one another.
+#'   (Smaller values produce finer grids.). Increasing this value
+#'   may reduce computational time.
 #'
-#' @param max_scale numeric, define the maximum of wavelet coefficients used in the analysis (2^max_scale).
-#'        Set 10 true by default.
+#' @param max_scale numeric, define the maximum of wavelet
+#'   coefficients used in the analysis (2^max_scale).  Set 10 true
+#'   by default.
 #'
 #' @param max_step_EM max_step_EM
 #'
@@ -96,16 +114,28 @@
 #'
 #' @param family see documentation of wd from wavethresh package
 #'
-#' @param max_SNP_EM maximum number of SNP used for learning the prior. By default, set to 1000. Reducing this may help reduce
-#'the computational time. We advise to keep it at least larger than 50
+#' @param max_SNP_EM maximum number of SNP used for learning the
+#'  prior. By default, set to 1000. Reducing this may help reduce
+#'  the computational time. We advise to keep it at least larger
+#'  than 50
 #'
-#' @param cor_small logical set to FALSE by default. If TRUE used the Bayes factor from Valen E Johnson JRSSB 2005 instead of Wakefield approximation for Gen Epi 2009
-#' The Bayes factor from Valen E Johnson JRSSB 2005 tends to have better coverage in small sample sizes. We advise using this parameter if n<50
+#' @param cor_small logical set to FALSE by default. If TRUE used the
+#'   Bayes factor from Valen E Johnson JRSSB 2005 instead of
+#'   Wakefield approximation for Gen Epi 2009 The Bayes factor from
+#'   Valen E Johnson JRSSB 2005 tends to have better coverage in
+#'   small sample sizes. We advise using this parameter if n<50
 #'
-#' @param e threshold value is used to avoid computing posteriors that have low alpha values. Set it to 0 to compute the entire posterior. default value is 0.001
-#' @param tol_null_prior threshold to consider prior to be null. If the estimated weight on the point mass at zero is larger than 1-tol_null_prior
-#' then set prior weight on point mass to be 1. In the mixture normal this corresponds to removing the effect. In the mixutre per scale prior this corresponds
-#' to setting the prior of a given scale to at point mass at 0.
+#' @param e threshold value is used to avoid computing posteriors that
+#'   have low alpha values. Set it to 0 to compute the entire
+#'   posterior. default value is 0.001
+#' 
+#' @param tol_null_prior threshold to consider prior to be null. If
+#'   the estimated weight on the point mass at zero is larger than
+#'   1-tol_null_prior then set prior weight on point mass to be
+#'   1. In the mixture normal this corresponds to removing the
+#'   effect. In the mixutre per scale prior this corresponds to
+#'   setting the prior of a given scale to at point mass at 0.
+#' 
 #' @importFrom stats var
 #' 
 #' @return A \code{"susiF"} object with some or all of the following
