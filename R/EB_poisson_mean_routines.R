@@ -506,8 +506,9 @@ pois_mean_GP_obj = function(x,s,beta,sigma2,m,v){
 #'\deqn{x_i\sim Poisson(\exp(\mu_i)),}
 #'\deqn{\mu_i\sim N(b_i,\sigma^2),}
 #'\deqn{\b_i\sim g(.).}
+#' 
 #'@export
-
+#'
 pois_smooth_split <- function(x,
                                                 s = NULL,
                                                 Eb_init = NULL,
