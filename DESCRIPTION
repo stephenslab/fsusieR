@@ -1,8 +1,8 @@
 Package: fsusieR
 Encoding: UTF-8
 Type: Package 
-Version: 0.3.31
-Date: 2025-11-05
+Version: 0.3.32
+Date: 2025-11-07
 Title: Sum of Single Functions
 Authors@R: c(person("William R. P.","Denault",role = c("aut","cre"),
                     email = "wdenault@uchicago.edu"),
@@ -25,7 +25,7 @@ Imports:
     smashr,
     Rcpp,
     ebnm,
-    Rfast,
+    Rfast
 Suggests:
     susieR,
     knitr,
