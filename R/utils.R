@@ -27,18 +27,15 @@ is.wholenumber <- function (x, tol = .Machine$double.eps^0.5)
 
 # Based on Rfast implementation.
 #
+#' @useDynLib fsusieR
+#' @importFrom Rcpp evalCpp
+#'
 fast_lm <- function(x,y)
 {
-
   be <- solve(crossprod(x),crossprod(x,y))
   sd <-  sqrt(covCpp(y - x %*% be) /(length(x)-1))
-
-
   return(c(be,sd))
 }
-
-
-
 
 #Circular permutation on vector
 # Code adapted from https://mzuer.github.io

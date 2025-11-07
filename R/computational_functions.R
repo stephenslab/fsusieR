@@ -62,7 +62,9 @@ cal_cor_cs <- function(obj,X){
 #
 # \item{Shat}{ matrix pxJ standard error, Shat[j,t] corresponds to standard error of the regression coefficient of Y[,t] on X[,j] }
 #
-# @export
+#'
+#' @importFrom Rcpp evalCpp
+#'
 cal_Bhat_Shat   <- function(Y,
                             X ,
                             v1 ,

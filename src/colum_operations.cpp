@@ -1,6 +1,14 @@
 #include <Rcpp.h>
 using namespace Rcpp;
 
+// FUNCTION DECLARATIONS
+// ---------------------
+NumericVector colSumsCpp (NumericMatrix x);
+NumericVector colVarsCpp (NumericMatrix x);
+NumericMatrix covCpp     (NumericMatrix x);
+
+// FUNCTION DEFINITIONS
+// --------------------
 // [[Rcpp::export]]
 NumericVector colSumsCpp(NumericMatrix x) {
   int n = x.nrow(), p = x.ncol();
