@@ -22,3 +22,6 @@ docs/
 
 # Pixi files
 pixi.lock
+
+src/*.o
+src/*.so
