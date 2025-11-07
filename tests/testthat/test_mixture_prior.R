@@ -289,7 +289,7 @@ test_that("The estimated null proportion should greater or equal to", {
                 nullweight = nullweight,
                 tol_null_prior=0)
   tol <- 0.01 #tolerance
-  expect_gt( get_pi0(tpi = tpi), (1-1/2^9 ) -tol  )
+  expect_gt( fsusieR::get_pi0(tpi = tpi), (1-1/2^9 ) -tol  )
 })
 
 
@@ -328,7 +328,7 @@ test_that("The outputs of the EM_pi function should be  ",
             expect_equal(class(outEM$lBF) ,"numeric")
             expect_equal(length(outEM$lBF) ,dim(Bhat)[1])
             tol <- 0.01 #tolerance
-            expect_gt( get_pi0(tpi = tpi), (1-1/2^9 ) -tol  )
+            expect_gt( fsusieR::get_pi0(tpi = tpi), (1-1/2^9 ) -tol  )
           }
 )
 
