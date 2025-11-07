@@ -2127,8 +2127,6 @@ univariate_TI_regression_IS <- function( Y,X,
 
 }
 
-
-
 #'@title Wrapper for univariate functional  regression used on susiF
 #'
 #' @description  Compute refined estimate using translation invariant wavelet transform
@@ -2141,12 +2139,9 @@ univariate_TI_regression_IS <- function( Y,X,
 #' @param family  see wd description in wavethresh package description
 #' @param alpha required confidence level
 #' @param \dots Other arguments.
+#' 
 #' @export
-#' @examples
-#' library(susiF)
-#'
-
-
+#' 
 univariate_functional_regression <- function(Y,X,
                                              method=c("TI", "HMM","smash"),
                                              filter.number = 1 ,
@@ -2195,13 +2190,10 @@ univariate_functional_regression <- function(Y,X,
 #' @param alpha required confidence level
 #' @param \dots Other arguments.
 #' @export
-
-
 smash_regression <- function (obj,Y,X, verbose ,
                               filter.number , family  ,
                               alpha  ,...)
   UseMethod("smash_regression")
-
 
 #' @rdname smash_regression
 #'
@@ -2260,8 +2252,6 @@ smash_regression.susiF <- function(  obj,Y,X, verbose=TRUE,
 
 
   )
-
-
 
   fitted_trend <- list()
   fitted_var   <- list()
@@ -2328,7 +2318,6 @@ smash_regression.susiF <- function(  obj,Y,X, verbose=TRUE,
 
   }
 
-
   fitted_trend <- lapply(1:length(idx), function(l)
     fitted_trend[[l]]/obj$csd_X[idx[l]]
   )
@@ -2341,9 +2330,6 @@ smash_regression.susiF <- function(  obj,Y,X, verbose=TRUE,
 
   coeff= qnorm(1-(1-alpha)/2)
   for( l in 1:length(obj$cs)){
-
-
-
     up                         <-  obj$fitted_func[[l]]+ coeff* sqrt(fitted_var[[l]])
     low                        <-  obj$fitted_func[[l]]- coeff*sqrt(fitted_var[[l]])
     obj$cred_band[[l]]   <- rbind(up, low)
@@ -2354,6 +2340,7 @@ smash_regression.susiF <- function(  obj,Y,X, verbose=TRUE,
 
   return(obj)
 }
+
 smash_lw  <- function(noisy_signal, noise_level = 1, n.shifts = 50,
                       family = "DaubExPhase", filter.number = 10 ) {
   library(wavethresh)
@@ -2452,7 +2439,7 @@ smash_lw  <- function(noisy_signal, noise_level = 1, n.shifts = 50,
   return(list(mu.est = est_mean, mu.est.var = est_var))
 }
 
-smash_2lw= function( noisy_signal, noise_level=1, n.shifts=50 ){
+smash_2lw <- function( noisy_signal, noise_level=1, n.shifts=50 ){
 
   if( n.shifts>length(noisy_signal)){
     n.shifts=length(noisy_signal)-1
