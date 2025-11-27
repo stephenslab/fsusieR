@@ -3,7 +3,7 @@
 
 #' @title Compute partial residual for effect l
 #
-#' @param   obj a susiF  or EBmvFR object  
+#' @param   obj a susiF  or EBmvFR object
 #
 #' @param l integer larger or equal to 1. Corresponds to the effect to be accessed
 #
@@ -18,7 +18,7 @@
 #' @return a matrix of size N by size J of partial residuals
 #
 #' @export
-#' 
+#'
 #' @keywords internal
 cal_partial_resid  <- function(  obj, l, X, D, C,  indx_lst,... )
 
@@ -31,7 +31,7 @@ cal_partial_resid  <- function(  obj, l, X, D, C,  indx_lst,... )
 #' @export cal_partial_resid.susiF
 #
 #' @export
-#' 
+#'
 #' @keywords internal
 
 
@@ -127,7 +127,7 @@ cal_partial_resid.susiF  <- function(  obj, l, X, D, C,  indx_lst,... )
 
 
 #' @title Change postprocessing used in susiF object
-#' @param   obj a fitted susiF  object  
+#' @param   obj a fitted susiF  object
 #
 #' @param Y functional phenotype used in the original fit
 #'
@@ -148,16 +148,16 @@ cal_partial_resid.susiF  <- function(  obj, l, X, D, C,  indx_lst,... )
 
 change_fit= function( obj,
                       Y,
-                      X, 
+                      X,
                       to="TI",
                       verbose=TRUE,
                       max_scale=10,
                       filter_cs =FALSE,
                       filter.number = 10,
-                      family =  "DaubLeAsymm" 
+                      family =  "DaubLeAsymm"
 ){
-  
-  
+
+
   post_processing=to
   if (is.null( obj$pos))
   {
@@ -165,8 +165,8 @@ change_fit= function( obj,
   }else{
     pos=obj$pos
   }
-  
-  names_colX <-  colnames(X)  
+
+  names_colX <-  colnames(X)
   tidx <- which(apply(X,2,var)==0)
   if( length(tidx)>0){
     warning(paste("Some of the columns of X are constants, we removed" ,length(tidx), "columns"))
@@ -176,17 +176,17 @@ change_fit= function( obj,
                          pos= pos,
                          verbose=vebose,
                          max_scale=max_scale)
-  
+
   outing_grid <- map_data$outing_grid
   Y           <- map_data$Y
   X <- colScale(X)
-  
+
   indx_lst <-  gen_wavelet_indx(log2(length( outing_grid)))
   # centering input
   #Y0 <-  colScale(Y , scale=FALSE)
   Y  <- colScale(Y )
-  # out <- out_prep(     obj            = obj, 
-  #                      
+  # out <- out_prep(     obj            = obj,
+  #
   #                     X             = X,
   #                     indx_lst      = indx_lst,
   #                     filter_cs     = filter_cs,
@@ -198,17 +198,17 @@ change_fit= function( obj,
   #                     names_colX    = names_colX,
   #                     pos           = pos
   #)
-  
+
   obj <-  update_cal_fit_func(obj,
                               Y             =     sweep(Y  , 2, attr(Y , "scaled:scale"),  "*"),
                               X             = X,
                               indx_lst      = indx_lst,
-                              post_processing = post_processing, 
+                              post_processing = post_processing,
                               filter.number = filter.number,
                               family        = family)
   return( obj )
-  
-  
+
+
 }
 
 
@@ -244,7 +244,7 @@ check_cs.susiF <- function(obj, min_purity=0.5,X,  ...)
     {
       return(obj)
     }else{
-      
+
       obj <- discard_cs( obj,cs=dummy.cs, out_prep= TRUE)
       return(obj)
     }
@@ -279,25 +279,25 @@ discard_cs <- function(obj, cs,out_prep,...)
 #' @keywords internal
 
 discard_cs.susiF <- function(obj, cs, out_prep=FALSE,  ...)
-{ 
-  
- 
+{
+
+
     if( length(cs)==obj$L){
         cs <- cs[-1]
         if(length(cs)==0){
           return(obj)
         }
     }
-  
-  if(1 %in% cs ){
+
+   if(1 %in% cs ){
     obj$alpha [[1]]      <-  rep(1 / length(obj$alpha[[1]]),
                                  length(obj$alpha[1]))
-    obj$lBF [[1]]        <-  0*obj$lBF [[1]] 
-    obj$fitted_wc [[1]]  <-  0*obj$fitted_wc[[1]]
+     obj$lBF [[1]]        <-  0*obj$lBF [[1]]
+     obj$fitted_wc [[1]]  <-  0*obj$fitted_wc[[1]]
     obj$fitted_wc2 [[1]] <-  0*obj$fitted_wc2[[1]]
     obj$cs               <-  1: length(obj$alpha[[1]])
     obj$fitted_func[[1]] <-  0*obj$fitted_func [[1]]
-    } 
+    }
   if ( length(cs)==1 & 1 %in% cs ){
     return(obj)
   }else{
@@ -305,7 +305,7 @@ discard_cs.susiF <- function(obj, cs, out_prep=FALSE,  ...)
       cs= cs[-which(cs==1)]
     }
     if( length(cs)>0){
-      
+
       obj$alpha       <-  obj$alpha[ -cs]
       obj$lBF         <-  obj$lBF[ -cs]
       obj$fitted_wc   <-  obj$fitted_wc[ -cs]
@@ -318,14 +318,14 @@ discard_cs.susiF <- function(obj, cs, out_prep=FALSE,  ...)
         obj$KL                    <- obj$KL[ -cs]
         obj$ELBO                  <- -Inf
       }
-      
+
       obj$est_sd      <-  obj$est_sd[ -cs]
       obj$est_pi      <-  obj$est_pi[ -cs]
       obj$cred_band   <-  obj$cred_band[ -cs]
       obj$lfsr_wc     <-  obj$lfsr_wc [ -cs]
       obj$L           <-  obj$L -length(cs)
     }
- 
+
   }
 
   return(obj)
@@ -430,33 +430,33 @@ get_fitted_effect <- function(obj, l,cred_band,alpha ,  ...) {
 get_fitted_effect.susiF <- function(obj,
                                     l=1,
                                     cred_band = FALSE,
-                                    alpha = 0.01, 
+                                    alpha = 0.01,
                                     ...) {
-  
+
   if(cred_band){
-    
+
     if(   !is.null(obj$fitted_var[[l]]) ){
-      out_function =obj$fitted_func[[l]] 
+      out_function =obj$fitted_func[[l]]
       coeff= qnorm(1- alpha /2)
-      
+
       cred_band_out = 0*obj$cred_band[[l]]
       cred_band_out[1, ]= out_function +  coeff* sqrt(obj$fitted_var[[l]])
       cred_band_out[2, ]= out_function -  coeff* sqrt(obj$fitted_var[[l]])
-      
+
       return( list(effect= out_function,
                    cred_band=  cred_band_out))
     }else{
       warning("credible band option not available for post processing = HMM or none")
       return( unlist(obj$fitted_func[[l]]))
-      
+
     }
-    
-    
+
+
   }else{
     return( unlist(obj$fitted_func[[l]]))
   }
-  
-  
+
+
 }
 
 #
@@ -1185,10 +1185,10 @@ name_cs.susiF <- function(obj,X,...){
 #' @param filter_cs logical, if TRUE filter the credible set (removing low purity cs and cs with estimated prior equal to 0)
 #
 #' @param outing_grid grid use to fit fsusie
-#' 
+#'
 #' @param pos the original position of the Y column
-#' 
-#' @param verbose TRUE or FALSE verbose 
+#'
+#' @param verbose TRUE or FALSE verbose
 #' @return susiF object
 #
 #' @export
@@ -1211,7 +1211,7 @@ out_prep.susiF <- function(obj ,
                            indx_lst,
                            outing_grid,
                            filter_cs,
-                           
+
                            filter.number = 10,
                            family =  "DaubLeAsymm",
                            post_processing="TI",
@@ -1235,18 +1235,18 @@ out_prep.susiF <- function(obj ,
                           X          = X
                           )
   }
- 
-  
+
+
     obj <-  update_cal_fit_func(obj,
                                       Y             =  Y,
                                       X             = X,
                                       indx_lst      = indx_lst,
-                                      post_processing = post_processing, 
+                                      post_processing = post_processing,
                                       filter.number = filter.number,
                                       family        = family)
 
     if( ! (post_processing== "HMM")){
-       
+
       obj <-  update_cal_indf(obj = obj ,
                                     Y         =  Y,
                                     X         = X,
@@ -1255,10 +1255,10 @@ out_prep.susiF <- function(obj ,
 
 
     }
- 
 
 
-  obj             <-  rename_format_output (obj        = obj, 
+
+  obj             <-  rename_format_output (obj        = obj,
                                             names_colX = names_colX,
                                             tidx       = tidx)
   obj$outing_grid   <-  outing_grid
@@ -1272,42 +1272,42 @@ out_prep.susiF <- function(obj ,
 
 
 rename_format_output <- function(obj, names_colX, tidx, ...){
-  
-  
+
+
   if (!is.null(names_colX)){
-    
-  
-  
+
+
+
   if ( length(tidx)>0){
     for ( l in 1:length(obj$cs)){
-    
-      
+
+
       talpha  <- rep (0, length(names_colX))
       talpha[-tidx] <- obj$alpha[[l]]
       obj$alpha[[l]] <- talpha
       names(obj$alpha[[l]]) <- names_colX
-      
+
       names(obj$fitted_func)[l]<- paste("fitted_function_effect_", l, sep = "")
-     
+
     }
     tpip  <- rep (0, length(names_colX))
-    tpip[-tidx] <- obj$pip 
+    tpip[-tidx] <- obj$pip
     obj$pip  <- tpip
     names(obj$pip) <- names_colX
     obj <- update_cal_cs(obj, cov_lev =obj$cov_lev)
   }else{
     for ( l in 1:length(obj$cs)){
-     
+
       names(obj$alpha[[l]]) <- names_colX
       names(obj$fitted_func)[l]<- paste("fitted_function_effect_", l, sep = "")
-       
+
     }
     names(obj$pip) <- names_colX
     obj <- update_cal_cs(obj, cov_lev = obj$cov_lev)
   }
   }
-  
-   
+
+
   return(obj)
 }
 
@@ -1535,11 +1535,11 @@ update_alpha_hist.susiF <-  function(obj , discard=FALSE,... )
 
 
 update_susiF_obj  <- function(obj, l,
-                              EM_pi, 
+                              EM_pi,
                               Bhat,
                               Shat,
                               indx_lst,
-                              lowc_wc=NULL, 
+                              lowc_wc=NULL,
                               cal_wc_lsfr=FALSE,
                               df=NULL,
                               cov_lev=0.95,
@@ -1755,7 +1755,7 @@ update_cal_indf.susiF <- function(obj, Y, X, indx_lst, TI=FALSE,...)
     for (l in 1:length(obj$alpha)){
       idx_lead_cov[[l]]  <- which.max(obj$alpha[[l]])
     }
-    
+
     mean_Y          <- attr(Y, "scaled:center")
     obj$ind_fitted_func <- matrix(mean_Y,
                                         byrow=TRUE,
@@ -1823,7 +1823,7 @@ update_cal_indf.susiF <- function(obj, Y, X, indx_lst, TI=FALSE,...)
 #' @param X matrix of size n by p in
 #
 #' @param indx_lst list generated by gen_wavelet_indx for the given level of resolution
-#' 
+#'
 #'@param filter.number see documentation of wd from wavethresh package
 #'@param family see documentation of wd from wavethresh package
 #' @return susiF object
@@ -1862,16 +1862,16 @@ update_cal_fit_func.susiF <- function(obj,
   {
     stop("Error: some alpha value not updated, please update alpha value first")
   }
-  
-  
+
+
   dummy_cs = which_dummy_cs(obj, min_purity=0.5 ,X)
-  if( obj$L==1 &   1 %in% dummy_cs ){
-    
-    obj$fitted_func[[1]] = rep(0 , ncol(Y))
-    return(obj)
-  }
-  
-  
+  #if( obj$L==1 &   1 %in% dummy_cs ){
+
+  #  obj$fitted_func[[1]] = rep(0 , ncol(Y))
+  #  return(obj)
+  #}
+
+
   if ( post_processing == "TI"){
     obj <- TI_regression(obj=obj,
                                Y=Y,
@@ -1897,12 +1897,12 @@ update_cal_fit_func.susiF <- function(obj,
                          filter.number = filter.number,
                          family = family,
                          verbose= verbose
-                         
+
     )
   }
   if( post_processing=="none"){
     temp <- wavethresh::wd(rep(0, obj$n_wac))
-    
+
     if(inherits(get_G_prior(obj),"mixture_normal_per_scale" ))
     {
       for ( l in 1:obj$L)
@@ -1912,7 +1912,7 @@ update_cal_fit_func.susiF <- function(obj,
                                                                 1/(obj$csd_X ), "*")
         temp$C[length(temp$C)]     <- (obj$alpha[[l]])%*% (obj$fitted_wc[[l]][,indx_lst[[length(indx_lst)]]]*( 1/(obj$csd_X )))
         obj$fitted_func[[l]] <-  wavethresh::wr(temp)
-        
+
       }
     }
     if(inherits(get_G_prior(obj),"mixture_normal" ))
@@ -1924,11 +1924,11 @@ update_cal_fit_func.susiF <- function(obj,
                                                                1/(obj$csd_X ), "*")
         temp$C[length(temp$C)]     <- (obj$alpha[[l]])%*% (obj$fitted_wc[[l]][,dim(obj$fitted_wc[[l]])[2]]*( 1/(obj$csd_X )) )
         obj$fitted_func[[l]] <- wr(temp)
-        
+
       }
     }
   }
- 
+
 
   return(obj)
 }
@@ -2212,8 +2212,8 @@ update_pi.susiF <- function( obj, l, tpi,...)
           pi_mixture_normal \n pi_mixture_normal_per_scale")
   }
   obj$est_pi[[l]] <- tpi
- 
-   
+
+
   return(obj)
 }
 
@@ -2334,10 +2334,10 @@ which_dummy_cs.susiF <- function(obj, min_purity=0.5,X,median_crit=FALSE,...){
       }
 
     }
-   
-    
+
+
       return(dummy.cs)
-    
+
   }
 
   if(inherits(obj$G_prior,"mixture_normal_per_scale"))
@@ -2368,9 +2368,9 @@ which_dummy_cs.susiF <- function(obj, min_purity=0.5,X,median_crit=FALSE,...){
       }
 
     }
-   
+
       return(dummy.cs)
-    
+
   }
 
 }

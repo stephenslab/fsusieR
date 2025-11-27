@@ -4,11 +4,17 @@ Pois_fSuSiE <- function(Y,
                         X = NULL,
                         L = 3,
                         scaling = NULL,
+                        ebps_method = c("ebpm",
+                                        'pois_mean_split',
+                                        'ind_pois_mean_split',
+                                        'ind_ebps',
+                                        'ind_poisson_smoothing',
+                                        'nugget'),
                         reflect = FALSE,
                         verbose = TRUE,
                         tol = 1e-3,
                         maxit_outer = 10,
-                        maxit_inner = 10,
+                        maxit_inner = 100,
                         control_mixsqp = list(verbose = FALSE,
                                               eps = 1e-6,
                                               numiter.em = 4),
@@ -16,8 +22,8 @@ Pois_fSuSiE <- function(Y,
                         cov_lev = 0.95,
                         min_purity = 0.5,
                         cor_small = TRUE,
-                        post_processing = "smash",
-                            print=FALSE,
+                        post_processing = "HMM",
+                        print=TRUE,
                         update_Mu_each_iter = TRUE,
                         True_intensity=NULL) {
 
@@ -42,6 +48,7 @@ Pois_fSuSiE <- function(Y,
   }
 
   # Match arguments
+  ebps_method <- match.arg(ebps_method)
 
   # Handle reflection for non-dyadic length
   J <- log2(ncol(Y))
@@ -89,14 +96,42 @@ Pois_fSuSiE <- function(Y,
   # ============================================================================
   # STEP 1 (INITIALIZATION): Compute initial Mu_pm via empirical Bayes
   # ============================================================================
-  if (verbose) cat("Initializing Mu_pm via ebpm")
+  if (verbose) cat("Initializing Mu_pm via", ebps_method, "...\n")
 
+  Mu_pm_init <- log(Y + 1)
 
+  if (ebps_method == "ebpm") {
+    tt <- ebpm_normal(c(Y), s = rep(scaling, ncol(Y)))
+    Mu_pm <- matrix(tt$posterior$mean_log, byrow = FALSE, ncol = ncol(Y))
 
-  tt <- ebpm_normal(c(Y), s = rep(scaling, ncol(Y)))
-  Mu_pm <- matrix(tt$posterior$mean_log, byrow = FALSE, ncol = ncol(Y))
+  } else if (ebps_method == "pois_mean_split") {
+    tt <- pois_mean_split(c(Y), s = rep(scaling, ncol(Y)),
+                          mu_pm_init = c(Mu_pm_init))
+    Mu_pm <- matrix(tt$posterior$mean_log, byrow = FALSE, ncol = ncol(Y))
 
+  } else if (ebps_method == "ind_pois_mean_split") {
+    Mu_pm <- matrix(0, nrow = nrow(Y), ncol = ncol(Y))
+    for (i in 1:nrow(Y)) {
+      Mu_pm[i, ] <- pois_mean_split(Y[i, ], s = scaling[i],
+                                    mu_pm_init = log(Y[i, ] + 1))$posterior$mean_log
+    }
 
+  } else if (ebps_method == "ind_ebps") {
+    Mu_pm <- matrix(0, nrow = nrow(Y), ncol = ncol(Y))
+    for (i in 1:nrow(Y)) {
+      Mu_pm[i, ] <- ebps(Y[i, ], s = scaling[i])$posterior$mean_log
+    }
+
+  } else if (ebps_method == "ind_poisson_smoothing") {
+    Mu_pm <- matrix(0, nrow = nrow(Y), ncol = ncol(Y))
+    for (i in 1:nrow(Y)) {
+      Mu_pm[i, ] <- log(pois_smooth_split(Y[i, ], s = scaling[i],
+                                          Eb_init = log(Y[i, ] + 1))$Emean)
+    }
+
+  } else if (ebps_method == "nugget") {
+    Mu_pm <- fit_latent_nugget(Y)$Y
+  }
 
   # Initialize components
   alpha_0 <- rowMeans(Mu_pm)  # Intercept per sample
@@ -127,26 +162,26 @@ Pois_fSuSiE <- function(Y,
       if (verbose) cat("Step 1: Updating Mu_pm...\n")
 
       # Re-solve Poisson-Normal mean problem with current mean structure
-      b_it <-  Theta_pm + B_pm
+      b_it <- matrix(rep(alpha_0, ncol(Y)), ncol = ncol(Y)) + Theta_pm + B_pm
+
+      # This would require re-running split-VA step
+      # For efficiency, paper suggests skipping this for fine-mapping
+      # Mu_pm <- update_Mu_pm_split_VA(Y, b_it, sigma2, scaling)
+      tt <-    pois_mean_GP(x=c(Y),
+                            prior_mean = c(B_pm),
+                            s =  rep( scaling, ncol(Y)),
+                            prior_var = sigma2 )
 
 
-      #Mu_pm <- matrix(0, nrow = nrow(Y), ncol = ncol(Y))
-      #for (i in 1:nrow(Y)) {
-      #  Mu_pm[i, ] <- log( mvPoisVA::: pois_smooth_split(Y[i, ], s = scaling[i],
-     #                                       Eb_init =  B_pm[i, ],
-     #                                       maxiter = 20)$Emean)
-     # }
-     # b_it <- Theta_pm + B_pm
+      Mu_pm <- matrix( tt$posterior$posteriorMean_latent,byrow = FALSE, ncol=ncol(Y))
+      Mu_pv <- matrix( tt$posterior$posteriorVar_latent ,byrow = FALSE, ncol=ncol(Y))
 
-      Mu_pm <- t(vapply(seq_len(nrow(Y)), function(i) {
-        log( pois_smooth_split(
-          Y[i, ],
-          s = scaling[i],
-          Eb_init = B_pm[i, ],
-          maxiter = 100
-        )$Emean)
-      }, numeric(ncol(Y))))
-
+      Mu_pm <- matrix(0, nrow = nrow(Y), ncol = ncol(Y))
+      for (i in 1:nrow(Y)) {
+        Mu_pm[i, ] <- log(  pois_smooth_split(Y[i, ], s = scaling[i],
+                                              Eb_init =  B_pm[i, ],
+                                              maxiter = 20)$Emean)
+      }
 
 
     }
@@ -214,7 +249,9 @@ Pois_fSuSiE <- function(Y,
         est_effect_fm=Reduce("+", lapply(1:length(susiF.obj$cs), function(l) {
           t(susiF.obj$fitted_func[[l]] %*% t(susiF.obj$alpha[[l]]))
         }))
+        print(dim(est_effect_fm))
 
+        print(dim(B_pm_old))
         B_pm <- X %*% est_effect_fm
       } else {
         B_pm <- matrix(0, nrow = nrow(Y), ncol = ncol(Y))
@@ -246,7 +283,10 @@ Pois_fSuSiE <- function(Y,
     if (verbose) cat("Step 3: Updating sigma2...\n")
 
     residuals <- Mu_pm - matrix(rep(alpha_0, ncol(Y)), ncol = ncol(Y)) - Theta_pm - B_pm
-
+    print(susiF.obj$sigma2)
+    sigma2= var(c(residuals))
+    print(sigma2)
+    if (verbose) cat("  sigma2 =", round(sigma2, 6), "\n")
 
     # ------------------------------------------------------------------------
     # Check convergence
@@ -256,7 +296,12 @@ Pois_fSuSiE <- function(Y,
     diff_B <- max(abs(est_effect_fm - B_pm_old))
     max_diff <- max(diff_alpha, diff_Theta, diff_B)
 
-
+    if (verbose) {
+      cat("Convergence: max change =", round(max_diff, 8), "\n")
+      cat("  |Δalpha_0| =", round(diff_alpha, 8), "\n")
+      cat("  |ΔTheta| =", round(diff_Theta, 8), "\n")
+      cat("  |ΔB| =", round(diff_B, 8), "\n")
+    }
     if (print){
 
       if (is.null(True_intensity)){
@@ -264,7 +309,11 @@ Pois_fSuSiE <- function(Y,
         plot( log1p(Y ),  (Mu_pm  ))
         abline(a=0,b=1)
         plot(susiF.obj$fitted_func[[1]])
-        plot(susiF.obj$fitted_func[[2]])
+        if ( length(susiF.obj$fitted_func )>1){
+
+          plot(susiF.obj$fitted_func[[2]])
+        }
+
 
         par (mfrow=c(1,1))
       }else{
@@ -272,13 +321,11 @@ Pois_fSuSiE <- function(Y,
         plot( log1p(Y ),  (Mu_pm  ))
 
         abline(a=0,b=1)
-        trmse= mean( (c(susiF.obj$ind_fitted_func)  - c(True_intensity)) ^2)
+        trmse= mean((c(Mu_pm) - c(True_intensity))^2)
 
 
-
-        plot(True_intensity,  (susiF.obj$ind_fitted_func  ),
-             main=  paste( " MSE" , trmse ),
-             ylab="Estimated intensity")
+        plot(True_intensity,  (Mu_pm  ),
+             main=  paste( " MSE" , trmse ))
 
         abline(a=0,b=1)
         plot(susiF.obj$fitted_func[[1]])
@@ -286,6 +333,7 @@ Pois_fSuSiE <- function(Y,
 
           plot(susiF.obj$fitted_func[[2]])
         }
+
 
 
         par (mfrow=c(1,1))
