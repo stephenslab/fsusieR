@@ -50,7 +50,7 @@ EM_pi <- function(G_prior,Bhat, Shat, indx_lst,
   #static parameters
 
 ## Deal with overfitted cases
-  
+
   Shat[ is.na(Shat) ] <- 1e-32 #some rare case in overfitting and numerical limitation of Rfast
   Shat[ Shat<=0 ] <- 1e-32
   lBF <- log_BF(G_prior,
@@ -58,6 +58,16 @@ EM_pi <- function(G_prior,Bhat, Shat, indx_lst,
                 indx_lst=indx_lst,
                 lowc_wc=lowc_wc,
                 df = df)
+
+  if(length(lBF)==1){
+
+
+    out <- list(tpi_k =get_pi_G_prior(G_prior ),lBF = lBF)
+    class(out) <- c("EM_pi","list")
+    return(out)
+
+  }
+
 
   if(sum(is.na(lBF))>0){
     lBF[which(is.na(lBF))] <- 3*max(lBF, na.rm=TRUE)# normally due to problem related to
@@ -70,7 +80,7 @@ EM_pi <- function(G_prior,Bhat, Shat, indx_lst,
   }else{
     idx <- 1:length(lBF)
   }
-  Lmat  <-  L_mixsq(G_prior, Bhat[idx,], Shat[idx,], indx_lst)
+  Lmat  <-  L_mixsq(G_prior, Bhat[idx,,drop=FALSE], Shat[idx,,drop=FALSE], indx_lst)
   J <- dim(Bhat)[1]
   tsd_k <- get_sd_G_prior(G_prior)
 

@@ -176,12 +176,12 @@ Pois_fSuSiE <- function(Y,
       Mu_pm <- matrix( tt$posterior$posteriorMean_latent,byrow = FALSE, ncol=ncol(Y))
       Mu_pv <- matrix( tt$posterior$posteriorVar_latent ,byrow = FALSE, ncol=ncol(Y))
 
-      Mu_pm <- matrix(0, nrow = nrow(Y), ncol = ncol(Y))
-      for (i in 1:nrow(Y)) {
-        Mu_pm[i, ] <- log(  pois_smooth_split(Y[i, ], s = scaling[i],
-                                              Eb_init =  B_pm[i, ],
-                                              maxiter = 20)$Emean)
-      }
+     # Mu_pm <- matrix(0, nrow = nrow(Y), ncol = ncol(Y))
+      #for (i in 1:nrow(Y)) {
+      #  Mu_pm[i, ] <- log(  pois_smooth_split(Y[i, ], s = scaling[i],
+      #                                        Eb_init =  B_pm[i, ],
+      #                                        maxiter = 20)$Emean)
+      #}
 
 
     }

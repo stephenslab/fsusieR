@@ -97,7 +97,7 @@ cal_Bhat_Shat   <- function(Y,
 
       Bhat <-  do.call(cbind,lapply(1:length(ind_analysis),
                                     function(l){
-                                      d   <- Rfast::colsums(X[ind_analysis[[l]], ]^2)
+                                      d   <- Rfast::colsums(X[ind_analysis[[l]], ,   drop = FALSE]^2)
                                       out <- (t(X[ind_analysis[[l]], ])%*%Y[ind_analysis[[l]], l])/d
                                       return(out)
                                     }
@@ -116,12 +116,12 @@ cal_Bhat_Shat   <- function(Y,
       Shat<- sqrt( pmax(Shat, 1e-64))
 
     }else{
-      d <- Rfast::colsums(X[ind_analysis , ]^2)
+      d <- Rfast::colsums(X[ind_analysis , , drop = FALSE ]^2)
       Bhat <- (t(X[ind_analysis , ])%*%Y[ind_analysis , ])/d
 
       Shat  <- do.call( cbind,
                         lapply( 1:ncol(Bhat),
-                                function(i) (Rfast::colVars(Y [ind_analysis,i] -sweep( X[ind_analysis,],2, Bhat[ ,i], "*")))
+                                function(i) (Rfast::colVars(Y [ind_analysis,i] -sweep( X[ind_analysis, , drop = FALSE],2, Bhat[ ,i], "*")))
                         )
       )
       Shat<- sqrt( pmax(Shat, 1e-64))
