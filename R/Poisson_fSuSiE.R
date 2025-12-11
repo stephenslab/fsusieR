@@ -25,7 +25,8 @@ Pois_fSuSiE <- function(Y,
                         post_processing = "TI",
                         print=TRUE,
                         update_Mu_each_iter = TRUE,
-                        True_intensity=NULL) {
+                        True_intensity=NULL,
+                        s2=1) {
 
   # Validate inputs
   if (is.null(X) && is.null(Z)) {
@@ -283,9 +284,9 @@ Pois_fSuSiE <- function(Y,
     if (verbose) cat("Step 3: Updating sigma2...\n")
 
     residuals <- Mu_pm - matrix(rep(alpha_0, ncol(Y)), ncol = ncol(Y)) - Theta_pm - B_pm
-    print(susiF.obj$sigma2)
-    sigma2= susiF.obj$sigma2# var(c(residuals))
-    print(sigma2)
+
+    sigma2=  susiF.obj$sigma2# var(c(residuals))
+
     if (verbose) cat("  sigma2 =", round(sigma2, 6), "\n")
 
     # ------------------------------------------------------------------------
