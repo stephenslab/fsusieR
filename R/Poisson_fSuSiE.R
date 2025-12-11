@@ -22,7 +22,7 @@ Pois_fSuSiE <- function(Y,
                         cov_lev = 0.95,
                         min_purity = 0.5,
                         cor_small = TRUE,
-                        post_processing = "HMM",
+                        post_processing = "TI",
                         print=TRUE,
                         update_Mu_each_iter = TRUE,
                         True_intensity=NULL) {
@@ -284,7 +284,7 @@ Pois_fSuSiE <- function(Y,
 
     residuals <- Mu_pm - matrix(rep(alpha_0, ncol(Y)), ncol = ncol(Y)) - Theta_pm - B_pm
     print(susiF.obj$sigma2)
-    sigma2= var(c(residuals))
+    sigma2= susiF.obj$sigma2# var(c(residuals))
     print(sigma2)
     if (verbose) cat("  sigma2 =", round(sigma2, 6), "\n")
 
