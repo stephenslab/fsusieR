@@ -291,7 +291,7 @@ discard_cs.susiF <- function(obj, cs, out_prep=FALSE,  ...)
 
    if(1 %in% cs ){
     obj$alpha [[1]]      <-  rep(1 / length(obj$alpha[[1]]),
-                                 length(obj$alpha[1]))
+                                 length(obj$alpha[[1]]))
      obj$lBF [[1]]        <-  0*obj$lBF [[1]]
      obj$fitted_wc [[1]]  <-  0*obj$fitted_wc[[1]]
     obj$fitted_wc2 [[1]] <-  0*obj$fitted_wc2[[1]]
