@@ -53,7 +53,7 @@ cal_partial_resid.susiF <- function(obj, l, X, D, C, indx_lst, ...) {
   } else {
     c_idx <- ncol(obj$fitted_wc[[1]])
   }
- # print(C)
+  # print(C)
 
   # Preallocate accumulators (much faster than Reduce + lapply)
   update_D <- matrix(0, nrow = nrow(D), ncol = ncol(D))
@@ -197,14 +197,14 @@ check_cs.susiF <- function(obj, min_purity=0.5,X,  ...)
 {
   dummy.cs <- which_dummy_cs(obj, min_purity=min_purity,X)
 
-    if( length(dummy.cs)==0)
-    {
-      return(obj)
-    }else{
+  if( length(dummy.cs)==0)
+  {
+    return(obj)
+  }else{
 
-      obj <- discard_cs( obj,cs=dummy.cs, out_prep= TRUE)
-      return(obj)
-    }
+    obj <- discard_cs( obj,cs=dummy.cs, out_prep= TRUE)
+    return(obj)
+  }
 
 
 }
@@ -239,22 +239,22 @@ discard_cs.susiF <- function(obj, cs, out_prep=FALSE,  ...)
 {
 
 
-    if( length(cs)==obj$L){
-        cs <- cs[-1]
-        if(length(cs)==0){
-          return(obj)
-        }
+  if( length(cs)==obj$L){
+    cs <- cs[-1]
+    if(length(cs)==0){
+      return(obj)
     }
+  }
 
-   if(1 %in% cs ){
+  if(1 %in% cs ){
     obj$alpha [[1]]      <-  rep(1 / length(obj$alpha[[1]]),
                                  length(obj$alpha[[1]]))
-     obj$lBF [[1]]        <-  0*obj$lBF [[1]]
-     obj$fitted_wc [[1]]  <-  0*obj$fitted_wc[[1]]
+    obj$lBF [[1]]        <-  0*obj$lBF [[1]]
+    obj$fitted_wc [[1]]  <-  0*obj$fitted_wc[[1]]
     obj$fitted_wc2 [[1]] <-  0*obj$fitted_wc2[[1]]
     obj$cs               <-  1: length(obj$alpha[[1]])
     obj$fitted_func[[1]] <-  0*obj$fitted_func [[1]]
-    }
+  }
   if ( length(cs)==1 & 1 %in% cs ){
     return(obj)
   }else{
@@ -744,7 +744,7 @@ greedy_backfit.susiF <-  function(obj,
     return(obj)
   }
   obj <- update_cal_cs(obj,
-                             cov_lev=cov_lev)
+                       cov_lev=cov_lev)
 
 
   dummy.cs <-  which_dummy_cs(obj,
@@ -768,8 +768,8 @@ greedy_backfit.susiF <-  function(obj,
 
 
       obj <- discard_cs(obj,
-                              cs= dummy.cs,
-                              out_prep= FALSE
+                        cs= dummy.cs,
+                        out_prep= FALSE
       )
 
       if( length(obj$cs)>1){
@@ -801,8 +801,8 @@ greedy_backfit.susiF <-  function(obj,
 
 
     obj <- discard_cs(obj,
-                            cs= (obj$L_max+1):obj$L,
-                            out_prep= FALSE
+                      cs= (obj$L_max+1):obj$L,
+                      out_prep= FALSE
     )
 
 
@@ -853,7 +853,7 @@ greedy_backfit.susiF <-  function(obj,
 
     if(verbose){
       print( paste( "Discarding ",(obj$L_max- obj$L), " effects"))
-     print( "Greedy search and backfitting done")
+      print( "Greedy search and backfitting done")
     }
     obj <- update_alpha_hist(obj,discard = TRUE)
     obj$greedy_backfit_update <- FALSE
@@ -1104,7 +1104,7 @@ merge_effect.susiF <- function( obj, tl, discard=TRUE,  ...){
         obj$fitted_wc[[tl[o, 2]]] <- 0* obj$fitted_wc[[tl[o, 2]]]
         obj$fitted_wc[[tl[o, 1]]] <-obj$fitted_wc[[tl[o, 1]]] +   obj$fitted_wc[[tl[o, 2]]]
         obj$fitted_wc2[[tl[o, 1]]] <-obj$fitted_wc2[[tl[o, 1]]] +   obj$fitted_wc2[[tl[o, 2]]]
-       # obj$fitted_wc[[tl[o, 2]]] <- 0* obj$fitted_wc[[tl[o, 2]]]
+        # obj$fitted_wc[[tl[o, 2]]] <- 0* obj$fitted_wc[[tl[o, 2]]]
         tindx <- c(tindx, tl[o, 2])
       }
 
@@ -1114,7 +1114,7 @@ merge_effect.susiF <- function( obj, tl, discard=TRUE,  ...){
 
   }
   if(discard){
-   obj<-  discard_cs(obj,cs=tindx, out_prep=FALSE)
+    obj<-  discard_cs(obj,cs=tindx, out_prep=FALSE)
   }
 
   return( obj)
@@ -1208,34 +1208,34 @@ out_prep.susiF <- function(obj ,
 
   obj <-  name_cs(obj,X)
 
- # obj <-  update_lfsr_effect(obj)
+  # obj <-  update_lfsr_effect(obj)
   if(filter_cs)
   {
     obj  <- check_cs(obj,
-                          min_purity = 0.5,
-                          X          = X
-                          )
+                     min_purity = 0.5,
+                     X          = X
+    )
   }
 
 
-    obj <-  update_cal_fit_func(obj,
-                                      Y             =  Y,
-                                      X             = X,
-                                      indx_lst      = indx_lst,
-                                      post_processing = post_processing,
-                                      filter.number = filter.number,
-                                      family        = family)
+  obj <-  update_cal_fit_func(obj,
+                              Y             =  Y,
+                              X             = X,
+                              indx_lst      = indx_lst,
+                              post_processing = post_processing,
+                              filter.number = filter.number,
+                              family        = family)
 
-    if( ! (post_processing== "HMM")){
+  if( ! (post_processing== "HMM")){
 
-      obj <-  update_cal_indf(obj = obj ,
-                                    Y         =  Y,
-                                    X         = X,
-                                    indx_lst  = indx_lst,
-                                    TI        = ifelse(post_processing %in% c('TI', 'smash'), TRUE, FALSE))
+    obj <-  update_cal_indf(obj = obj ,
+                            Y         =  Y,
+                            X         = X,
+                            indx_lst  = indx_lst,
+                            TI        = ifelse(post_processing %in% c('TI', 'smash'), TRUE, FALSE))
 
 
-    }
+  }
 
 
 
@@ -1243,7 +1243,7 @@ out_prep.susiF <- function(obj ,
                                             names_colX = names_colX,
                                             tidx       = tidx)
   obj$outing_grid   <-  outing_grid
- # obj$purity        <-  cal_purity(l_cs= obj$cs, X=X)
+  # obj$purity        <-  cal_purity(l_cs= obj$cs, X=X)
   obj$original_grid <- pos
   return(obj)
 }
@@ -1259,33 +1259,33 @@ rename_format_output <- function(obj, names_colX, tidx, ...){
 
 
 
-  if ( length(tidx)>0){
-    for ( l in 1:length(obj$cs)){
+    if ( length(tidx)>0){
+      for ( l in 1:length(obj$cs)){
 
 
-      talpha  <- rep (0, length(names_colX))
-      talpha[-tidx] <- obj$alpha[[l]]
-      obj$alpha[[l]] <- talpha
-      names(obj$alpha[[l]]) <- names_colX
+        talpha  <- rep (0, length(names_colX))
+        talpha[-tidx] <- obj$alpha[[l]]
+        obj$alpha[[l]] <- talpha
+        names(obj$alpha[[l]]) <- names_colX
 
-      names(obj$fitted_func)[l]<- paste("fitted_function_effect_", l, sep = "")
+        names(obj$fitted_func)[l]<- paste("fitted_function_effect_", l, sep = "")
 
+      }
+      tpip  <- rep (0, length(names_colX))
+      tpip[-tidx] <- obj$pip
+      obj$pip  <- tpip
+      names(obj$pip) <- names_colX
+      obj <- update_cal_cs(obj, cov_lev =obj$cov_lev)
+    }else{
+      for ( l in 1:length(obj$cs)){
+
+        names(obj$alpha[[l]]) <- names_colX
+        names(obj$fitted_func)[l]<- paste("fitted_function_effect_", l, sep = "")
+
+      }
+      names(obj$pip) <- names_colX
+      obj <- update_cal_cs(obj, cov_lev = obj$cov_lev)
     }
-    tpip  <- rep (0, length(names_colX))
-    tpip[-tidx] <- obj$pip
-    obj$pip  <- tpip
-    names(obj$pip) <- names_colX
-    obj <- update_cal_cs(obj, cov_lev =obj$cov_lev)
-  }else{
-    for ( l in 1:length(obj$cs)){
-
-      names(obj$alpha[[l]]) <- names_colX
-      names(obj$fitted_func)[l]<- paste("fitted_function_effect_", l, sep = "")
-
-    }
-    names(obj$pip) <- names_colX
-    obj <- update_cal_cs(obj, cov_lev = obj$cov_lev)
-  }
   }
 
 
@@ -1347,18 +1347,18 @@ test_stop_cond.susiF <- function(obj, check, cal_obj, Y, X, D, C, indx_lst,...)
     if( cal_obj){
 
       obj <- update_KL(obj,
-                             X,
-                             D= D,
-                             C= C , indx_lst)
+                       X,
+                       D= D,
+                       C= C , indx_lst)
 
       obj <- update_ELBO(obj,
-                               get_objective( obj = obj,
-                                              Y         = Y,
-                                              X         = X,
-                                              D         = D,
-                                              C         = C,
-                                              indx_lst  = indx_lst
-                               )
+                         get_objective( obj = obj,
+                                        Y         = Y,
+                                        X         = X,
+                                        D         = D,
+                                        C         = C,
+                                        indx_lst  = indx_lst
+                         )
       )
 
       if(length(obj$ELBO)>1    )#update parameter convergence,
@@ -1447,7 +1447,7 @@ update_alpha  <-  function(obj, l, alpha,... )
 update_alpha.susiF <-  function(obj, l, alpha,... )
 {
   obj$alpha[[l]] <- alpha
-   return( obj)
+  return( obj)
 }
 
 #' @title Update alpha_hist   susiF object
@@ -1475,9 +1475,9 @@ update_alpha_hist  <-  function(obj, discard,... )
 #' @keywords internal
 update_alpha_hist.susiF <-  function(obj , discard=FALSE,... )
 {
-    if(!discard){
-        obj$alpha_hist[[ (length(obj$alpha_hist)+1)  ]] <- obj$alpha
-    }
+  if(!discard){
+    obj$alpha_hist[[ (length(obj$alpha_hist)+1)  ]] <- obj$alpha
+  }
   if(discard){
     if((length(obj$alpha_hist[[length(obj$alpha_hist)]]) >obj$L)){
 
@@ -1526,7 +1526,7 @@ update_susiF_obj  <- function(obj, l,
                               cov_lev=0.95,
                               e=0.001,
                               ...)
-      UseMethod("update_susiF_obj")
+  UseMethod("update_susiF_obj")
 
 # @rdname update_susiF_obj
 #
@@ -1564,25 +1564,25 @@ update_susiF_obj.susiF <- function(obj,
     stop("Error EM_pi should be of the class EM_pi")
   }
   obj         <-   update_pi(obj = obj ,
-                                   l = l ,
-                                   tpi =  EM_pi$tpi_k)
+                             l = l ,
+                             tpi =  EM_pi$tpi_k)
   obj$G_prior <-   update_prior(get_G_prior(obj) , EM_pi$tpi_k  )
 
 
   obj$fitted_wc[[l]]   <- post_mat_mean(get_G_prior(obj) ,
-                                              Bhat,
-                                              Shat,
-                                              lBF      = EM_pi$lBF,
-                                              indx_lst = indx_lst,
-                                              lowc_wc  = lowc_wc,
-                                              e        = e)
+                                        Bhat,
+                                        Shat,
+                                        lBF      = EM_pi$lBF,
+                                        indx_lst = indx_lst,
+                                        lowc_wc  = lowc_wc,
+                                        e        = e)
   obj$fitted_wc2[[l]]  <- post_mat_sd  (get_G_prior(obj) ,
-                                              Bhat,
-                                              Shat,
-                                              lBF      = EM_pi$lBF,
-                                              indx_lst = indx_lst,
-                                              lowc_wc  = lowc_wc,
-                                              e        = e)^2
+                                        Bhat,
+                                        Shat,
+                                        lBF      = EM_pi$lBF,
+                                        indx_lst = indx_lst,
+                                        lowc_wc  = lowc_wc,
+                                        e        = e)^2
 
 
   G_prior <- update_prior(G_prior = get_G_prior(obj),
@@ -1592,11 +1592,11 @@ update_susiF_obj.susiF <- function(obj,
   new_alpha <- cal_zeta(  EM_pi$lBF)
 
   obj  <- update_alpha (obj = obj,
-                              l         = l,
-                              alpha     = new_alpha)
+                        l         = l,
+                        alpha     = new_alpha)
   obj  <- update_lBF   (obj = obj,
-                              l         = l,
-                              lBF       = EM_pi$lBF)
+                        l         = l,
+                        lBF       = EM_pi$lBF)
   obj <-  update_cal_cs(obj=obj,  cov_lev=  cov_lev, l=l)
   # obj <-  update_lfsr  (obj=obj,
   #                             l=l ,
@@ -1677,7 +1677,7 @@ update_cal_cs.susiF <- function(obj, cov_lev=0.95, l,...)
     # check if temp has only 0 (i.e.  not yet updated)
     #  if(sum(temp==0)==length(temp)){
     temp_cumsum        <- cumsum( temp[order(temp, decreasing =TRUE)])
-    max_indx_cs        <- min(which( temp_cumsum >cov_lev ))
+    max_indx_cs        <- min(c(which( temp_cumsum >cov_lev ), obj$P))
     obj$cs[[l]]        <- order(temp, decreasing = TRUE)[1:max_indx_cs ]
     return(obj)
   }
@@ -1692,10 +1692,10 @@ update_cal_cs.susiF <- function(obj, cov_lev=0.95, l,...)
 
     # check if temp has only 0 (i.e.  not yet updated)
     #  if(sum(temp==0)==length(temp)){
-      temp_cumsum <- cumsum( temp[order(temp, decreasing =TRUE)])
-      max_indx_cs <- min(which( temp_cumsum >cov_lev ))
-      obj$cs[[l]]  <- order(temp, decreasing = TRUE)[1:max_indx_cs ]
-      names(obj$cs[[l]]) <- names(obj$alpha[[l]])[obj$cs[[l]]]
+    temp_cumsum <- cumsum( temp[order(temp, decreasing =TRUE)])
+    max_indx_cs <-  min(c(which( temp_cumsum >cov_lev ), obj$P))
+    obj$cs[[l]]  <- order(temp, decreasing = TRUE)[1:max_indx_cs ]
+    names(obj$cs[[l]]) <- names(obj$alpha[[l]])[obj$cs[[l]]]
   }
 
   return(obj)
@@ -1818,11 +1818,11 @@ update_cal_fit_func.susiF <- function(obj,
 
   if ( post_processing == "TI"){
     obj <- TI_regression(obj=obj,
-                               Y=Y,
-                               X=X,
-                               filter.number = 1 ,
-                               family = "DaubExPhase",
-                               verbose= verbose
+                         Y=Y,
+                         X=X,
+                         filter.number = 1 ,
+                         family = "DaubExPhase",
+                         verbose= verbose
 
     )
   }
@@ -1836,11 +1836,11 @@ update_cal_fit_func.susiF <- function(obj,
   }
   if(post_processing=="smash"){
     obj <- smash_regression(obj=obj,
-                         Y=Y,
-                         X=X,
-                         filter.number = filter.number,
-                         family = family,
-                         verbose= verbose
+                            Y=Y,
+                            X=X,
+                            filter.number = filter.number,
+                            family = family,
+                            verbose= verbose
 
     )
   }
@@ -1958,10 +1958,10 @@ update_lfsr_effect  <- function    (obj ,...)
 
 update_lfsr_effect.susiF  <- function  (obj ,...){
 
-    obj$lfsr <- lapply(1:length(obj$cs) ,
-                             function(l) min(obj$lfsr_wc[[l]])
-                             )
-    return( obj)
+  obj$lfsr <- lapply(1:length(obj$cs) ,
+                     function(l) min(obj$lfsr_wc[[l]])
+  )
+  return( obj)
 }
 
 
@@ -2103,11 +2103,11 @@ update_KL.susiF <- function(obj,  X, D, C , indx_lst,...)
 {
 
   obj$KL <-  do.call(c,lapply(1:obj$L,FUN=function(l) cal_KL_l(obj=obj,
-                                                                           l=l,
-                                                                           X=X,
-                                                                           D=D,
-                                                                           C=C,
-                                                                           indx_lst =indx_lst )))
+                                                               l=l,
+                                                               X=X,
+                                                               D=D,
+                                                               C=C,
+                                                               indx_lst =indx_lst )))
   return( obj)
 }
 
@@ -2220,9 +2220,9 @@ which_dummy_cs <- function(obj, min_purity=0.5,X,median_crit=FALSE,...)
 which_dummy_cs.susiF <- function(obj, min_purity=0.5,X,median_crit=FALSE,...){
 
   dummy.cs<- c()
- # if( obj$L==1){
- #   return(dummy.cs)
- # }
+  # if( obj$L==1){
+  #   return(dummy.cs)
+  # }
 
   f_crit <- function (obj, min_purity=0.5, l, median_crit=FALSE){
     if( median_crit){
@@ -2280,7 +2280,7 @@ which_dummy_cs.susiF <- function(obj, min_purity=0.5,X,median_crit=FALSE,...){
     }
 
 
-      return(dummy.cs)
+    return(dummy.cs)
 
   }
 
@@ -2313,10 +2313,9 @@ which_dummy_cs.susiF <- function(obj, min_purity=0.5,X,median_crit=FALSE,...){
 
     }
 
-      return(dummy.cs)
+    return(dummy.cs)
 
   }
 
 }
-
 
