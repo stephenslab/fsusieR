@@ -34,96 +34,53 @@ cal_partial_resid  <- function(  obj, l, X, D, C,  indx_lst,... )
 #'
 #' @keywords internal
 
-
-cal_partial_resid.susiF  <- function(  obj, l, X, D, C,  indx_lst,... )
-{
+cal_partial_resid.susiF <- function(obj, l, X, D, C, indx_lst, ...) {
 
   L <- obj$L
-
-  if (L > 1){
-    id_L <- (1:L)[ - ( (l%%L) +1) ]#Computing residuals R_{l+1} by removing all the effect except effect l+1
-
-    if(inherits(get_G_prior(obj),"mixture_normal_per_scale" ))
-    {
-      update_D  <-  D - Reduce("+", lapply  ( id_L, function(l) X%*%sweep(obj$fitted_wc[[l]][,-indx_lst[[length(indx_lst)]]],
-                                                                          1,
-                                                                          obj$alpha[[l]],
-                                                                          "*"
-                                                                          )
-                                              )
-                                )
-      update_C  <-  C  - Reduce("+", lapply  ( id_L, function(l) X%*%(obj$fitted_wc[[l]][,indx_lst[[length(indx_lst)]]]*obj$alpha[[l]]
-                                                                          )
-                                               )
-                                )
-      update_Y  <- cbind(  update_D, update_C)
-
-    }
-    if(inherits(get_G_prior(obj),"mixture_normal" ))
-    {
-
-
-
-
-      update_D  <-  D - Reduce("+", lapply  ( id_L, function(l) X%*%sweep(obj$fitted_wc[[l]][,-dim(obj$fitted_wc[[l]])[2]],
-                                                                          1,
-                                                                          obj$alpha[[l]],
-                                                                          "*"
-                                                                          )
-                                              )
-                              )
-      update_C  <-  C  - Reduce("+", lapply  ( id_L, function(l) X%*%(obj$fitted_wc[[l]][,dim(obj$fitted_wc[[l]])[2]]*obj$alpha[[l]]
-
-                                                                          )
-                                              )
-                                )
-
-          update_Y  <- cbind(  update_D, update_C)
-    }
-  }else{
+  prior <- get_G_prior(obj)
+  per_scale <- inherits(prior, "mixture_normal_per_scale")
+  C= matrix(C,ncol=1)
+  # Identify all effects EXCEPT l
+  if (L > 1) {
+    id_L <- setdiff(seq_len(L), (l %% L) + 1)
+  } else {
     id_L <- 1
-
-    if(inherits(get_G_prior(obj),"mixture_normal_per_scale" ))
-    {
-      update_D  <-  D - Reduce("+", lapply  ( id_L, function(l) X%*%sweep(obj$fitted_wc[[l]][,-indx_lst[[length(indx_lst)]]],
-                                                                          1,
-                                                                          obj$alpha[[l]],
-                                                                          "*"
-                                                                        )
-                                            )
-                                )
-        update_C  <-  C  - Reduce("+", lapply  ( id_L, function(l) X%*%(obj$fitted_wc[[l]][,indx_lst[[length(indx_lst)]]]*obj$alpha[[l]]
-                                                                         )
-                                            )
-                               )
-
-      update_Y  <- cbind(  update_D, update_C)
-    }
-    if(inherits(get_G_prior(obj),"mixture_normal" ))
-    {
-
-
-
-
-      update_D  <-  D - Reduce("+", lapply  ( id_L, function(l) X%*%sweep(obj$fitted_wc[[l]][,-dim(obj$fitted_wc[[l]])[2]],
-                                                                          1,
-                                                                          obj$alpha[[l]],
-                                                                          "*"
-                                                                   )
-                                           )
-                               )
-      update_C  <-  C  - Reduce("+", lapply  ( id_L, function(l) X%*%(obj$fitted_wc[[l]][,dim(obj$fitted_wc[[l]])[2]]*obj$alpha[[l]]
-
-                                               )
-                                        )
-                                )
-
-      update_Y  <- cbind(  update_D, update_C)
-    }
   }
 
-  return(update_Y)
+  # Determine index of scaling coefficient (last column)
+  if (per_scale) {
+    c_idx <- indx_lst[[length(indx_lst)]]
+  } else {
+    c_idx <- ncol(obj$fitted_wc[[1]])
+  }
+ # print(C)
+
+  # Preallocate accumulators (much faster than Reduce + lapply)
+  update_D <- matrix(0, nrow = nrow(D), ncol = ncol(D))
+  update_C <- matrix(0, nrow = nrow(C), ncol = 1)
+
+  # Compute contribution of all effects except l
+  for (k in id_L) {
+
+    alpha_k <- obj$alpha[[k]]
+    wc_k    <- obj$fitted_wc[[k]]
+
+    # D coefficients = all except scaling coefficient
+    D_part <- wc_k[, -c_idx, drop = FALSE]
+    C_part <- wc_k[,  c_idx, drop = FALSE]
+
+    # Weighted design matrix multiplication
+    update_D <- update_D + X %*% sweep(D_part, 1, alpha_k, "*")
+    update_C <- update_C + X %*% (C_part * alpha_k)
+  }
+
+  # Subtract to obtain partial residuals
+  update_D <- D - update_D
+  update_C <- C - update_C
+
+  cbind(update_D, update_C)
 }
+
 
 
 #' @title Change postprocessing used in susiF object
@@ -640,17 +597,27 @@ get_post_F <- function(obj,l,...)
 #' @export
 #' @keywords internal
 
-get_post_F.susiF <- function(obj,l,...)
-{
-  if(missing(l))
-  {
-    out <-  Reduce("+",lapply(1:obj$L, FUN=function(l) obj$alpha[[l]] * obj$fitted_wc[[l]]))
-  }else{
-    out <-   obj$alpha[[l]] * obj$fitted_wc[[l]]
+get_post_F.susiF <- function(obj, l, ...) {
+
+  # Return effect-specific posterior mean ------------------------------
+  if (!missing(l)) {
+    return(obj$alpha[[l]] * obj$fitted_wc[[l]])
   }
 
-  return(out)
+  # Return sum of posterior means across all effects -------------------
+  L <- obj$L
+  # wavelet coefficient matrix size: p × J
+  wc_dim <- dim(obj$fitted_wc[[1]])
+
+  out <- matrix(0, nrow = wc_dim[1], ncol = wc_dim[2])
+
+  for (k in seq_len(L)) {
+    out <- out + (obj$alpha[[k]] * obj$fitted_wc[[k]])
+  }
+
+  out
 }
+
 
 
 
@@ -675,17 +642,31 @@ get_post_F2 <- function(obj,l,...)
 #' @export
 #' @keywords internal
 
-get_post_F2.susiF <- function(obj, l,...)
-{
-  if(missing(l))
-  {
-    out <-  Reduce("+",lapply(1:obj$L, FUN=function(l) obj$alpha[[l]] *(obj$fitted_wc2[[l]]+ obj$fitted_wc [[l]]^2)))
-  }else{
-    out <-   obj$alpha[[l]] *( obj$fitted_wc2[[l]]+ obj$fitted_wc[[l]]^2)
+get_post_F2.susiF <- function(obj, l, ...) {
+
+  if (!missing(l)) {
+    wc_mean <- obj$fitted_wc[[l]]
+    wc_var  <- obj$fitted_wc2[[l]]
+    return(obj$alpha[[l]] * (wc_var + wc_mean^2))
   }
 
-  return(out)
+  L <- obj$L
+  wc_dim <- dim(obj$fitted_wc[[1]])
+  out <- matrix(0, nrow = wc_dim[1], ncol = wc_dim[2])
+
+  for (k in seq_len(L)) {
+    alpha_k <- obj$alpha[[k]]
+    wc_mean <- obj$fitted_wc[[k]]
+    wc_var  <- obj$fitted_wc2[[k]]
+
+    for (j in seq_len(wc_dim[2])) {
+      out[, j] <- out[, j] + alpha_k * (wc_var[, j] + wc_mean[, j]^2)
+    }
+  }
+
+  out
 }
+
 
 
 
@@ -1744,74 +1725,37 @@ update_cal_indf <- function(obj, Y, X, indx_lst, TI=FALSE,...)
 #
 #' @importFrom wavethresh wr
 #' @importFrom wavethresh wd
-update_cal_indf.susiF <- function(obj, Y, X, indx_lst, TI=FALSE,...)
-{
+update_cal_indf.susiF <- function(obj, Y, X, indx_lst, TI = FALSE, ...) {
 
+  L <- length(obj$alpha)
+  N <- nrow(Y)
+  J <- ncol(Y)
 
- # if( TI){
+  # Leading covariate for each effect
+  idx_lead_cov <- vapply(obj$alpha, which.max, integer(1))
 
-    idx_lead_cov <- list()
+  # Extract scaling and centering information
+  mean_Y  <- attr(Y, "scaled:center")
+  scale_X <- attr(X, "scaled:scale")
 
-    for (l in 1:length(obj$alpha)){
-      idx_lead_cov[[l]]  <- which.max(obj$alpha[[l]])
-    }
+  # Preallocate fitted curves for all individuals
+  ind_fitted <- matrix(mean_Y, nrow = N, ncol = J, byrow = TRUE)
 
-    mean_Y          <- attr(Y, "scaled:center")
-    obj$ind_fitted_func <- matrix(mean_Y,
-                                        byrow=TRUE,
-                                        nrow=nrow(Y),
-                                        ncol=ncol(Y))+Reduce("+",
-                                        lapply(1:length(obj$alpha),
-                                               function(l)
-                                                 matrix( X[,idx_lead_cov[[l]]] , ncol=1)%*%  t(obj$fitted_func[[l]] )*(attr(X, "scaled:scale")[idx_lead_cov[[l]]])
-                                               )
-                                        )
+  # Add each effect's fitted function
+  for (l in seq_len(L)) {
 
-   # return( obj)
-  #}else{
-   # mean_Y          <- attr(Y, "scaled:center")
-   # if(sum( is.na(unlist(obj$alpha))))
-  #  {
-  #    stop("Error: some alpha value not updated, please update alpha value first")
-  #  }
-  #  temp <- wavethresh::wd(rep(0, obj$n_wac)) #create dummy wd object
+    j <- idx_lead_cov[l]                       # leading covariate
+    fitted_l <- obj$fitted_func[[l]]           # 1 × J curve
+    xj <- X[, j] * scale_X[j]                  # scaled covariate, length N
 
+    # Outer product: N × 1  times  1 × J  = N × J
+    ind_fitted <- ind_fitted + xj %o% fitted_l
+  }
 
-  #  if(inherits(get_G_prior(obj),"mixture_normal_per_scale" ))
-  #  {
-  #    for ( i in 1:obj$N)
-  #    {
- #       obj$ind_fitted_func[i,]  <- mean_Y#fitted_baseline future implementation
- #       for ( l in 1:obj$L)
- #       {
-          #add wavelet coefficient
- #         temp$D                         <-    ( obj$alpha[[l]] * X [i,])%*%obj$fitted_wc[[l]][,-indx_lst[[length(indx_lst)]]]
- #         temp$C[length(temp$C)]         <-    ( obj$alpha[[l]] * X [i,])%*%obj$fitted_wc[[l]][,indx_lst[[length(indx_lst)]]]
-          #transform back
- #         obj$ind_fitted_func[i,]  <-  obj$ind_fitted_func[i,]+wavethresh::wr(temp)
- #       }
- #     }
- #   }
-  #  if(inherits(get_G_prior(obj),"mixture_normal" ))
- #   {
- #     for ( i in 1:obj$N)
- #     {
- #       obj$ind_fitted_func[i,]  <- mean_Y#fitted_baseline
-  #      for ( l in 1:obj$L)
-  #      {
-          #add wavelet coefficient
-  #        temp$D                         <-    (obj$alpha[[l]] * X [i,])%*%obj$fitted_wc[[l]][,-dim(obj$fitted_wc[[l]])[2]]
-  #        temp$C[length(temp$C)]         <-    (obj$alpha[[l]] * X [i,]) %*%obj$fitted_wc[[l]][,dim(obj$fitted_wc[[l]])[2]]
-          #transform back
- #         obj$ind_fitted_func[i,]  <-  obj$ind_fitted_func[i,]+wavethresh::wr(temp)
- #       }
- #     }
- #   }
-    return( obj)
-# }
-
-
+  obj$ind_fitted_func <- ind_fitted
+  obj
 }
+
 
 
 
