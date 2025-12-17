@@ -380,9 +380,11 @@ susiF <- function(Y, X, L = 2,
   if( verbose){
     print("Scaling columns of X and Y to have unit variance")
   }
+  X0=X
   X <- colScale(X)
   # centering input
   Y0 <-  Y
+
   Y  <- colScale(Y )
 
   W <- DWT2(Y,
@@ -490,13 +492,13 @@ susiF <- function(Y, X, L = 2,
 
   #preparing output
   obj <- out_prep(     obj            = obj,
-                        Y             =   sweep(
-                          sweep(Y , 2, attr(Y , "scaled:scale"), "*"),
-                          2, attr(Y , "scaled:center"), "+"
-                        ) ,
-                        X             = sweep(
-                          sweep(X , 2, attr(X, "scaled:scale"), "*"),
-                          2, attr(X , "scaled:center"), "+"
+                        Y             =  Y0,#  sweep(
+                        #  sweep(Y , 2, attr(Y , "scaled:scale"), "*"),
+                         #  2, attr(Y , "scaled:center"), "+"
+                         # ) ,
+                        X             =  sweep(
+                        sweep(X , 2, attr(X, "scaled:scale"), "*"),
+                        2, attr(X , "scaled:center"), "+"
                         ),
                         indx_lst      = indx_lst,
                         filter_cs     = filter_cs,
