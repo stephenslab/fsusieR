@@ -1735,7 +1735,7 @@ update_cal_indf.susiF <- function(obj, Y, X, indx_lst, TI = FALSE, ...) {
   idx_lead_cov <- vapply(obj$alpha, which.max, integer(1))
 
   # Extract scaling and centering information
-  mean_Y  <- attr(Y, "scaled:center")
+  mean_Y  <- apply(Y,2,mean)# attr(Y, "scaled:center")
   scale_X <- attr(X, "scaled:scale")
 
   # Preallocate fitted curves for all individuals
@@ -1817,6 +1817,8 @@ update_cal_fit_func.susiF <- function(obj,
 
 
   if ( post_processing == "TI"){
+
+
     obj <- TI_regression(obj=obj,
                          Y=Y,
                          X=X,

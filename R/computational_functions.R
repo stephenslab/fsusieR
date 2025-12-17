@@ -401,7 +401,9 @@ fit_ash_level <- function (Bhat, Shat, s, indx_lst, lowc_wc,...)
 
   return(out)
 }
-
+#' @importFrom ashr ash calc_loglik
+#' @importFrom ashr ash
+#' @importFrom stats dnorm
 #' @importFrom ashr calc_loglik
 fit_hmm <- function (x,sd,
                      halfK=100,
@@ -846,22 +848,22 @@ HMM_regression.susiF <- function( obj,
 
   obj$fitted_func <- fitted_trend
   obj$lfsr_func   <- fitted_lfsr
+print(fitted_lfsr)
+ # if( fit_indval ){
 
-  if( fit_indval ){
+  #   mean_Y <- attr(Y, "scaled:center")
+  #   obj$ind_fitted_func <- matrix(mean_Y,
+  #                                byrow=TRUE,
+  #                                 nrow=nrow(Y),
+  #                                 ncol=ncol(Y))+Reduce("+",
+  #                                                      lapply(1:length(obj$alpha),
+  #                                                            function(l)
+                                                                #                                                              matrix( X[,idx[[l]]] , ncol=1)%*%
+  #                                                              t(obj$fitted_func[[l]] )*(attr(X, "scaled:scale")[idx[[l]]])
+  #                                                     )
+#                                )
 
-    mean_Y <- attr(Y, "scaled:center")
-    obj$ind_fitted_func <- matrix(mean_Y,
-                                  byrow=TRUE,
-                                  nrow=nrow(Y),
-                                  ncol=ncol(Y))+Reduce("+",
-                                                       lapply(1:length(obj$alpha),
-                                                              function(l)
-                                                                matrix( X[,idx[[l]]] , ncol=1)%*%
-                                                                t(obj$fitted_func[[l]] )*(attr(X, "scaled:scale")[idx[[l]]])
-                                                       )
-                                  )
-
-  }
+  #}
 
   return(obj)
 }
