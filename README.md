@@ -34,45 +34,11 @@ remotes::install_github("stephenslab/fsusieR")
 
 ## Demo
 
-Here is a quick example with [simulated methylation data](https://stephenslab.github.io/fsusieR/articles/methyl_demo.html). 
+A brief demo with simulated methylation data can be found
+[here](https://stephenslab.github.io/fsusieR/articles/methyl_demo.html). 
 
-**Expected output:** 3 credible sets identifying causal SNPs, effect plots showing methylation changes  
-
-## Usage
-
-First load the R package:
-
-```r
-library(fsusieR)
-```
-
-Basic fine-mapping analysis:
-
-```r
-# Y: n x p matrix of molecular traits (n samples, p locations)
-# X: n x J matrix of genotypes (n samples, J SNPs)
-# L: maximum number of causal SNPs (default = 10)
-fit <- susiF(X, Y, L = 10)
-
-# Extract key results
-fit$cs        # Credible sets
-fit$pip       # Posterior inclusion probabilities
-fit$effects   # Estimated SNP effects
-```
-
-For genome-wide analyses, process by genomic regions (e.g., TADs):
-
-```R
-# Define genomic regions
-regions <- define_regions(positions, window = 2e6)
-
-# Run fSuSiE per region
-results <- lapply(regions, function(r) {
-  susiF(X[, r$snps], Y[, r$traits], L = 20)
-})
-```
-
-See the [package website](https://stephenslab.github.io/fsusieR) for detailed tutorials and examples.
+See the [pkgdown website](https://stephenslab.github.io/fsusieR) for
+other examples.
 
 ## Citing this work
 
