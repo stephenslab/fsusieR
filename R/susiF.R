@@ -496,10 +496,10 @@ susiF <- function(Y, X, L = 2,
                         #  sweep(Y , 2, attr(Y , "scaled:scale"), "*"),
                          #  2, attr(Y , "scaled:center"), "+"
                          # ) ,
-                        X             =  sweep(
-                        sweep(X , 2, attr(X, "scaled:scale"), "*"),
-                        2, attr(X , "scaled:center"), "+"
-                        ),
+                        X             = X,# sweep(
+                        #sweep(X , 2, attr(X, "scaled:scale"), "*"),
+                      #  2, attr(X , "scaled:center"), "+")
+
                         indx_lst      = indx_lst,
                         filter_cs     = filter_cs,
                         outing_grid   = outing_grid,
