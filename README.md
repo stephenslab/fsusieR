@@ -40,18 +40,23 @@ Here is a quick example with [simulated methylation data](https://stephenslab.gi
 
 ## Usage
 
+First load the R package:
+
+```r
+library(fsusieR)
+```
+
 Basic fine-mapping analysis:
 
-```R
+```r
 # Y: n x p matrix of molecular traits (n samples, p locations)
 # X: n x J matrix of genotypes (n samples, J SNPs)
 # L: maximum number of causal SNPs (default = 10)
-
 fit <- susiF(X, Y, L = 10)
 
 # Extract key results
 fit$cs        # Credible sets
-fit$pip       # Posterior inclusion probabilities  
+fit$pip       # Posterior inclusion probabilities
 fit$effects   # Estimated SNP effects
 ```
 
