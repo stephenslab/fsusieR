@@ -32,7 +32,7 @@ susiF(
   cor_small = FALSE,
   filter.number = 10,
   family = "DaubLeAsymm",
-  post_processing = c("smash", "TI", "HMM", "none"),
+  post_processing = c("TI", "smash", "HMM", "none"),
   e = 0.001,
   tol_null_prior = 0.001
 )
@@ -131,7 +131,7 @@ The Bayes factor from Valen E Johnson JRSSB 2005 tends to have better coverage i
  Nonetheless the HMM perform particularly well when analysing data with say few sampling points (i.e ncol(Y)<30) or when the data are particularly noisy (low signal noise ratio).
  However, we found that the HMM post processing is quite sensitive to the Gaussian assumption and we advise to use data transformation if your data are not
  normally distributed, e.g., using log1p( Y[i,]/si) for  count data data where si is the individual scaling factor as defined in  $s_i = \frac{\sum_{j=1}^p \tilde{Y}_{ij} }{\frac{1}{n}\sum_{i=1}^n\sum_{j=1}^p \tilde{Y}_{ij}}$
- or using M-value instead of Beta value when analysing DNA methylation data. The option smashr is experimental and tend to give good point estimate but the credible band 
+ or using M-value instead of Beta value when analysing DNA methylation data. The option smashr is experimental and tend to give good point estimate but the credible band
  can be to narrow and so should be used with caution.}
 
 \item{e}{threshold value is used to avoid computing posteriors that have low alpha values. Set it to 0 to compute the entire posterior. default value is 0.001}

@@ -13,13 +13,19 @@ vignette: >
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
-  fig.width = 5,
-  fig.height = 3,
+  fig.width = 8,
+  fig.height =4,
   fig.align = "center",
   fig.cap = "&nbsp;",
   dpi = 175
   )
 ```
+
+
+
+ 
+
+
 
 ## Adjustment for functional fine-mapping
 
@@ -103,6 +109,7 @@ NB: If you input matrix Y has a number of columns that is not a power of 2. Then
 
 Est_effect <- EBmvFR(Y,X=Cov,adjust=TRUE )
 plot(Est_effect$fitted_func[1,],type = "l",
+     ylab="",
      col="blue",
      lty=2,
      lwd=2)
@@ -120,7 +127,9 @@ Y_corrected  <-Est_effect$Y_adjusted
 
 You can also perform the adjustment yourself by accessing the fitted curves directly (and potentially only removing the effect you are interested in)
 ```{r}
-  plot(  Y_corrected, Y-Cov %*%Est_effect$fitted_func )
+  plot(  Y_corrected, Y-Cov %*%Est_effect$fitted_func,
+         xlab = "output function",
+         ylab="manual residualization")
 ```
 
 
@@ -131,8 +140,13 @@ Here, you can see that the corrected data closely matches the actual underlying 
 ```{r}
 
 par(mfrow=c(1,2))
-plot( Y , target.data)
-plot( Y_corrected , target.data)
+plot( Y , target.data,pch=19,cex=.4,
+      xlab="Observed data",
+      ylab="Target data"
+      )
+plot( Y_corrected , target.data,pch=19,,cex=.4,
+       xlab="Corrected data",
+      ylab="Target data")
 par(mfrow=c(1,1))
 ```
 
@@ -173,7 +187,10 @@ Here we can see the performance.
 
 ```{r} 
  
- plot( f1, type="l", main="Estimated effect 1", xlab="")
+ plot( f1,  
+       type="l",
+       main="Estimated effect 1",
+       xlab="")
  lines(get_fitted_effect(out,l=2),col='blue' )
  lines(get_fitted_effect(out_unadj,l=2),col='blue' , lty=2)
  
