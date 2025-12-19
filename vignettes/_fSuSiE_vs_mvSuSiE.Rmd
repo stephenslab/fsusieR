@@ -71,7 +71,7 @@ res= mvsusie(X=X, Y= Y_t, prior_variance = prior)
 ```
 
  
- Turns out that SuSiE can but mvSuSiE cannot
+ Turns out that fSuSiE can but mvSuSiE cannot
 ```{r}
 res$sets
 

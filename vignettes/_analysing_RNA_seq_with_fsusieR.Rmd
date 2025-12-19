@@ -395,7 +395,7 @@ tt= do.call( rbind , result$lBF)
 plot(apply(tt,2,max), col =ifelse(result$pip>0.2,2,3), pch=20)
 
 ```  
-We also developped a custom function to visualize the fSuSiE results using GViZ  
+We also developed a custom function to visualize the fSuSiE results using GViZ  
 
 You can use the 
 
