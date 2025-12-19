@@ -492,10 +492,10 @@ susiF <- function(Y, X, L = 2,
 
   #preparing output
   obj <- out_prep(     obj            = obj,
-                        Y             =  Y0,#  sweep(
-                        #  sweep(Y , 2, attr(Y , "scaled:scale"), "*"),
-                         #  2, attr(Y , "scaled:center"), "+"
-                         # ) ,
+                        Y             =     sweep(
+                           sweep(Y , 2, attr(Y , "scaled:scale"), "*"),
+                           2, attr(Y , "scaled:center"), "+"
+                           ) ,
                         X             = X,# sweep(
                         #sweep(X , 2, attr(X, "scaled:scale"), "*"),
                       #  2, attr(X , "scaled:center"), "+")
