@@ -22,10 +22,11 @@ Pois_fSuSiE <- function(Y,
                         cov_lev = 0.95,
                         min_purity = 0.5,
                         cor_small = TRUE,
-                        post_processing = "HMM",
+                        post_processing = "TI",
                         print=TRUE,
                         update_Mu_each_iter = TRUE,
-                        True_intensity=NULL) {
+                        True_intensity=NULL,
+                        s2=1) {
 
   # Validate inputs
   if (is.null(X) && is.null(Z)) {
@@ -176,12 +177,12 @@ Pois_fSuSiE <- function(Y,
       Mu_pm <- matrix( tt$posterior$posteriorMean_latent,byrow = FALSE, ncol=ncol(Y))
       Mu_pv <- matrix( tt$posterior$posteriorVar_latent ,byrow = FALSE, ncol=ncol(Y))
 
-      Mu_pm <- matrix(0, nrow = nrow(Y), ncol = ncol(Y))
-      for (i in 1:nrow(Y)) {
-        Mu_pm[i, ] <- log(  pois_smooth_split(Y[i, ], s = scaling[i],
-                                              Eb_init =  B_pm[i, ],
-                                              maxiter = 20)$Emean)
-      }
+     # Mu_pm <- matrix(0, nrow = nrow(Y), ncol = ncol(Y))
+      #for (i in 1:nrow(Y)) {
+      #  Mu_pm[i, ] <- log(  pois_smooth_split(Y[i, ], s = scaling[i],
+      #                                        Eb_init =  B_pm[i, ],
+      #                                        maxiter = 20)$Emean)
+      #}
 
 
     }
@@ -283,9 +284,9 @@ Pois_fSuSiE <- function(Y,
     if (verbose) cat("Step 3: Updating sigma2...\n")
 
     residuals <- Mu_pm - matrix(rep(alpha_0, ncol(Y)), ncol = ncol(Y)) - Theta_pm - B_pm
-    print(susiF.obj$sigma2)
-    sigma2= var(c(residuals))
-    print(sigma2)
+
+    sigma2=  susiF.obj$sigma2# var(c(residuals))
+
     if (verbose) cat("  sigma2 =", round(sigma2, 6), "\n")
 
     # ------------------------------------------------------------------------

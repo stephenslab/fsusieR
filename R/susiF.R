@@ -24,7 +24,7 @@
 #'  Nonetheless the HMM perform particularly well when analysing data with say few sampling points (i.e ncol(Y)<30) or when the data are particularly noisy (low signal noise ratio).
 #'  However, we found that the HMM post processing is quite sensitive to the Gaussian assumption and we advise to use data transformation if your data are not
 #'  normally distributed, e.g., using log1p( Y[i,]/si) for  count data data where si is the individual scaling factor as defined in  $s_i = \frac{\sum_{j=1}^p \tilde{Y}_{ij} }{\frac{1}{n}\sum_{i=1}^n\sum_{j=1}^p \tilde{Y}_{ij}}$
-#'  or using M-value instead of Beta value when analysing DNA methylation data. The option smashr is experimental and tend to give good point estimate but the credible band 
+#'  or using M-value instead of Beta value when analysing DNA methylation data. The option smashr is experimental and tend to give good point estimate but the credible band
 #'  can be to narrow and so should be used with caution.
 #'
 #' @param prior specify the prior used in susiF. The two available choices are
@@ -67,7 +67,7 @@
 #' @param nullweight numeric value for penalizing likelihood at point mass 0. This number roughly corresponds
 #' to the number of zeros observation you add  (useful in small sample size). Default is 10 as recommended by Stephens in
 #' False discovery rate a new deal. Setting it too low tend lead to adding false discoveries. Setting it too
-#' high may reduce power. 
+#' high may reduce power.
 #'
 #' @param thresh_lowcount numeric, used to check the wavelet coefficients have
 #'  problematic distribution (very low dispersion even after standardization).
@@ -107,62 +107,62 @@
 #' then set prior weight on point mass to be 1. In the mixture normal this corresponds to removing the effect. In the mixutre per scale prior this corresponds
 #' to setting the prior of a given scale to at point mass at 0.
 #' @importFrom stats var
-#' 
+#'
 #' @return A \code{"susiF"} object with some or all of the following
 #' elements:
-#' 
+#'
 #' \item{alpha}{List of length L containing the posterior inclusion
 #'   probabilities for each effect.}
-#' 
+#'
 #' \item{pip}{Vector of length J, containing the posterior inclusion
 #'   probability for each covariate.}
-#' 
+#'
 #' \item{cs}{List of length L. Each element is the credible set of
 #' the lth effect.}
-#' 
+#'
 #' \item{purity}{List of length L. Each element is the purity of the
 #'   lth effect.}
-#' 
+#'
 #' \item{fitted_func}{List of length L. Each element is a vector of
 #'   length J containing the Lth estimated single effect.}
-#' 
+#'
 #' \item{cred_band}{List of length L. Each element is a list of
 #'   length J, containing the credible band of the Lth effect at each
 #'   position}
-#' 
+#'
 #' \item{sigma2}{The estimated residual variance.}
-#' 
+#'
 #' \item{lBF}{List of length L containing the log-Bayes factor for
 #'   each effect.}
-#' 
+#'
 #' \item{ind_fitted_func}{Matrix of the individual estimated
 #'   genotype effect.}
-#' 
+#'
 #' \item{outing_grid}{The grid on which the effects are estimated. Ssee
 #'   the introductory vignette for more details.}
-#' 
+#'
 #' \item{runtime}{runtime of the algorithm}
-#' 
+#'
 #' \item{G_prior}{A list of of ash objects containing the prior
 #'   mixture component.}
-#' 
+#'
 #' \item{est_pi}{List of length L. Each element contains the
 #'   estimated prior mixture weights for each effect.}
-#' 
+#'
 #' \item{est_sd}{Ehe estimated prior mixture for each effect.}
-#' 
+#'
 #' \item{ELBO}{The ELBO value at each iteration of the algorithm.}
-#' 
+#'
 #' \item{fitted_wc}{List of length L. Each element is a matrix
 #'   containing the conditional wavelet coefficients (first moment) for
 #'   a single effect. For internal use only. The results in
 #'   \code{fitted_func} will correspond to this wavelet coefficient if
 #'   \code{post_processing = "none"} (which is not recommended).}
-#' 
+#'
 #' \item{fitted_wc2}{List of length L. Each element is a matrix
 #'   containing the conditional wavelet coefficients (second-moment) for
 #'   a single effect.}
-#' 
+#'
 #' @export
 #'
 #' @examples
@@ -301,7 +301,7 @@ susiF <- function(Y, X, L = 2,
                   cor_small=FALSE,
                   filter.number = 10,
                   family =  "DaubLeAsymm",
-                  post_processing=c("smash","TI","HMM","none"),
+                  post_processing=c("TI","smash","HMM","none"),
                   e = 0.001,
                   tol_null_prior=0.001
 
@@ -311,7 +311,7 @@ susiF <- function(Y, X, L = 2,
   if(max_SNP_EM<10){
     stop("Argument max_SNP_EM has to be larger than 10")
   }
- 
+
 
   prior           <- match.arg(prior)
   post_processing <- match.arg( post_processing)
@@ -333,12 +333,12 @@ susiF <- function(Y, X, L = 2,
   if(L>ncol(X)){
     L <-ncol(X)
   }
-  
+
   if(L_start>ncol(X)){
     L_start <-ncol(X)
   }
-  
-  
+
+
   if(L_start >L)
   {
     L_start <- L
@@ -370,8 +370,8 @@ susiF <- function(Y, X, L = 2,
   Y           <- map_data$Y
   rm( map_data)
   # centering and scaling covariate
-  
-  names_colX <-  colnames(X)  
+
+  names_colX <-  colnames(X)
   tidx <- which(apply(X,2,var)==0)
   if( length(tidx)>0){
     warning(paste("Some of the columns of X are constants, we removed" ,length(tidx), "columns"))
@@ -380,11 +380,13 @@ susiF <- function(Y, X, L = 2,
   if( verbose){
     print("Scaling columns of X and Y to have unit variance")
   }
+  X0=X
   X <- colScale(X)
   # centering input
-  #Y0 <-  colScale(Y , scale=FALSE)
+  Y0 <-  Y
+
   Y  <- colScale(Y )
-   
+
   W <- DWT2(Y,
             filter.number = filter.number,
             family        = family)
@@ -396,7 +398,7 @@ susiF <- function(Y, X, L = 2,
   if(verbose){
     print("Data transform")
   }
- 
+
   ### Definition of some static parameters ---
 
   indx_lst <-  gen_wavelet_indx(log2(length( outing_grid)))
@@ -489,9 +491,15 @@ susiF <- function(Y, X, L = 2,
                                    e              = e)
 
   #preparing output
-  obj <- out_prep(     obj            = obj, 
-                        Y             =   sweep(Y  , 2, attr(Y , "scaled:scale"),  "*"),
-                        X             = X,
+  obj <- out_prep(     obj            = obj,
+                        Y             =  Y0,#  sweep(
+                        #  sweep(Y , 2, attr(Y , "scaled:scale"), "*"),
+                         #  2, attr(Y , "scaled:center"), "+"
+                         # ) ,
+                        X             = X,# sweep(
+                        #sweep(X , 2, attr(X, "scaled:scale"), "*"),
+                      #  2, attr(X , "scaled:center"), "+")
+
                         indx_lst      = indx_lst,
                         filter_cs     = filter_cs,
                         outing_grid   = outing_grid,

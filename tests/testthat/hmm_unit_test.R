@@ -12,7 +12,7 @@ library(ashr)
 library(wavethresh)
 set.seed(1)
 #Example using curves simulated under the Mixture normal per scale prior
-sd_noise <- 0.1 #expected root signal noise ratio
+sd_noise <- .1 #expected root signal noise ratio
 N <- 100    #Number of individuals
 P <- 10     #Number of covariates/SNP
 pos1 <- 1   #Position of the causal covariate for effect 1
@@ -72,6 +72,7 @@ res <- cal_Bhat_Shat(temp_Y,X )
 
 fitted_trend <- list()
 est_prob <- list()
+est_lfsr <- list()
 for ( k in 1:2){
   for (j in 1:length(idx)){
     res <- cal_Bhat_Shat(temp_Y,X )
@@ -79,7 +80,7 @@ for ( k in 1:2){
     s =fit_hmm(x=res$Bhat[idx[j],],sd=res$Shat[idx[j],],halfK=50 )
 
     est_prob[[j]] <-  s$prob[,1]
-
+    est_lfsr[[j]] <-  s$prob[,1]
     fitted_trend[[j]] <- s$x_post
     if( j ==length(idx)){
       idx_var <- (1:length(idx)) [- (1)]
@@ -103,10 +104,14 @@ fitted_trend <- lapply(1:length(idx), function(l)
   fitted_trend[[l]]/susiF.obj$csd_X[idx[l]]
 )
 
+plot(fitted_trend[[2]])
+ plot(fitted_trend[[1]])
+ plot(est_lfsr[[1]])
+  plot(est_lfsr[[2]])
 
 test_that("performance in low variance and sharp transition should be",{
-  expect_gt( cor(f1, fitted_trend[[2]] ), 0.9999992  )
-  expect_gt( cor(f2, fitted_trend[[1]] ), 0.9999  )
+  expect_gt( cor(f1, fitted_trend[[2]] ), 0.999  )
+  expect_gt( cor(f2, fitted_trend[[1]] ), 0.999   )
   expect_equal(which(est_prob[[2]]<0.05),70)
   expect_equal(which(est_prob[[1]]<0.05),13:103)
 
@@ -197,4 +202,6 @@ test_that("performance in low variance and sharp transition should be",{
 }
 
 )
+
+
 

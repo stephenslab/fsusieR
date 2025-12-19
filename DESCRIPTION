@@ -1,7 +1,7 @@
 Package: fsusieR
 Encoding: UTF-8
 Type: Package 
-Version: 0.3.32
+Version: 0.3.36
 Date: 2025-11-07
 Title: Sum of Single Functions
 Authors@R: c(person("William R. P.","Denault",role = c("aut","cre"),
@@ -46,6 +46,6 @@ LinkingTo:
     Rcpp
 License: BSD_3_clause + file LICENSE
 NeedsCompilation: yes
-RoxygenNote: 7.3.2
+RoxygenNote: 7.3.3
 ByteCompile: yes
 VignetteBuilder: knitr

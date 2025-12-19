@@ -244,6 +244,25 @@ To visualize the estimated effects, again we can use the
 ```{r plot-effects-uneven, fig.height=2.5, fig.width=5}
 plot_susiF_effect(fit)
 ```
+
+
+
+
+
+See how the estimated function recover the true underlying effect.
+
+```{r}
+plot(fit$outing_grid, fit$fitted_func[[1]] , col="blue", type="l")
+lines(fit$outing_grid, fit$cred_band[[1]][1,] , col="blue",lty=2)
+lines(fit$outing_grid, fit$cred_band[[1]][2,] , col="blue",lty=2)
+lines(f2)
+
+
+```
+
+ 
+ 
+ 
  
 ## Prior on the effects
 
