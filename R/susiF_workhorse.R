@@ -61,7 +61,7 @@ susiF.workhorse <- function(obj,
                             min_purity,
                             maxit,
                             tt,
-                            parallel=FALSE, 
+                            parallel=FALSE,
                             max_SNP_EM=500,
                             max_step_EM=1,
                             cor_small=FALSE,
@@ -73,7 +73,7 @@ susiF.workhorse <- function(obj,
   update_Y <- Y_f
   # numerical value to check breaking condition of while
   # numerical value to check breaking condition of while
-  check <- 3*tol 
+  check <- 3*tol
   v1    <-  rep(1, dim(X)[1])
 
 
@@ -82,8 +82,8 @@ susiF.workhorse <- function(obj,
   }else{
     df =NULL
   }
-  
-  
+
+
   if(missing(tt)){
     init=FALSE
   }else{
@@ -132,6 +132,7 @@ susiF.workhorse <- function(obj,
                                    cov_lev   =  cov_lev,
                                    e         = e
     )
+
     obj <- update_ELBO(obj  = obj,
                              get_objective( obj = obj,
                                             Y         = Y_f,
@@ -215,8 +216,7 @@ susiF.workhorse <- function(obj,
            #plot(EM_out$lBF/(sum( EM_out$lBFlBF)))
         }
 
-        #print(h)
-        # print(EM_out$lBF[1:10])
+        print(hist(EM_out$lBF))
         obj <-  update_susiF_obj(obj   = obj ,
                                        l           = l,
                                        EM_pi       = EM_out,

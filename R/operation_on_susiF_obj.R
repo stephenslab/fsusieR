@@ -1086,7 +1086,7 @@ merge_effect.susiF <- function( obj, tl, discard=TRUE,  ...){
 
 
 
-
+print("MERGEEE")
   if(is.vector( tl)){
     #print( tl)
     obj$fitted_wc[[tl[ 2]]] <- 0* obj$fitted_wc[[tl[  2]]]
@@ -1851,12 +1851,13 @@ update_cal_fit_func.susiF <- function(obj,
 
     if(inherits(get_G_prior(obj),"mixture_normal_per_scale" ))
     {
+
       for ( l in 1:obj$L)
       {
-        temp$D                     <- (obj$alpha[[l]])%*%sweep( obj$fitted_wc[[l]][,-indx_lst[[length(indx_lst)]]],
+        temp$D                     <- (obj$alpha[[l]])%*%sweep( obj$fitted_wc[[l]][,-indx_lst[[length(indx_lst)]], drop=FALSE],
                                                                 1,
                                                                 1/(obj$csd_X ), "*")
-        temp$C[length(temp$C)]     <- (obj$alpha[[l]])%*% (obj$fitted_wc[[l]][,indx_lst[[length(indx_lst)]]]*( 1/(obj$csd_X )))
+        temp$C[length(temp$C)]     <- (obj$alpha[[l]])%*% (obj$fitted_wc[[l]][,indx_lst[[length(indx_lst)]], drop=FALSE]*( 1/(obj$csd_X )))
         obj$fitted_func[[l]] <-  wavethresh::wr(temp)
 
       }
@@ -1865,10 +1866,10 @@ update_cal_fit_func.susiF <- function(obj,
     {
       for ( l in 1:obj$L)
       {
-        temp$D                     <- (obj$alpha[[l]])%*%sweep(obj$fitted_wc[[l]][,-dim(obj$fitted_wc[[l]])[2]],
+        temp$D                     <- (obj$alpha[[l]])%*%sweep(obj$fitted_wc[[l]][,-dim(obj$fitted_wc[[l]])[2], drop=FALSE],
                                                                1,
                                                                1/(obj$csd_X ), "*")
-        temp$C[length(temp$C)]     <- (obj$alpha[[l]])%*% (obj$fitted_wc[[l]][,dim(obj$fitted_wc[[l]])[2]]*( 1/(obj$csd_X )) )
+        temp$C[length(temp$C)]     <- (obj$alpha[[l]])%*% (obj$fitted_wc[[l]][,dim(obj$fitted_wc[[l]])[2], drop=FALSE]*( 1/(obj$csd_X )) )
         obj$fitted_func[[l]] <- wr(temp)
 
       }

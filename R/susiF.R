@@ -368,7 +368,7 @@ susiF <- function(Y, X, L = 2,
 
   outing_grid <- map_data$outing_grid
   Y           <- map_data$Y
-  rm( map_data)
+  #rm( map_data)
   # centering and scaling covariate
 
   names_colX <-  colnames(X)
@@ -434,6 +434,7 @@ susiF <- function(Y, X, L = 2,
   if(verbose){
     print("Initializing prior")
   }
+  browser()
   update_Y    <- cbind( W$D,W$C) #Using a column like phenotype, temporary matrix that will be regularly updated
   temp        <- init_prior(Y              = update_Y,
                             X              = X,
