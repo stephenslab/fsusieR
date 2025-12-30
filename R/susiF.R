@@ -283,7 +283,7 @@ susiF <- function(Y, X, L = 2,
                   min_purity=0.5,
                   filter_cs =TRUE,
                   init_pi0_w= 1,
-                  nullweight= 10 ,
+                  nullweight= 1 ,
                   control_mixsqp =  list(verbose=FALSE,
                                          eps = 1e-6,
                                          numiter.em = 40
@@ -296,7 +296,7 @@ susiF <- function(Y, X, L = 2,
                   backfit =TRUE,
                   gridmult= sqrt(2),
                   max_scale=10,
-                  max_SNP_EM=1000,
+                  max_SNP_EM=100,
                   max_step_EM=1,
                   cor_small=FALSE,
                   filter.number = 10,
@@ -359,18 +359,6 @@ susiF <- function(Y, X, L = 2,
   if(prior== "mixture_normal"){
    # nullweight= nullweight*2
   }
-
-
-  map_data <- remap_data(Y=Y,
-                         pos=pos,
-                         verbose=verbose,
-                         max_scale=max_scale)
-
-  outing_grid <- map_data$outing_grid
-  Y           <- map_data$Y
-  #rm( map_data)
-  # centering and scaling covariate
-
   names_colX <-  colnames(X)
   tidx <- which(apply(X,2,var)==0)
   if( length(tidx)>0){
@@ -382,15 +370,30 @@ susiF <- function(Y, X, L = 2,
   }
   X0=X
   X <- colScale(X)
+  #browser()
+
+  map_data <- remap_data(Y=Y,
+                         pos=pos,
+                         verbose=verbose,
+                         max_scale=max_scale)
+
+  outing_grid <- map_data$outing_grid
+  Y           <- map_data$Y
+   rm( map_data)
+  # centering and scaling covariate
+
+
   # centering input
   Y0 <-  Y
 
-  Y  <- colScale(Y )
 
   W <- DWT2(Y,
             filter.number = filter.number,
             family        = family)
   Y_f      <-  cbind( W$D,W$C)
+  Y_f  <- colScale(Y_f, scale=FALSE )
+  W$C=Y_f[, ncol(Y)]
+  W$D=Y_f[, -ncol(Y)]
 
   if(verbose){
     print("Starting initialization")
@@ -434,9 +437,9 @@ susiF <- function(Y, X, L = 2,
   if(verbose){
     print("Initializing prior")
   }
-  browser()
-  update_Y    <- cbind( W$D,W$C) #Using a column like phenotype, temporary matrix that will be regularly updated
-  temp        <- init_prior(Y              = update_Y,
+ # browser()
+     #Using a column like phenotype, temporary matrix that will be regularly updated
+  temp        <- init_prior(Y              = Y_f ,
                             X              = X,
                             prior          = prior ,
                             v1             = v1,
@@ -470,7 +473,7 @@ susiF <- function(Y, X, L = 2,
 
 
 
-
+  #browser()
   obj     <- susiF.workhorse(obj      = obj,
                                    W              = W,
                                    X              = X,
@@ -493,10 +496,10 @@ susiF <- function(Y, X, L = 2,
 
   #preparing output
   obj <- out_prep(     obj            = obj,
-                        Y             =     sweep(
-                           sweep(Y , 2, attr(Y , "scaled:scale"), "*"),
-                           2, attr(Y , "scaled:center"), "+"
-                           ) ,
+                        Y             =    Y,# sweep(
+                           #sweep(Y , 2, attr(Y , "scaled:scale"), "*"),
+                           #2, attr(Y , "scaled:center"), "+"
+                           #) ,
                         X             = X,# sweep(
                         #sweep(X , 2, attr(X, "scaled:scale"), "*"),
                       #  2, attr(X , "scaled:center"), "+")

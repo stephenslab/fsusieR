@@ -67,7 +67,7 @@ susiF.workhorse <- function(obj,
                             cor_small=FALSE,
                             is.pois=FALSE,
                             e = 0.001){
-#browser()
+
   G_prior  <- get_G_prior(obj )
   Y_f      <-  cbind( W$D,W$C)
   update_Y <- Y_f
@@ -87,7 +87,7 @@ susiF.workhorse <- function(obj,
   if(missing(tt)){
     init=FALSE
   }else{
-    init=FALSE
+    init=TRUE
   }
 
   if( obj$L_max==1)
@@ -227,7 +227,6 @@ susiF.workhorse <- function(obj,
                                        df          = df
         )
 
-
       }#end for l in 1:L  -----
 
       # plot(obj$lBF[[1]])
@@ -237,6 +236,7 @@ susiF.workhorse <- function(obj,
       # save(obj, file ="D:/Document/Serieux/Travail/Package/susiF.alpha/pb_object.RData")
       # break
       ####Check greedy/backfit and stopping condition -----
+
       obj <- greedy_backfit (obj,
                                    verbose    = verbose,
                                    cov_lev    = cov_lev,

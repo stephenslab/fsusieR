@@ -97,14 +97,15 @@ EM_pi <- function(G_prior,Bhat, Shat, indx_lst,
     # E step----
     oldloglik <- cal_lik(lBF,zeta)
     zeta      <- cal_zeta(lBF)
-
+browser()
     # M step ----
-    tpi_k   <- m_step(Lmat,zeta= zeta[idx],
-                      indx_lst,
+    tpi_k   <- m_step(L              = Lmat,
+                      zeta           = zeta[idx] ,
+                      indx_lst       = indx_lst,
                       init_pi0_w     = init_pi0_w,
                       control_mixsqp = control_mixsqp,
                       nullweight     = nullweight,
-                      tol_null_prior=tol_null_prior)
+                      tol_null_prior = tol_null_prior)
     G_prior <- update_prior(G_prior,tpi_k)
 
     lBF <-  log_BF(G_prior,
@@ -170,7 +171,7 @@ cal_L_mixsq_s_per_scale <- function(G_prior,s, Bhat, Shat ,indx_lst,is.EBmvFR=FA
   })
   L = exp(L)
   if(!is.EBmvFR){
-    L <- rbind(c(1, rep( 0,(10)  )),#adding penalty line
+    L <- rbind(c(1, rep( 0,(ncol(L)-1)  )),#adding penalty line
                L)
   }
 
@@ -231,7 +232,7 @@ L_mixsq.mixture_normal <- function(G_prior,
   })
   L= exp(L)
   if( !is.EBmvFR ){
-    L <- rbind(c(1, rep( 0,(10)  )),#adding penalty line
+    L <- rbind(c(1, rep( 0,(ncol(L)-1)  )),#adding penalty line
                L)
   }
 
@@ -362,7 +363,7 @@ m_step.lik_mixture_normal_per_scale <- function(L,
 
 
   out <- lapply(1:length(indx_lst) ,
-                function(s) scale_m_step(L,s,zeta,indx_lst,
+                function(s) scale_m_step(L,s,zeta,indx_lst[[s]],
                                          init_pi0_w     =init_pi0_w,
                                          control_mixsqp = control_mixsqp,
                                          nullweight     =  nullweight,
