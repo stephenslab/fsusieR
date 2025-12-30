@@ -87,7 +87,7 @@ susiF.workhorse <- function(obj,
   if(missing(tt)){
     init=FALSE
   }else{
-    init=TRUE
+    init=FALSE
   }
 
   if( obj$L_max==1)

@@ -439,7 +439,7 @@ susiF <- function(Y, X, L = 2,
   }
  # browser()
      #Using a column like phenotype, temporary matrix that will be regularly updated
-  temp        <- init_prior(Y              = Y_f ,
+  temp        <- init_prior(Y              = cbind( W$D,W$C),
                             X              = X,
                             prior          = prior ,
                             v1             = v1,

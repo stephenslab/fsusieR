@@ -20,13 +20,13 @@ interpol_mat <- function(Y, pos, max_scale=10)
 
   bp    <- (pos- min(pos))/(max(pos)-min(pos))
   Y_new <- t(apply(Y,
-                   1, 
-                   interpolKS2, 
+                   1,
+                   interpolKS2,
                    bp=bp,
                    max_scale=max_scale))
   grid  <- wavethresh::makegrid(t=bp,
                                 y = 1:dim(Y)[2],
-                                gridn = min( 2^max_scale, 
+                                gridn = min( 2^max_scale,
                                              2^(floor(log(length(pos)-1,2)) + 1)   )
                                 )$gridt
     grid <-  (grid  - min(grid) )*length(grid)/(max(grid)- min(grid))  #* (max(bp)-  min(bp))/ (max(grid)-  min(grid))
@@ -281,7 +281,7 @@ remap_data <- function(Y,pos, verbose=TRUE, max_scale=10){
     Y [is.na(Y)]<-0
   }
 
-  if(!is.wholenumber(log2(dim(Y)[2])) | !(sum( duplicated(diff( pos)))== (length(pos) -2)) ) #check whether dim(Y) not equal to 2^J or if the data are unevenly spaced
+  if(!is.wholenumber(log2(dim(Y)[2])) | !(sum( duplicated(diff( pos)))== (length(pos) -2)) | log2(dim(Y)[2]) > max_scale) #check whether dim(Y) not equal to 2^J or if the data are unevenly spaced
   {
 
     inter_pol.obj <-interpol_mat(Y, pos, max_scale =  max_scale)
@@ -316,7 +316,7 @@ remap_data <- function(Y,pos, verbose=TRUE, max_scale=10){
 #' @importFrom wavethresh nlevelsWT
 AvBasis.var <- function (wst, Ccode = TRUE, ...) {
   nlevels <- nlevelsWT(wst)
-  
+
   if (is.null(wst$filter$G)) {
     if (Ccode == FALSE) {
       answer <- av.basis(wst, level = nlevels - 1, ix1 = 0,
@@ -398,7 +398,7 @@ wd.var <- function (data, filter.number = 10, family = "DaubLeAsymm",
   fl.dbase <- wavethresh::first.last(LengthH = length(filter$H),
                                      DataLength = DataLength,
                                      type = type, bc = bc)
- 
+
   if (bc == "interval") {
     ans <- wavethresh::wd.int(data = data,
                               preferred.filter.number = filter.number,
@@ -544,52 +544,52 @@ convert.var <- function (wd, ...) {
 
 TI_ash_smooth=  function( betahat,sds ,n.shifts=10 ,family =  "DaubExPhase",
                           filter.number=10){
-  
-  
+
+
   x=betahat
-  
+
   n <- length(x)
-   
-  
+
+
   n <- length(x)
-  n.shifts=10  
-  family =  "DaubExPhase" 
+  n.shifts=10
+  family =  "DaubExPhase"
   filter.number=10
   # Initialize a matrix to store smoothed signals for each shift
   smoothed_signals <- matrix(0, nrow = n.shifts, ncol = n)
   smoothed_var <- matrix(0, nrow = n.shifts, ncol = n)
-  
-  
+
+
   k= floor(n/n.shifts)
-  
+
   i=1
   shifted_x <- c(x[(i*k + 1):n], x[1:(i*k)])
   wd_shifted <- wavethresh::wd(shifted_x, filter.number = filter.number, family = family, type = "station")
-  
+
   mat_Coef_D=  matrix( 0, nrow = n.shifts, ncol=  length( wd_shifted$D))
   mat_Coef_D_var = matrix( 0, nrow = n.shifts, ncol=  length( wd_shifted$D))
-  
+
   shrunk_wc   <- matrix( 0,ncol=length( wd_shifted$D) , nrow=n.shifts,
                          byrow = FALSE)
   shrunk_var  <- matrix( 0,ncol=length( wd_shifted$D) , nrow=n.shifts,
                          byrow = FALSE)
   for (i in 1:n.shifts) {
-    
+
     # Shift the signal
     shifted_x <- c(x[(i*k + 1):n], x[1:(i*k)])
-    
+
     # Perform wavelet decomposition
     wd_shifted <- wavethresh::wd(shifted_x, filter.number = filter.number, family = family, type = "station")
     mat_Coef_D[i,]=wd_shifted$D
-    
+
     res_ash= ashr::ash( c( mat_Coef_D[i,]) , rep( sds,length( wd_shifted$D)  ))
-    
-    
-    shrunk_wc[i, ]   <-  res_ash$result$PosteriorMean 
-    shrunk_var[i, ]  <-   res_ash$result$PosteriorSD^2 
+
+
+    shrunk_wc[i, ]   <-  res_ash$result$PosteriorMean
+    shrunk_var[i, ]  <-   res_ash$result$PosteriorSD^2
   }
-  
-  
+
+
   recover_x <- function(shifted_x, i) {
     n <- length(shifted_x)
     n_tilt=n#+sample(c(-1,0,1),size=1)
@@ -597,25 +597,25 @@ TI_ash_smooth=  function( betahat,sds ,n.shifts=10 ,family =  "DaubExPhase",
     recovered_x <- c(shifted_x[(shift_back + 1):n], shifted_x[1:shift_back])
     return(recovered_x)
   }
-  
+
   for ( i in 1:n.shifts){
-    
+
     # Reconstruct the smoothed signal using av.basis
-    wd_shifted$D =   shrunk_wc[i, ] 
+    wd_shifted$D =   shrunk_wc[i, ]
     smoothed_signals[i, ] <-      wavethresh::av.basis(
       wavethresh::convert(wd_shifted),
       level = wd_shifted$nlevels - 1,  # Reconstruct at the finest level
       ix1 = 0,                         # Start index
       ix2 = 1,                         # End index
       filter = wd_shifted$filter       # Wavelet filter
-    ) 
-    
+    )
+
     wd_shifted$D=(shrunk_var[i,])
     ab_var=  AvBasis.var(convert.var(wd_shifted))
     smoothed_var[i, ] =  recover_x(ab_var,i)
-    
+
   }
-  
+
   recover_x <- function(shifted_x, i) {
     n <- length(shifted_x)
     tilt= sample(c(-2:2),size=1)
@@ -623,17 +623,17 @@ TI_ash_smooth=  function( betahat,sds ,n.shifts=10 ,family =  "DaubExPhase",
     recovered_x <- c(shifted_x[(shift_back + 1):n], shifted_x[1:shift_back])
     return(recovered_x)
   }
-  
+
   for ( i in 1:n.shifts){
     smoothed_signals[i, ]= recover_x(smoothed_signals[i,],i)
   }
   for ( i in 1:n.shifts){
     smoothed_var[i, ]= recover_x(smoothed_var[i,],i)
   }
-  
+
   return(list(smoothed_signal= colMeans(smoothed_signals),
               smoothed_var=  colMeans(smoothed_var)))
-  
+
 }
 
 

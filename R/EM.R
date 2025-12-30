@@ -322,7 +322,8 @@ m_step.lik_mixture_normal <- function (L,
 
   }
 
-
+  print ((w[1])/sum(w))
+print(plot(w))
   tlength <- ncol(L) - 1
 
   mixsqp_out <- mixsqp::mixsqp(L,
@@ -418,9 +419,8 @@ scale_m_step <- function(L,
                )
   }
 
-
-
-
+  print ((w[1])/sum(w))
+  print(plot(w))
   tlength <- dim(L[[s]])[2]-1
 
   mixsqp_out <- mixsqp::mixsqp( L[[s]] ,
