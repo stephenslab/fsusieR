@@ -97,7 +97,7 @@ EM_pi <- function(G_prior,Bhat, Shat, indx_lst,
     # E step----
     oldloglik <- cal_lik(lBF,zeta)
     zeta      <- cal_zeta(lBF)
-browser()
+
     # M step ----
     tpi_k   <- m_step(L              = Lmat,
                       zeta           = zeta[idx] ,
@@ -363,7 +363,10 @@ m_step.lik_mixture_normal_per_scale <- function(L,
 
 
   out <- lapply(1:length(indx_lst) ,
-                function(s) scale_m_step(L,s,zeta,indx_lst[[s]],
+                function(s) scale_m_step(L=L,
+                                         s=s,
+                                         zeta=zeta,
+                                         indx_lst = indx_lst ,
                                          init_pi0_w     =init_pi0_w,
                                          control_mixsqp = control_mixsqp,
                                          nullweight     =  nullweight,
@@ -414,6 +417,7 @@ scale_m_step <- function(L,
     w <-  rep(zeta,length(indx_lst[[s]] )
                )
   }
+
 
 
 
