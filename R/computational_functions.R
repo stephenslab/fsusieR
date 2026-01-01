@@ -1640,7 +1640,7 @@ TI_regression.susiF <- function( obj,Y,X, verbose=TRUE,
   if(  length(obj$cs)==1){
 
 
-    if( inherits(get_G_prior(obj),"mixture_normal_per_scale" )){
+    #if( inherits(get_G_prior(obj),"mixture_normal_per_scale" )){
       res <- cal_Bhat_Shat(Y_f, matrix(X[,refined_est$idx_lead_cov[[1]]],
                                        ncol=1))
       wd   <- rep( 0 ,length(res$Bhat))
@@ -1683,26 +1683,26 @@ TI_regression.susiF <- function( obj,Y,X, verbose=TRUE,
       t_ash <-ashr::ash(c( res$Bhat),c(res$Shat), nullweight=3,mixcompdist = "normal")
       refined_est$wdC[[l]] <- t_ash$result$PosteriorMean
 
-    }
-    if(inherits(get_G_prior(obj),"mixture_normal" )){
-      res <- cal_Bhat_Shat(Y_f, matrix(X[,refined_est$idx_lead_cov[[1]]],
-                                       ncol=1))
-      t_ash <-  ashr::ash(c( res$Bhat),c(res$Shat), nullweight=300,mixcompdist = "normal")
-      refined_est$wd[[1]] <- t_ash$result$PosteriorMean
-      refined_est$wd2[[1]]<- t_ash$result$PosteriorSD^2
+    # }
+    #if(inherits(get_G_prior(obj),"mixture_normal" )){
+    #  res <- cal_Bhat_Shat(Y_f, matrix(X[,refined_est$idx_lead_cov[[1]]],
+    #                                   ncol=1))
+    #  t_ash <-  ashr::ash(c( res$Bhat),c(res$Shat), nullweight=300,mixcompdist = "normal")
+    #  refined_est$wd[[1]] <- t_ash$result$PosteriorMean
+    #   refined_est$wd2[[1]]<- t_ash$result$PosteriorSD^2
 
-      res <- cal_Bhat_Shat(Y_c, matrix(X[,refined_est$idx_lead_cov[[1]]],
-                                       ncol=1))
-      t_ash <- ashr::ash(c( res$Bhat),c(res$Shat), nullweight=3,mixcompdist = "normal")
-      refined_est$wdC[[l]] <- t_ash$result$PosteriorMean
+    #  res <- cal_Bhat_Shat(Y_c, matrix(X[,refined_est$idx_lead_cov[[1]]],
+    #                                   ncol=1))
+    #   t_ash <- ashr::ash(c( res$Bhat),c(res$Shat), nullweight=3,mixcompdist = "normal")
+    #  refined_est$wdC[[l]] <- t_ash$result$PosteriorMean
 
-    }
+    # }
 
 
   }else{
 
 
-    if( inherits(get_G_prior(obj),"mixture_normal_per_scale" )){
+    #if( inherits(get_G_prior(obj),"mixture_normal_per_scale" )){
 
       for (k in 1:3){
 
@@ -1763,45 +1763,41 @@ TI_regression.susiF <- function( obj,Y,X, verbose=TRUE,
         }
 
       }
-    }
+   }
 
-    if(inherits(get_G_prior(obj),"mixture_normal" )){
-      for (k in 1:5){
+    #    if(inherits(get_G_prior(obj),"mixture_normal" )){
+    #    for (k in 1:5){
 
-        for ( l in 1: length(obj$cs) ){
-          par_res<-  Y_f -Reduce("+",
-                                 lapply( (1: length(refined_est$idx_lead_cov))[-l],
-                                         function(j)
-                                           X[,refined_est$idx_lead_cov[[j]]] %*%t( refined_est$wd[[j]] )
-                                 )
-          )
+    #     for ( l in 1: length(obj$cs) ){
+    #       par_res<-  Y_f -Reduce("+",
+    #                              lapply( (1: length(refined_est$idx_lead_cov))[-l],
+    #                                      function(j)
+    #                                        X[,refined_est$idx_lead_cov[[j]]] %*%t( refined_est$wd[[j]] )
+    #                              )
+    #       )
 
-          res <- cal_Bhat_Shat(par_res, matrix(X[,refined_est$idx_lead_cov[[l]]], ncol=1))
-          t_ash <- ashr::ash(c( res$Bhat),c(res$Shat), nullweight=300,mixcompdist = "normal")
-          refined_est$wd[[l]] <- t_ash$result$PosteriorMean
-          refined_est$wd2[[l]]<- t_ash$result$PosteriorSD^2
-
-
-          par_resc<-  Y_c -Reduce("+",
-                                  lapply( (1: length(refined_est$idx_lead_cov))[-l],
-                                          function(j)
-                                            X[,refined_est$idx_lead_cov[[j]]] %*%t( refined_est$wdC[[j]] )
-                                  )
-          )
-
-          res <- cal_Bhat_Shat(par_resc, matrix(X[,refined_est$idx_lead_cov[[l]]], ncol=1))
-          t_ash <- ashr::ash(c( res$Bhat),c(res$Shat), nullweight=300,mixcompdist = "normal")
-          refined_est$wdC[[l]] <- t_ash$result$PosteriorMean
+    #       res <- cal_Bhat_Shat(par_res, matrix(X[,refined_est$idx_lead_cov[[l]]], ncol=1))
+    #       t_ash <- ashr::ash(c( res$Bhat),c(res$Shat), nullweight=300,mixcompdist = "normal")
+    #        refined_est$wd[[l]] <- t_ash$result$PosteriorMean
+    #       refined_est$wd2[[l]]<- t_ash$result$PosteriorSD^2
 
 
-        }
+    #      par_resc<-  Y_c -Reduce("+",
+    #                               lapply( (1: length(refined_est$idx_lead_cov))[-l],
+    #                                       function(j)
+    #                                         X[,refined_est$idx_lead_cov[[j]]] %*%t( refined_est$wdC[[j]] )
+    #                               )
+    #       )
 
-      }
-    }
+    #       res <- cal_Bhat_Shat(par_resc, matrix(X[,refined_est$idx_lead_cov[[l]]], ncol=1))
+    #       t_ash <- ashr::ash(c( res$Bhat),c(res$Shat), nullweight=300,mixcompdist = "normal")
+    #       refined_est$wdC[[l]] <- t_ash$result$PosteriorMean
 
 
+    #     }
 
-  }
+    #    }
+
   coeff= qnorm(1-( alpha)/2)
   obj$fitted_var =list()
   for( l in 1:length(obj$cs)){

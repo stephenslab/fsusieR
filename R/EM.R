@@ -116,7 +116,7 @@ EM_pi <- function(G_prior,Bhat, Shat, indx_lst,
                    df = df)
 
     newloglik <- cal_lik(lBF,zeta)
-    print( newloglik)
+
     k <- k+1
 
   }
@@ -171,7 +171,7 @@ cal_L_mixsq_s_per_scale <- function(G_prior,s, Bhat, Shat ,indx_lst,is.EBmvFR=FA
   })
   L = exp(L)
   if(!is.EBmvFR){
-    L <- rbind(c(1, rep( 0,(ncol(L)-1)  )),#adding penalty line
+    L <- rbind(c(100, rep( 0,(ncol(L)-1)  )),#adding penalty line
                L)
   }
 
@@ -232,7 +232,7 @@ L_mixsq.mixture_normal <- function(G_prior,
   })
   L= exp(L)
   if( !is.EBmvFR ){
-    L <- rbind(c(1, rep( 0,(ncol(L)-1)  )),#adding penalty line
+    L <- rbind(c(100, rep( 0,(ncol(L)-1)  )),#adding penalty line
                L)
   }
 
@@ -322,8 +322,6 @@ m_step.lik_mixture_normal <- function (L,
 
   }
 
-  print ((w[1])/sum(w))
-print(plot(w))
   tlength <- ncol(L) - 1
 
   mixsqp_out <- mixsqp::mixsqp(L,
@@ -419,8 +417,7 @@ scale_m_step <- function(L,
                )
   }
 
-  print ((w[1])/sum(w))
-  print(plot(w))
+
   tlength <- dim(L[[s]])[2]-1
 
   mixsqp_out <- mixsqp::mixsqp( L[[s]] ,

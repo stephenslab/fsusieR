@@ -239,7 +239,7 @@ discard_cs.susiF <- function(obj, cs, out_prep=FALSE,  ...)
 {
 
 
-  if( length(cs)==obj$L){
+  if( length(cs)==obj$L){# keep just first cs
     cs <- cs[-1]
     if(length(cs)==0){
       return(obj)
@@ -252,7 +252,7 @@ discard_cs.susiF <- function(obj, cs, out_prep=FALSE,  ...)
     obj$lBF [[1]]        <-  0*obj$lBF [[1]]
     obj$fitted_wc [[1]]  <-  0*obj$fitted_wc[[1]]
     obj$fitted_wc2 [[1]] <-  0*obj$fitted_wc2[[1]]
-    obj$cs               <-  1: length(obj$alpha[[1]])
+    obj$cs[[1]]          <-  1: length(obj$alpha[[1]])
     obj$fitted_func[[1]] <-  0*obj$fitted_func [[1]]
   }
   if ( length(cs)==1 & 1 %in% cs ){
@@ -750,7 +750,8 @@ greedy_backfit.susiF <-  function(obj,
   dummy.cs <-  which_dummy_cs(obj,
                               min_purity = min_purity,
                               median_crit=FALSE,
-                              X=X)
+                              X=X,
+                              lbf_min=obj$lbf_min)
 
 
   if(obj$backfit & (length(dummy.cs)>0)){
@@ -782,6 +783,8 @@ greedy_backfit.susiF <-  function(obj,
         }else{
 
           tl <-  tl[which(tl[,1] < tl[,2]),]
+
+          # remove
           obj <- merge_effect(obj, tl)
 
         }
@@ -948,6 +951,7 @@ greedy_backfit.susiF <-  function(obj,
 #' to setting the prior of a given scale to at point mass at 0.
 #' @param cov_lev numeric between 0 and 1, corresponding to the
 #' expected level of coverage of the CS if not specified, set to 0.95
+#' @param lbf_min numeric  discard low purity cs in the IBSS fitting procedure if the largest log Bayes factors is lower than this value
 #' @param \dots Other arguments.
 #
 # @export
@@ -977,6 +981,7 @@ init_susiF_obj <- function(L_max,
                            backfit,
                            tol_null_prior=0.001,
                            cov_lev=0.95,
+                           lbf_min=0.1,
                            ... )
 {
 
@@ -1049,7 +1054,8 @@ init_susiF_obj <- function(L_max,
                d               = d,
                lfsr_wc         = lfsr_wc,
                tol_null_prior  = tol_null_prior,
-               cov_lev         = cov_lev)
+               cov_lev         = cov_lev,
+               lbf_min         = lbf_min)
 
   class(obj) <- "susiF"
   return(obj)
@@ -1085,7 +1091,7 @@ merge_effect <- function( obj, tl,...)
 merge_effect.susiF <- function( obj, tl, discard=TRUE,  ...){
 
 
-
+#### trop brutal ----  ne retirer que les effect qui overlap
 print("MERGEEE")
   if(is.vector( tl)){
     #print( tl)
@@ -1818,7 +1824,6 @@ update_cal_fit_func.susiF <- function(obj,
 
   if ( post_processing == "TI"){
 
-
     obj <- TI_regression(obj=obj,
                          Y=Y,
                          X=X,
@@ -2203,12 +2208,12 @@ update_residual_variance.susiF <- function( obj,sigma2,...)
 #' @param min_purity minimal purity within a CS
 #' @param X matrix of covariates
 #' @param median_crit remove cs base on max absolute correlation instead of min absolute correlation, usefull in the
-#
+#' @param lbf_min cirteria for in the ly cs removal
 #' @return a list of index corresponding the the dummy effect
 #
 #' @export
 #' @keywords internal
-which_dummy_cs <- function(obj, min_purity=0.5,X,median_crit=FALSE,...)
+which_dummy_cs <- function(obj, min_purity=0.5,X,median_crit=FALSE,lbf_min,...)
   UseMethod("which_dummy_cs")
 
 
@@ -2220,14 +2225,17 @@ which_dummy_cs <- function(obj, min_purity=0.5,X,median_crit=FALSE,...)
 #' @export which_dummy_cs.susiF
 #' @export
 #' @keywords internal
-which_dummy_cs.susiF <- function(obj, min_purity=0.5,X,median_crit=FALSE,...){
+which_dummy_cs.susiF <- function(obj, min_purity=0.5,X,median_crit=FALSE,lbf_min,...){
 
   dummy.cs<- c()
   # if( obj$L==1){
   #   return(dummy.cs)
   # }
-### PB here too strict discarding -----
-  f_crit <- function (obj, min_purity=0.5, l, median_crit=FALSE){
+
+  if (missing(lbf_min)){
+    lbf_min=Inf
+  }
+  f_crit <- function (obj, min_purity=0.5, l, median_crit=FALSE,lbf_min){
     if( median_crit){
       #if( length(obj$cs[[l]] )  < ncol(X)/10) {
       #  is.dummy.cs <- FALSE
@@ -2238,12 +2246,12 @@ which_dummy_cs.susiF <- function(obj, min_purity=0.5,X,median_crit=FALSE,...){
       }else{
         tt <-  cor( X[,obj$cs[[l]]])
 
-        is.dummy.cs <-   median(abs( tt[lower.tri(tt, diag =FALSE)]))  <  min_purity
+        is.dummy.cs <-   median(abs( tt[lower.tri(tt, diag =FALSE)]))  <  min_purity & max(obj$lBF[[l]])<lbf_min
       }
 
 
     }else{
-      is.dummy.cs <-   min(abs(cor( X[,obj$cs[[l]]]))) <  min_purity
+      is.dummy.cs <-   min(abs(cor( X[,obj$cs[[l]]]))) <  min_purity & max(obj$lBF[[l]])<lbf_min
     }
 
     return( is.dummy.cs)
@@ -2268,12 +2276,16 @@ which_dummy_cs.susiF <- function(obj, min_purity=0.5,X,median_crit=FALSE,...){
 
       }else{
 
-        if(   f_crit(obj = obj, min_purity=0.5, l, median_crit )){#check if the purity of cs l is lower that min_purity
+        if(   f_crit(obj = obj,
+                     min_purity=min_purity,
+                     l=l,
+                     median_crit=median_crit,
+                     lbf_min=lbf_min ) ){#check if the purity of cs l is lower that min_purity
 
           dummy.cs<-  c( dummy.cs,l)
 
         }else{
-          if(obj$est_pi[[l]][1]==1){
+          if(obj$est_pi[[l]][1]>1-obj$tol_null_prior){
             dummy.cs<-  c( dummy.cs,l)
           }
 
@@ -2302,7 +2314,11 @@ which_dummy_cs.susiF <- function(obj, min_purity=0.5,X,median_crit=FALSE,...){
 
       }else{
 
-        if(  f_crit(obj = obj, min_purity=0.5, l, median_crit )){#check if the purity of cs l is lower that min_purity
+        if(  f_crit(obj = obj,
+                    min_purity=min_purity,
+                    l=l,
+                    median_crit=median_crit,
+                    lbf_min=lbf_min )){#check if the purity of cs l is lower that min_purity
 
           dummy.cs<-  c( dummy.cs,l)
 
