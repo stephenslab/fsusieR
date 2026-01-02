@@ -746,7 +746,6 @@ greedy_backfit.susiF <-  function(obj,
   obj <- update_cal_cs(obj,
                        cov_lev=cov_lev)
 
-
   dummy.cs <-  which_dummy_cs(obj,
                               min_purity = min_purity,
                               median_crit=FALSE,
@@ -1063,6 +1062,8 @@ init_susiF_obj <- function(L_max,
 
 
 
+
+
 #' @title Merging effect function
 #
 #' @param obj a susiF object defined by init_susiF_obj function
@@ -1090,7 +1091,7 @@ merge_effect <- function( obj, tl,...)
 
 merge_effect.susiF <- function( obj, tl, discard=TRUE,  ...){
 
-
+  return( obj)
 #### trop brutal ----  ne retirer que les effect qui overlap
 print("MERGEEE")
   if(is.vector( tl)){
