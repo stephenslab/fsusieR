@@ -497,6 +497,7 @@ susiF <- function(Y, X, L = 2,
                                    e              = e)
 
   #preparing output
+
   obj <- out_prep(     obj            = obj,
                         Y             =    Y,# sweep(
                            #sweep(Y , 2, attr(Y , "scaled:scale"), "*"),

@@ -1598,6 +1598,7 @@ TI_regression.susiF <- function( obj,Y,X, verbose=TRUE,
                                  alpha=0.01,
                                  ... ){
 
+
   if(verbose){
     print( "Fine mapping done, refining effect estimates using cylce spinning wavelet transform")
   }
