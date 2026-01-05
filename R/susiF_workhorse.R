@@ -216,7 +216,7 @@ susiF.workhorse <- function(obj,
            #plot(EM_out$lBF/(sum( EM_out$lBFlBF)))
         }
 
-        print(hist(EM_out$lBF))
+        #print(hist(EM_out$lBF))
         obj <-  update_susiF_obj(obj   = obj ,
                                        l           = l,
                                        EM_pi       = EM_out,
