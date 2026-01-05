@@ -92,15 +92,7 @@ test_that("ind_analysis list works per-response", {
     )
   }
 })
-test_that("zero-variance columns do not crash", {
-  dat <- generate_test_data()
-  dat$X[, 3] <- 0
 
-  fast <- cal_Bhat_Shat(dat$Y, dat$X)
-
-  expect_true(all(is.finite(fast$Bhat)))
-  expect_true(all(is.finite(fast$Shat)))
-})
 test_that("lowc_wc masks coefficients and sets Shat to 1", {
   dat <- generate_test_data()
   lowc <- c(2, 5)

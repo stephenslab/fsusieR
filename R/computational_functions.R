@@ -71,96 +71,99 @@ cal_Bhat_Shat   <- function(Y,
                             v1 ,
                             resid_var=1,
                             lowc_wc=NULL,
-                            ind_analysis,  ...  )
-{
+                            ind_analysis=NULL,  ...  ){
 
+    p <- ncol(X)
+    J <- ncol(Y)
 
+    Bhat <- matrix(0.0, p, J)
+    Shat <- matrix(0.0, p, J)
 
-  if(missing(ind_analysis)){
+    ## ============================================================
+    ## Full data: vectorized (fastest possible in pure R)
+    ## ============================================================
+    if (is.null(ind_analysis)) {
 
+      n <- nrow(Y)
+      d <- colSums(X^2)
 
-    d <- colSums(X^2)
-    Bhat <- (t(X)%*%Y )/d
+      Bhat <- crossprod(X, Y) / d
 
-    Shat  <- do.call( cbind,
-                      lapply( 1:ncol(Bhat),
-                              function(i)  (Rfast::colVars(  Y [,i] -sweep( X,2, Bhat[,i], "*")))
-                      )
-    )
-
-    Shat<- sqrt( pmax(Shat, 1e-64))
-    Shat <- Shat/sqrt(nrow(Y)-1)
-
-  }else{
-    if( is.list(ind_analysis) ){ #usefull for running multiple univariate regression with different problematic ind
-
-
-      Bhat <-  do.call(cbind,lapply(1:length(ind_analysis),
-                                    function(l){
-                                      d   <- Rfast::colsums(X[ind_analysis[[l]], ,   drop = FALSE]^2)
-                                      out <- (t(X[ind_analysis[[l]], ])%*%Y[ind_analysis[[l]], l])/d
-                                      return(out)
-                                    }
-
-
-      ) )
-
-
-      Shat <- matrix(mapply(function(l, j) {
-
-        idx <- ind_analysis[[l]]
-        n   <- length(idx)
-
-        r <- Y[idx, l] - X[idx, j] * Bhat[j, l]
-
-        sqrt(
-          sum(r^2) / ((n - 1) * sum(X[idx, j]^2))
+      Shat <- do.call(
+        cbind,
+        lapply(seq_len(J), function(j)
+          Rfast::colVars(
+            Y[, j] - sweep(X, 2, Bhat[, j], "*")
+          )
         )
-
-      },
-      l = rep(seq_len(ncol(Y)), each = ncol(X)),
-      j = rep(seq_len(ncol(X)), times = ncol(Y))
-      ),
-      ncol = ncol(Y)
       )
 
-      Shat<-  ( pmax(Shat, 1e-32))
+      Shat <- sqrt(pmax(Shat, 1e-64)) / sqrt(n - 1)
 
-    }else{
+      ## ============================================================
+      ## Per-response subsets (ind_analysis is a list)
+      ## ============================================================
+    } else if (is.list(ind_analysis)) {
+
+      for (j in seq_len(J)) {
+        idx <- ind_analysis[[j]]
+        nj  <- length(idx)
+
+        Xj <- X[idx, , drop = FALSE]
+        yj <- Y[idx, j]
+
+        d <- colSums(Xj^2)
+        Bhat[, j] <- crossprod(Xj, yj) / d
+
+        scale <- 1 / sqrt(nj - 1)
+
+        for (k in seq_len(p)) {
+          xk <- Xj[, k]
+          bk <- Bhat[k, j]
+          r  <- yj - xk * bk
+          Shat[k, j] <- sqrt(sum(r^2) / d[k]) * scale
+        }
+      }
+
+      ## ============================================================
+      ## Common subset (ind_analysis is a vector)
+      ## ============================================================
+    } else {
+
       idx <- ind_analysis
+      ni  <- length(idx)
 
-      n   <- length(idx)
+      Xi <- X[idx, , drop = FALSE]
+      Yi <- Y[idx, , drop = FALSE]
 
-      d <- Rfast::colsums(X[idx, , drop = FALSE]^2)
-      Bhat <- (t(X[idx, , drop = FALSE]) %*% Y[idx, , drop = FALSE]) / d
+      d <- colSums(Xi^2)
+      Bhat <- crossprod(Xi, Yi) / d
 
-      RSS <- do.call(cbind,
-                     lapply(seq_len(ncol(Bhat)), function(i)
-                       colSums(
-                         (Y[idx, i] -
-                            sweep(X[idx, , drop = FALSE], 2, Bhat[, i], "*"))^2
-                       )
-                     )
-      )
+      scale <- 1 / sqrt(ni - 1)
 
-      Shat<- sqrt( pmax(RSS, 1e-64))
-      Shat <- sqrt(RSS / ((n - 1) * d))
+      for (j in seq_len(J)) {
+        yj <- Yi[, j]
+        for (k in seq_len(p)) {
+          xk <- Xi[, k]
+          bk <- Bhat[k, j]
+          r  <- yj - xk * bk
+          Shat[k, j] <- sqrt(sum(r^2) / d[k]) * scale
+        }
+      }
     }
 
-  }
-
-
-
-
-  if( !is.null(lowc_wc)){
-    Bhat[,lowc_wc] <- 0
-    Shat[,lowc_wc] <- 1
-  }
-  out  <- list( Bhat = Bhat,
-                Shat = Shat)
-
-  return(out)
+    ## ============================================================
+    ## Mask low-confidence coefficients if requested
+    ## ============================================================
+    if (!is.null(lowc_wc)) {
+      Bhat[, lowc_wc] <- 0
+      Shat[, lowc_wc] <- 1
+    }
+    Shat <- (pmax(Shat, 1e-32))
+    out= list(Bhat = Bhat, Shat = Shat)
+    return(out)
 }
+
 
 
 
@@ -1677,7 +1680,6 @@ TI_regression.susiF <- function( obj,Y,X, verbose=TRUE,
   )
   )
 
-print(idx)
   for (iter in seq_len(n_iter)) {
     for (l in seq_len(L)) {
 
@@ -1732,9 +1734,9 @@ print(idx)
       refined_est$wd[[l]] <- wd
       refined_est$wd2[[l]]<-  wd2
 
-      if( sum(refined_est$wd[[l]]==0)== sum(refined_est$wd2[[l]]==0)){
-        warning(paste( "For effect ", l," all of the d wavelets coefficient are estimated to be zero which will result in a constant fit that may not be accurate"))
-      }
+      #if( sum(refined_est$wd[[l]]==0)== sum(refined_est$wd2[[l]]==0)){
+      #  print(paste( "For effect ", l," all of the d wavelets coefficient are estimated to be zero which will result in a constant fit that may not be accurate"))
+      #}
 
       Ypar <- Y_c
       if (length(others) > 0) {
