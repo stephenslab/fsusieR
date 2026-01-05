@@ -89,7 +89,7 @@ cal_Bhat_Shat   <- function(Y,
     )
 
     Shat<- sqrt( pmax(Shat, 1e-64))
-    Shat <- Shat/sqrt(nrow(Y))
+    Shat <- Shat/sqrt(nrow(Y)-1)
 
   }else{
     if( is.list(ind_analysis) ){ #usefull for running multiple univariate regression with different problematic ind
@@ -106,27 +106,45 @@ cal_Bhat_Shat   <- function(Y,
       ) )
 
 
-      Shat  <-   matrix(mapply(function(l,j)
-        (Rfast::cova(matrix(Y[ind_analysis[[l]],l] - X[ind_analysis[[l]], j]  *  Bhat[j,l])) /(length(ind_analysis[[l]])-1)),
-        l=rep(1:dim(Y)[2],each= ncol(X)),
-        j=rep(1:dim(X)[2], ncol(Y))
+      Shat <- matrix(mapply(function(l, j) {
+
+        idx <- ind_analysis[[l]]
+        n   <- length(idx)
+
+        r <- Y[idx, l] - X[idx, j] * Bhat[j, l]
+
+        sqrt(
+          sum(r^2) / ((n - 1) * sum(X[idx, j]^2))
+        )
+
+      },
+      l = rep(seq_len(ncol(Y)), each = ncol(X)),
+      j = rep(seq_len(ncol(X)), times = ncol(Y))
       ),
-      ncol=dim(Y)[2]
+      ncol = ncol(Y)
       )
-      Shat<- sqrt( pmax(Shat, 1e-64))
+
+      Shat<-  ( pmax(Shat, 1e-32))
 
     }else{
-      d <- Rfast::colsums(X[ind_analysis , , drop = FALSE ]^2)
-      Bhat <- (t(X[ind_analysis , ])%*%Y[ind_analysis , ])/d
+      idx <- ind_analysis
 
-      Shat  <- do.call( cbind,
-                        lapply( 1:ncol(Bhat),
-                                function(i) (Rfast::colVars(Y [ind_analysis,i] -sweep( X[ind_analysis, , drop = FALSE],2, Bhat[ ,i], "*")))
-                        )
+      n   <- length(idx)
+
+      d <- Rfast::colsums(X[idx, , drop = FALSE]^2)
+      Bhat <- (t(X[idx, , drop = FALSE]) %*% Y[idx, , drop = FALSE]) / d
+
+      RSS <- do.call(cbind,
+                     lapply(seq_len(ncol(Bhat)), function(i)
+                       colSums(
+                         (Y[idx, i] -
+                            sweep(X[idx, , drop = FALSE], 2, Bhat[, i], "*"))^2
+                       )
+                     )
       )
-      Shat<- sqrt( pmax(Shat, 1e-64))
-      Shat <- Shat/sqrt(nrow(Y[ind_analysis,]))
 
+      Shat<- sqrt( pmax(RSS, 1e-64))
+      Shat <- sqrt(RSS / ((n - 1) * d))
     }
 
   }
