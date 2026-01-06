@@ -1090,10 +1090,10 @@ merge_effect <- function( obj, tl,...)
 #' @keywords internal
 
 merge_effect.susiF <- function( obj, tl, discard=TRUE,  ...){
-
+  #### trop brutal ----  ne retirer que les effect qui overlap
+  print("MERGEEE")
   return( obj)
-#### trop brutal ----  ne retirer que les effect qui overlap
-print("MERGEEE")
+
   if(is.vector( tl)){
     #print( tl)
     obj$fitted_wc[[tl[ 2]]] <- 0* obj$fitted_wc[[tl[  2]]]
