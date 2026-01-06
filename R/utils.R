@@ -422,3 +422,18 @@ HFT<- function(count.data){
   return(out)
 }
 
+
+
+
+
+
+
+
+
+cs_relation <- function(cs1, cs2) {
+  if (setequal(cs1, cs2)) return("identical")
+  if (all(cs1 %in% cs2))  return("cs1_in_cs2")
+  if (all(cs2 %in% cs1))  return("cs2_in_cs1")
+  return("none")
+}
+

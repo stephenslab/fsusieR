@@ -7,7 +7,7 @@
 \usage{
 merge_effect(obj, tl, ...)
 
-\method{merge_effect}{susiF}(obj, tl, discard = TRUE, ...)
+\method{merge_effect}{susiF}(obj, verbose = FALSE)
 }
 \arguments{
 \item{obj}{a susiF object defined by init_susiF_obj function}

@@ -27,14 +27,15 @@ susiF(
   backfit = TRUE,
   gridmult = sqrt(2),
   max_scale = 10,
-  max_SNP_EM = 1000,
+  max_SNP_EM = 100,
   max_step_EM = 1,
   cor_small = FALSE,
   filter.number = 10,
   family = "DaubLeAsymm",
   post_processing = c("TI", "smash", "HMM", "none"),
   e = 0.001,
-  tol_null_prior = 0.001
+  tol_null_prior = 0.001,
+  lbf_min = 0.1
 )
 }
 \arguments{
@@ -139,6 +140,8 @@ The Bayes factor from Valen E Johnson JRSSB 2005 tends to have better coverage i
 \item{tol_null_prior}{threshold to consider prior to be null. If the estimated weight on the point mass at zero is larger than 1-tol_null_prior
 then set prior weight on point mass to be 1. In the mixture normal this corresponds to removing the effect. In the mixutre per scale prior this corresponds
 to setting the prior of a given scale to at point mass at 0.}
+
+\item{lbf_min}{numeric  discard low purity cs in the IBSS fitting procedure if the largest log Bayes factors is lower than this value}
 }
 \value{
 A \code{"susiF"} object with some or all of the following

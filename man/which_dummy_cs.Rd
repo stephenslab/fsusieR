@@ -5,9 +5,9 @@
 \alias{which_dummy_cs.susiF}
 \title{Return which credible sets are  dummy}
 \usage{
-which_dummy_cs(obj, min_purity = 0.5, X, median_crit = FALSE, ...)
+which_dummy_cs(obj, min_purity = 0.5, X, median_crit = FALSE, lbf_min, ...)
 
-\method{which_dummy_cs}{susiF}(obj, min_purity = 0.5, X, median_crit = FALSE, ...)
+\method{which_dummy_cs}{susiF}(obj, min_purity = 0.5, X, median_crit = FALSE, lbf_min, ...)
 }
 \arguments{
 \item{obj}{a susif object defined by init_susiF_obj function}
@@ -17,6 +17,8 @@ which_dummy_cs(obj, min_purity = 0.5, X, median_crit = FALSE, ...)
 \item{X}{matrix of covariates}
 
 \item{median_crit}{remove cs base on max absolute correlation instead of min absolute correlation, usefull in the}
+
+\item{lbf_min}{cirteria for in the ly cs removal}
 }
 \value{
 a list of index corresponding the the dummy effect

@@ -331,7 +331,8 @@ estimate_residual_variance.susiF <- function( obj,Y,X,... )
 
 expand_susiF_obj <- function(obj,L_extra)
 {
-  L_extra <- ifelse (  obj$L_max - (obj$L+L_extra) <0 ,#check if we are adding more effect that maximum specified by user
+  #browser()
+  L_extra <- ifelse (  obj$L_max - (obj$L+L_extra)<=0 ,#check if we are adding more effect that maximum specified by user
                        abs(obj$L_max -(obj$L)),
                        L_extra
 
@@ -356,7 +357,12 @@ expand_susiF_obj <- function(obj,L_extra)
       obj$KL                    <-  rep(NA,obj$L)
       obj$ELBO                  <-  c()
     }
+
     obj$n_expand <- obj$n_expand+1
+    if(obj$L==obj$L_max){
+      out$greedy=FALSE
+      print("YO")
+    }
     obj$greedy_backfit_update <- TRUE
     return(obj)
   }
@@ -772,22 +778,23 @@ greedy_backfit.susiF <-  function(obj,
                         out_prep= FALSE
       )
 
-      if( length(obj$cs)>1){
-        A <- cal_cor_cs(obj, X)$cs_cor
-        tl <- which(A>0.99, arr.ind = TRUE)
-        tl <-  tl[- which( tl[,1]==tl[,2]),]
+      #if( length(obj$cs)>1){
+       # A <- cal_cor_cs(obj, X)$cs_cor
+       # tl <- which(A>0.99, arr.ind = TRUE)
+       # tl <-  tl[- which( tl[,1]==tl[,2]),]
 
-        if ( dim(tl)[1]==0){
+       # if ( dim(tl)[1]==0){
 
-        }else{
+       # }else{
 
-          tl <-  tl[which(tl[,1] < tl[,2]),]
+       #   tl <-  tl[which(tl[,1] < tl[,2]),]
 
           # remove
-          obj <- merge_effect(obj, tl)
+       #   obj <- merge_effect(obj, tl)
+        obj <- merge_effect (obj, verbose = verbose)
 
-        }
-      }
+      #  }
+     # }
       if(verbose){
         print( paste( "Discarding ",(temp_L- obj$L), " effects"))
       }
@@ -810,20 +817,21 @@ greedy_backfit.susiF <-  function(obj,
 
 
 
-    if( length(obj$cs)>1){
-      A <- cal_cor_cs(obj, X)$cs_cor
-      tl <- which(A>0.99, arr.ind = TRUE)
-      tl <-  tl[- which( tl[,1]==tl[,2]),]
+    #if( length(obj$cs)>1){
+     # A <- cal_cor_cs(obj, X)$cs_cor
+     # tl <- which(A>0.99, arr.ind = TRUE)
+     # tl <-  tl[- which( tl[,1]==tl[,2]),]
 
-      if ( dim(tl)[1]==0){
+     # if ( dim(tl)[1]==0){
 
-      }else{
+     # }else{
 
-        tl <-  tl[which(tl[,1] < tl[,2]),]
-        obj <- merge_effect(obj, tl)
+      #  tl <-  tl[which(tl[,1] < tl[,2]),]
+       # obj <- merge_effect(obj, tl)
 
-      }
-    }
+        obj <- merge_effect (obj, verbose = verbose)
+     # }
+    #}
     if(verbose){
       print( paste( "Discarding ",(obj$L_max- obj$L), " effects"))
       print( "Greedy search and backfitting done")
@@ -838,20 +846,21 @@ greedy_backfit.susiF <-  function(obj,
 
   if(!(obj$greedy )&!(obj$backfit ) ){
 
-    if( length(obj$cs)>1){
-      A <- cal_cor_cs(obj, X)$cs_cor
-      tl <- which(A>0.99, arr.ind = TRUE)
-      tl <-  tl[- which( tl[,1]==tl[,2]),]
+    #if( length(obj$cs)>1){
+     # A <- cal_cor_cs(obj, X)$cs_cor
+     # tl <- which(A>0.99, arr.ind = TRUE)
+     # tl <-  tl[- which( tl[,1]==tl[,2]),]
 
-      if ( dim(tl)[1]==0){
+     # if ( dim(tl)[1]==0){
 
-      }else{
+     # }else{
 
-        tl <-  tl[which(tl[,1] < tl[,2]),]
-        obj <- merge_effect(obj, tl)
+     #   tl <-  tl[which(tl[,1] < tl[,2]),]
+       # obj <- merge_effect(obj, tl)
 
-      }
-    }
+        obj <- merge_effect (obj, verbose = verbose)
+      #}
+    #}
 
     if(verbose){
       print( paste( "Discarding ",(obj$L_max- obj$L), " effects"))
@@ -868,21 +877,22 @@ greedy_backfit.susiF <-  function(obj,
     temp <- min( ifelse(tt>0,tt,0 ) , 7)
 
     if(temp==0){
-      if( length(obj$cs)>1){
-        A <- cal_cor_cs(obj, X)$cs_cor
-        tl <- which(A>0.99, arr.ind = TRUE)
-        tl <-  tl[- which( tl[,1]==tl[,2]),]
+      #if( length(obj$cs)>1){
+       # A <- cal_cor_cs(obj, X)$cs_cor
+       ## tl <- which(A>0.99, arr.ind = TRUE)
+       # tl <-  tl[- which( tl[,1]==tl[,2]),]
 
-        if ( dim(tl)[1]==0){
+      #  if ( dim(tl)[1]==0){
 
-        }else{
+       # }else{
 
-          tl <-  tl[which(tl[,1] < tl[,2]),]
-          obj <- merge_effect(obj, tl)
+       #   tl <-  tl[which(tl[,1] < tl[,2]),]
+       #   obj <- merge_effect(obj, tl)
 
-        }
-      }
+       # }
+      #}
 
+      obj <- merge_effect (obj, verbose = verbose)
       if(verbose){
         print( paste( "Discarding ",(obj$L_max- obj$L), " effects"))
         print( "Greedy search and backfitting done")
@@ -901,25 +911,26 @@ greedy_backfit.susiF <-  function(obj,
 
 
 
-    if( length(obj$cs)>1){
-      A <- cal_cor_cs(obj, X)$cs_cor
-      tl <- which(A>0.99, arr.ind = TRUE)
-      tl <-  tl[- which( tl[,1]==tl[,2]),]
+    #if( length(obj$cs)>1){
+   #   A <- cal_cor_cs(obj, X)$cs_cor
+    #  tl <- which(A>0.99, arr.ind = TRUE)
+    #  tl <-  tl[- which( tl[,1]==tl[,2]),]
 
-      if ( dim(tl)[1]==0){
+    #  if ( dim(tl)[1]==0){
 
-      }else{
+    #  }else{
 
-        tl <-  tl[which(tl[,1] < tl[,2]),]
-        obj <- merge_effect(obj, tl, discard=FALSE)
+    #    tl <-  tl[which(tl[,1] < tl[,2]),]
+    #    obj <- merge_effect(obj, tl, discard=FALSE)
 
-      }
-    }
-
-
+    #  }
+   # }
 
 
-    obj <- expand_susiF_obj(obj,L_extra = temp)
+    obj <- merge_effect (obj, verbose = verbose)
+
+
+    obj <- expand_susiF_obj(obj,L_extra = 7)
     return(obj)
   }
 
@@ -1068,7 +1079,6 @@ init_susiF_obj <- function(L_max,
 #
 #' @param obj a susiF object defined by init_susiF_obj function
 #
-#' @param tl see  \code{\link{greedy_backfit}}
 #
 #' @param discard logical, if set to TRUE allow discarding redundant effect
 #
@@ -1077,7 +1087,7 @@ init_susiF_obj <- function(L_max,
 #' @return  a susiF object
 #' @export
 #' @keywords internal
-merge_effect <- function( obj, tl,...)
+merge_effect <- function( obj,  ...)
   UseMethod("merge_effect")
 
 #' @rdname merge_effect
@@ -1089,42 +1099,43 @@ merge_effect <- function( obj, tl,...)
 #' @export
 #' @keywords internal
 
-merge_effect.susiF <- function( obj, tl, discard=TRUE,  ...){
-  #### trop brutal ----  ne retirer que les effect qui overlap
-  print("MERGEEE")
-  return( obj)
+merge_effect.susiF  <- function(obj, verbose = FALSE) {
 
-  if(is.vector( tl)){
-    #print( tl)
-    obj$fitted_wc[[tl[ 2]]] <- 0* obj$fitted_wc[[tl[  2]]]
-    obj$fitted_wc[[tl[  1]]] <- obj$fitted_wc[[tl[  1]]] +   obj$fitted_wc[[tl[ 2]]]
-    obj$fitted_wc2[[tl[ 1]]] <- obj$fitted_wc2[[tl[  1]]] +   obj$fitted_wc2[[tl[  2]]]
-    #obj$fitted_wc[[tl[  2]]] <- 0* obj$fitted_wc[[tl[ 2]]]
-    tindx <-  tl[  2]
-  }else{
-    tl <- tl[order(tl[,1], tl[,2], decreasing = TRUE),]
-    #print( tl)
-    tindx <- c(0)
-    for ( o in 1:dim(tl)[1]){
+  if (obj$L < 2) return(obj)
 
-      if ( tl[o, 2]%!in%tindx){
-        obj$fitted_wc[[tl[o, 2]]] <- 0* obj$fitted_wc[[tl[o, 2]]]
-        obj$fitted_wc[[tl[o, 1]]] <-obj$fitted_wc[[tl[o, 1]]] +   obj$fitted_wc[[tl[o, 2]]]
-        obj$fitted_wc2[[tl[o, 1]]] <-obj$fitted_wc2[[tl[o, 1]]] +   obj$fitted_wc2[[tl[o, 2]]]
-        # obj$fitted_wc[[tl[o, 2]]] <- 0* obj$fitted_wc[[tl[o, 2]]]
-        tindx <- c(tindx, tl[o, 2])
+  to_drop <- integer(0)
+
+  for (i in 1:(obj$L - 1)) {
+    for (j in (i + 1):obj$L) {
+
+      if (i %in% to_drop || j %in% to_drop) next
+
+      rel <- cs_relation(obj$cs[[i]], obj$cs[[j]])
+
+      if (rel == "none") next
+
+      largest <- which_cs_largeBF(obj, i, j)
+      smallest  <- setdiff(c(i, j), largest)
+
+      to_drop <- c(to_drop,  smallest )
+
+      if (verbose) {
+        message(
+          sprintf(
+            "Trivial merge: dropping effect %d (CS %s effect %d)",
+            smallest,
+            ifelse(rel == "identical", "identical to", "nested in"),
+            largest
+          )
+        )
       }
-
     }
-
-    tindx <- tindx[-1]
-
-  }
-  if(discard){
-    obj<-  discard_cs(obj,cs=tindx, out_prep=FALSE)
   }
 
-  return( obj)
+  to_drop <- sort(unique(to_drop))
+  if (length(to_drop) == 0) return(obj)
+
+  discard_cs(obj, cs = to_drop, out_prep = FALSE)
 }
 
 
@@ -2339,3 +2350,18 @@ which_dummy_cs.susiF <- function(obj, min_purity=0.5,X,median_crit=FALSE,lbf_min
 
 }
 
+which_cs_largeBF <- function(obj, l1, l2) {
+  cs1 <- obj$cs[[l1]]
+  cs2 <- obj$cs[[l2]]
+
+  if (length(cs1) < length(cs2)) return(l1)
+  if (length(cs2) < length(cs1)) return(l2)
+
+  bf1 <- max(obj$lBF[[l1]], na.rm = TRUE)
+  bf2 <- max(obj$lBF[[l2]], na.rm = TRUE)
+
+  if (bf1 > bf2) return(l1)
+  if (bf2 > bf1) return(l2)
+
+  return(min(l1, l2))
+}
