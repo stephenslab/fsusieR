@@ -361,7 +361,6 @@ expand_susiF_obj <- function(obj,L_extra)
     obj$n_expand <- obj$n_expand+1
     if(obj$L==obj$L_max){
       out$greedy=FALSE
-      print("YO")
     }
     obj$greedy_backfit_update <- TRUE
     return(obj)
