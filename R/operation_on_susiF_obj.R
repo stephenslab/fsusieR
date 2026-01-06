@@ -604,12 +604,10 @@ get_post_F <- function(obj,l,...)
 
 get_post_F.susiF <- function(obj, l, ...) {
 
-  # Return effect-specific posterior mean ------------------------------
   if (!missing(l)) {
     return(obj$alpha[[l]] * obj$fitted_wc[[l]])
   }
 
-  # Return sum of posterior means across all effects -------------------
   L <- obj$L
   # wavelet coefficient matrix size: p × J
   wc_dim <- dim(obj$fitted_wc[[1]])
