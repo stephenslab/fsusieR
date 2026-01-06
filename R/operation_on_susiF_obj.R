@@ -777,23 +777,8 @@ greedy_backfit.susiF <-  function(obj,
                         out_prep= FALSE
       )
 
-      #if( length(obj$cs)>1){
-       # A <- cal_cor_cs(obj, X)$cs_cor
-       # tl <- which(A>0.99, arr.ind = TRUE)
-       # tl <-  tl[- which( tl[,1]==tl[,2]),]
+      obj <- merge_effect (obj, verbose = verbose)
 
-       # if ( dim(tl)[1]==0){
-
-       # }else{
-
-       #   tl <-  tl[which(tl[,1] < tl[,2]),]
-
-          # remove
-       #   obj <- merge_effect(obj, tl)
-        obj <- merge_effect (obj, verbose = verbose)
-
-      #  }
-     # }
       if(verbose){
         print( paste( "Discarding ",(temp_L- obj$L), " effects"))
       }
@@ -812,25 +797,7 @@ greedy_backfit.susiF <-  function(obj,
                       cs= (obj$L_max+1):obj$L,
                       out_prep= FALSE
     )
-
-
-
-
-    #if( length(obj$cs)>1){
-     # A <- cal_cor_cs(obj, X)$cs_cor
-     # tl <- which(A>0.99, arr.ind = TRUE)
-     # tl <-  tl[- which( tl[,1]==tl[,2]),]
-
-     # if ( dim(tl)[1]==0){
-
-     # }else{
-
-      #  tl <-  tl[which(tl[,1] < tl[,2]),]
-       # obj <- merge_effect(obj, tl)
-
-        obj <- merge_effect (obj, verbose = verbose)
-     # }
-    #}
+    obj <- merge_effect (obj, verbose = verbose)
     if(verbose){
       print( paste( "Discarding ",(obj$L_max- obj$L), " effects"))
       print( "Greedy search and backfitting done")
@@ -844,22 +811,6 @@ greedy_backfit.susiF <-  function(obj,
   }
 
   if(!(obj$greedy )&!(obj$backfit ) ){
-
-    #if( length(obj$cs)>1){
-     # A <- cal_cor_cs(obj, X)$cs_cor
-     # tl <- which(A>0.99, arr.ind = TRUE)
-     # tl <-  tl[- which( tl[,1]==tl[,2]),]
-
-     # if ( dim(tl)[1]==0){
-
-     # }else{
-
-     #   tl <-  tl[which(tl[,1] < tl[,2]),]
-       # obj <- merge_effect(obj, tl)
-
-        obj <- merge_effect (obj, verbose = verbose)
-      #}
-    #}
 
     if(verbose){
       print( paste( "Discarding ",(obj$L_max- obj$L), " effects"))
@@ -876,20 +827,7 @@ greedy_backfit.susiF <-  function(obj,
     temp <- min( ifelse(tt>0,tt,0 ) , 7)
 
     if(temp==0){
-      #if( length(obj$cs)>1){
-       # A <- cal_cor_cs(obj, X)$cs_cor
-       ## tl <- which(A>0.99, arr.ind = TRUE)
-       # tl <-  tl[- which( tl[,1]==tl[,2]),]
 
-      #  if ( dim(tl)[1]==0){
-
-       # }else{
-
-       #   tl <-  tl[which(tl[,1] < tl[,2]),]
-       #   obj <- merge_effect(obj, tl)
-
-       # }
-      #}
 
       obj <- merge_effect (obj, verbose = verbose)
       if(verbose){
@@ -907,24 +845,6 @@ greedy_backfit.susiF <-  function(obj,
     if(verbose){
       print( paste( "Adding ", temp, " extra effects"))
     }
-
-
-
-    #if( length(obj$cs)>1){
-   #   A <- cal_cor_cs(obj, X)$cs_cor
-    #  tl <- which(A>0.99, arr.ind = TRUE)
-    #  tl <-  tl[- which( tl[,1]==tl[,2]),]
-
-    #  if ( dim(tl)[1]==0){
-
-    #  }else{
-
-    #    tl <-  tl[which(tl[,1] < tl[,2]),]
-    #    obj <- merge_effect(obj, tl, discard=FALSE)
-
-    #  }
-   # }
-
 
     obj <- merge_effect (obj, verbose = verbose)
 
@@ -1225,7 +1145,6 @@ out_prep.susiF <- function(obj ,
 
   obj <-  name_cs(obj,X)
 
-  # obj <-  update_lfsr_effect(obj)
   if(filter_cs)
   {
     obj  <- check_cs(obj,
@@ -2349,6 +2268,14 @@ which_dummy_cs.susiF <- function(obj, min_purity=0.5,X,median_crit=FALSE,lbf_min
 
 }
 
+
+
+
+
+
+
+#' @export
+#' @keywords internal
 which_cs_largeBF <- function(obj, l1, l2) {
   cs1 <- obj$cs[[l1]]
   cs2 <- obj$cs[[l2]]
