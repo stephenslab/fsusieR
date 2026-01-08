@@ -255,6 +255,8 @@ See how the estimated function recover the true underlying effect.
 plot(fit$outing_grid, fit$fitted_func[[1]] , col="blue", type="l")
 lines(fit$outing_grid, fit$cred_band[[1]][1,] , col="blue",lty=2)
 lines(fit$outing_grid, fit$cred_band[[1]][2,] , col="blue",lty=2)
+
+points(pos,f2[pos],col = "black",pch = 20,cex = 0.75)
 lines(f2)
 
 

@@ -34,7 +34,7 @@ beta1       <- 1
 beta2       <- 1
 noisy.data  <- list()
 #f2 <-f1
-G = matrix(sample(c(0, 1,2), size=N*P, replace=TRUE), nrow=N, ncol=P) #Genotype
+G = .5*matrix(sample(c(0, 1,2), size=N*P, replace=TRUE), nrow=N, ncol=P) #Genotype
 X <-G
 for ( i in 1:N)
 {
@@ -50,7 +50,7 @@ out <- susiF(Y,X,L=2 , prior = 'mixture_normal_per_scale', filter.number =8  )
 
 X <- colScale(X)
 # centering input
-Y <- colScale(Y, scale=FALSE)
+Y <- colScale(Y )
 susiF.obj <- out
 
 
@@ -105,8 +105,10 @@ fitted_trend <- lapply(1:length(idx), function(l)
 )
 
 plot(fitted_trend[[2]])
- plot(fitted_trend[[1]])
- plot(est_lfsr[[1]])
+  lines(f1)
+plot(fitted_trend[[1]])
+lines(f2)
+plot(est_lfsr[[1]])
   plot(est_lfsr[[2]])
 
 test_that("performance in low variance and sharp transition should be",{

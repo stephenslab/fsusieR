@@ -28,7 +28,7 @@ Here we simulate two SNP that are identical except for one individual.
 ```{r cars}
 library(fsusieR)
 library(susieR)
-set.seed(1)
+#set.seed(1)
 lev_res= 7
 sd_noise=1
 n_diff=1
@@ -56,6 +56,8 @@ plot(lf, main="effect of the causal SNP")
  dl[[i]] = X[i,1]*lf + rnorm (n=2^lev_res, sd=sd_noise)
   }
     Y =do.call(rbind,dl)
+res0= susiF(Y=Y,X=X )
+res0$cs
 ```
 
  Now we run fSuSiE and mvSuSiE to check if they can "tear apart" the correct SNP
@@ -68,6 +70,9 @@ library(mvsusieR)
 Y_t=Y
 prior <- create_mixture_prior(R = ncol(  Y_t))
 res= mvsusie(X=X, Y= Y_t, prior_variance = prior)
+```
+```{r}
+ res_susie = susie(X=X, y= Y_t[,25 ])
 ```
 
  

@@ -33,7 +33,7 @@ effect <-   1.2*cos( (1:128)/128 * 3*pi )
 effect[which(effect<0)]<- 0
 effect[1:40]<- 0
 
-plot( effect)
+plot( effect, pch=19)
 library(fsusieR)
 library(susieR)
 library(wavethresh)
@@ -178,7 +178,7 @@ grid.arrange(P01, P11,
 ### Let's run fSusiE
 
 ```{r}
-tt <- susiF(y, X, L=1)
+tt <- susiF(y, X, L=1, post_processing = "smash")
 tt$cs
 #ten column where removed so we need to remake the plot for the explanation (other t)
 tt$pip <- rep( 0,length(tt$pip))
