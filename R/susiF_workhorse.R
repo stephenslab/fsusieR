@@ -243,6 +243,7 @@ susiF.workhorse <- function(obj,
                                    X          = X,
                                    min_purity = min_purity
       )
+
       sigma2    <- estimate_residual_variance(obj,
                                               Y         = Y_f,
                                               X         = X)

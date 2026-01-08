@@ -428,7 +428,9 @@ HFT<- function(count.data){
 
 
 
-
+#' @export
+#'
+#' @keywords internal
 
 cs_relation <- function(cs1, cs2) {
   if (setequal(cs1, cs2)) return("identical")

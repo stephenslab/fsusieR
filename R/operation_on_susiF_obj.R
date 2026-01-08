@@ -360,7 +360,7 @@ expand_susiF_obj <- function(obj,L_extra)
 
     obj$n_expand <- obj$n_expand+1
     if(obj$L==obj$L_max){
-      out$greedy=FALSE
+      obj$greedy=FALSE
     }
     obj$greedy_backfit_update <- TRUE
     return(obj)
@@ -1770,6 +1770,7 @@ update_cal_fit_func.susiF <- function(obj,
     obj$cred_band <- NULL
   }
   if(post_processing=="smash"){
+
     obj <- smash_regression(obj=obj,
                             Y=Y,
                             X=X,

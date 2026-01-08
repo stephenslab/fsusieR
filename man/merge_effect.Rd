@@ -5,14 +5,12 @@
 \alias{merge_effect.susiF}
 \title{Merging effect function}
 \usage{
-merge_effect(obj, tl, ...)
+merge_effect(obj, ...)
 
 \method{merge_effect}{susiF}(obj, verbose = FALSE)
 }
 \arguments{
 \item{obj}{a susiF object defined by init_susiF_obj function}
-
-\item{tl}{see  \code{\link{greedy_backfit}}}
 
 \item{discard}{logical, if set to TRUE allow discarding redundant effect}
 }

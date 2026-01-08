@@ -734,7 +734,6 @@ fit_hmm <- function (x,sd,
 
 }
 
-
 #'@title Compute refined estimate using HMM regression
 #'
 #' @description    Compute refined estimate using HMM regression
@@ -802,15 +801,13 @@ HMM_regression.susiF <- function( obj,
   tt <- lapply( 1: ncol(Y),
                 function(j){
 
-                  summary(lm(Y[,j]~-1+.,data=sub_X))$coefficients[ ,c(1,2,4 )]
+                  summary(lm(Y[,j]~ .,data=sub_X))$coefficients[ -1,c(1,2,4 )]
 
 
                 }
 
 
   )
-
-
 
   fitted_trend <- list()
   fitted_lfsr   <- list()
@@ -1612,9 +1609,11 @@ TI_regression <- function (obj,Y,X, verbose ,
 #' @export
 #'
 
+
+
 TI_regression.susiF <- function( obj,Y,X, verbose=TRUE,
                                  filter.number = 1, family = "DaubExPhase" ,
-                                 alpha=0.05,n_iter=3,
+                                 alpha=0.01,
                                  ... ){
 
   if(verbose){
@@ -1651,57 +1650,19 @@ TI_regression.susiF <- function( obj,Y,X, verbose=TRUE,
   for ( l in 1: length(obj$cs)){
     refined_est$wd[[l]]  <- rep( 0, ncol(Y_f))
     refined_est$wdC[[l]] <- rep( 0, ncol(Y_c))
-    refined_est$wdC2[[l]] <- rep( 0, ncol(Y_c))
     refined_est$wd2[[l]] <- rep( 0, ncol(Y_f))
+    refined_est$wdC2[[l]] <- rep( 0, ncol(Y_c))
     refined_est$idx_lead_cov[[l]]  <- which.max(obj$alpha[[l]])
   }
 
 
+  if(  length(obj$cs)==1){
 
 
-
-
-  lm_coef_se <- function(Ymat, x) {
-    tt <- lapply(seq_len(ncol(Ymat)), function(j) {
-      fit <- summary(lm(Ymat[, j] ~ -1 + x))
-      c(
-        beta = fit$coefficients[1, 1],
-        se   = fit$coefficients[1, 2]
-      )
-    })
-    do.call(rbind, tt)
-  }
-  L=obj$L
-
-  idx <- do.call( c, lapply( 1:length(obj$cs),
-                             function(l){
-                               tp_id <-  which.max(obj$alpha[[l]])
-                             }
-  )
-  )
-
-  for (iter in seq_len(n_iter)) {
-    for (l in seq_len(L)) {
-
-      others <- setdiff(seq_len(L), l)
-
-      ## ------------------------
-      ## D coefficients
-      ## ------------------------
-
-      Ypar <- Y_f
-      if (length(others) > 0) {
-        Ypar <- Ypar - Reduce("+", lapply(others, function(j)
-          X[, idx[j][[1]]] %*% t( refined_est$wd[[j]])
-        ))
-      }
-
-      lm_res <- lm_coef_se(Ypar, X[, idx[ l ] ])
-      beta   <- lm_res[, "beta"]
-      se     <- lm_res[, "se"]
-      se[se == 0 | is.na(se)] <- median(se, na.rm = TRUE)
-      wd   <- rep( 0 ,length(beta))
-      wd2  <- rep(0, length(se))
+      res <- cal_Bhat_Shat(Y_f, matrix(X[,refined_est$idx_lead_cov[[1]]],
+                                       ncol=1))
+      wd   <- rep( 0 ,length(res$Bhat))
+      wd2  <- rep(0, length(res$Shat))
       temp <-   lapply(1:nrow(dummy_station_wd$fl.dbase$first.last.d),
                        function(s){
                          level <- s
@@ -1712,7 +1673,7 @@ TI_regression.susiF <- function( obj,Y,X, verbose=TRUE,
                          offset.level <- first.last.d[level, 3]
                          first.level  <- first.last.d[level, 1]
                          idx   <- (offset.level + 1 - first.level):(offset.level +n - first.level)
-                         t_ash <- ashr::ash(c( beta[idx]), (c(se[idx])),
+                         t_ash <- ashr::ash(c( res$Bhat[idx]), (c(res$Shat[idx])),
                                             nullweight=300,mixcompdist = "normal")
 
                          wd [idx] <- t_ash$result$PosteriorMean
@@ -1724,7 +1685,7 @@ TI_regression.susiF <- function( obj,Y,X, verbose=TRUE,
       )
 
 
-      wd  <-  Reduce("+", lapply(1:length(temp), function(s) temp[[s]][[1]]))
+      wd  <- Reduce("+", lapply(1:length(temp), function(s) temp[[s]][[1]]))
       wd2 <-  Reduce("+", lapply(1:length(temp), function(s) temp[[s]][[2]]))
 
 
@@ -1734,31 +1695,80 @@ TI_regression.susiF <- function( obj,Y,X, verbose=TRUE,
       refined_est$wd[[l]] <- wd
       refined_est$wd2[[l]]<-  wd2
 
-      #if( sum(refined_est$wd[[l]]==0)== sum(refined_est$wd2[[l]]==0)){
-      #  print(paste( "For effect ", l," all of the d wavelets coefficient are estimated to be zero which will result in a constant fit that may not be accurate"))
-      #}
 
-      Ypar <- Y_c
-      if (length(others) > 0) {
-        Ypar <- Ypar - Reduce("+", lapply(others, function(j)
-          X[, idx[j][[1]]] %*% t (refined_est$wdC[[j]])
-        ))
-      }
-
-      lm_res <- lm_coef_se(Ypar, X[, idx [l ] ] )
-      beta   <- lm_res[, "beta"]
-      se     <- lm_res[, "se"]
-      se[se == 0 | is.na(se)] <- median(se, na.rm = TRUE)
-      wd   <- rep( 0 ,length(beta))
-      wd2  <- rep(0, length(se))
-      t_ash <-ashr::ash(c( beta),c(se), nullweight=300,mixcompdist = "normal")
+      res <- cal_Bhat_Shat(Y_c, matrix(X[,refined_est$idx_lead_cov[[1]]],
+                                       ncol=1))
+      t_ash <-ashr::ash(c( res$Bhat),c(res$Shat), nullweight=3,mixcompdist = "normal")
       refined_est$wdC[[l]] <- t_ash$result$PosteriorMean
-      refined_est$wdC2[[l]] <- t_ash$result$PosteriorSD^2
+
+
+
+
+  }else{
+
+
+
+      for (k in 1:5){
+
+        for ( l in 1: length(obj$cs) ){
+          par_res<-  Y_f -Reduce("+",
+                                 lapply( (1: length(refined_est$idx_lead_cov))[-l],
+                                         function(j)
+                                           X[,refined_est$idx_lead_cov[[j]]] %*%t( refined_est$wd[[j]] )
+                                 )
+          )
+
+          res <- cal_Bhat_Shat(par_res, matrix(X[,refined_est$idx_lead_cov[[l]]], ncol=1))
+          wd <- rep( 0 ,length(res$Bhat))
+          wd2 <- rep(0, length(res$Shat))
+          temp <-   lapply(1:nrow(dummy_station_wd$fl.dbase$first.last.d),
+                           function(s){
+                             level <- s
+                             n <- 2^wavethresh::nlevelsWT(dummy_station_wd)
+                             first.last.d <-dummy_station_wd$fl.dbase$first.last.d
+                             first.level <- first.last.d[level, 1]
+                             last.level <- first.last.d[level, 2]
+                             offset.level <- first.last.d[level, 3]
+                             first.level <- first.last.d[level, 1]
+                             idx <- (offset.level + 1 - first.level):(offset.level +n - first.level)
+                             t_ash <- ashr::ash(c( res$Bhat[idx]), (c(res$Shat[idx])),
+                                                nullweight=300,mixcompdist = "normal")
+
+                             wd [idx] <- t_ash$result$PosteriorMean
+                             wd2[idx] <- t_ash$result$PosteriorSD^2
+
+                             out  <- list( wd,
+                                           wd2)
+                           }
+          )
+
+
+          wd <- Reduce("+", lapply(1:length(temp), function(s) temp[[s]][[1]]))
+          wd2 <-  Reduce("+", lapply(1:length(temp), function(s) temp[[s]][[2]]))
+
+
+
+          refined_est$wd[[l]] <- wd
+          refined_est$wd2[[l]]<-  wd2
+
+
+          par_resc<-  Y_c -Reduce("+",
+                                  lapply( (1: length(refined_est$idx_lead_cov))[-l],
+                                          function(j)
+                                            X[,refined_est$idx_lead_cov[[j]]] %*%t( refined_est$wdC[[j]] )
+                                  )
+          )
+
+          res <- cal_Bhat_Shat(par_resc, matrix(X[,refined_est$idx_lead_cov[[l]]], ncol=1))
+          t_ash <- ashr::ash(c( res$Bhat),c(res$Shat), nullweight=300,mixcompdist = "normal")
+          refined_est$wdC[[l]] <- t_ash$result$PosteriorMean
+          refined_est$wdC2[[l]] <- t_ash$result$PosteriorSD^2
+
+
+        }
+
+      }
     }
-  }
-
-
-
 
 
   coeff= qnorm(1-( alpha)/2)
@@ -1771,14 +1781,14 @@ TI_regression.susiF <- function( obj,Y,X, verbose=TRUE,
     nlevels <-wavethresh::nlevelsWT(mywst)
     refined_est$fitted_func[[l]]=  wavethresh::av.basis(mywst, level = (dummy_station_wd$nlevels-1), ix1 = 0,
                                                         ix2 = 1, filter = mywst$filter) *1/(obj$csd_X[ which.max(obj$alpha[[l]])] )
-    mv.wd =  wd.var(rep(0, ncol(Y)),   type = "station")
+    mv.wd = wd.var(rep(0, ncol(Y)),   type = "station")
     mv.wd$D <-  (refined_est$wd2[[l]])
     mv.wd$C <-  ( refined_est$wdC2[[l]])
 
-    obj$fitted_var[[l]]   <-  AvBasis.var(convert.var(mv.wd))*(1/ (obj$csd_X[ which.max(obj$alpha[[l]])] )  )
+    obj$fitted_var[[l]]   <-  AvBasis.var(convert.var(mv.wd))*(1/(obj$csd_X[ which.max(obj$alpha[[l]])] )^2)
     obj$fitted_func[[l]] <-  refined_est$fitted_func[[l]]
-    up                         <-  obj$fitted_func[[l]]+ coeff* sqrt(obj$fitted_var[[l]])
-    low                        <-  obj$fitted_func[[l]]- coeff*sqrt(obj$fitted_var[[l]])
+    up                         <-  obj$fitted_func[[l]]+ coeff* sqrt(obj$fitted_var[[l]]) #*sqrt(obj$N-1)
+    low                        <-  obj$fitted_func[[l]]- coeff*sqrt(obj$fitted_var[[l]]) #*sqrt(obj$N-1)
     obj$cred_band[[l]]   <- rbind(up, low)
     rownames(obj$cred_band[[l]]) <- c("up","low")
 
@@ -1791,6 +1801,7 @@ TI_regression.susiF <- function( obj,Y,X, verbose=TRUE,
 
   return(obj)
 }
+
 
 
 
@@ -1809,7 +1820,7 @@ univariate_HMM_regression <- function( Y,X,
   tt <- lapply( 1: ncol(Y),
                 function(j){
 
-                  summary(lm(Y[,j]~-1+X[,1]))$coefficients[ ,c(1,2,4 )]
+                  summary(lm(Y[,j]~ X[,1]))$coefficients[ ,c(1,2,4 )]
 
 
                 }
@@ -2184,7 +2195,6 @@ smash_regression.susiF <- function(  obj,Y,X, verbose=TRUE,
                                      filter.number = 10, family = "DaubLeAsymm" ,
                                      alpha=0.95,...
 ){
-
   if(verbose){
     print( "Fine mapping done, refining effect estimates using cylce spinning wavelet transform")
   }
@@ -2212,9 +2222,9 @@ smash_regression.susiF <- function(  obj,Y,X, verbose=TRUE,
 
   tt <- lapply( 1: ncol(Y),
                 function(j){
-                  t_fit= summary(lm(Y[,j]~-1+.,data=sub_X))
-                  cbind(t_fit$coefficients[ ,c(1,2,4 )],
-                        rep( t_fit$sigma, nrow(t_fit$coefficients))
+                  t_fit= summary(lm(Y[,j]~ .,data=sub_X))
+                  cbind(t_fit$coefficients[ -1,c(1,2,4 )],
+                        rep( t_fit$sigma, (nrow(t_fit$coefficients)-1))
                         )
 
 
@@ -2300,6 +2310,7 @@ smash_regression.susiF <- function(  obj,Y,X, verbose=TRUE,
 
 
   obj$fitted_func <- fitted_trend
+  obj$fitted_var  <-  fitted_var
 
   coeff= qnorm(1-(1-alpha)/2)
   for( l in 1:length(obj$cs)){
@@ -2311,6 +2322,7 @@ smash_regression.susiF <- function(  obj,Y,X, verbose=TRUE,
     obj$cred_band[[l]]   <- rbind(up, low)
     names(obj$cred_band[[l]]) <- c("up","low")
     names(obj$cred_band)[l] <- paste("credible_band_effect_",l, sep = "")
+
   }
 
 

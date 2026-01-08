@@ -276,7 +276,7 @@
 
 susiF <- function(Y, X, L = 2,
                   pos = NULL,
-                  prior = c("mixture_normal_per_scale","mixture_normal"),
+                  prior = c("mixture_normal","mixture_normal_per_scale" ),
                   verbose = TRUE,
                   maxit = 100,
                   tol = 1e-3,
@@ -499,7 +499,7 @@ susiF <- function(Y, X, L = 2,
   #preparing output
 
   obj <- out_prep(     obj            = obj,
-                        Y             =     Y0,
+                        Y             =    Y0,#colScale(Y0, scale = FALSE),
                         X             = X ,# sweep(
                         #sweep(X , 2, attr(X, "scaled:scale"), "*"),
                       #  2, attr(X , "scaled:center"), "+")

@@ -9,7 +9,7 @@ susiF(
   X,
   L = 2,
   pos = NULL,
-  prior = c("mixture_normal_per_scale", "mixture_normal"),
+  prior = c("mixture_normal", "mixture_normal_per_scale"),
   verbose = TRUE,
   maxit = 100,
   tol = 0.001,
