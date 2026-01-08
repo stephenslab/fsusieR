@@ -1006,7 +1006,7 @@ init_susiF_obj <- function(L_max,
 #' @return  a susiF object
 #' @export
 #' @keywords internal
-merge_effect <- function( obj,  ...)
+merge_effect <- function( obj, verbose ,  ...)
   UseMethod("merge_effect")
 
 #' @rdname merge_effect

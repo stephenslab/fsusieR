@@ -31,7 +31,3 @@ univariate_functional_regression(
 \description{
 Compute refined estimate using translation invariant wavelet transform
 }
-\examples{
-library(susiF)
-
-}
