@@ -1609,11 +1609,9 @@ TI_regression <- function (obj,Y,X, verbose ,
 #' @export
 #'
 
-
-
 TI_regression.susiF <- function( obj,Y,X, verbose=TRUE,
                                  filter.number = 1, family = "DaubExPhase" ,
-                                 alpha=0.01,
+                                 alpha=0.05,n_iter=10,
                                  ... ){
 
   if(verbose){
@@ -1645,130 +1643,118 @@ TI_regression.susiF <- function( obj,Y,X, verbose=TRUE,
                       idx_lead_cov = list()
   )
 
+  idx <- do.call( c, lapply( 1:length(obj$cs),
+                             function(l){
+                               tp_id <-  which.max(obj$alpha[[l]])
+                             }
+  )
+  )
+
+  N <- nrow(X)
+  sub_X <- data.frame (X[, idx, drop=FALSE])
+  if(length(idx)> length(unique(idx))){
+
+    sub_X[,duplicated(idx)]<- 0* sub_X[,duplicated(idx)]
+
+  }
+
+  fitted_trend  <- list()
+  fitted_lfsr   <- list()
+
+
+  tt_d <- lapply( 1: ncol(Y_f),
+                  function(j){
+                    t_fit= summary(lm(Y_f[,j]~ .,data=sub_X))
+                    t_fit$coefficients[ -1,c(1,2,4 ), drop=FALSE]
+
+
+
+                  }
+
+
+  )
+
+
+
+
+  tt_c <- lapply( 1: ncol(Y_c),
+                  function(j){
+                    t_fit= summary(lm(Y_c[,j]~ .,data=sub_X))
+                     t_fit$coefficients[ -1,c(1,2,4 ), drop=FALSE]
+
+
+
+                  }
+
+
+  )
+
+
 
 
   for ( l in 1: length(obj$cs)){
     refined_est$wd[[l]]  <- rep( 0, ncol(Y_f))
     refined_est$wdC[[l]] <- rep( 0, ncol(Y_c))
-    refined_est$wd2[[l]] <- rep( 0, ncol(Y_f))
     refined_est$wdC2[[l]] <- rep( 0, ncol(Y_c))
+    refined_est$wd2[[l]] <- rep( 0, ncol(Y_f))
     refined_est$idx_lead_cov[[l]]  <- which.max(obj$alpha[[l]])
   }
 
-
-  if(  length(obj$cs)==1){
-
-
-      res <- cal_Bhat_Shat(Y_f, matrix(X[,refined_est$idx_lead_cov[[1]]],
-                                       ncol=1))
-      wd   <- rep( 0 ,length(res$Bhat))
-      wd2  <- rep(0, length(res$Shat))
-      temp <-   lapply(1:nrow(dummy_station_wd$fl.dbase$first.last.d),
-                       function(s){
-                         level <- s
-                         n <- 2^wavethresh::nlevelsWT(dummy_station_wd)
-                         first.last.d <-dummy_station_wd$fl.dbase$first.last.d
-                         first.level  <- first.last.d[level, 1]
-                         last.level   <- first.last.d[level, 2]
-                         offset.level <- first.last.d[level, 3]
-                         first.level  <- first.last.d[level, 1]
-                         idx   <- (offset.level + 1 - first.level):(offset.level +n - first.level)
-                         t_ash <- ashr::ash(c( res$Bhat[idx]), (c(res$Shat[idx])),
-                                            nullweight=300,mixcompdist = "normal")
-
-                         wd [idx] <- t_ash$result$PosteriorMean
-                         wd2[idx] <- t_ash$result$PosteriorSD^2
-
-                         out  <- list( wd,
-                                       wd2)
-                       }
-      )
+  for (l in 1:length(obj$cs)) {
 
 
-      wd  <- Reduce("+", lapply(1:length(temp), function(s) temp[[s]][[1]]))
-      wd2 <-  Reduce("+", lapply(1:length(temp), function(s) temp[[s]][[2]]))
+    beta   <- do.call(c, lapply(1:length(tt_d), function (i) tt_d [[i]][l,1]))
+    se     <- do.call(c, lapply(1:length(tt_d), function (i) tt_d [[i]] [l,2]))
+    se[se == 0 | is.na(se)] <- median(se, na.rm = TRUE)
+    wd   <- rep( 0 ,length(beta))
+    wd2  <- rep(0, length(se))
+    temp <-   lapply(1:nrow(dummy_station_wd$fl.dbase$first.last.d),
+                     function(s){
+                       level <- s
+                       n <- 2^wavethresh::nlevelsWT(dummy_station_wd)
+                       first.last.d <-dummy_station_wd$fl.dbase$first.last.d
+                       first.level  <- first.last.d[level, 1]
+                       last.level   <- first.last.d[level, 2]
+                       offset.level <- first.last.d[level, 3]
+                       first.level  <- first.last.d[level, 1]
+                       idx   <- (offset.level + 1 - first.level):(offset.level +n - first.level)
+                       t_ash <- ashr::ash(c( beta[idx]), (c(se[idx])), mixcompdist="normal" ,
+                                          nullweight=30  )
+
+                       wd [idx] <- t_ash$result$PosteriorMean
+                       wd2[idx] <- t_ash$result$PosteriorSD^2
+
+                       out  <- list( wd,
+                                     wd2)
+                     }
+    )
 
 
+      wd  <-  Reduce("+", lapply(1:length(temp), function(s) temp[[s]][[1]]))
+      wd2 <- Reduce("+", lapply(1:length(temp), function(s) temp[[s]][[2]]))
+     # t_ash <- ashr::ash(c( beta ),  c(se ), mixcompdist="normal"  ,
+           #              nullweight=30 )
+
+     # wd  <- t_ash$result$PosteriorMean
+     #wd2 <- t_ash$result$PosteriorSD^2
+
+    refined_est$wd[[l]] <- wd
+    refined_est$wd2[[l]]<-  wd2
 
 
-
-      refined_est$wd[[l]] <- wd
-      refined_est$wd2[[l]]<-  wd2
-
-
-      res <- cal_Bhat_Shat(Y_c, matrix(X[,refined_est$idx_lead_cov[[1]]],
-                                       ncol=1))
-      t_ash <-ashr::ash(c( res$Bhat),c(res$Shat), nullweight=3,mixcompdist = "normal")
-      refined_est$wdC[[l]] <- t_ash$result$PosteriorMean
-
-
-
-
-  }else{
-
-
-
-      for (k in 1:5){
-
-        for ( l in 1: length(obj$cs) ){
-          par_res<-  Y_f -Reduce("+",
-                                 lapply( (1: length(refined_est$idx_lead_cov))[-l],
-                                         function(j)
-                                           X[,refined_est$idx_lead_cov[[j]]] %*%t( refined_est$wd[[j]] )
-                                 )
-          )
-
-          res <- cal_Bhat_Shat(par_res, matrix(X[,refined_est$idx_lead_cov[[l]]], ncol=1))
-          wd <- rep( 0 ,length(res$Bhat))
-          wd2 <- rep(0, length(res$Shat))
-          temp <-   lapply(1:nrow(dummy_station_wd$fl.dbase$first.last.d),
-                           function(s){
-                             level <- s
-                             n <- 2^wavethresh::nlevelsWT(dummy_station_wd)
-                             first.last.d <-dummy_station_wd$fl.dbase$first.last.d
-                             first.level <- first.last.d[level, 1]
-                             last.level <- first.last.d[level, 2]
-                             offset.level <- first.last.d[level, 3]
-                             first.level <- first.last.d[level, 1]
-                             idx <- (offset.level + 1 - first.level):(offset.level +n - first.level)
-                             t_ash <- ashr::ash(c( res$Bhat[idx]), (c(res$Shat[idx])),
-                                                nullweight=300,mixcompdist = "normal")
-
-                             wd [idx] <- t_ash$result$PosteriorMean
-                             wd2[idx] <- t_ash$result$PosteriorSD^2
-
-                             out  <- list( wd,
-                                           wd2)
-                           }
-          )
-
-
-          wd <- Reduce("+", lapply(1:length(temp), function(s) temp[[s]][[1]]))
-          wd2 <-  Reduce("+", lapply(1:length(temp), function(s) temp[[s]][[2]]))
+    beta   <- do.call(c, lapply(tt_c, function (x) x[l,1]))
+    se     <- do.call(c, lapply(tt_c, function (x) x[l,2]))
+    se[se == 0 | is.na(se)] <- median(se, na.rm = TRUE)
+    wd   <- rep( 0 ,length(beta))
+    wd2  <- rep(0, length(se))
+    t_ash <-ashr::ash(c( beta),c(se), nullweight=10,mixcompdist = "normal")
+    refined_est$wdC[[l]] <- t_ash$result$PosteriorMean
+    refined_est$wdC2[[l]] <- t_ash$result$PosteriorSD^2
+  }
 
 
 
-          refined_est$wd[[l]] <- wd
-          refined_est$wd2[[l]]<-  wd2
 
-
-          par_resc<-  Y_c -Reduce("+",
-                                  lapply( (1: length(refined_est$idx_lead_cov))[-l],
-                                          function(j)
-                                            X[,refined_est$idx_lead_cov[[j]]] %*%t( refined_est$wdC[[j]] )
-                                  )
-          )
-
-          res <- cal_Bhat_Shat(par_resc, matrix(X[,refined_est$idx_lead_cov[[l]]], ncol=1))
-          t_ash <- ashr::ash(c( res$Bhat),c(res$Shat), nullweight=300,mixcompdist = "normal")
-          refined_est$wdC[[l]] <- t_ash$result$PosteriorMean
-          refined_est$wdC2[[l]] <- t_ash$result$PosteriorSD^2
-
-
-        }
-
-      }
-    }
 
 
   coeff= qnorm(1-( alpha)/2)
@@ -1781,14 +1767,14 @@ TI_regression.susiF <- function( obj,Y,X, verbose=TRUE,
     nlevels <-wavethresh::nlevelsWT(mywst)
     refined_est$fitted_func[[l]]=  wavethresh::av.basis(mywst, level = (dummy_station_wd$nlevels-1), ix1 = 0,
                                                         ix2 = 1, filter = mywst$filter) *1/(obj$csd_X[ which.max(obj$alpha[[l]])] )
-    mv.wd = wd.var(rep(0, ncol(Y)),   type = "station")
+    mv.wd =  wd.var(rep(0, ncol(Y)),   type = "station")
     mv.wd$D <-  (refined_est$wd2[[l]])
     mv.wd$C <-  ( refined_est$wdC2[[l]])
 
-    obj$fitted_var[[l]]   <-  AvBasis.var(convert.var(mv.wd))*(1/(obj$csd_X[ which.max(obj$alpha[[l]])] )^2)
+    obj$fitted_var[[l]]   <-  AvBasis.var(convert.var(mv.wd)) *(1/ (obj$csd_X[ which.max(obj$alpha[[l]])] )  )^2
     obj$fitted_func[[l]] <-  refined_est$fitted_func[[l]]
-    up                         <-  obj$fitted_func[[l]]+ coeff* sqrt(obj$fitted_var[[l]]) #*sqrt(obj$N-1)
-    low                        <-  obj$fitted_func[[l]]- coeff*sqrt(obj$fitted_var[[l]]) #*sqrt(obj$N-1)
+    up                         <-  obj$fitted_func[[l]]+ coeff* sqrt(obj$fitted_var[[l]])
+    low                        <-  obj$fitted_func[[l]]- coeff*sqrt(obj$fitted_var[[l]])
     obj$cred_band[[l]]   <- rbind(up, low)
     rownames(obj$cred_band[[l]]) <- c("up","low")
 
@@ -1796,10 +1782,10 @@ TI_regression.susiF <- function( obj,Y,X, verbose=TRUE,
     names(obj$fitted_var)[l]  <- paste("Variance_estimate_effect_",l, sep = "")
     names(obj$cred_band)[l]   <- paste("credible_band_effect_",l, sep = "")
   }
-
   rm( refined_est)
 
   return(obj)
+
 }
 
 
@@ -2265,7 +2251,7 @@ smash_regression.susiF <- function(  obj,Y,X, verbose=TRUE,
                              sigma =    (tsds),
                              ashparam = list(optmethod="mixVBEM" ),
                             post.var = TRUE  )
-    #browser()
+
     # s =  smash_lw(noisy_signal=est ,
     #               noise_level  =   tsds)
     fitted_trend[[1]] <- s$mu.est
