@@ -2101,9 +2101,6 @@ univariate_TI_regression_IS <- function( Y,X,
 #' @param alpha required confidence level
 #' @param \dots Other arguments.
 #' @export
-#' @examples
-#' library(susiF)
-#'
 
 
 univariate_functional_regression <- function(Y,X,
