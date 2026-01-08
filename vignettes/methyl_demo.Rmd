@@ -317,8 +317,7 @@ An alternative to the HMM post-processing step is to use the TI
 credible bands:
 
 ```{r run-fsusie-TI, message=FALSE, results="hide"}
-fit_TI <- susiF(Y,X,L = 3,filter_cs = FALSE,prior = "mixture_normal",
-                post_processing = "TI")
+fit_TI <- susiF(Y,X,L = 3,filter_cs = FALSE,prior = "mixture_normal" )
 ```
 
 Note that the post-processing step doesn't change the CSs (nor the
