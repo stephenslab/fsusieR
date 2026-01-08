@@ -25,7 +25,7 @@ cornering the causal SNP than mvSuSiE when the phenotype is spatially structured
 
 Here we simulate two SNP that are identical except for one individual.
 
-```{r cars}
+```{r }
 library(fsusieR)
 library(susieR)
 #set.seed(1)
