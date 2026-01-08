@@ -106,6 +106,7 @@
 #' @param tol_null_prior threshold to consider prior to be null. If the estimated weight on the point mass at zero is larger than 1-tol_null_prior
 #' then set prior weight on point mass to be 1. In the mixture normal this corresponds to removing the effect. In the mixutre per scale prior this corresponds
 #' to setting the prior of a given scale to at point mass at 0.
+#' @param lbf_min numeric  discard low purity cs in the IBSS fitting procedure if the largest log Bayes factors is lower than this value
 #' @importFrom stats var
 #'
 #' @return A \code{"susiF"} object with some or all of the following
@@ -275,7 +276,7 @@
 
 susiF <- function(Y, X, L = 2,
                   pos = NULL,
-                  prior = c("mixture_normal_per_scale","mixture_normal"),
+                  prior = c("mixture_normal","mixture_normal_per_scale" ),
                   verbose = TRUE,
                   maxit = 100,
                   tol = 1e-3,
@@ -296,14 +297,15 @@ susiF <- function(Y, X, L = 2,
                   backfit =TRUE,
                   gridmult= sqrt(2),
                   max_scale=10,
-                  max_SNP_EM=1000,
+                  max_SNP_EM=100,
                   max_step_EM=1,
                   cor_small=FALSE,
                   filter.number = 10,
                   family =  "DaubLeAsymm",
-                  post_processing=c("TI","smash","HMM","none"),
+                  post_processing=c("smash","TI","HMM","none"),
                   e = 0.001,
-                  tol_null_prior=0.001
+                  tol_null_prior=0.001,
+                  lbf_min=0.1
 
 )
 {
@@ -359,18 +361,6 @@ susiF <- function(Y, X, L = 2,
   if(prior== "mixture_normal"){
    # nullweight= nullweight*2
   }
-
-
-  map_data <- remap_data(Y=Y,
-                         pos=pos,
-                         verbose=verbose,
-                         max_scale=max_scale)
-
-  outing_grid <- map_data$outing_grid
-  Y           <- map_data$Y
-  rm( map_data)
-  # centering and scaling covariate
-
   names_colX <-  colnames(X)
   tidx <- which(apply(X,2,var)==0)
   if( length(tidx)>0){
@@ -382,15 +372,30 @@ susiF <- function(Y, X, L = 2,
   }
   X0=X
   X <- colScale(X)
+  #browser()
+
+  map_data <- remap_data(Y=Y,
+                         pos=pos,
+                         verbose=verbose,
+                         max_scale=max_scale)
+
+  outing_grid <- map_data$outing_grid
+  Y           <- map_data$Y
+   rm( map_data)
+  # centering and scaling covariate
+
+
   # centering input
   Y0 <-  Y
 
-  Y  <- colScale(Y )
 
   W <- DWT2(Y,
             filter.number = filter.number,
             family        = family)
   Y_f      <-  cbind( W$D,W$C)
+  Y_f  <- colScale(Y_f, scale=FALSE )
+  W$C=Y_f[, ncol(Y)]
+  W$D=Y_f[, -ncol(Y)]
 
   if(verbose){
     print("Starting initialization")
@@ -434,8 +439,9 @@ susiF <- function(Y, X, L = 2,
   if(verbose){
     print("Initializing prior")
   }
-  update_Y    <- cbind( W$D,W$C) #Using a column like phenotype, temporary matrix that will be regularly updated
-  temp        <- init_prior(Y              = update_Y,
+ # browser()
+     #Using a column like phenotype, temporary matrix that will be regularly updated
+  temp        <- init_prior(Y              = cbind( W$D,W$C),
                             X              = X,
                             prior          = prior ,
                             v1             = v1,
@@ -469,7 +475,7 @@ susiF <- function(Y, X, L = 2,
 
 
 
-
+  #browser()
   obj     <- susiF.workhorse(obj      = obj,
                                    W              = W,
                                    X              = X,
@@ -491,12 +497,10 @@ susiF <- function(Y, X, L = 2,
                                    e              = e)
 
   #preparing output
+
   obj <- out_prep(     obj            = obj,
-                        Y             =  Y0,#  sweep(
-                        #  sweep(Y , 2, attr(Y , "scaled:scale"), "*"),
-                         #  2, attr(Y , "scaled:center"), "+"
-                         # ) ,
-                        X             = X,# sweep(
+                        Y             =    Y0,#colScale(Y0, scale = FALSE),
+                        X             = X ,# sweep(
                         #sweep(X , 2, attr(X, "scaled:scale"), "*"),
                       #  2, attr(X , "scaled:center"), "+")
 

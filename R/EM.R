@@ -99,12 +99,13 @@ EM_pi <- function(G_prior,Bhat, Shat, indx_lst,
     zeta      <- cal_zeta(lBF)
 
     # M step ----
-    tpi_k   <- m_step(Lmat,zeta= zeta[idx],
-                      indx_lst,
+    tpi_k   <- m_step(L              = Lmat,
+                      zeta           = zeta[idx] ,
+                      indx_lst       = indx_lst,
                       init_pi0_w     = init_pi0_w,
                       control_mixsqp = control_mixsqp,
                       nullweight     = nullweight,
-                      tol_null_prior=tol_null_prior)
+                      tol_null_prior = tol_null_prior)
     G_prior <- update_prior(G_prior,tpi_k)
 
     lBF <-  log_BF(G_prior,
@@ -115,6 +116,7 @@ EM_pi <- function(G_prior,Bhat, Shat, indx_lst,
                    df = df)
 
     newloglik <- cal_lik(lBF,zeta)
+
     k <- k+1
 
   }
@@ -169,7 +171,7 @@ cal_L_mixsq_s_per_scale <- function(G_prior,s, Bhat, Shat ,indx_lst,is.EBmvFR=FA
   })
   L = exp(L)
   if(!is.EBmvFR){
-    L <- rbind(c(1, rep( 0,(ncol(L)-1)  )),#adding penalty line
+    L <- rbind(c(100, rep( 0,(ncol(L)-1)  )),#adding penalty line
                L)
   }
 
@@ -230,7 +232,7 @@ L_mixsq.mixture_normal <- function(G_prior,
   })
   L= exp(L)
   if( !is.EBmvFR ){
-    L <- rbind(c(1, rep( 0,(ncol(L)-1)  )),#adding penalty line
+    L <- rbind(c(100, rep( 0,(ncol(L)-1)  )),#adding penalty line
                L)
   }
 
@@ -320,7 +322,6 @@ m_step.lik_mixture_normal <- function (L,
 
   }
 
-
   tlength <- ncol(L) - 1
 
   mixsqp_out <- mixsqp::mixsqp(L,
@@ -361,7 +362,10 @@ m_step.lik_mixture_normal_per_scale <- function(L,
 
 
   out <- lapply(1:length(indx_lst) ,
-                function(s) scale_m_step(L,s,zeta,indx_lst,
+                function(s) scale_m_step(L=L,
+                                         s=s,
+                                         zeta=zeta,
+                                         indx_lst = indx_lst ,
                                          init_pi0_w     =init_pi0_w,
                                          control_mixsqp = control_mixsqp,
                                          nullweight     =  nullweight,
@@ -412,7 +416,6 @@ scale_m_step <- function(L,
     w <-  rep(zeta,length(indx_lst[[s]] )
                )
   }
-
 
 
   tlength <- dim(L[[s]])[2]-1

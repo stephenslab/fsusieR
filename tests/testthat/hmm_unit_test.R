@@ -186,7 +186,7 @@ for ( k in 1:2){
 }
 
 fitted_trend <- lapply(1:length(idx), function(l)
-  fitted_trend[[l]]/susiF.obj$csd_X[idx[l]]
+  fitted_trend[[l]]#/susiF.obj$csd_X[idx[l]]
 )
 
 
@@ -197,7 +197,7 @@ f2_tilde <- f2
 f2_tilde[10:20]<-0*f2_tilde[10:20]
 test_that("performance in low variance and sharp transition should be",{
   expect_gt( cor(f1, fitted_trend[[2]] ), 0.9999992  )
-  expect_gt( cor(f2_tilde, fitted_trend[[1]] ), 0.9999  )
+  expect_gt( cor(f2_tilde, fitted_trend[[1]] ), 0.99999  )
   expect_equal(which(est_prob[[2]]<0.05),70)
   expect_equal(which(est_prob[[1]]<0.05),21:103)
 
@@ -205,3 +205,6 @@ test_that("performance in low variance and sharp transition should be",{
 
 )
 
+
+f1/ fitted_trend[[2]]
+f2_tilde /fitted_trend[[1]]

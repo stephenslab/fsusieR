@@ -239,7 +239,7 @@ discard_cs.susiF <- function(obj, cs, out_prep=FALSE,  ...)
 {
 
 
-  if( length(cs)==obj$L){
+  if( length(cs)==obj$L){# keep just first cs
     cs <- cs[-1]
     if(length(cs)==0){
       return(obj)
@@ -254,7 +254,7 @@ discard_cs.susiF <- function(obj, cs, out_prep=FALSE,  ...)
     obj$fitted_wc [[1]]  <-  0*obj$fitted_wc[[1]]
 
     obj$fitted_wc2 [[1]] <-  0*obj$fitted_wc2[[1]]
-    obj$cs               <-  1: length(obj$alpha[[1]])
+    obj$cs[[1]]          <-  1: length(obj$alpha[[1]])
     obj$fitted_func[[1]] <-  0*obj$fitted_func [[1]]
   }
   if ( length(cs)==1 & 1 %in% cs ){
@@ -333,7 +333,8 @@ estimate_residual_variance.susiF <- function( obj,Y,X,... )
 
 expand_susiF_obj <- function(obj,L_extra)
 {
-  L_extra <- ifelse (  obj$L_max - (obj$L+L_extra) <0 ,#check if we are adding more effect that maximum specified by user
+  #browser()
+  L_extra <- ifelse (  obj$L_max - (obj$L+L_extra)<=0 ,#check if we are adding more effect that maximum specified by user
                        abs(obj$L_max -(obj$L)),
                        L_extra
 
@@ -358,7 +359,11 @@ expand_susiF_obj <- function(obj,L_extra)
       obj$KL                    <-  rep(NA,obj$L)
       obj$ELBO                  <-  c()
     }
+
     obj$n_expand <- obj$n_expand+1
+    if(obj$L==obj$L_max){
+      obj$greedy=FALSE
+    }
     obj$greedy_backfit_update <- TRUE
     return(obj)
   }
@@ -601,12 +606,10 @@ get_post_F <- function(obj,l,...)
 
 get_post_F.susiF <- function(obj, l, ...) {
 
-  # Return effect-specific posterior mean ------------------------------
   if (!missing(l)) {
     return(obj$alpha[[l]] * obj$fitted_wc[[l]])
   }
 
-  # Return sum of posterior means across all effects -------------------
   L <- obj$L
   # wavelet coefficient matrix size: p × J
   wc_dim <- dim(obj$fitted_wc[[1]])
@@ -748,11 +751,11 @@ greedy_backfit.susiF <-  function(obj,
   obj <- update_cal_cs(obj,
                        cov_lev=cov_lev)
 
-
   dummy.cs <-  which_dummy_cs(obj,
                               min_purity = min_purity,
                               median_crit=FALSE,
-                              X=X)
+                              X=X,
+                              lbf_min=obj$lbf_min)
 
 
   if(obj$backfit & (length(dummy.cs)>0)){
@@ -774,20 +777,8 @@ greedy_backfit.susiF <-  function(obj,
                         out_prep= FALSE
       )
 
-      if( length(obj$cs)>1){
-        A <- cal_cor_cs(obj, X)$cs_cor
-        tl <- which(A>0.99, arr.ind = TRUE)
-        tl <-  tl[- which( tl[,1]==tl[,2]),]
+      obj <- merge_effect (obj, verbose = verbose)
 
-        if ( dim(tl)[1]==0){
-
-        }else{
-
-          tl <-  tl[which(tl[,1] < tl[,2]),]
-          obj <- merge_effect(obj, tl)
-
-        }
-      }
       if(verbose){
         print( paste( "Discarding ",(temp_L- obj$L), " effects"))
       }
@@ -806,24 +797,7 @@ greedy_backfit.susiF <-  function(obj,
                       cs= (obj$L_max+1):obj$L,
                       out_prep= FALSE
     )
-
-
-
-
-    if( length(obj$cs)>1){
-      A <- cal_cor_cs(obj, X)$cs_cor
-      tl <- which(A>0.99, arr.ind = TRUE)
-      tl <-  tl[- which( tl[,1]==tl[,2]),]
-
-      if ( dim(tl)[1]==0){
-
-      }else{
-
-        tl <-  tl[which(tl[,1] < tl[,2]),]
-        obj <- merge_effect(obj, tl)
-
-      }
-    }
+    obj <- merge_effect (obj, verbose = verbose)
     if(verbose){
       print( paste( "Discarding ",(obj$L_max- obj$L), " effects"))
       print( "Greedy search and backfitting done")
@@ -837,21 +811,6 @@ greedy_backfit.susiF <-  function(obj,
   }
 
   if(!(obj$greedy )&!(obj$backfit ) ){
-
-    if( length(obj$cs)>1){
-      A <- cal_cor_cs(obj, X)$cs_cor
-      tl <- which(A>0.99, arr.ind = TRUE)
-      tl <-  tl[- which( tl[,1]==tl[,2]),]
-
-      if ( dim(tl)[1]==0){
-
-      }else{
-
-        tl <-  tl[which(tl[,1] < tl[,2]),]
-        obj <- merge_effect(obj, tl)
-
-      }
-    }
 
     if(verbose){
       print( paste( "Discarding ",(obj$L_max- obj$L), " effects"))
@@ -868,21 +827,9 @@ greedy_backfit.susiF <-  function(obj,
     temp <- min( ifelse(tt>0,tt,0 ) , 7)
 
     if(temp==0){
-      if( length(obj$cs)>1){
-        A <- cal_cor_cs(obj, X)$cs_cor
-        tl <- which(A>0.99, arr.ind = TRUE)
-        tl <-  tl[- which( tl[,1]==tl[,2]),]
 
-        if ( dim(tl)[1]==0){
 
-        }else{
-
-          tl <-  tl[which(tl[,1] < tl[,2]),]
-          obj <- merge_effect(obj, tl)
-
-        }
-      }
-
+      obj <- merge_effect (obj, verbose = verbose)
       if(verbose){
         print( paste( "Discarding ",(obj$L_max- obj$L), " effects"))
         print( "Greedy search and backfitting done")
@@ -899,27 +846,10 @@ greedy_backfit.susiF <-  function(obj,
       print( paste( "Adding ", temp, " extra effects"))
     }
 
+    obj <- merge_effect (obj, verbose = verbose)
 
 
-    if( length(obj$cs)>1){
-      A <- cal_cor_cs(obj, X)$cs_cor
-      tl <- which(A>0.99, arr.ind = TRUE)
-      tl <-  tl[- which( tl[,1]==tl[,2]),]
-
-      if ( dim(tl)[1]==0){
-
-      }else{
-
-        tl <-  tl[which(tl[,1] < tl[,2]),]
-        obj <- merge_effect(obj, tl, discard=FALSE)
-
-      }
-    }
-
-
-
-
-    obj <- expand_susiF_obj(obj,L_extra = temp)
+    obj <- expand_susiF_obj(obj,L_extra = 7)
     return(obj)
   }
 
@@ -950,6 +880,7 @@ greedy_backfit.susiF <-  function(obj,
 #' to setting the prior of a given scale to at point mass at 0.
 #' @param cov_lev numeric between 0 and 1, corresponding to the
 #' expected level of coverage of the CS if not specified, set to 0.95
+#' @param lbf_min numeric  discard low purity cs in the IBSS fitting procedure if the largest log Bayes factors is lower than this value
 #' @param \dots Other arguments.
 #
 # @export
@@ -979,6 +910,7 @@ init_susiF_obj <- function(L_max,
                            backfit,
                            tol_null_prior=0.001,
                            cov_lev=0.95,
+                           lbf_min=0.1,
                            ... )
 {
 
@@ -1051,7 +983,8 @@ init_susiF_obj <- function(L_max,
                d               = d,
                lfsr_wc         = lfsr_wc,
                tol_null_prior  = tol_null_prior,
-               cov_lev         = cov_lev)
+               cov_lev         = cov_lev,
+               lbf_min         = lbf_min)
 
   class(obj) <- "susiF"
   return(obj)
@@ -1059,11 +992,12 @@ init_susiF_obj <- function(L_max,
 
 
 
+
+
 #' @title Merging effect function
 #
 #' @param obj a susiF object defined by init_susiF_obj function
 #
-#' @param tl see  \code{\link{greedy_backfit}}
 #
 #' @param discard logical, if set to TRUE allow discarding redundant effect
 #
@@ -1072,7 +1006,7 @@ init_susiF_obj <- function(L_max,
 #' @return  a susiF object
 #' @export
 #' @keywords internal
-merge_effect <- function( obj, tl,...)
+merge_effect <- function( obj,  ...)
   UseMethod("merge_effect")
 
 #' @rdname merge_effect
@@ -1084,42 +1018,43 @@ merge_effect <- function( obj, tl,...)
 #' @export
 #' @keywords internal
 
-merge_effect.susiF <- function( obj, tl, discard=TRUE,  ...){
+merge_effect.susiF  <- function(obj, verbose = FALSE) {
 
+  if (obj$L < 2) return(obj)
 
+  to_drop <- integer(0)
 
+  for (i in 1:(obj$L - 1)) {
+    for (j in (i + 1):obj$L) {
 
-  if(is.vector( tl)){
-    #print( tl)
-    obj$fitted_wc[[tl[ 2]]] <- 0* obj$fitted_wc[[tl[  2]]]
-    obj$fitted_wc[[tl[  1]]] <- obj$fitted_wc[[tl[  1]]] +   obj$fitted_wc[[tl[ 2]]]
-    obj$fitted_wc2[[tl[ 1]]] <- obj$fitted_wc2[[tl[  1]]] +   obj$fitted_wc2[[tl[  2]]]
-    #obj$fitted_wc[[tl[  2]]] <- 0* obj$fitted_wc[[tl[ 2]]]
-    tindx <-  tl[  2]
-  }else{
-    tl <- tl[order(tl[,1], tl[,2], decreasing = TRUE),]
-    #print( tl)
-    tindx <- c(0)
-    for ( o in 1:dim(tl)[1]){
+      if (i %in% to_drop || j %in% to_drop) next
 
-      if ( tl[o, 2]%!in%tindx){
-        obj$fitted_wc[[tl[o, 2]]] <- 0* obj$fitted_wc[[tl[o, 2]]]
-        obj$fitted_wc[[tl[o, 1]]] <-obj$fitted_wc[[tl[o, 1]]] +   obj$fitted_wc[[tl[o, 2]]]
-        obj$fitted_wc2[[tl[o, 1]]] <-obj$fitted_wc2[[tl[o, 1]]] +   obj$fitted_wc2[[tl[o, 2]]]
-        # obj$fitted_wc[[tl[o, 2]]] <- 0* obj$fitted_wc[[tl[o, 2]]]
-        tindx <- c(tindx, tl[o, 2])
+      rel <- cs_relation(obj$cs[[i]], obj$cs[[j]])
+
+      if (rel == "none") next
+
+      largest <- which_cs_largeBF(obj, i, j)
+      smallest  <- setdiff(c(i, j), largest)
+
+      to_drop <- c(to_drop,  smallest )
+
+      if (verbose) {
+        message(
+          sprintf(
+            "Trivial merge: dropping effect %d (CS %s effect %d)",
+            smallest,
+            ifelse(rel == "identical", "identical to", "nested in"),
+            largest
+          )
+        )
       }
-
     }
-
-    tindx <- tindx[-1]
-
-  }
-  if(discard){
-    obj<-  discard_cs(obj,cs=tindx, out_prep=FALSE)
   }
 
-  return( obj)
+  to_drop <- sort(unique(to_drop))
+  if (length(to_drop) == 0) return(obj)
+
+  discard_cs(obj, cs = to_drop, out_prep = FALSE)
 }
 
 
@@ -1210,7 +1145,6 @@ out_prep.susiF <- function(obj ,
 
   obj <-  name_cs(obj,X)
 
-  # obj <-  update_lfsr_effect(obj)
   if(filter_cs)
   {
     obj  <- check_cs(obj,
@@ -1820,7 +1754,6 @@ update_cal_fit_func.susiF <- function(obj,
 
   if ( post_processing == "TI"){
 
-
     obj <- TI_regression(obj=obj,
                          Y=Y,
                          X=X,
@@ -1839,6 +1772,7 @@ update_cal_fit_func.susiF <- function(obj,
     obj$cred_band <- NULL
   }
   if(post_processing=="smash"){
+
     obj <- smash_regression(obj=obj,
                             Y=Y,
                             X=X,
@@ -1853,12 +1787,13 @@ update_cal_fit_func.susiF <- function(obj,
 
     if(inherits(get_G_prior(obj),"mixture_normal_per_scale" ))
     {
+
       for ( l in 1:obj$L)
       {
-        temp$D                     <- (obj$alpha[[l]])%*%sweep( obj$fitted_wc[[l]][,-indx_lst[[length(indx_lst)]]],
+        temp$D                     <- (obj$alpha[[l]])%*%sweep( obj$fitted_wc[[l]][,-indx_lst[[length(indx_lst)]], drop=FALSE],
                                                                 1,
                                                                 1/(obj$csd_X ), "*")
-        temp$C[length(temp$C)]     <- (obj$alpha[[l]])%*% (obj$fitted_wc[[l]][,indx_lst[[length(indx_lst)]]]*( 1/(obj$csd_X )))
+        temp$C[length(temp$C)]     <- (obj$alpha[[l]])%*% (obj$fitted_wc[[l]][,indx_lst[[length(indx_lst)]], drop=FALSE]*( 1/(obj$csd_X )))
         obj$fitted_func[[l]] <-  wavethresh::wr(temp)
 
       }
@@ -1867,10 +1802,10 @@ update_cal_fit_func.susiF <- function(obj,
     {
       for ( l in 1:obj$L)
       {
-        temp$D                     <- (obj$alpha[[l]])%*%sweep(obj$fitted_wc[[l]][,-dim(obj$fitted_wc[[l]])[2]],
+        temp$D                     <- (obj$alpha[[l]])%*%sweep(obj$fitted_wc[[l]][,-dim(obj$fitted_wc[[l]])[2], drop=FALSE],
                                                                1,
                                                                1/(obj$csd_X ), "*")
-        temp$C[length(temp$C)]     <- (obj$alpha[[l]])%*% (obj$fitted_wc[[l]][,dim(obj$fitted_wc[[l]])[2]]*( 1/(obj$csd_X )) )
+        temp$C[length(temp$C)]     <- (obj$alpha[[l]])%*% (obj$fitted_wc[[l]][,dim(obj$fitted_wc[[l]])[2], drop=FALSE]*( 1/(obj$csd_X )) )
         obj$fitted_func[[l]] <- wr(temp)
 
       }
@@ -2204,12 +2139,12 @@ update_residual_variance.susiF <- function( obj,sigma2,...)
 #' @param min_purity minimal purity within a CS
 #' @param X matrix of covariates
 #' @param median_crit remove cs base on max absolute correlation instead of min absolute correlation, usefull in the
-#
+#' @param lbf_min cirteria for in the ly cs removal
 #' @return a list of index corresponding the the dummy effect
 #
 #' @export
 #' @keywords internal
-which_dummy_cs <- function(obj, min_purity=0.5,X,median_crit=FALSE,...)
+which_dummy_cs <- function(obj, min_purity=0.5,X,median_crit=FALSE,lbf_min,...)
   UseMethod("which_dummy_cs")
 
 
@@ -2221,14 +2156,17 @@ which_dummy_cs <- function(obj, min_purity=0.5,X,median_crit=FALSE,...)
 #' @export which_dummy_cs.susiF
 #' @export
 #' @keywords internal
-which_dummy_cs.susiF <- function(obj, min_purity=0.5,X,median_crit=FALSE,...){
+which_dummy_cs.susiF <- function(obj, min_purity=0.5,X,median_crit=FALSE,lbf_min,...){
 
   dummy.cs<- c()
   # if( obj$L==1){
   #   return(dummy.cs)
   # }
 
-  f_crit <- function (obj, min_purity=0.5, l, median_crit=FALSE){
+  if (missing(lbf_min)){
+    lbf_min=Inf
+  }
+  f_crit <- function (obj, min_purity=0.5, l, median_crit=FALSE,lbf_min){
     if( median_crit){
       #if( length(obj$cs[[l]] )  < ncol(X)/10) {
       #  is.dummy.cs <- FALSE
@@ -2239,12 +2177,12 @@ which_dummy_cs.susiF <- function(obj, min_purity=0.5,X,median_crit=FALSE,...){
       }else{
         tt <-  cor( X[,obj$cs[[l]]])
 
-        is.dummy.cs <-   median(abs( tt[lower.tri(tt, diag =FALSE)]))  <  min_purity
+        is.dummy.cs <-   median(abs( tt[lower.tri(tt, diag =FALSE)]))  <  min_purity & max(obj$lBF[[l]])<lbf_min
       }
 
 
     }else{
-      is.dummy.cs <-   min(abs(cor( X[,obj$cs[[l]]]))) <  min_purity
+      is.dummy.cs <-   min(abs(cor( X[,obj$cs[[l]]]))) <  min_purity & max(obj$lBF[[l]])<lbf_min
     }
 
     return( is.dummy.cs)
@@ -2269,12 +2207,16 @@ which_dummy_cs.susiF <- function(obj, min_purity=0.5,X,median_crit=FALSE,...){
 
       }else{
 
-        if(   f_crit(obj = obj, min_purity=0.5, l, median_crit )){#check if the purity of cs l is lower that min_purity
+        if(   f_crit(obj = obj,
+                     min_purity=min_purity,
+                     l=l,
+                     median_crit=median_crit,
+                     lbf_min=lbf_min ) ){#check if the purity of cs l is lower that min_purity
 
           dummy.cs<-  c( dummy.cs,l)
 
         }else{
-          if(obj$est_pi[[l]][1]==1){
+          if(obj$est_pi[[l]][1]>1-obj$tol_null_prior){
             dummy.cs<-  c( dummy.cs,l)
           }
 
@@ -2303,7 +2245,11 @@ which_dummy_cs.susiF <- function(obj, min_purity=0.5,X,median_crit=FALSE,...){
 
       }else{
 
-        if(  f_crit(obj = obj, min_purity=0.5, l, median_crit )){#check if the purity of cs l is lower that min_purity
+        if(  f_crit(obj = obj,
+                    min_purity=min_purity,
+                    l=l,
+                    median_crit=median_crit,
+                    lbf_min=lbf_min )){#check if the purity of cs l is lower that min_purity
 
           dummy.cs<-  c( dummy.cs,l)
 
@@ -2323,3 +2269,26 @@ which_dummy_cs.susiF <- function(obj, min_purity=0.5,X,median_crit=FALSE,...){
 
 }
 
+
+
+
+
+
+
+#' @export
+#' @keywords internal
+which_cs_largeBF <- function(obj, l1, l2) {
+  cs1 <- obj$cs[[l1]]
+  cs2 <- obj$cs[[l2]]
+
+  if (length(cs1) < length(cs2)) return(l1)
+  if (length(cs2) < length(cs1)) return(l2)
+
+  bf1 <- max(obj$lBF[[l1]], na.rm = TRUE)
+  bf2 <- max(obj$lBF[[l2]], na.rm = TRUE)
+
+  if (bf1 > bf2) return(l1)
+  if (bf2 > bf1) return(l2)
+
+  return(min(l1, l2))
+}

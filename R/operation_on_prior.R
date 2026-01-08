@@ -164,21 +164,21 @@ init_prior.default <- function(Y,
     attr(G_prior, "class") <- "mixture_normal_per_scale"
   }
 
-  tpi_k <-  EM_pi(G_prior=G_prior,
-                  Bhat=temp$Bhat,
-                  Shat= temp$Shat,
-                  indx_lst=indx_lst,
-                  max_step = max_step_EM,
-                  espsilon = 0.0001,
-                  init_pi0_w =1,
-                  control_mixsqp=control_mixsqp,
-                  lowc_wc=lowc_wc,
-                  nullweight=nullweight,
-                  max_SNP_EM=max_SNP_EM,
-                  df=df,
-                  tol_null_prior =tol_null_prior )$tpi_k
+  #tpi_k <-  EM_pi(G_prior=G_prior,
+                  # Bhat=temp$Bhat,
+                  # Shat= temp$Shat,
+                  # indx_lst=indx_lst,
+                  # max_step = max_step_EM,
+                  #espsilon = 0.0001,
+                  #  init_pi0_w =1,
+                  # control_mixsqp=control_mixsqp,
+                  # lowc_wc=lowc_wc,
+                  #  nullweight=nullweight,
+                  #  max_SNP_EM=max_SNP_EM,
+                  #  df=df,
+                  #  tol_null_prior =tol_null_prior )$tpi_k
 
-  G_prior <- update_prior(G_prior , tpi_k)
+  #G_prior <- update_prior(G_prior , tpi_k)
   return(list(G_prior=G_prior,
               tt=temp)
   )

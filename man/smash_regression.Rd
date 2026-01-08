@@ -14,7 +14,7 @@ smash_regression(obj, Y, X, verbose, filter.number, family, alpha, ...)
   verbose = TRUE,
   filter.number = 10,
   family = "DaubLeAsymm",
-  alpha = 0.99,
+  alpha = 0.95,
   ...
 )
 }

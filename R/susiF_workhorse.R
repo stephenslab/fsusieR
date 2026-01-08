@@ -61,19 +61,19 @@ susiF.workhorse <- function(obj,
                             min_purity,
                             maxit,
                             tt,
-                            parallel=FALSE, 
+                            parallel=FALSE,
                             max_SNP_EM=500,
                             max_step_EM=1,
                             cor_small=FALSE,
                             is.pois=FALSE,
                             e = 0.001){
-#browser()
+
   G_prior  <- get_G_prior(obj )
   Y_f      <-  cbind( W$D,W$C)
   update_Y <- Y_f
   # numerical value to check breaking condition of while
   # numerical value to check breaking condition of while
-  check <- 3*tol 
+  check <- 3*tol
   v1    <-  rep(1, dim(X)[1])
 
 
@@ -82,8 +82,8 @@ susiF.workhorse <- function(obj,
   }else{
     df =NULL
   }
-  
-  
+
+
   if(missing(tt)){
     init=FALSE
   }else{
@@ -132,6 +132,7 @@ susiF.workhorse <- function(obj,
                                    cov_lev   =  cov_lev,
                                    e         = e
     )
+
     obj <- update_ELBO(obj  = obj,
                              get_objective( obj = obj,
                                             Y         = Y_f,
@@ -215,8 +216,7 @@ susiF.workhorse <- function(obj,
            #plot(EM_out$lBF/(sum( EM_out$lBFlBF)))
         }
 
-        #print(h)
-        # print(EM_out$lBF[1:10])
+        #print(hist(EM_out$lBF))
         obj <-  update_susiF_obj(obj   = obj ,
                                        l           = l,
                                        EM_pi       = EM_out,
@@ -227,7 +227,6 @@ susiF.workhorse <- function(obj,
                                        df          = df
         )
 
-
       }#end for l in 1:L  -----
 
       # plot(obj$lBF[[1]])
@@ -237,12 +236,14 @@ susiF.workhorse <- function(obj,
       # save(obj, file ="D:/Document/Serieux/Travail/Package/susiF.alpha/pb_object.RData")
       # break
       ####Check greedy/backfit and stopping condition -----
+
       obj <- greedy_backfit (obj,
                                    verbose    = verbose,
                                    cov_lev    = cov_lev,
                                    X          = X,
                                    min_purity = min_purity
       )
+
       sigma2    <- estimate_residual_variance(obj,
                                               Y         = Y_f,
                                               X         = X)

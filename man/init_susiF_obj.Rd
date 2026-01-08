@@ -14,6 +14,7 @@ init_susiF_obj(
   backfit,
   tol_null_prior = 0.001,
   cov_lev = 0.95,
+  lbf_min = 0.1,
   ...
 )
 }
@@ -38,6 +39,8 @@ to setting the prior of a given scale to at point mass at 0.}
 
 \item{cov_lev}{numeric between 0 and 1, corresponding to the
 expected level of coverage of the CS if not specified, set to 0.95}
+
+\item{lbf_min}{numeric  discard low purity cs in the IBSS fitting procedure if the largest log Bayes factors is lower than this value}
 
 \item{\dots}{Other arguments.}
 }
