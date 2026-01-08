@@ -15,7 +15,7 @@ TI_regression(obj, Y, X, verbose, filter.number, family, alpha, ...)
   filter.number = 1,
   family = "DaubExPhase",
   alpha = 0.05,
-  n_iter = 3,
+  n_iter = 10,
   ...
 )
 }
