@@ -999,7 +999,7 @@ init_susiF_obj <- function(L_max,
 #' @param obj a susiF object defined by init_susiF_obj function
 #
 #
-#' @param discard logical, if set to TRUE allow discarding redundant effect
+#' @param  verbose  logical
 #
 #
 #

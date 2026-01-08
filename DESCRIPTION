@@ -42,7 +42,8 @@ Suggests:
     haarfisz,  
     TxDb.Hsapiens.UCSC.hg38.knownGene,
     LaplacesDemon,
-    AnnotationDbi
+    AnnotationDbi,
+    mvsusieR
 LinkingTo: 
     Rcpp
 License: BSD_3_clause + file LICENSE
