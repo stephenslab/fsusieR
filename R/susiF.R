@@ -500,7 +500,7 @@ Y= colScale(Y)
 
   obj <- out_prep(     obj            = obj,
                         Y             =    Y0,#colScale(Y0, scale = FALSE),
-                        X             = X ,# sweep(
+                        X             =  X0 ,# sweep(
                         #sweep(X , 2, attr(X, "scaled:scale"), "*"),
                       #  2, attr(X , "scaled:center"), "+")
 

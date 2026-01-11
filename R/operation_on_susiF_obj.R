@@ -1161,16 +1161,16 @@ out_prep.susiF <- function(obj ,
                               filter.number = filter.number,
                               family        = family)
 
-  if( ! (post_processing== "HMM")){
+ # if( ! (post_processing== "HMM")){
 
-    obj <-  update_cal_indf(obj = obj ,
-                            Y         =  Y,
-                            X         = X,
-                            indx_lst  = indx_lst,
-                            TI        = ifelse(post_processing %in% c('TI', 'smash'), TRUE, FALSE))
+  #  obj <-  update_cal_indf(obj = obj ,
+  #                          Y         =  Y,
+  #                          X         = X,
+ #                           indx_lst  = indx_lst,
+  #                          TI        = ifelse(post_processing %in% c('TI', 'smash'), TRUE, FALSE))
+#
 
-
-  }
+  #}
 
 
 
