@@ -246,16 +246,16 @@ discard_cs.susiF <- function(obj, cs, out_prep=FALSE,  ...)
     }
   }
 
-  if(1 %in% cs ){
-    obj$alpha [[1]]      <-   length(obj$alpha[[1]]  )
+   if(1 %in% cs ){
+     obj$alpha [[1]]      <-  0*obj$alpha[[1]]
 
-    obj$lBF [[1]]        <-  0*obj$lBF [[1]]
-    obj$fitted_wc [[1]]  <-  0*obj$fitted_wc[[1]]
+     obj$lBF [[1]]        <-  0*obj$lBF [[1]]
+     obj$fitted_wc [[1]]  <-  0*obj$fitted_wc[[1]]
 
-    obj$fitted_wc2 [[1]] <-  0*obj$fitted_wc2[[1]]
-    obj$cs[[1]]          <-  1: length(obj$alpha[[1]])
-    obj$fitted_func[[1]] <-  0*obj$fitted_func [[1]]
-  }
+     obj$fitted_wc2 [[1]] <-  0*obj$fitted_wc2[[1]]
+     obj$cs[[1]]          <-  1: length(obj$alpha[[1]])
+     obj$fitted_func[[1]] <-  0*obj$fitted_func [[1]]
+   }
   if ( length(cs)==1 & 1 %in% cs ){
     return(obj)
   }else{

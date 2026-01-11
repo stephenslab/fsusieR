@@ -79,9 +79,9 @@ cal_Bhat_Shat   <- function(Y,
     Bhat <- matrix(0.0, p, J)
     Shat <- matrix(0.0, p, J)
 
-    ## ============================================================
+
     ## Full data: vectorized (fastest possible in pure R)
-    ## ============================================================
+
     if (is.null(ind_analysis)) {
 
       n <- nrow(Y)
@@ -100,9 +100,9 @@ cal_Bhat_Shat   <- function(Y,
 
       Shat <- sqrt(pmax(Shat, 1e-64)) / sqrt(n - 1)
 
-      ## ============================================================
+
       ## Per-response subsets (ind_analysis is a list)
-      ## ============================================================
+
     } else if (is.list(ind_analysis)) {
 
       for (j in seq_len(J)) {
@@ -125,9 +125,9 @@ cal_Bhat_Shat   <- function(Y,
         }
       }
 
-      ## ============================================================
+
       ## Common subset (ind_analysis is a vector)
-      ## ============================================================
+
     } else {
 
       idx <- ind_analysis
@@ -152,9 +152,9 @@ cal_Bhat_Shat   <- function(Y,
       }
     }
 
-    ## ============================================================
+
     ## Mask low-confidence coefficients if requested
-    ## ============================================================
+
     if (!is.null(lowc_wc)) {
       Bhat[, lowc_wc] <- 0
       Shat[, lowc_wc] <- 1
