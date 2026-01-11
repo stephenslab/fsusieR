@@ -284,7 +284,7 @@ susiF <- function(Y, X, L = 2,
                   min_purity=0.5,
                   filter_cs =TRUE,
                   init_pi0_w= 1,
-                  nullweight= 10 ,
+                  nullweight= .1 ,
                   control_mixsqp =  list(verbose=FALSE,
                                          eps = 1e-6,
                                          numiter.em = 40
@@ -387,7 +387,7 @@ susiF <- function(Y, X, L = 2,
 
   # centering input
   Y0 <-  Y
-
+Y= colScale(Y)
 
   W <- DWT2(Y,
             filter.number = filter.number,

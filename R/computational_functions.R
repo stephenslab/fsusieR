@@ -2190,7 +2190,6 @@ smash_regression.susiF <- function(  obj,Y,X, verbose=TRUE,
 
 
 
-
   N <- nrow(X)
   sub_X <- data.frame (X[, idx])
   if(length(idx)> length(unique(idx))){
@@ -2215,8 +2214,6 @@ smash_regression.susiF <- function(  obj,Y,X, verbose=TRUE,
 
 
   )
-
-
 
   fitted_trend <- list()
   fitted_var   <- list()
