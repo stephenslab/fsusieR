@@ -867,21 +867,7 @@ HMM_regression.susiF <- function( obj,
   obj$fitted_func <- fitted_trend
   obj$lfsr_func   <- fitted_lfsr
 
- # if( fit_indval ){
 
-  #   mean_Y <- attr(Y, "scaled:center")
-  #   obj$ind_fitted_func <- matrix(mean_Y,
-  #                                byrow=TRUE,
-  #                                 nrow=nrow(Y),
-  #                                 ncol=ncol(Y))+Reduce("+",
-  #                                                      lapply(1:length(obj$alpha),
-  #                                                            function(l)
-                                                                #                                                              matrix( X[,idx[[l]]] , ncol=1)%*%
-  #                                                              t(obj$fitted_func[[l]] )*(attr(X, "scaled:scale")[idx[[l]]])
-  #                                                     )
-#                                )
-
-  #}
 
   return(obj)
 }
@@ -1636,7 +1622,7 @@ TI_regression.susiF <- function( obj,Y,X, verbose=TRUE,
   }
 
 
-
+ refined_est=list()
 
   for ( l in 1: length(obj$cs)){
     refined_est$f[[l]]  <- rep( 0, ncol(Y))
@@ -1766,6 +1752,7 @@ univariate_TI_regression <- function( Y,X,
 
   refined_est <- list(wd=rep( 0, ncol(Y_f)),
                       wdC= rep( 0, ncol(Y_c)),
+                      wdC2= rep( 0, ncol(Y_c)),
                       wd2=rep( 0, ncol(Y_f)),
                       fitted_func=list(),
                       fitted_var=list(),
@@ -1788,7 +1775,7 @@ univariate_TI_regression <- function( Y,X,
                      first.level <- first.last.d[level, 1]
                      idx <- (offset.level + 1 - first.level):(offset.level +n - first.level)
                      t_ash <- ashr::ash(c( res$Bhat[idx]), (c(res$Shat[idx])),
-                                        nullweight=300,mixcompdist = "normal")
+                                        nullweight=30 ,mixcompdist = "normal")
 
                      wd [idx] <- t_ash$result$PosteriorMean
                      wd2[idx] <- t_ash$result$PosteriorSD^2
@@ -1823,9 +1810,9 @@ univariate_TI_regression <- function( Y,X,
                                                   ix2 = 1, filter = mywst$filter) *csd_Y/(csd_X)
   mv.wd = wd.var(rep(0, ncol(Y)),   type = "station")
 
-  mv.wd$D <-  (refined_est$wd2 )+mean(refined_est$wdC2)
-
-  fitted_var   <-  AvBasis.var(convert.var(mv.wd)) *(csd_Y/(csd_X)^2)
+  mv.wd$D <-  (refined_est$wd2 )
+  #mv.wd$C <-   refined_est$wdC2
+  fitted_var   <-  AvBasis.var(convert.var(mv.wd)) *((csd_Y/(csd_X))^2)
   fitted_func  <-  refined_est$fitted_func
   up                         <-   fitted_func + coeff* sqrt( fitted_var ) #*sqrt(obj$N-1)
   low                        <-   fitted_func - coeff*sqrt( fitted_var ) #*sqrt(obj$N-1)
@@ -1842,42 +1829,42 @@ univariate_TI_regression <- function( Y,X,
 
 univariate_smash_regression <- function(Y, X, alpha = 0.05) {
 
-  ## ------------------------------------------------------------
+
   ## Input hygiene
-  ## ------------------------------------------------------------
+
   Y <- as.matrix(Y)
   X <- as.matrix(X)
   stopifnot(ncol(X) == 1)
 
   coeff <- qnorm(1 - alpha / 2)
 
-  ## ------------------------------------------------------------
+
   ## Scale X (matches original intent)
-  ## ------------------------------------------------------------
+
   X <- colScale(X)
   csd_X <- attr(X, "scaled:scale")
 
-  ## ------------------------------------------------------------
+
   ## Regression via cal_Bhat_Shat
   ## Equivalent to lm(Y[,j] ~ -1 + X[,1]) for all j
-  ## ------------------------------------------------------------
+
   res <- cal_Bhat_Shat(Y, X)
 
   est <- as.numeric(res$Bhat[1, ])
   sds <- as.numeric(res$Shat[1, ])
 
-  ## ------------------------------------------------------------
+
   ## Defensive fixes (same spirit as original)
-  ## ------------------------------------------------------------
+
   bad <- is.na(sds) | sds <= 0
   if (any(bad)) {
     est[bad] <- 0
     sds[bad] <- median(sds[!bad], na.rm = TRUE)
   }
 
-  ## ------------------------------------------------------------
+
   ## SMASH smoothing
-  ## ------------------------------------------------------------
+
   s <- smashr::smash.gaus(
     x         = est,
     sigma    = sds,
@@ -1885,23 +1872,23 @@ univariate_smash_regression <- function(Y, X, alpha = 0.05) {
     post.var = TRUE
   )
 
-  ## ------------------------------------------------------------
+
   ## Undo X scaling
-  ## ------------------------------------------------------------
+
   fitted_func <- s$mu.est / csd_X
   fitted_var  <- s$mu.est.var / (csd_X^2)
 
-  ## ------------------------------------------------------------
+
   ## Credible band
-  ## ------------------------------------------------------------
+
   up  <- fitted_func + coeff * sqrt(fitted_var)
   low <- fitted_func - coeff * sqrt(fitted_var)
 
   cred_band <- rbind(up = up, low = low)
 
-  ## ------------------------------------------------------------
+
   ## Output
-  ## ------------------------------------------------------------
+
   list(
     effect_estimate = fitted_func,
     cred_band       = cred_band,
@@ -2090,9 +2077,11 @@ smash_regression.susiF <- function(  obj,Y,X, verbose=TRUE,
                                      filter.number = 10, family = "DaubLeAsymm" ,
                                      alpha=0.95,...
 ){
+
   if(verbose){
     print( "Fine mapping done, refining effect estimates using cylce spinning wavelet transform")
   }
+
   idx <- do.call( c, lapply( 1:length(obj$cs),
                              function(l){
                                tp_id <-  which.max(obj$alpha[[l]])
@@ -2100,126 +2089,67 @@ smash_regression.susiF <- function(  obj,Y,X, verbose=TRUE,
   )
   )
 
-
-
   N <- nrow(X)
-  sub_X <- data.frame (X[, idx])
+  sub_X <- data.frame (X[, idx, drop=FALSE])
   if(length(idx)> length(unique(idx))){
 
     sub_X[,duplicated(idx)]<- 0* sub_X[,duplicated(idx)]
 
   }
 
-  fitted_trend  <- list()
-  fitted_lfsr   <- list()
 
+  refined_est=list()
 
-  tt <- lapply( 1: ncol(Y),
-                function(j){
-                  t_fit= summary(lm(Y[,j]~ .,data=sub_X))
-                  cbind(t_fit$coefficients[ -1,c(1,2,4 )],
-                        rep( t_fit$sigma, (nrow(t_fit$coefficients)-1))
-                        )
-
-
-                }
-
-
-  )
-
-  fitted_trend <- list()
-  fitted_var   <- list()
-  #some problem with low variance counts
-  sigma = (do.call(c, lapply( 1: length(tt) ,function (j) mean (tt[[j]][  ,2]))))
-  if( sum(is.na(sigma ))>0){
-    sigma [which(is.na(sigma ))]= mean (sigma , na.rm=TRUE)
-  }
- # sigma2=mean(sigma2)
-  for ( l in 1: length(idx)){
-    fitted_lfsr [[l]] <- rep(1 , ncol(Y))
-    fitted_trend[[l]] <- rep(0 , ncol(Y))
+  for ( l in 1: length(obj$cs)){
+    refined_est$f[[l]]  <- rep( 0, ncol(Y))
+    refined_est$f2[[l]] <- rep( 0, ncol(Y))
+    refined_est$credband[[l]] <- rep( 0, ncol(Y))
+    refined_est$idx_lead_cov[[l]]  <- which.max(obj$alpha[[l]])
   }
 
+  for ( k in 1: ifelse( length(idx)==1 ,1,5)){
+    for (l in 1:length(idx)) {
 
-  if (length(idx) ==1){
-    est  <- do.call(c, lapply( 1: length(tt) ,function (j) tt[[j]][ 1]))
-    sds  <- do.call(c, lapply( 1: length(tt) ,function (j) tt[[j]][ 2]))
-    pvs  <- do.call(c, lapply( 1: length(tt) ,function (j) tt[[j]][ 3]))
+      Y_res= Y- Reduce("+" , lapply( (1:length(idx)) [-l] ,
+                                     function(l)  X[, idx[ l],drop =FALSE ]%*% refined_est$f[[l]] )
+      )
 
-    tsds <- sds#pval2se(est,pvs) # t -likelihood correction usefull to contrl lfsr in small sample size
-    tsds[ which( tsds==0)]   <- sds[ which( tsds==0)]
-    if (sum(is.na(tsds))>0){
-      est [ which( is.na(tsds))]<- 0
-      tsds[ which( is.na(tsds))]<- 1
+      t_res=univariate_smash_regression(Y_res,X [,idx[ l],drop =FALSE ])
+      refined_est$f[[l]]  <- t_res$effect_estimate
+      refined_est$f2[[l]] <- t_res$fitted_var
+      refined_est$credband[[l]] <-  t_res$cred_band
+
+
     }
+  }
 
-     s =  smashr::smash.gaus(x=est ,
-                             sigma =    (tsds),
-                             ashparam = list(optmethod="mixVBEM" ),
-                            post.var = TRUE  )
+  for ( l in 1:length(idx)){
+    obj$fitted_var[[l]]   <-  refined_est$f2[[l]]
+    obj$fitted_func[[l]]  <-  refined_est$f[[l]]
+    obj$cred_band[[l]]    <-  refined_est$credband[[l]]
 
-    # s =  smash_lw(noisy_signal=est ,
-    #               noise_level  =   tsds)
-    fitted_trend[[1]] <- s$mu.est
-    fitted_var  [[1]] <- s$mu.est.var
-  }else{
-
-    for (  lp in 1: length(idx))
-    {
-
-      idx_cs <-  which( colnames(sub_X) %in% rownames(tt[[1]])[lp] )
-      est  <- do.call(c, lapply( 1: length(tt) ,function (j) tt[[j]][ lp  ,1]))
-
-      sds  <- do.call(c, lapply( 1: length(tt) ,function (j) tt[[j]][lp,2]))
-      pvs  <- do.call(c, lapply( 1: length(tt) ,function (j) tt[[j]][lp,3]))
-      tsds <- sds#pval2se(est,pvs) # t -likelihood correction usefull to contrl lfsr in small sample size
-      tsds[ which( tsds==0)]<- sds[ which( tsds==0)]
-      if (sum(is.na(tsds))>0){
-        est [ which( is.na(tsds))]<- 0
-        tsds[ which( is.na(tsds))]<- 1
-      }
-
-
-       s =  smashr::smash.gaus(x=est ,
-                               sigma =     (tsds),
-                               ashparam =list(optmethod="mixVBEM"),
-                             post.var = TRUE  )
-      # s =  smash_lw(noisy_signal=est ,
-      #                noise_level  =   tsds)
-      fitted_trend[[idx_cs]]  <- s$mu.est
-      fitted_var[[idx_cs]]  <- s$mu.est.var
-    }
-
+    names(obj$fitted_func)[l] <- paste("Effect_estimate_",l, sep = "")
+    names(obj$fitted_var)[l]  <- paste("Variance_estimate_effect_",l, sep = "")
+    names(obj$cred_band)[l]   <- paste("credible_band_effect_",l, sep = "")
   }
 
 
-  fitted_trend <- lapply(1:length(idx), function(l)
-    fitted_trend[[l]]/obj$csd_X[idx[l]]
-  )
-  fitted_var <- lapply(1:length(idx), function(l)
-    fitted_var[[l]]/(obj$csd_X[idx[l]]^2)
-  )
-
-
-  obj$fitted_func <- fitted_trend
-  obj$fitted_var  <-  fitted_var
-
-  coeff= qnorm(1-(1-alpha)/2)
-  for( l in 1:length(obj$cs)){
 
 
 
-    up                         <-  obj$fitted_func[[l]]+ coeff* sqrt(fitted_var[[l]])
-    low                        <-  obj$fitted_func[[l]]- coeff*sqrt(fitted_var[[l]])
-    obj$cred_band[[l]]   <- rbind(up, low)
-    names(obj$cred_band[[l]]) <- c("up","low")
-    names(obj$cred_band)[l] <- paste("credible_band_effect_",l, sep = "")
-
-  }
-
+  rm( refined_est)
 
   return(obj)
+
 }
+
+
+
+
+
+
+
+
 smash_lw  <- function(noisy_signal, noise_level = 1, n.shifts = 50,
                       family = "DaubExPhase", filter.number = 10 ) {
   library(wavethresh)
