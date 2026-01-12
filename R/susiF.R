@@ -171,7 +171,7 @@
 #'library(wavethresh)
 #'set.seed(1)
 #'#Example using curves simulated under the Mixture normal per scale prior
-#'rsnr <- 0.2 #expected root signal noise ratio
+#'rsnr <- 0.5 #expected root signal noise ratio
 #'N <- 100    #Number of individuals
 #'P <- 100     #Number of covariates/SNP
 #'pos1 <- 1   #Position of the causal covariate for effect 1
@@ -246,7 +246,7 @@
 #'par(mfrow=c(1,2))
 #'
 #'
-#'plot( f2, type="l", main="Estimated effect 1", xlab="")
+#'plot( f1, type="l", main="Estimated effect 1", xlab="")
 #'lines(unlist(out$fitted_func[[1]]),col='blue' )
 #'lines(unlist(out$cred_band[[1]][1,]),col='darkblue',lty=2 )
 #'lines(unlist(out$cred_band[[1]][2,]),col='darkblue' ,lty=2 )
@@ -257,7 +257,7 @@
 #'       legend = c("effect 1"," fSuSiE est "),
 #'       col=c("black","blue" )
 #')
-#'plot( f1, type="l", main="Estimated effect 2", xlab="")
+#'plot( f2, type="l", main="Estimated effect 2", xlab="")
 #'lines(unlist(out$fitted_func[[2]]),col='darkgreen' )
 #'lines(unlist(out$cred_band[[2]][1,]),col='darkgreen',lty=2 )
 #'lines(unlist(out$cred_band[[2]][2,]),col='darkgreen' ,lty=2 )
@@ -284,7 +284,7 @@ susiF <- function(Y, X, L = 2,
                   min_purity=0.5,
                   filter_cs =TRUE,
                   init_pi0_w= 1,
-                  nullweight= 10 ,
+                  nullweight= .1 ,
                   control_mixsqp =  list(verbose=FALSE,
                                          eps = 1e-6,
                                          numiter.em = 40
@@ -318,9 +318,9 @@ susiF <- function(Y, X, L = 2,
   prior           <- match.arg(prior)
   post_processing <- match.arg( post_processing)
 
- if(post_processing=="none"){
-  warning("Option none is not recommended and the effect estimate can be poor")
- }
+  if(post_processing=="none"){
+    warning("Option none is not recommended and the effect estimate can be poor")
+  }
   if(post_processing=="smash"){
     #warning("Option is experimental, the credible band tend to be to narrow")
   }
@@ -359,7 +359,7 @@ susiF <- function(Y, X, L = 2,
   }
 
   if(prior== "mixture_normal"){
-   # nullweight= nullweight*2
+    # nullweight= nullweight*2
   }
   names_colX <-  colnames(X)
   tidx <- which(apply(X,2,var)==0)
@@ -381,13 +381,13 @@ susiF <- function(Y, X, L = 2,
 
   outing_grid <- map_data$outing_grid
   Y           <- map_data$Y
-   rm( map_data)
+  rm( map_data)
   # centering and scaling covariate
 
 
   # centering input
   Y0 <-  Y
-
+  Y= colScale(Y)
 
   W <- DWT2(Y,
             filter.number = filter.number,
@@ -414,7 +414,7 @@ susiF <- function(Y, X, L = 2,
     print( paste("Discarding ", length(lowc_wc), "wavelet coefficients out of ", ncol(Y_f)))
   }
   if(length(lowc_wc)> (ncol(Y_f )-3)){
-   print("almost all the wavelet coefficients are null/low variance, consider using univariate fine mapping")
+    print("almost all the wavelet coefficients are null/low variance, consider using univariate fine mapping")
     return(NULL)
   }
 
@@ -439,8 +439,8 @@ susiF <- function(Y, X, L = 2,
   if(verbose){
     print("Initializing prior")
   }
- # browser()
-     #Using a column like phenotype, temporary matrix that will be regularly updated
+  # browser()
+  #Using a column like phenotype, temporary matrix that will be regularly updated
   temp        <- init_prior(Y              = cbind( W$D,W$C),
                             X              = X,
                             prior          = prior ,
@@ -459,13 +459,13 @@ susiF <- function(Y, X, L = 2,
 
   #Recycled for the first step of the while loop
   obj   <-  init_susiF_obj(L_max=L,
-                                 G_prior=G_prior,
-                                 Y=Y,
-                                 X=X,
-                                 L_start=L_start,
-                                 greedy=greedy,
-                                 backfit=backfit,
-                                 tol_null_prior= tol_null_prior,
+                           G_prior=G_prior,
+                           Y=Y,
+                           X=X,
+                           L_start=L_start,
+                           greedy=greedy,
+                           backfit=backfit,
+                           tol_null_prior= tol_null_prior,
                            cov_lev=cov_lev)
 
   if(verbose){
@@ -477,43 +477,43 @@ susiF <- function(Y, X, L = 2,
 
   #browser()
   obj     <- susiF.workhorse(obj      = obj,
-                                   W              = W,
-                                   X              = X,
-                                   tol            = tol,
-                                   init_pi0_w     = init_pi0_w ,
-                                   control_mixsqp = control_mixsqp ,
-                                   indx_lst       = indx_lst,
-                                   lowc_wc        = lowc_wc,
-                                   nullweight     = nullweight,
-                                   cal_obj        = cal_obj,
-                                   verbose        = verbose,
-                                   cov_lev        = cov_lev,
-                                   min_purity     = min_purity,
-                                   maxit          = maxit,
-                                   tt             = tt,
-                                   max_SNP_EM     = max_SNP_EM,
-                                   max_step_EM    = max_step_EM,
-                                   cor_small      = cor_small,
-                                   e              = e)
+                             W              = W,
+                             X              = X,
+                             tol            = tol,
+                             init_pi0_w     = init_pi0_w ,
+                             control_mixsqp = control_mixsqp ,
+                             indx_lst       = indx_lst,
+                             lowc_wc        = lowc_wc,
+                             nullweight     = nullweight,
+                             cal_obj        = cal_obj,
+                             verbose        = verbose,
+                             cov_lev        = cov_lev,
+                             min_purity     = min_purity,
+                             maxit          = maxit,
+                             tt             = tt,
+                             max_SNP_EM     = max_SNP_EM,
+                             max_step_EM    = max_step_EM,
+                             cor_small      = cor_small,
+                             e              = e)
 
   #preparing output
 
   obj <- out_prep(     obj            = obj,
-                        Y             =    Y0,#colScale(Y0, scale = FALSE),
-                        X             = X ,# sweep(
-                        #sweep(X , 2, attr(X, "scaled:scale"), "*"),
-                      #  2, attr(X , "scaled:center"), "+")
+                       Y             =    Y0,#colScale(Y0, scale = FALSE),
+                       X             =  X0 ,# sweep(
+                       #sweep(X , 2, attr(X, "scaled:scale"), "*"),
+                       #  2, attr(X , "scaled:center"), "+")
 
-                        indx_lst      = indx_lst,
-                        filter_cs     = filter_cs,
-                        outing_grid   = outing_grid,
-                        filter.number = filter.number,
-                        family        = family,
-                        post_processing=  post_processing,
-                        tidx          = tidx,
-                        names_colX    = names_colX,
-                        pos           = pos,
-                        verbose       = verbose
+                       indx_lst      = indx_lst,
+                       filter_cs     = filter_cs,
+                       outing_grid   = outing_grid,
+                       filter.number = filter.number,
+                       family        = family,
+                       post_processing=  post_processing,
+                       tidx          = tidx,
+                       names_colX    = names_colX,
+                       pos           = pos,
+                       verbose       = verbose
   )
   obj$runtime <- proc.time()-pt
   return(obj)

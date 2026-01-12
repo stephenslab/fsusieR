@@ -195,6 +195,7 @@ check_cs <- function(obj, min_purity=0.5,X,...)
 
 check_cs.susiF <- function(obj, min_purity=0.5,X,  ...)
 {
+
   dummy.cs <- which_dummy_cs(obj, min_purity=min_purity,X)
 
   if( length(dummy.cs)==0)
@@ -239,53 +240,37 @@ discard_cs.susiF <- function(obj, cs, out_prep=FALSE,  ...)
 {
 
 
-  if( length(cs)==obj$L){# keep just first cs
+  if( length(cs)==obj$L | obj$L==1){# keep just first cs
     cs <- cs[-1]
     if(length(cs)==0){
       return(obj)
     }
   }
 
-  if(1 %in% cs ){
-    obj$alpha [[1]]      <-  rep(1 / length(obj$alpha[[1]]),
-                                 length(obj$alpha[[1]]))
 
-    obj$lBF [[1]]        <-  0*obj$lBF [[1]]
-    obj$fitted_wc [[1]]  <-  0*obj$fitted_wc[[1]]
+  if( length(cs)>0){
 
-    obj$fitted_wc2 [[1]] <-  0*obj$fitted_wc2[[1]]
-    obj$cs[[1]]          <-  1: length(obj$alpha[[1]])
-    obj$fitted_func[[1]] <-  0*obj$fitted_func [[1]]
-  }
-  if ( length(cs)==1 & 1 %in% cs ){
-    return(obj)
-  }else{
-    if( 1 %in% cs ){
-      cs= cs[-which(cs==1)]
-    }
-    if( length(cs)>0){
-
-      obj$alpha       <-  obj$alpha[ -cs]
-      obj$lBF         <-  obj$lBF[ -cs]
-      obj$fitted_wc   <-  obj$fitted_wc[ -cs]
-      obj$fitted_wc2  <-  obj$fitted_wc2[ -cs]
-      obj$cs          <-  obj$cs[ -cs]
-      if(out_prep){
-        obj$fitted_func <-  obj$fitted_func[ -cs]
-      }else{
-        obj$greedy_backfit_update <- TRUE
-        obj$KL                    <- obj$KL[ -cs]
-        obj$ELBO                  <- -Inf
-      }
-
-      obj$est_sd      <-  obj$est_sd[ -cs]
-      obj$est_pi      <-  obj$est_pi[ -cs]
-      obj$cred_band   <-  obj$cred_band[ -cs]
-      obj$lfsr_wc     <-  obj$lfsr_wc [ -cs]
-      obj$L           <-  obj$L -length(cs)
+    obj$alpha       <-  obj$alpha[ -cs]
+    obj$lBF         <-  obj$lBF[ -cs]
+    obj$fitted_wc   <-  obj$fitted_wc[ -cs]
+    obj$fitted_wc2  <-  obj$fitted_wc2[ -cs]
+    obj$cs          <-  obj$cs[ -cs]
+    if(out_prep){
+      obj$fitted_func <-  obj$fitted_func[ -cs]
+    }else{
+      obj$greedy_backfit_update <- TRUE
+      obj$KL                    <- obj$KL[ -cs]
+      obj$ELBO                  <- -Inf
     }
 
+    obj$est_sd      <-  obj$est_sd[ -cs]
+    obj$est_pi      <-  obj$est_pi[ -cs]
+    obj$cred_band   <-  obj$cred_band[ -cs]
+    obj$lfsr_wc     <-  obj$lfsr_wc [ -cs]
+    obj$L           <-  obj$L -length(cs)
   }
+
+
 
   return(obj)
 }
@@ -808,6 +793,7 @@ greedy_backfit.susiF <-  function(obj,
   if( length(dummy.cs)==0& !( obj$greedy))
   {
     obj$backfit <- FALSE
+    obj <- merge_effect (obj, verbose = verbose)
   }
 
   if(!(obj$greedy )&!(obj$backfit ) ){
@@ -999,14 +985,14 @@ init_susiF_obj <- function(L_max,
 #' @param obj a susiF object defined by init_susiF_obj function
 #
 #
-#' @param  verbose  logical
+#' @param discard logical, if set to TRUE allow discarding redundant effect
 #
 #
 #
 #' @return  a susiF object
 #' @export
 #' @keywords internal
-merge_effect <- function( obj, verbose ,  ...)
+merge_effect <- function( obj,  ...)
   UseMethod("merge_effect")
 
 #' @rdname merge_effect
@@ -1027,29 +1013,35 @@ merge_effect.susiF  <- function(obj, verbose = FALSE) {
   for (i in 1:(obj$L - 1)) {
     for (j in (i + 1):obj$L) {
 
-      if (i %in% to_drop || j %in% to_drop) next
+      if (!(i %in% to_drop || j %in% to_drop) ){
 
-      rel <- cs_relation(obj$cs[[i]], obj$cs[[j]])
+        rel <- cs_relation(obj$cs[[i]], obj$cs[[j]])
 
-      if (rel == "none") next
+        if ( !(rel == "none") ){
+          largest <- which_cs_largeBF(obj, i, j)
+          smallest  <- setdiff(c(i, j), largest)
 
-      largest <- which_cs_largeBF(obj, i, j)
-      smallest  <- setdiff(c(i, j), largest)
+          to_drop <- c(to_drop,  smallest )
 
-      to_drop <- c(to_drop,  smallest )
+          if (verbose) {
+            message(
+              sprintf(
+                "Trivial merge: dropping effect %d (CS %s effect %d)",
+                smallest,
+                ifelse(rel == "identical", "identical to", "nested in"),
+                largest
+              )
+            )
+          }
+        }
 
-      if (verbose) {
-        message(
-          sprintf(
-            "Trivial merge: dropping effect %d (CS %s effect %d)",
-            smallest,
-            ifelse(rel == "identical", "identical to", "nested in"),
-            largest
-          )
-        )
+
       }
+
+
     }
   }
+
 
   to_drop <- sort(unique(to_drop))
   if (length(to_drop) == 0) return(obj)
@@ -1140,10 +1132,13 @@ out_prep.susiF <- function(obj ,
                            ...)
 {
 
-
   obj <-  update_cal_pip(obj)
 
   obj <-  name_cs(obj,X)
+
+
+
+
 
   if(filter_cs)
   {
@@ -1151,6 +1146,9 @@ out_prep.susiF <- function(obj ,
                      min_purity = 0.5,
                      X          = X
     )
+
+
+    obj <-  merge_effect(obj)
   }
 
 
@@ -1162,16 +1160,16 @@ out_prep.susiF <- function(obj ,
                               filter.number = filter.number,
                               family        = family)
 
-  if( ! (post_processing== "HMM")){
+  # if( ! (post_processing== "HMM")){
 
-    obj <-  update_cal_indf(obj = obj ,
-                            Y         =  Y,
-                            X         = X,
-                            indx_lst  = indx_lst,
-                            TI        = ifelse(post_processing %in% c('TI', 'smash'), TRUE, FALSE))
+  #  obj <-  update_cal_indf(obj = obj ,
+  #                          Y         =  Y,
+  #                          X         = X,
+  #                           indx_lst  = indx_lst,
+  #                          TI        = ifelse(post_processing %in% c('TI', 'smash'), TRUE, FALSE))
+  #
 
-
-  }
+  #}
 
 
 
@@ -1745,6 +1743,7 @@ update_cal_fit_func.susiF <- function(obj,
 
 
   dummy_cs = which_dummy_cs(obj, min_purity=0.5 ,X)
+
   #if( obj$L==1 &   1 %in% dummy_cs ){
 
   #  obj$fitted_func[[1]] = rep(0 , ncol(Y))
