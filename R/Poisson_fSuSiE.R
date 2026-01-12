@@ -22,7 +22,7 @@ Pois_fSuSiE <- function(Y,
                         cov_lev = 0.95,
                         min_purity = 0.5,
                         cor_small = TRUE,
-                        post_processing = "TI",
+                        post_processing = "smash",
                         print=TRUE,
                         update_Mu_each_iter = TRUE,
                         True_intensity=NULL,
@@ -168,21 +168,21 @@ Pois_fSuSiE <- function(Y,
       # This would require re-running split-VA step
       # For efficiency, paper suggests skipping this for fine-mapping
       # Mu_pm <- update_Mu_pm_split_VA(Y, b_it, sigma2, scaling)
-      tt <-    pois_mean_GP(x=c(Y),
-                            prior_mean = c(B_pm),
-                            s =  rep( scaling, ncol(Y)),
-                            prior_var = sigma2 )
+      #tt <-    pois_mean_GP(x=c(Y),
+      #                      prior_mean = c(B_pm),
+      #                      s =  rep( scaling, ncol(Y)),
+      #                       prior_var = sigma2 )
 
+#
+      #Mu_pm <- matrix( tt$posterior$posteriorMean_latent,byrow = FALSE, ncol=ncol(Y))
+      #Mu_pv <- matrix( tt$posterior$posteriorVar_latent ,byrow = FALSE, ncol=ncol(Y))
 
-      Mu_pm <- matrix( tt$posterior$posteriorMean_latent,byrow = FALSE, ncol=ncol(Y))
-      Mu_pv <- matrix( tt$posterior$posteriorVar_latent ,byrow = FALSE, ncol=ncol(Y))
-
-     # Mu_pm <- matrix(0, nrow = nrow(Y), ncol = ncol(Y))
-      #for (i in 1:nrow(Y)) {
-      #  Mu_pm[i, ] <- log(  pois_smooth_split(Y[i, ], s = scaling[i],
-      #                                        Eb_init =  B_pm[i, ],
-      #                                        maxiter = 20)$Emean)
-      #}
+      Mu_pm <- matrix(0, nrow = nrow(Y), ncol = ncol(Y))
+       for (i in 1:nrow(Y)) {
+        Mu_pm[i, ] <- log(  pois_smooth_split(Y[i, ], s = scaling[i],
+                                               Eb_init =  B_pm[i, ],
+                                               maxiter = 20)$Emean)
+       }
 
 
     }
