@@ -1622,30 +1622,51 @@ TI_regression.susiF <- function( obj,Y,X, verbose=TRUE,
   }
 
 
- refined_est=list()
+  L <- length(idx)
 
-  for ( l in 1: length(obj$cs)){
-    refined_est$f[[l]]  <- rep( 0, ncol(Y))
-    refined_est$f2[[l]] <- rep( 0, ncol(Y))
-    refined_est$credband[[l]] <- rep( 0, ncol(Y))
-    refined_est$idx_lead_cov[[l]]  <- which.max(obj$alpha[[l]])
+  refined_est <- list(
+    f            = vector("list", L),
+    f2           = vector("list", L),
+    credband     = vector("list", L),
+    idx_lead_cov = integer(L)
+  )
+
+
+  for (l in seq_len(L)) {
+    refined_est$f[[l]]        <- rep(0, ncol(Y))
+    refined_est$f2[[l]]       <- rep(0, ncol(Y))
+    refined_est$credband[[l]] <- rep(0, ncol(Y))
+    refined_est$idx_lead_cov[l] <- which.max(obj$alpha[[l]])
   }
 
-  for ( k in 1: ifelse( length(idx)==1 ,1,5)){
-    for (l in 1:length(idx)) {
-
-      Y_res= Y- Reduce("+" , lapply( (1:length(idx)) [-l] ,
-                                     function(l)  X[, idx[ l],drop =FALSE ]%*% refined_est$f[[l]] )
-      )
-
-      t_res= univariate_TI_regression(Y_res,X [,idx[ l],drop =FALSE ])
-      refined_est$f[[l]]  <- t_res$effect_estimate
-      refined_est$f2[[l]] <- t_res$fitted_var
-      refined_est$credband[[l]] <-  t_res$cred_band
 
 
+  if(L==1){
+    t_res=univariate_TI_regression(Y ,X [,idx[ 1],drop =FALSE ])
+    refined_est$f[[1]]  <- t_res$effect_estimate
+    refined_est$f2[[1]] <- t_res$fitted_var
+    refined_est$credband[[1]] <-  t_res$cred_band
+  }else{
+
+
+    for ( k in 1:5){
+      for (l in 1:length(idx)) {
+
+        Y_res= Y- Reduce("+" , lapply( (1:length(idx)) [-l] ,
+                                       function(l)  X[, idx[ l],drop =FALSE ]%*% refined_est$f[[l]] )
+        )
+
+
+        t_res=univariate_TI_regression(Y_res ,X [,idx[ 1],drop =FALSE ])
+        refined_est$f[[l]]  <- t_res$effect_estimate
+        refined_est$f2[[l]] <- t_res$fitted_var
+        refined_est$credband[[l]] <-  t_res$cred_band
+
+      }
     }
   }
+
+
 
   for ( l in 1:length(idx)){
     obj$fitted_var[[l]]   <-  refined_est$f2[[l]]
@@ -2098,30 +2119,50 @@ smash_regression.susiF <- function(  obj,Y,X, verbose=TRUE,
   }
 
 
-  refined_est=list()
+  L <- length(idx)
 
-  for ( l in 1: length(obj$cs)){
-    refined_est$f[[l]]  <- rep( 0, ncol(Y))
-    refined_est$f2[[l]] <- rep( 0, ncol(Y))
-    refined_est$credband[[l]] <- rep( 0, ncol(Y))
-    refined_est$idx_lead_cov[[l]]  <- which.max(obj$alpha[[l]])
+  refined_est <- list(
+    f            = vector("list", L),
+    f2           = vector("list", L),
+    credband     = vector("list", L),
+    idx_lead_cov = integer(L)
+  )
+
+
+  for (l in seq_len(L)) {
+    refined_est$f[[l]]        <- rep(0, ncol(Y))
+    refined_est$f2[[l]]       <- rep(0, ncol(Y))
+    refined_est$credband[[l]] <- rep(0, ncol(Y))
+    refined_est$idx_lead_cov[l] <- which.max(obj$alpha[[l]])
   }
 
-  for ( k in 1: ifelse( length(idx)==1 ,1,5)){
+
+
+ if(L==1){
+   t_res=univariate_smash_regression(Y ,X [,idx[ 1],drop =FALSE ])
+   refined_est$f[[1]]  <- t_res$effect_estimate
+   refined_est$f2[[1]] <- t_res$fitted_var
+   refined_est$credband[[1]] <-  t_res$cred_band
+ }else{
+
+
+  for ( k in 1:5){
     for (l in 1:length(idx)) {
 
       Y_res= Y- Reduce("+" , lapply( (1:length(idx)) [-l] ,
                                      function(l)  X[, idx[ l],drop =FALSE ]%*% refined_est$f[[l]] )
       )
 
-      t_res=univariate_smash_regression(Y_res,X [,idx[ l],drop =FALSE ])
+      t_res=univariate_smash_regression(Y_res ,X [,idx[ l],drop =FALSE ])
       refined_est$f[[l]]  <- t_res$effect_estimate
       refined_est$f2[[l]] <- t_res$fitted_var
       refined_est$credband[[l]] <-  t_res$cred_band
 
 
+
     }
   }
+ }
 
   for ( l in 1:length(idx)){
     obj$fitted_var[[l]]   <-  refined_est$f2[[l]]
