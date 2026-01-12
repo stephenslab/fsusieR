@@ -9,8 +9,10 @@ univariate_functional_regression(
   X,
   method = c("TI", "HMM", "smash"),
   filter.number = 1,
+  verbose = FALSE,
   family = "DaubExPhase",
-  alpha = 0.05
+  alpha = 0.05,
+  ...
 )
 }
 \arguments{
@@ -18,13 +20,15 @@ univariate_functional_regression(
 
 \item{X}{a one column matrix containing the covariate of interest}
 
+\item{method}{method to be used, allowed values are "TI", "HMM","smash"}
+
 \item{filter.number}{see wd description in wavethresh package description}
+
+\item{verbose}{logical}
 
 \item{family}{see wd description in wavethresh package description}
 
 \item{alpha}{required confidence level}
-
-\item{verbose}{logical}
 
 \item{\dots}{Other arguments.}
 }

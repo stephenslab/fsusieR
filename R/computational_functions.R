@@ -1568,6 +1568,7 @@ post_mat_sd.mixture_normal_per_scale <-  function( G_prior,
 #' @param filter.number see wd description in wavethresh package description
 #' @param family  see wd description in wavethresh package description
 #' @param alpha required confidence level
+#' @param n_iter numeric number of iteration
 #' @param \dots Other arguments.
 #' @export
 
@@ -1599,7 +1600,7 @@ TI_regression <- function (obj,Y,X, verbose ,
 
 TI_regression.susiF <- function( obj,Y,X, verbose=TRUE,
                                  filter.number = 1, family = "DaubExPhase" ,
-                                 alpha=0.05,n_iter=10,
+                                 alpha=0.05,n_iter=5,
                                  ... ){
 
   if(verbose){
@@ -1649,7 +1650,7 @@ TI_regression.susiF <- function( obj,Y,X, verbose=TRUE,
   }else{
 
 
-    for ( k in 1:5){
+    for ( k in 1:n_iter){
       for (l in 1:length(idx)) {
 
         Y_res= Y- Reduce("+" , lapply( (1:length(idx)) [-l] ,
@@ -2011,7 +2012,7 @@ univariate_TI_regression_IS <- function( Y,X,
 #'@title Wrapper for univariate functional  regression used on susiF
 #'
 #' @description  Compute refined estimate using translation invariant wavelet transform
-#'
+#' @param method  method to be used, allowed values are "TI", "HMM","smash"
 #' @param Y  matrix of responses
 #'
 #' @param X a one column matrix containing the covariate of interest
@@ -2026,8 +2027,9 @@ univariate_TI_regression_IS <- function( Y,X,
 univariate_functional_regression <- function(Y,X,
                                              method=c("TI", "HMM","smash"),
                                              filter.number = 1 ,
+                                             verbose=FALSE,
                                              family = "DaubExPhase",
-                                             alpha=0.05){
+                                             alpha=0.05, ...){
   method          <- match.arg(method)
   if( method=="TI"){
 

@@ -15,7 +15,7 @@ TI_regression(obj, Y, X, verbose, filter.number, family, alpha, ...)
   filter.number = 1,
   family = "DaubExPhase",
   alpha = 0.05,
-  n_iter = 10,
+  n_iter = 5,
   ...
 )
 }
@@ -35,6 +35,8 @@ TI_regression(obj, Y, X, verbose, filter.number, family, alpha, ...)
 \item{alpha}{required confidence level}
 
 \item{\dots}{Other arguments.}
+
+\item{n_iter}{numeric number of iteration}
 }
 \description{
 Compute refined estimate using translation invariant wavelet transform

@@ -7,7 +7,7 @@ plot_colors <- c("black", "dodgerblue2", "green4", "#6A3D9A", "#FF7F00",
 #' @rdname fsusie_plots
 #'
 #' @title fSuSiE Plots
-#' 
+#'
 #' @description Various visualizations of fSuSiE results.
 #
 #' @param obj Output of the susiF function.
@@ -15,22 +15,22 @@ plot_colors <- c("black", "dodgerblue2", "green4", "#6A3D9A", "#FF7F00",
 #' @param which_plot Which plots to return; a PIP plot, effect plot,
 #'   or both (in which case the return value is a list containing the
 #'   two plots.
-#' 
+#'
 #' @param point_size numeric, size of the points.
-#' 
+#'
 #' @param pos_SNP vector, containing the base pair of the SNPs
-#' 
+#'
 #' @param point_shape vector, containing the shape of dots
-#' 
-#' 
+#'
+#'
 #' @param show_outing_grid logical, if TRUE show grid
-#'  
-#' 
+#'
+#'
 #' @param show_affected_region logical, if TRUE show affected regions
-#' 
+#'
 #' @param font_size Passed as the \dQuote{ont_size} argument to
 #'   \code{\link[cowplot]{theme_cowplot}}.
-#' 
+#'
 #' @param title The title of the plot.
 #'
 #' @param \dots additional arguments
@@ -47,7 +47,7 @@ plot_colors <- c("black", "dodgerblue2", "green4", "#6A3D9A", "#FF7F00",
 #' @importFrom ggplot2 ylab
 #' @importFrom ggplot2 geom_ribbon
 #' @importFrom ggplot2 scale_fill_manual
-#' 
+#'
 #' @export
 #
 plot_susiF <- function (obj,
@@ -79,7 +79,7 @@ plot_susiF <- function (obj,
   p2 <- plot_susiF_effect(obj,effect,title,cred_band,show_affected_region,
                           show_outing_grid,lfsr_curve,line_width,dot_size,
                           font_size)
-                        
+
   if (which_plot == "both")
     return(list(pip = p1,effect = p2))
   else if (which_plot == "pip")
@@ -93,14 +93,14 @@ plot_susiF <- function (obj,
 #' @param x Output of the susiF function.
 #'
 #' @importFrom graphics plot
-#' 
+#'
 #' @method plot susiF
 #'
 #' @export
 #'
 plot.susiF <- function (x, ...)
   plot_susiF(x,...)
- 
+
 #' @rdname fsusie_plots
 #'
 #' @importFrom ggplot2 ggplot
@@ -109,16 +109,16 @@ plot.susiF <- function (x, ...)
 #' @importFrom ggplot2 element_blank
 #' @importFrom ggplot2 scale_color_manual
 #' @importFrom ggplot2 xlab
-#' @importFrom ggplot2 ylab 
+#' @importFrom ggplot2 ylab
 #' @importFrom ggplot2 aes
 #' @importFrom ggplot2 labs
 #' @importFrom cowplot theme_cowplot
-#' 
+#'
 #' @export
-#' 
+#'
 plot_susiF_pip <- function (obj,
-                            title = "", 
-                            pos_SNP, 
+                            title = "",
+                            pos_SNP,
                             point_shape,
                             point_size = 1.25,
                             font_size = 10) {
@@ -147,10 +147,10 @@ plot_susiF_pip <- function (obj,
 }
 
 #' @rdname fsusie_plots
-#' 
+#'
 #' @param effect The indices of the effects to be plotted, or use
 #'   \code{effect = "all"} to plot all effects.
-#' 
+#'
 #' @param cred_band logical. If \code{TRUE}, plot credible bands if
 #'   the fSuSiE model was fitted with wavelet regression.
 #'
@@ -161,16 +161,16 @@ plot_susiF_pip <- function (obj,
 #'   the grid positions at which the effects were estimated. By default,
 #'   this option is set to \code{TRUE} only when the grid poisitions are
 #'   uneven.
-#' 
+#'
 #' @param lfsr_curve Logical. If \code{TRUE}, plot estimated lfsr of the
 #'   effect at each base pair if obj fitted with HMM regression. This
 #'   has no effect unless the \code{\link{susiF}} option
 #'   \code{post_processing = "HMM"} was used.
-#' 
+#'
 #' @param line_width Numeric. Width of the plotted lines.
 #'
 #' @param dot_size numeric, size of the points in the effect plot.
-#' 
+#'
 #' @importFrom ggplot2 ggplot
 #' @importFrom ggplot2 facet_grid
 #' @importFrom ggplot2 geom_line
@@ -183,7 +183,7 @@ plot_susiF_pip <- function (obj,
 #' @importFrom ggplot2 aes
 #' @importFrom ggplot2 labs
 #' @importFrom cowplot theme_cowplot
-#' 
+#'
 #' @export
 #
 plot_susiF_effect <- function (obj,
@@ -263,7 +263,7 @@ plot_susiF_effect <- function (obj,
         out <- out + geom_point(size = dot_size,shape = 21,fill = "white")
       facet_scale <- "free"
     } else {
-        
+
       # Do not include the credible bands.
       x  <- rep(obj$outing_grid,length(indx_effect) + 1)
       CS <- rep(c(0,indx_effect),each = n_wac)
@@ -303,8 +303,8 @@ plot_susiF_effect <- function (obj,
 }
 
 
-#' @title fSuSiE Plots using Gviz 
-#' 
+#' @title fSuSiE Plots using Gviz
+#'
 #' @param obj is the fsusie object
 # (i.e., the result of running fsusie)
 #' @param chr the chromosome number
@@ -312,19 +312,20 @@ plot_susiF_effect <- function (obj,
 #' the Y matrix used to fit the fsusie object) description
 #' @param pos1 the end of the RNAseq count (genomic position of the last column of
 #' the Y matrix used to fit the fsusie object) description
-#' 
+#'
 #' @param X the X matrix used to fit fsusie
 #' @param Y  the Y matrix used to fit fsusie
 #' @param snp_info 'optional) a matrix containing the information of the genotype matrix see vignette on RNaseq
 #' @param cs the cs number to be plotted
-#' @param log1p_count logical (default to FALSE) show the observe count conditional on the leads SNP in the 
+#' @param log1p_count logical (default to FALSE) show the observe count conditional on the leads SNP in the
 #' using log1p_count
 #' @param effect_log logical (set to TRUE) , the plot assume that you fitted the fsusie object
-#' on log +1 count and so if you set this parameter to FALSE the displayed effect will be the expected 
+#' on log +1 count and so if you set this parameter to FALSE the displayed effect will be the expected
 #' difference in count instead of the fitted curve
 #' @param thresh_lfsr if the susiF object is fitted using HMM postprocessing you can use this argument
 #' to set to 0 the estimated effect that have an local false sign rate higher than a given threshold (e.g., 0.05) description
 #' @param  type_data  set to "p" change the type of plot for the observed count conditional of the lead SNP
+#' @param data_splice position of splicing sites
 #' see GViz documentation
 # (scaled) read count matrices, respectively.
 fsusie_log_plot <- function (obj, chr, pos0, pos1, X, Y, snp_info, cs = 1,
@@ -333,26 +334,26 @@ fsusie_log_plot <- function (obj, chr, pos0, pos1, X, Y, snp_info, cs = 1,
                              thresh_lfsr=NULL,
                              data_splice=NULL,
                              type_data="p") {
-  
+
   # Extract the relevant genes and exons in the specified region
   region_genes <- genes(txdb,columns = c("tx_id","gene_id"))
-  
+
   # Subset the genes and exons to the region of interest.
   region_genes <- subsetByOverlaps(region_genes,
                                    GRanges(seqnames = chr,
                                            ranges = IRanges(pos0,pos1)))
-  
+
   # Generate a sequence of positions with a length of 1,024.
   positions <- seq(pos0,pos1,length.out = 1024)
-  
+
   markers <- obj$cs[[cs]]
   j       <- which.max(obj$pip[markers])
   marker  <- markers[j]
   x       <- X[,marker]
-  
-  
-  
-  
+
+
+
+
   if(log1p_count){
     if (! length(which(x==2))>1){
       read_counts <- rbind(colMeans(log1p(Y[x == 0,])),
@@ -362,10 +363,10 @@ fsusie_log_plot <- function (obj, chr, pos0, pos1, X, Y, snp_info, cs = 1,
                            colMeans(log1p(Y[x == 1,])),
                            colMeans(log1p(Y[x == 2,])))
     }
-    
+
   }else{
     if (! length(which(x==2))>1){
-      
+
       read_counts <- rbind(colMeans(Y[x == 0,]),
                            colMeans(Y[x == 1,]) )
     }else{
@@ -373,37 +374,37 @@ fsusie_log_plot <- function (obj, chr, pos0, pos1, X, Y, snp_info, cs = 1,
                            colMeans(Y[x == 1,]),
                            colMeans(Y[x == 2,]))
     }
-    
+
   }
-  
+
   if(effect_log){
     effect=obj$fitted_func[[cs]]
-    
+
     if(!is.null(thresh_lfsr)){
       effect=(obj$fitted_func[[cs]]) * ifelse(obj$lfsr_func[[cs]]< thresh_lfsr,1,0 )
-      
-      
+
+
     }
-    
-    
+
+
   }else{
-    
-    
-    
+
+
+
     Y_mean= colMeans(log1p(Y[x == 0,]))
     effect <-  exp(Y_mean)* exp(obj$fitted_func[[cs]] )-exp(Y_mean)
     if(!is.null(thresh_lfsr)){
       effect=  exp(Y_mean)* exp(obj$fitted_func[[cs]] * ifelse(obj$lfsr_func[[cs]]< thresh_lfsr,1,0 ))-exp(Y_mean)
     }
-    
-    
-    
+
+
+
   }
-  
-  
+
+
   # Create a "data track" to show the CS effect.
   cex <- 0.6
-  
+
   effect_track <-
     DataTrack(range = GRanges(seqnames = chr,
                               ranges = IRanges(start = positions,
@@ -414,16 +415,16 @@ fsusie_log_plot <- function (obj, chr, pos0, pos1, X, Y, snp_info, cs = 1,
               col.axis = "black",col.title = "black",
               fontface = "plain",background.title = "white",
               fontface.title = 1)
-  
+
   # Create another "data track" to show the read counts.
-  
+
   n0  <- sum(x == 0)
   n1  <- sum(x == 1)
   n2  <- sum(x == 2)
   id  <- snp_info[marker,"ID"]
   ref <- snp_info[marker,"REF"]
   alt <- snp_info[marker,"ALT"]
-  
+
   if (! length(which(x==2))>1){
     groups <- c(sprintf("%s %s%s (n = %d)",id,ref,ref,n0),
                 sprintf("%s %s%s (n = %d)",id,ref,alt,n1) )
@@ -434,16 +435,16 @@ fsusie_log_plot <- function (obj, chr, pos0, pos1, X, Y, snp_info, cs = 1,
                 sprintf("%s %s%s (n = %d)",id,alt,alt,n2))
     geno_colors <- c("navyblue","turquoise","darkorange")
   }
-  
-  
+
+
   if (mean(effect) > 0) {
     groups <- factor(groups,rev(groups))
     geno_colors <- rev(geno_colors)
   } else {
     groups <- factor(groups,groups)
   }
-  
-  
+
+
   lab_y =ifelse(log1p_count, "avg. log1p count","avg. count")
   data_track <- DataTrack(range = GRanges(seqnames = chr,
                                           ranges = IRanges(start = positions,
@@ -456,13 +457,13 @@ fsusie_log_plot <- function (obj, chr, pos0, pos1, X, Y, snp_info, cs = 1,
                           col.axis = "black",col.title = "black",
                           fontface = "plain",background.title = "white",
                           fontface.title = 1,cex.legend = cex, cex=0.2)
-  
+
   # Create an "ideogram" track.
   ideo_track <- IdeogramTrack(genome = "hg38",chromosome = chr)
-  
+
   # Create a "genome axis" track.
   genome_track <- GenomeAxisTrack(col.axis = "black",col.title = "black")
-  
+
   # Create a "gene region" track.
   gene_track <- GeneRegionTrack(txdb,genome = "hg38",chromosome = chr,
                                 pos0 = pos0,pos1 = pos1,name = "",
@@ -472,10 +473,10 @@ fsusie_log_plot <- function (obj, chr, pos0, pos1, X, Y, snp_info, cs = 1,
                                 rotation.title = 0,cex.title = cex,
                                 col = "salmon",fill = "salmon",
                                 background.title = "white")
-  
+
   # Map gene IDs to gene symbols.
   gene_ids <- unique(unlist(region_genes$gene_id))
-  
+
   # Map to gene symbols using org.Hs.eg.db
   gene_symbols <- AnnotationDbi::select(org.Hs.eg.db,keys = gene_ids,
                                         columns = "SYMBOL",
@@ -489,8 +490,8 @@ fsusie_log_plot <- function (obj, chr, pos0, pos1, X, Y, snp_info, cs = 1,
       gene_track@range@elementMetadata@listData$symbol[j] <- gene_symbols$SYMBOL[i]
     }
   }
-  
-  
+
+
   if( !is.null(data_splice)){
     junction_ranges <- GRanges(
       seqnames = chr,
@@ -500,7 +501,7 @@ fsusie_log_plot <- function (obj, chr, pos0, pos1, X, Y, snp_info, cs = 1,
       ),
       names = data_splice$Description
     )
-    
+
     # Offset overlapping junctions for better visualization
     # Create AnnotationTrack for splicing junctions with adjusted thickness
     junction_track <- AnnotationTrack(
@@ -529,7 +530,7 @@ fsusie_log_plot <- function (obj, chr, pos0, pos1, X, Y, snp_info, cs = 1,
       gene_track,
       junction_track
     )
-    
+
     # Plot the tracks
     return(plotTracks(tracks, from = pos0, to = pos1, sizes = c(1, 1.75, 2, 4, 5, 1)))
   }else{
@@ -541,8 +542,8 @@ fsusie_log_plot <- function (obj, chr, pos0, pos1, X, Y, snp_info, cs = 1,
                 gene_track)
     return(plotTracks(tracks,from = pos0,to = pos1,sizes = c(1,1.75,2,4,5)))
   }
-  
-  
+
+
 }
 
 

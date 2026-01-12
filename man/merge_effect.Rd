@@ -7,12 +7,14 @@
 \usage{
 merge_effect(obj, verbose, ...)
 
-\method{merge_effect}{susiF}(obj, verbose = FALSE)
+\method{merge_effect}{susiF}(obj, verbose = FALSE, ...)
 }
 \arguments{
 \item{obj}{a susiF object defined by init_susiF_obj function}
 
 \item{verbose}{logical}
+
+\item{\dots}{Other arguments.}
 }
 \value{
 a susiF object
