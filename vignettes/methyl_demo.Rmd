@@ -280,7 +280,7 @@ precisely, by the individual CSs). Here we use the *lfsr* (*local
 false sign rate*) estimates produced by the HMM (using the
 `post_processing = "HMM"` option):
 
-```{r fsusie-affected-cpgs, fig.height=2, fig.width=6, eval=FALSE}
+```{r fsusie-affected-cpgs, fig.height=2, fig.width=6}
 i <- sapply(fit$cs,function (x) intersect(x,c(1,3,9)))
 pdat <- data.frame(CS   = rep(c("L1","L2","L3"),each = m),
                    CpG  = rep(1:m,times = 3),
