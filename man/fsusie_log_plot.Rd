@@ -39,18 +39,20 @@ the Y matrix used to fit the fsusie object) description}
 
 \item{cs}{the cs number to be plotted}
 
-\item{log1p_count}{logical (default to FALSE) show the observe count conditional on the leads SNP in the 
+\item{log1p_count}{logical (default to FALSE) show the observe count conditional on the leads SNP in the
 using log1p_count}
 
 \item{effect_log}{logical (set to TRUE) , the plot assume that you fitted the fsusie object
-on log +1 count and so if you set this parameter to FALSE the displayed effect will be the expected 
+on log +1 count and so if you set this parameter to FALSE the displayed effect will be the expected
 difference in count instead of the fitted curve}
 
 \item{thresh_lfsr}{if the susiF object is fitted using HMM postprocessing you can use this argument
 to set to 0 the estimated effect that have an local false sign rate higher than a given threshold (e.g., 0.05) description}
 
-\item{type_data}{set to "p" change the type of plot for the observed count conditional of the lead SNP
+\item{data_splice}{position of splicing sites
 see GViz documentation}
+
+\item{type_data}{set to "p" change the type of plot for the observed count conditional of the lead SNP}
 }
 \description{
 fSuSiE Plots using Gviz

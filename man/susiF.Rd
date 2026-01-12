@@ -17,7 +17,7 @@ susiF(
   min_purity = 0.5,
   filter_cs = TRUE,
   init_pi0_w = 1,
-  nullweight = 10,
+  nullweight = 0.1,
   control_mixsqp = list(verbose = FALSE, eps = 1e-06, numiter.em = 40),
   thresh_lowcount = 0,
   cal_obj = FALSE,
@@ -32,7 +32,7 @@ susiF(
   cor_small = FALSE,
   filter.number = 10,
   family = "DaubLeAsymm",
-  post_processing = c("TI", "smash", "HMM", "none"),
+  post_processing = c("smash", "TI", "HMM", "none"),
   e = 0.001,
   tol_null_prior = 0.001,
   lbf_min = 0.1
