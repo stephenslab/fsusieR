@@ -985,14 +985,14 @@ init_susiF_obj <- function(L_max,
 #' @param obj a susiF object defined by init_susiF_obj function
 #
 #
-#' @param discard logical, if set to TRUE allow discarding redundant effect
-#
+#' @param verbose logical
+#' @param \dots Other arguments.
 #
 #
 #' @return  a susiF object
 #' @export
 #' @keywords internal
-merge_effect <- function( obj,  ...)
+merge_effect <- function( obj, verbose,  ...)
   UseMethod("merge_effect")
 
 #' @rdname merge_effect
@@ -1004,7 +1004,7 @@ merge_effect <- function( obj,  ...)
 #' @export
 #' @keywords internal
 
-merge_effect.susiF  <- function(obj, verbose = FALSE) {
+merge_effect.susiF  <- function(obj, verbose = FALSE,  ...) {
 
   if (obj$L < 2) return(obj)
 
@@ -2272,8 +2272,9 @@ which_dummy_cs.susiF <- function(obj, min_purity=0.5,X,median_crit=FALSE,lbf_min
 
 
 
-
-
+#' @title which_cs_largeBF
+#' @param   l1 cs1
+#' @param   l2 cs2
 #' @export
 #' @keywords internal
 which_cs_largeBF <- function(obj, l1, l2) {
