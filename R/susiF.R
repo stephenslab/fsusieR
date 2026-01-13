@@ -393,7 +393,7 @@ susiF <- function(Y, X, L = 2,
             filter.number = filter.number,
             family        = family)
   Y_f      <-  cbind( W$D,W$C)
-  Y_f  <- colScale(Y_f, scale=FALSE )
+  Y_f  <- colScale(Y_f  )
   W$C=Y_f[, ncol(Y)]
   W$D=Y_f[, -ncol(Y)]
 
