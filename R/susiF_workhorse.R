@@ -83,13 +83,11 @@ susiF.workhorse <- function(obj,
     df =NULL
   }
 
-
   if(missing(tt)){
     init=FALSE
   }else{
     init=FALSE
   }
-
   if( obj$L_max==1)
   {
     tt   <-cal_Bhat_Shat(Y       = update_Y,
@@ -146,7 +144,6 @@ susiF.workhorse <- function(obj,
   }else{
     ##### Start While -----
     iter <- 1
-
 
     while( (check >tol & iter <maxit))
     {

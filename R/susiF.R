@@ -384,7 +384,6 @@ susiF <- function(Y, X, L = 2,
    rm( map_data)
   # centering and scaling covariate
 
-
   # centering input
   Y0 <-  Y
 Y= colScale(Y)
@@ -393,7 +392,7 @@ Y= colScale(Y)
             filter.number = filter.number,
             family        = family)
   Y_f      <-  cbind( W$D,W$C)
-  Y_f  <- colScale(Y_f, scale=FALSE )
+  Y_f  <- colScale(Y_f  )
   W$C=Y_f[, ncol(Y)]
   W$D=Y_f[, -ncol(Y)]
 
@@ -475,7 +474,6 @@ Y= colScale(Y)
 
 
 
-  #browser()
   obj     <- susiF.workhorse(obj      = obj,
                                    W              = W,
                                    X              = X,
