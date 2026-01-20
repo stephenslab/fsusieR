@@ -1139,7 +1139,6 @@ out_prep.susiF <- function(obj ,
 
 
 
-
   if(filter_cs)
   {
     obj  <- check_cs(obj,
@@ -2172,8 +2171,15 @@ which_dummy_cs.susiF <- function(obj, min_purity=0.5,X,median_crit=FALSE,lbf_min
       #   return(is.dummy.cs )
       #}
       if(length(obj$cs[[l]]) <5){
+
+        if(length(obj$cs[[l]])==0 ){
+
+          is.dummy.cs <- TRUE
+          return( is.dummy.cs)
+        }
         is.dummy.cs <- FALSE
       }else{
+
         tt <-  cor( X[,obj$cs[[l]]])
 
         is.dummy.cs <-   median(abs( tt[lower.tri(tt, diag =FALSE)]))  <  min_purity & max(obj$lBF[[l]])<lbf_min
@@ -2181,6 +2187,11 @@ which_dummy_cs.susiF <- function(obj, min_purity=0.5,X,median_crit=FALSE,lbf_min
 
 
     }else{
+      if(length(obj$cs[[l]])==0 ){
+
+        is.dummy.cs <- TRUE
+        return( is.dummy.cs)
+      }
       is.dummy.cs <-   min(abs(cor( X[,obj$cs[[l]]]))) <  min_purity & max(obj$lBF[[l]])<lbf_min
     }
 

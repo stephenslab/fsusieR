@@ -495,7 +495,6 @@ Y= colScale(Y)
                                    e              = e)
 
   #preparing output
-
   obj <- out_prep(     obj            = obj,
                         Y             =    Y0,#colScale(Y0, scale = FALSE),
                         X             =  X0 ,# sweep(
