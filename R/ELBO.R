@@ -49,7 +49,7 @@ cal_KL_l.susiF <- function(obj, l, X, ...) {
 
   # KL
   KL_mix <- sum(alpha * log(alpha / prior_weights))
-  KL_gauss <- (1 / (2 * obj$sigma2)) * (EXF2 - sum(alpha * comp_EXF2))
+  KL_gauss <- (1 / (2 * obj$sigma2)) * (EXF2 - sum(  comp_EXF2))
 
   return(KL_mix + KL_gauss)
 }
