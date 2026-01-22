@@ -105,7 +105,7 @@ colScale = function(x,
   # Get the column sd
   ################
   if (scale) {
-    csd = matrixStats::colSds(x, center = cm)
+    csd = matrixStats::colSds(x, center = cm,na.rm = TRUE)
   } else {
     # just divide by 1 if not
     csd = rep(1, length = length(cm))

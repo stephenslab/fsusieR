@@ -284,7 +284,7 @@ susiF <- function(Y, X, L = 2,
                   min_purity=0.5,
                   filter_cs =TRUE,
                   init_pi0_w= 1,
-                  nullweight= .1 ,
+                  nullweight= .01 ,
                   control_mixsqp =  list(verbose=FALSE,
                                          eps = 1e-6,
                                          numiter.em = 40
