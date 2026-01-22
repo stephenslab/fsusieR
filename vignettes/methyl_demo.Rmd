@@ -24,6 +24,7 @@ knitr::opts_chunk$set(comment = "#",collapse = TRUE,results = "hold",
 Load the packages used in this vignette.
 
 ```{r load-pkgs}
+library(susieR)
 library(fsusieR)
 library(reshape2)
 library(ggplot2)
@@ -127,8 +128,8 @@ p1 <- ggplot(pdat, aes(x = cpg, y = meth_level, color = geno)) +
   scale_x_continuous(breaks = c(0, seq(4, 32, 4))) +
   scale_color_manual(values = c("darkblue", "limegreen", "darkorange")) +
   geom_line(data = pdat_lines, aes(x = cpg, y = meth_level, group = geno), 
-            color = "black", size = 1.9) +  # Black line for contrast
-  geom_line(data = pdat_lines, size = 1.25) +  # Original colored lines
+            color = "black", linewidth = 1.9) +  # Black line for contrast
+  geom_line(data = pdat_lines, linewidth = 1.25) +  # Original colored lines
   labs(x = "CpG", y = "methylation level", color = "genotype") +
   theme_cowplot(font_size = 11)
 print(p1)
@@ -143,10 +144,10 @@ ggsave("demo_data.pdf",
 QTL mapping
 -----------
 
-In a typical methylation QTL mapping analysis, one would perform
-association tests for all the CpG-SNP pairs. Here we will simply use
-the standard linear regression function in R, `lm()`, to perform the
-QTL mapping.
+Let's first consider performing association tests for all the CpG-SNP
+pairs, which is one approach to mapping methylation QTLs. Here we will
+simply use the standard linear regression function in R, `lm()`, to
+perform the QTL mapping.
 
 ```{r map-qtls}
 assoc <- matrix(0,m,p)
@@ -224,11 +225,85 @@ ggsave("demo_gwas_by_cpg.pdf",
 *But more importantly*, this view alone doesn't tell us which SNPs are
 affecting the changes in the methylation levels at these CpGs.
 
+Fine-mapping with SuSiE
+-----------------------
+
+Let's now consider how one might analyze these data using a standard
+(*univariate phenotype*) fine-mapping method, SuSiE, and then we will
+point out its limitations and contrast it with fSuSiE.
+
+One possible approach is a two-stage approach where we: (i) identify
+the associated CpGs (using the results of the association analysis
+above); then (ii) perform fine-mapping separately for each of the
+associated CpGs. This is the approach we will try here.
+
+```{r assoc-cpgs}
+assoc_cpgs <- subset(pdat,pval > threshold)$cpg
+assoc_cpgs <- sort(unique(assoc_cpgs))
+assoc_cpgs <- paste0("CpG-",assoc_cpgs)
+assoc_cpgs
+```
+
+Having identified the 6 associated CpGs, we now run SuSiE separately
+for each of them:
+
+```{r run-susie}
+num_cpgs <- length(assoc_cpgs)
+susie_fits <- vector("list",num_cpgs)
+names(susie_fits) <- assoc_cpgs
+for (i in assoc_cpgs)
+  susie_fits[[i]] <- susie(X,Y[,i],L = 3)
+```
+
+This plot shows the 6 fine-mapping "signals" (the PIPs). For convenience,
+the two CpG "clusters" are colored red and blue.
+
+```{r pip-plots-susie, fig.height=1.5, fig.width=3}
+pdat <- rbind(data.frame(cpg = 9, snp = 1:p,pip = susie_fits[["CpG-9"]]$pip),
+              data.frame(cpg = 10,snp = 1:p,pip = susie_fits[["CpG-10"]]$pip),
+			  data.frame(cpg = 14,snp = 1:p,pip = susie_fits[["CpG-14"]]$pip),
+			  data.frame(cpg = 25,snp = 1:p,pip = susie_fits[["CpG-25"]]$pip),
+			  data.frame(cpg = 28,snp = 1:p,pip = susie_fits[["CpG-28"]]$pip),
+			  data.frame(cpg = 32,snp = 1:p,pip = susie_fits[["CpG-32"]]$pip))
+p5 <- ggplot(pdat,
+       aes(x = snp,y = pip,color = factor(cpg),shape = factor(cpg))) +
+  geom_point() +
+  scale_color_manual(values = c(rep("red",3),rep("darkblue",3))) +
+  scale_shape_manual(values = c(1,20,4,1,20,4)) +
+  scale_x_continuous(breaks = 1:12) +
+  scale_y_continuous(breaks = c(0,0.5,1)) +
+  labs(x = "SNP",y = "PIP",color = "CpG",shape = "CpG") +
+  theme_cowplot(font_size = 10)
+p5
+```
+
+One takeaway is that it is difficult to interpret these results
+because we have 6 fine-mapping signals. fSuSiE, by contrast, is much
+easier to interpret result because it produces just a single
+fine-mapping signal.
+
+```{r susie-pip-plot-ggsave, echo=FALSE, eval=FALSE}
+ggsave("demo_pip_plot_susie.pdf",p5,height = 1.5,width = 3)
+```
+
+Upon closer examination, some of the fine-mapping signals agree very
+well; for example, SNP 1 is identified as a causal SNP for CpGs 9, 10
+and 14 (the red cluster) with a PIP near 1, strongly suggesting that
+SNP 1 has an effect on the methylation at all these CpGs. However, the
+fine-mapping signal at SNPs 3 and 4 is a little harder to interpret:
+one signal (CpG 32) prefers SNP 3, whereas the others prefer SNP 4.
+More generally, it is an open question how to integrate these signals
+from the separate SuSiE analyses.
+
+Additionally, and perhaps more critically, SuSiE does not directly
+tell us which CpGs are affected by each causal SNP. By contrast,
+fSuSiE will be able to answer this question.
+
 Fine-mapping with fSuSiE
 ------------------------
 
-Let's now contrast the above QTL mapping analysis with an analysis of
-the methylation data using fSuSiE. First we fit the fSuSiE model to
+Let's now contrast the QTL mapping and SuSiE analyses with an analysis
+of the methylation data using fSuSiE. First we fit the fSuSiE model to
 the data. *Notice that we only a fit a single model to all the data*:
 
 ```{r run-fsusie, message=FALSE, results="hide"}
