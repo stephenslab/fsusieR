@@ -22,37 +22,37 @@ cal_KL_l <- function(obj, l, X, D,C , indx_lst, ...)
 
 
 
-#' @rdname cal_KL_l
-#
-#' @method cal_KL_l susiF
-#
-#' @export cal_KL_l.susiF
-#
+
+
+#' @title Compute KL divergence for effect l (correct ELBO version)
+#'
 #' @export
 #' @keywords internal
-cal_KL_l.susiF <- function(obj, l, X, D, C , indx_lst, ...)
-{
+cal_KL_l.susiF <- function(obj, l, X, ...) {
 
-  R_l <- cal_partial_resid(
- 
-                           obj = obj,
- 
-                           l         =  (l-1),
-                           X         =  X,
-                           D         =  D,
-                           C         =  C,
-                           indx_lst  = indx_lst
-                          )
+  # posterior mixture weights
+  alpha <- get_alpha(obj, l)      # length p
+  alpha <- pmax(alpha, 1e-16)
 
+  # prior weights
+  prior_weights <- rep(1 / length(alpha), length(alpha))
 
-  out <-    - loglik_SFR(obj, l,R_l,X,indx_lst)- loglik_SFR_post(obj, l,R_l,X)
+  # posterior moments
+  EF  <- get_post_F(obj, l)       # p x t
+  EF2 <- get_post_F2(obj, l)      # p x t
 
+  # expected squared signal
+  EXF2 <- sum((X %*% EF)^2)
 
-  return(out)
+  # component-wise expected signal
+  comp_EXF2 <- colSums((X^2) %*% EF2)
+
+  # KL
+  KL_mix <- sum(alpha * log(alpha / prior_weights))
+  KL_gauss <- (1 / (2 * obj$sigma2)) * (EXF2 - sum(alpha * comp_EXF2))
+
+  return(KL_mix + KL_gauss)
 }
-
-
-
 
 
 #' @title Compute log likelihood of single function regression of effect l
@@ -146,8 +146,8 @@ loglik_SFR_post.susiF <- function (obj, l, Y, X, ...)
 #
 #' @param Y Matrix of outcomes
 #
-#' @param X Matrix of covariates 
-#' 
+#' @param X Matrix of covariates
+#'
 #' @param \dots Other arguments.
 #
 #' @return Expected log likelihood
@@ -211,7 +211,7 @@ get_objective <- function    (obj,  Y, X, D, C , indx_lst,  ...)
 get_objective.susiF <- function    (obj, Y, X, D, C , indx_lst,  ...)
 {
 #print(obj$KL)
-  out <-  Eloglik(obj, Y, X)  + sum(obj$KL)
+  out <-sum(obj$KL)#  Eloglik(obj, Y, X)  #+
   return(out)
 
 }

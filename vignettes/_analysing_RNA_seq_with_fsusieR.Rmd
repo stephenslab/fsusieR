@@ -319,7 +319,9 @@ To solve this problem with developed susiF. It can be run as follow. Note that i
 will take a bit of time so you can load the results instead if you are not patient
 ```{r running_fsusie}
 library(fsusieR)
-result= susiF(Y=log1p(Y_cor),X=as.matrix(X), L=5, L_start = 5 , post_processing = "smash"   , cal_obj = TRUE, maxit = 100          )
+result= susiF(Y=log1p(Y_cor),X=as.matrix(X), L=5, L_start = 5 , post_processing = "smash"   , cal_obj = TRUE, maxit =4    ,
+              
+              filter_cs = FALSE)
 #result= RNAseqData$results
 ```
 

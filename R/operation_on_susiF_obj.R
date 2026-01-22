@@ -1317,10 +1317,10 @@ test_stop_cond.susiF <- function(obj, check, cal_obj, Y, X, D, C, indx_lst,...)
 
 
         if(!(obj$L==nrow(T2))){
+          obj$check=1
           return(obj)
         }
-        T2 <- T2[1:obj$L,]
-        if(obj$L==1){
+         if(obj$L==1){
           T2 <- T2[1,]
         }
 
@@ -1333,7 +1333,8 @@ test_stop_cond.susiF <- function(obj, check, cal_obj, Y, X, D, C, indx_lst,...)
         }
 
 
-        check <- sum(abs(T1-T2))/nrow(X)
+        check <- max(abs(T1-T2)) #sum(abs(T1-T2))/nrow(X)
+
         obj$check <- check
         return(obj)
         #print(check)
