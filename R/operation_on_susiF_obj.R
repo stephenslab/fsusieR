@@ -1006,6 +1006,7 @@ merge_effect <- function( obj, verbose,  ...)
 
 merge_effect.susiF  <- function(obj, verbose = FALSE,  ...) {
 
+  return(obj)
   if (obj$L < 2) return(obj)
 
   to_drop <- integer(0)
