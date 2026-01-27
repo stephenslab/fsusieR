@@ -762,7 +762,7 @@ greedy_backfit.susiF <-  function(obj,
                         out_prep= FALSE
       )
 
-      obj <- merge_effect (obj, verbose = verbose)
+     # obj <- merge_effect (obj, verbose = verbose)
 
       if(verbose){
         print( paste( "Discarding ",(temp_L- obj$L), " effects"))
@@ -782,7 +782,7 @@ greedy_backfit.susiF <-  function(obj,
                       cs= (obj$L_max+1):obj$L,
                       out_prep= FALSE
     )
-    obj <- merge_effect (obj, verbose = verbose)
+   # obj <- merge_effect (obj, verbose = verbose)
     if(verbose){
       print( paste( "Discarding ",(obj$L_max- obj$L), " effects"))
       print( "Greedy search and backfitting done")
@@ -793,7 +793,7 @@ greedy_backfit.susiF <-  function(obj,
   if( length(dummy.cs)==0& !( obj$greedy))
   {
     obj$backfit <- FALSE
-    obj <- merge_effect (obj, verbose = verbose)
+    #obj <- merge_effect (obj, verbose = verbose)
   }
 
   if(!(obj$greedy )&!(obj$backfit ) ){
@@ -815,7 +815,7 @@ greedy_backfit.susiF <-  function(obj,
     if(temp==0){
 
 
-      obj <- merge_effect (obj, verbose = verbose)
+      #obj <- merge_effect (obj, verbose = verbose)
       if(verbose){
         print( paste( "Discarding ",(obj$L_max- obj$L), " effects"))
         print( "Greedy search and backfitting done")
@@ -832,7 +832,7 @@ greedy_backfit.susiF <-  function(obj,
       print( paste( "Adding ", temp, " extra effects"))
     }
 
-    obj <- merge_effect (obj, verbose = verbose)
+    #obj <- merge_effect (obj, verbose = verbose)
 
 
     obj <- expand_susiF_obj(obj,L_extra = 7)
@@ -1006,7 +1006,7 @@ merge_effect <- function( obj, verbose,  ...)
 
 merge_effect.susiF  <- function(obj, verbose = FALSE,  ...) {
 
-  return(obj)
+  #return(obj)
   if (obj$L < 2) return(obj)
 
   to_drop <- integer(0)
