@@ -371,20 +371,27 @@ susiF <- function(Y, X, L = 2,
   X0=X
   X <- colScale(X)
   #browser()
+  if(post_processing=="smash" & length(unique(diff(pos)))==1){
+    Y0 <-  Y
+    outing_grid =pos
+  }
 
   map_data <- remap_data(Y=Y,
                          pos=pos,
                          verbose=verbose,
                          max_scale=max_scale)
 
-  outing_grid <- map_data$outing_grid
   Y           <- map_data$Y
-  rm( map_data)
   # centering and scaling covariate
 
 
   # centering input
-  Y0 <-  Y
+  #fit user function on interpolated functions
+  if( !(post_processing=="smash" & length(unique(diff(pos)))==1)){
+    Y0 <-  Y
+    outing_grid <- map_data$outing_grid
+  }
+
   Y= colScale(Y)
 
   W <- DWT2(Y,
@@ -404,7 +411,8 @@ susiF <- function(Y, X, L = 2,
 
   ### Definition of some static parameters ---
 
-  indx_lst <-  gen_wavelet_indx(log2(length( outing_grid)))
+  indx_lst <-  gen_wavelet_indx(log2(length(map_data$outing_grid)))
+  rm( map_data)
   #removing wc with variance 0 or below a certain level
 
   lowc_wc <-   which_lowcount(Y_f,thresh_lowcount)

@@ -199,7 +199,7 @@ plot_susiF_effect <- function (obj,
   # Declare variables to avoid R CMD check notes
   lwr <- upr <- Start <- End <- ystart <- yend <- NULL
   L     <- obj$L
-  n_wac <- obj$n_wac
+  n_rep <- length(obj$fitted_func[[1]])
   y     <- obj$pip
   col_y <- rep(0,length(y))
   #this is to handle the case where no postprocessing is used
@@ -223,17 +223,17 @@ plot_susiF_effect <- function (obj,
 
   L        <- length(indx_effect)
   fun_plot <- do.call(c,obj$fitted_func[indx_effect])
-  n_wac    <- obj$n_wac
-  fun_plot <- c(rep(0,n_wac),fun_plot)
+  n_rep    <- length(obj$fitted_func[[1]])
+  fun_plot <- c(rep(0,n_rep),fun_plot)
 
   if (cred_band & is.null(obj$lfsr_func)) {
 
     # Include the credible bands.
     cred_band_dat <- data.frame(t(do.call(cbind,obj$cred_band[indx_effect])))
-    cred_band_dat <- rbind(data.frame(up = rep(0,n_wac),low = rep(0,n_wac)),
+    cred_band_dat <- rbind(data.frame(up = rep(0,n_rep),low = rep(0,n_rep)),
                            cred_band_dat)
     x  <- rep(obj$outing_grid,length(indx_effect) + 1)
-    CS <- rep(c(0,indx_effect),each = n_wac)
+    CS <- rep(c(0,indx_effect),each = n_rep)
     df <- data.frame(fun_plot = fun_plot,CS = factor(CS),x = x,
                      upr = cred_band_dat$up,lwr = cred_band_dat$low)
     df  <- df[-which(df$CS == 0),]
@@ -250,7 +250,7 @@ plot_susiF_effect <- function (obj,
       # Add lfsr information.
       lfsr_curve_dat <- do.call(c,obj$lfsr_func[indx_effect])
       x  <- rep(obj$outing_grid,length(indx_effect) + 1)
-      CS <- rep(c(0,indx_effect), each = n_wac)
+      CS <- rep(c(0,indx_effect), each = n_rep)
       df <- data.frame(fun_plot = fun_plot,CS = factor(CS),x = x)
       df <- df[-which(df$CS == 0),]
       df$lfsr_curve <- lfsr_curve_dat
@@ -266,7 +266,7 @@ plot_susiF_effect <- function (obj,
 
       # Do not include the credible bands.
       x  <- rep(obj$outing_grid,length(indx_effect) + 1)
-      CS <- rep(c(0,indx_effect),each = n_wac)
+      CS <- rep(c(0,indx_effect),each = n_rep)
       df <- data.frame(fun_plot = fun_plot,CS = factor(CS),x = x)
       df <- df[-which(df$CS == 0),]
       out <- ggplot(df,aes(y = fun_plot,x = x,color = CS)) +
