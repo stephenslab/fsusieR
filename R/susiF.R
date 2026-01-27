@@ -329,9 +329,6 @@ susiF <- function(Y, X, L = 2,
   pt <- proc.time()
 
 
-  if(!cal_obj){
-    tol <-10^-3
-  }
   if(L>ncol(X)){
     L <-ncol(X)
   }
