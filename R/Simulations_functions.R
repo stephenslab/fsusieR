@@ -22,7 +22,7 @@
 #'out <- simu_IBSS_ash_vanilla(lev_res=8, length_grid= 10, pi0= 0.85)
 #'plot(out$sim_func, type="l", ylab="y")
 #'out$emp_pi0
-simu_IBSS_ash_vanilla <- function( lev_res=7, length_grid= 10, pi0= 0.85)
+simu_IBSS_ash_vanilla <- function( lev_res=8, length_grid= 10, pi0= 0.85)
 {
   #define mixutre components
   grid <- c(0,cumsum(rchisq(length_grid -1,df=1) )) # grid of sd for the ash mixture
