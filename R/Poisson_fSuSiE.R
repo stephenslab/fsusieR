@@ -299,9 +299,9 @@ Pois_fSuSiE <- function(Y,
 
     if (verbose) {
       cat("Convergence: max change =", round(max_diff, 8), "\n")
-      cat("  |Δalpha_0| =", round(diff_alpha, 8), "\n")
-      cat("  |ΔTheta| =", round(diff_Theta, 8), "\n")
-      cat("  |ΔB| =", round(diff_B, 8), "\n")
+      cat("  change in alpha_0 =", round(diff_alpha, 8), "\n")
+      cat(" change in Theta =", round(diff_Theta, 8), "\n")
+      cat("change in B =", round(diff_B, 8), "\n")
     }
     if (print){
 
