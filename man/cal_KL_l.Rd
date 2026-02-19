@@ -2,12 +2,9 @@
 % Please edit documentation in R/ELBO.R
 \name{cal_KL_l}
 \alias{cal_KL_l}
-\alias{cal_KL_l.susiF}
 \title{Compute KL divergence effect l}
 \usage{
 cal_KL_l(obj, l, X, D, C, indx_lst, ...)
-
-\method{cal_KL_l}{susiF}(obj, l, X, D, C, indx_lst, ...)
 }
 \arguments{
 \item{obj}{a susisF object defined by  init_susiF_obj  function}

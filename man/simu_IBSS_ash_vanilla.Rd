@@ -4,7 +4,7 @@
 \alias{simu_IBSS_ash_vanilla}
 \title{Simulate data under a simple mixture normal prior}
 \usage{
-simu_IBSS_ash_vanilla(lev_res = 7, length_grid = 10, pi0 = 0.85)
+simu_IBSS_ash_vanilla(lev_res = 8, length_grid = 10, pi0 = 0.85)
 }
 \arguments{
 \item{lev_res}{numeric, corresponds to the resolution of the simulated function (ideally between 3 and 10)}
