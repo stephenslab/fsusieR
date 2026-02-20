@@ -456,6 +456,22 @@ pois_mean_GP_opt_obj = function(theta,x,s,beta,sigma2,n){
   v = theta[(n+1):(2*n)]
   return(-sum(x*m-s*exp(m+exp(v)/2)-(m^2+exp(v)-2*m*beta)/2/sigma2+v/2))
 }
+
+# Modify pois_mean_GP_opt_obj
+pois_mean_GP_opt_obj = function(theta,x,s,beta,sigma2,n){
+  m = theta[1:n]
+  v = theta[(n+1):(2*n)]
+
+  # Cap the values to avoid Inf
+  m = pmin(pmax(m, -20), 20)
+  log_v = pmin(pmax(v, -20), 10)
+
+  # Objective calculation with capped eta
+  eta = m + exp(log_v)/2
+  eta = pmin(eta, 25) # Exp(25) is large but finite
+
+  return(-sum(x*m - s*exp(eta) - (m^2 + exp(log_v) - 2*m*beta)/2/sigma2 + log_v/2))
+}
 #'calculate gradient vector
 pois_mean_GP_opt_obj_gradient = function(theta,x,s,beta,sigma2,n){
   #m = theta[1:n]
@@ -561,6 +577,8 @@ pois_smooth_split <- function(x,
     opt = optim(c(mu_pm, log(mu_pv)),
                 fn = obj_fn,
                 gr = grad_fn,
+                lower = c(rep(-30, n), rep(-20, n)),
+                upper = c(rep(30, n), rep(10, n)),
                 x = x, s = s, beta = Eb,
                 sigma2 = sigma2, n = n,
                 method = optim_method)
@@ -577,6 +595,7 @@ pois_smooth_split <- function(x,
     # get sigma2
     if(est_sigma2){
       sigma2 = mean(mu_pm^2+mu_pv+Eb2-2*mu_pm*Eb)
+      sigma2 = max(sigma2, 1e-6)
     }
 
 
