@@ -1,15 +1,10 @@
 #' @export
 Pois_fSuSiE2 <- function(Y,
-                        Z = NULL,
+
                         X = NULL,
                         L = 3,
                         scaling = NULL,
-                        ebps_method = c("ebpm",
-                                        'pois_mean_split',
-                                        'ind_pois_mean_split',
-                                        'ind_ebps',
-                                        'ind_poisson_smoothing',
-                                        'nugget'),
+
                         reflect = FALSE,
                         verbose = TRUE,
                         tol = 1e-3,
@@ -18,10 +13,10 @@ Pois_fSuSiE2 <- function(Y,
                         control_mixsqp = list(verbose = FALSE,
                                               eps = 1e-6,
                                               numiter.em = 4),
-                        nullweight = 10,
+                        nullweight = .10,
                         cov_lev = 0.95,
                         min_purity = 0.5,
-                        cor_small = TRUE,
+                        cor_small = FALSE,
                         post_processing = "smash",
                         print=TRUE,
                         update_Mu_each_iter = TRUE,
@@ -34,9 +29,7 @@ Pois_fSuSiE2 <- function(Y,
   }
 
   has_X <- !is.null(X)
-  has_Z <- !is.null(Z)
-
-  ebps_method <- match.arg(ebps_method)
+  fit_approach="fine_mapping"
 
   # Handle reflection for non-dyadic length
   n_bins <- ncol(Y)
@@ -60,19 +53,32 @@ Pois_fSuSiE2 <- function(Y,
   # ============================================================================
   # STEP 1 (INITIALIZATION)
   # ============================================================================
-  if (verbose) cat("Initializing Mu_pm via", ebps_method, "...\n")
 
   # Use your chosen initialization to get Mu_pm and Mu_pv (posterior mean/var of log-lambda)
   # This part remains mostly as you had it, but ensure we keep variance
   Mu_pv <- matrix(1/n_bins, nrow = N, ncol = ncol(Y))
 
-  if (ebps_method == "ebpm") {
+  Mu_pm_init <- log(Y + 1)
+
+  if ( fit_approach %in% c("fine_mapping","both"))
+  {
+    susiF.obj=susiF(log1p(Y),X=X)
+    if (length(susiF.obj$cs) > 0) {
+      est_effect_fm=Reduce("+", lapply(1:length(susiF.obj$cs), function(l) {
+        t(susiF.obj$fitted_func[[l]] %*% t(susiF.obj$alpha[[l]]))
+      }))
+
+
+      Mu_pm <- X %*% est_effect_fm
+      B_pm <- X %*% est_effect_fm
+    } else {
+      tt <- ebpm_normal(c(Y), s = rep(scaling, ncol(Y)))
+      Mu_pm <- matrix(tt$posterior$mean_log, byrow = FALSE, ncol = ncol(Y))
+    }
+
+  }else {
     tt <- ebpm_normal(c(Y), s = rep(scaling, ncol(Y)))
     Mu_pm <- matrix(tt$posterior$mean_log, byrow = FALSE, ncol = ncol(Y))
-    Mu_pv <- matrix(tt$posterior$var_log, byrow = FALSE, ncol = ncol(Y))
-  } else {
-    # Defaulting to a safe VGA init for other methods
-    Mu_pm <- log(Y + 0.1)
   }
 
   # Initialize components
@@ -119,11 +125,7 @@ Pois_fSuSiE2 <- function(Y,
     # ------------------------------------------------------------------------
     # STEP 2a: Update Theta (Z effects)
     # ------------------------------------------------------------------------
-    if (has_Z) {
-      resid_for_Z <- Mu_pm - matrix(rep(alpha_0, ncol(Y)), ncol = ncol(Y)) - B_pm
-      EBmvFR.obj <- EBmvFR(Y = resid_for_Z, X = Z, maxit = maxit_inner, verbose = FALSE)
-      Theta_pm <- Z %*% EBmvFR.obj$fitted_func
-    }
+
 
     # ------------------------------------------------------------------------
     # STEP 2b: Update B (X effects) via fSuSiE

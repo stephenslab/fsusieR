@@ -451,11 +451,7 @@ pois_mean_GP = function(x,
 
 }
 #'calculate objective function
-pois_mean_GP_opt_obj = function(theta,x,s,beta,sigma2,n){
-  m = theta[1:n]
-  v = theta[(n+1):(2*n)]
-  return(-sum(x*m-s*exp(m+exp(v)/2)-(m^2+exp(v)-2*m*beta)/2/sigma2+v/2))
-}
+
 
 # Modify pois_mean_GP_opt_obj
 pois_mean_GP_opt_obj = function(theta,x,s,beta,sigma2,n){
@@ -665,7 +661,7 @@ smash_dwt = function(x,sigma,filter.number=1,
     ebnm_params = temp
   }
   tsum = sum(x)/sqrt(n)
-  x.w = wd(x, filter.number = filter.number,
+  x.w = wavethresh::wd(x, filter.number = filter.number,
            family = family, type = "wavelet")
 
   data.var = sigma^2

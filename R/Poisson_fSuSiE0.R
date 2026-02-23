@@ -1,28 +1,28 @@
 #' @export
 Pois_fSuSiE0 <- function(Y,
-                         X = NULL,
-                         L = 3,
-                         scaling = NULL,
+                        X = NULL,
+                        L = 3,
+                        scaling = NULL,
 
-                         reflect = FALSE,
-                         verbose = TRUE,
-                         tol = 1e-3,
-                         maxit_outer = 2,
-                         maxit_inner = 10 ,
-                         control_mixsqp = list(verbose = FALSE,
-                                               eps = 1e-6,
-                                               numiter.em = 4),
-                         nullweight = .10,
-                         cov_lev = 0.95,
-                         min_purity = 0.5,
-                         cor_small = FALSE,
-                         post_processing = "smash",
-                         filter.number = 1,
-                         family = 'DaubExPhase',
-                         print=TRUE,
-                         update_Mu_each_iter = TRUE,
-                         True_intensity=NULL,
-                         s2=1) {
+                        reflect = FALSE,
+                        verbose = TRUE,
+                        tol = 1e-3,
+                        maxit_outer = 2,
+                        maxit_inner = 10 ,
+                        control_mixsqp = list(verbose = FALSE,
+                                              eps = 1e-6,
+                                              numiter.em = 4),
+                        nullweight = .10,
+                        cov_lev = 0.95,
+                        min_purity = 0.5,
+                        cor_small = FALSE,
+                        post_processing = "smash",
+                        filter.number = 1,
+                        family = 'DaubExPhase',
+                        print=TRUE,
+                        update_Mu_each_iter = TRUE,
+                        True_intensity=NULL,
+                        s2=1) {
 
   # Validate inputs
   if (is.null(X) ) {
@@ -54,13 +54,13 @@ Pois_fSuSiE0 <- function(Y,
 
   # Remove constant columns
 
-  tidx <- which(apply(X, 2, var) == 0)
-  if (length(tidx) > 0) {
-    warning(paste("Removed", length(tidx), "constant columns from X"))
-    X <- X[, -tidx, drop = FALSE]
-  }
+    tidx <- which(apply(X, 2, var) == 0)
+    if (length(tidx) > 0) {
+      warning(paste("Removed", length(tidx), "constant columns from X"))
+      X <- X[, -tidx, drop = FALSE]
+    }
 
-  est_effect_fm <- matrix(0, nrow =ncol(X), ncol = ncol(Y))      # X effects
+    est_effect_fm <- matrix(0, nrow =ncol(X), ncol = ncol(Y))      # X effects
 
 
 
@@ -81,19 +81,19 @@ Pois_fSuSiE0 <- function(Y,
 
 
 
-  susiF.obj=susiF(log1p(Y),X=X)
-  if (length(susiF.obj$cs) > 0) {
-    est_effect_fm=Reduce("+", lapply(1:length(susiF.obj$cs), function(l) {
-      t(susiF.obj$fitted_func[[l]] %*% t(susiF.obj$alpha[[l]]))
-    }))
+    susiF.obj=susiF(log1p(Y),X=X)
+    if (length(susiF.obj$cs) > 0) {
+      est_effect_fm=Reduce("+", lapply(1:length(susiF.obj$cs), function(l) {
+        t(susiF.obj$fitted_func[[l]] %*% t(susiF.obj$alpha[[l]]))
+      }))
 
 
-    Eb_pm <- X %*% est_effect_fm
-    B_pm <- X %*% est_effect_fm
-  } else {
-    tt <- ebpm_normal(c(Y), s = rep(scaling, ncol(Y)))
-    Eb_pm <- matrix(tt$posterior$mean_log, byrow = FALSE, ncol = ncol(Y))
-  }
+      Eb_pm <- X %*% est_effect_fm
+      B_pm <- X %*% est_effect_fm
+    } else {
+      tt <- ebpm_normal(c(Y), s = rep(scaling, ncol(Y)))
+      Eb_pm <- matrix(tt$posterior$mean_log, byrow = FALSE, ncol = ncol(Y))
+    }
 
 
 
@@ -245,7 +245,7 @@ Pois_fSuSiE0 <- function(Y,
 
     }
 
-    #  converged <- max_diff < tol
+  #  converged <- max_diff < tol
     iter <- iter + 1
   }
 
@@ -257,7 +257,7 @@ Pois_fSuSiE0 <- function(Y,
   # Finalize and return results
   # ============================================================================
 
-  susiF.obj <- fsusieR::update_cal_pip(susiF.obj)
+    susiF.obj <- fsusieR::update_cal_pip(susiF.obj)
 
 
   # Compute fitted intensities
