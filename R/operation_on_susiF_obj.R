@@ -1133,9 +1133,6 @@ out_prep.susiF <- function(obj ,
                            ...)
 {
 
-  obj <-  update_cal_pip(obj)
-
-  obj <-  name_cs(obj,X)
 
 
 
@@ -1150,6 +1147,9 @@ out_prep.susiF <- function(obj ,
 
     obj <-  merge_effect(obj)
   }
+  obj <-  update_cal_pip(obj)
+
+  obj <-  name_cs(obj,X)
 
 
   obj <-  update_cal_fit_func(obj,
