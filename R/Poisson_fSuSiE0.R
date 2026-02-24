@@ -245,7 +245,11 @@ Pois_fSuSiE0 <- function(Y,
 
     }
 
-  #  converged <- max_diff < tol
+    if (iter>2){
+      max_diff =elbo_hist [iter ]- elbo_hist [iter -1]
+      converged <- max_diff < tol
+    }
+  #
     iter <- iter + 1
   }
 
