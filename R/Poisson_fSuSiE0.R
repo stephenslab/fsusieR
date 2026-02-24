@@ -82,23 +82,23 @@ Pois_fSuSiE0 <- function(Y,
 
 
 
-     susiF.obj=susiF(log1p(Y),X=X)
-     if (length(susiF.obj$cs) > 0) {
-      est_effect_fm=Reduce("+", lapply(1:length(susiF.obj$cs), function(l) {
-       t(susiF.obj$fitted_func[[l]] %*% t(susiF.obj$alpha[[l]]))
-      }))
+    # susiF.obj=susiF(log1p(Y),X=X)
+    # if (length(susiF.obj$cs) > 0) {
+       # est_effect_fm=Reduce("+", lapply(1:length(susiF.obj$cs), function(l) {
+        #   t(susiF.obj$fitted_func[[l]] %*% t(susiF.obj$alpha[[l]]))
+        #  }))
+    #print(susiF.obj$cs)
 
 
-      Eb_pm <- X %*% est_effect_fm
-       B_pm <- X %*% est_effect_fm
-       sigma2 <-  susiF.obj $sigma2  # Initial variance
-   } else {
+      #  Eb_pm <- X %*% est_effect_fm
+      #   B_pm <- X %*% est_effect_fm
+       #  sigma2 <-  susiF.obj $sigma2  # Initial variance
+       # } else {
       tt <- ebpm_normal(c(Y), s = rep(scaling, ncol(Y)))
       Eb_pm <- matrix(tt$posterior$mean_log, byrow = FALSE, ncol = ncol(Y))
       B_pm=Eb_pm
-      sigma2 <-  .1  # Initial variance
-     }
-
+      sigma2 <-  1  # Initial variance
+      #}
 
 
 
@@ -175,6 +175,8 @@ Pois_fSuSiE0 <- function(Y,
       thresh_lowcount =  thresh_lowcount ,
       post_processing = post_processing
     )
+
+    print(susiF.obj$cs)
     if (length(susiF.obj$cs) > 0) {
       est_effect_fm=Reduce("+", lapply(1:length(susiF.obj$cs), function(l) {
         t(susiF.obj$fitted_func[[l]] %*% t(susiF.obj$alpha[[l]]))
@@ -185,7 +187,8 @@ Pois_fSuSiE0 <- function(Y,
     }
 
     sigma2 = mean(Mu_pm^2+Mu_pv+Eb_pv-2*Mu_pm*Eb_pm)
-    sigma2 = max(sigma2, 1e-6)
+    sigma2= susiF.obj $sigma2
+    sigma2 =  max(sigma2, 1e-6)
     print( susiF.obj $sigma2)
 print(sigma2)
     Eb_pm=B_pm
