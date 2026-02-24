@@ -13,7 +13,7 @@ Pois_fSuSiE0 <- function(Y,
                                               eps = 1e-6,
                                               numiter.em = 4),
                         thresh_lowcount = 0.5,
-                        nullweight = .10,
+                        nullweight = 1,
                         cov_lev = 0.95,
                         min_purity = 0.5,
                         cor_small = FALSE,
@@ -134,8 +134,8 @@ Pois_fSuSiE0 <- function(Y,
     for (i in 1:nrow(Y)) {
 
       n = ncol(Y)
-      mu_pm = rep(0,n)
-      mu_pv = rep(1/n,n)
+      mu_pm =Mu_pm[i,]# rep(0,n)
+      mu_pv =Mu_pv[i,]# rep(1/n,n)
       # get m, s^2
       opt = optim(c(mu_pm, log(mu_pv)),
                   fn = obj_fn,
