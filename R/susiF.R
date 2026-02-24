@@ -499,7 +499,8 @@ Y= colScale(Y)
                                    max_SNP_EM     = max_SNP_EM,
                                    max_step_EM    = max_step_EM,
                                    cor_small      = cor_small,
-                                   e              = e)
+                                   e              = e
+                                 )
 
   #preparing output
   obj <- out_prep(     obj            = obj,
