@@ -165,15 +165,6 @@ Pois_fSuSiE0 <- function(Y,
       Y = Mu_pm,
       X = X,
       L = L,
-      tol = tol,
-      control_mixsqp = control_mixsqp,
-      nullweight = nullweight,
-      cal_obj = FALSE,
-      verbose = FALSE,
-      cov_lev = cov_lev,
-      min_purity = min_purity,
-      maxit = maxit_inner,
-      cor_small = cor_small,
       post_processing = post_processing
     )
     if (length(susiF.obj$cs) > 0) {
