@@ -186,7 +186,7 @@ cor_small = cor_small,
       B_pm <- X %*% est_effect_fm
     }
 
-    sigma2 = mean( Mu_pv -Mu_pm^2)#abs( mean(Mu_pm^2+Mu_pv+Eb_pv-2*Mu_pm*Eb_pm))
+    sigma2 =  ( mean(Mu_pm^2+Mu_pv+Eb_pv-2*Mu_pm*Eb_pm))
     #sigma2= susiF.obj $sigma2
     sigma2 =  max(sigma2, 1e-6)
     print( susiF.obj $sigma2)
