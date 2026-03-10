@@ -36,7 +36,7 @@
 # @export
 #
 EM_pi <- function(G_prior,Bhat, Shat, indx_lst,
-                  max_step = 100,
+                  max_step = 1 ,
                   espsilon = 0.0001,
                   init_pi0_w =1,
                   control_mixsqp,
@@ -80,6 +80,7 @@ EM_pi <- function(G_prior,Bhat, Shat, indx_lst,
   }else{
     idx <- 1:length(lBF)
   }
+
   Lmat  <-  L_mixsq(G_prior, Bhat[idx,,drop=FALSE], Shat[idx,,drop=FALSE], indx_lst)
   J <- dim(Bhat)[1]
   tsd_k <- get_sd_G_prior(G_prior)
@@ -90,7 +91,7 @@ EM_pi <- function(G_prior,Bhat, Shat, indx_lst,
   newloglik <-1
 
   zeta <- rep(1/J,J) #assignation initial value
-  k <- 1 #counting the number of iteration
+  k <- 0 #counting the number of iteration
 
   while( k <=max_step &  abs(newloglik-oldloglik)>=espsilon)
   {
