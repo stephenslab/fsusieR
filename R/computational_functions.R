@@ -427,16 +427,16 @@ fit_ash_level <- function (Bhat, Shat, s, indx_lst, lowc_wc,...)
 #' @importFrom stats dnorm
 #' @importFrom ashr calc_loglik
 fit_hmm <- function (x, sd,
-                     halfK       = 100,
-                     mult        = 3,
-                     smooth      = FALSE,
-                     thresh      = 0.00001,
-                     prefilter   = TRUE,
+                     halfK            = 100,
+                     mult             = 3,
+                     smooth           = FALSE,
+                     thresh           = 0.00001,
+                     prefilter        = TRUE,
                      thresh_prefilter = 1e-30,
-                     maxiter     = 3,
-                     max_zscore  = 20,
-                     thresh_sd   = 1e-30,
-                     epsilon     = 1e-2
+                     maxiter          = 3,
+                     max_zscore       = 20,
+                     thresh_sd        = 1e-30,
+                     epsilon          = 1e-2
 ) {
 
   # ------------------------------------------------------------------
@@ -493,27 +493,32 @@ fit_hmm <- function (x, sd,
   # 4. Transition matrix: hub-and-spoke (null <-> nonzero only)
   # ------------------------------------------------------------------
   P        <- matrix(0, nrow = K, ncol = K)
-  diag(P)  <- 0.5                              # self-transitions
-  P[1, -1] <- 0.5 / (K - 1)                   # null -> any nonzero
-  P[-1, 1] <- 0.5                              # nonzero -> null
-  # add epsilon for numerical stability (structural zeros kept at 0)
+  diag(P)  <- 0.5
+  P[1, -1] <- 0.5 / (K - 1)
+  P[-1, 1] <- 0.5
   P[1, ]   <- P[1, ]   + epsilon
   diag(P)  <- diag(P)  + epsilon
   P[-1, 1] <- P[-1, 1] + epsilon
-  P        <- P / rowSums(P)                   # exact row-normalisation
+  P        <- P / rowSums(P)
 
   # ------------------------------------------------------------------
   # 5. Initial state distribution: strongly concentrated on null
   # ------------------------------------------------------------------
-  pi      <- rep(epsilon, K)
-  pi[1]   <- 0.99
-  pi      <- pi / sum(pi)                      # safety normalisation
+  pi    <- rep(epsilon, K)
+  pi[1] <- 1 - (K - 1) * epsilon
+  pi    <- pi / sum(pi)
 
   # raw Gaussian emit (used only in the initialisation E-step)
   emit <- function(k, x, t) dnorm(x, mean = mu[k], sd = sd[t])
 
   # ------------------------------------------------------------------
-  # 6. Initial forward pass (Gaussian emissions)
+  # 6. Null model log-likelihood
+  #    H0: X[t] ~ N(0, sd[t]) for all t — reference for BF and LRT
+  # ------------------------------------------------------------------
+  log_marglik_null <- sum(dnorm(X, mean = 0, sd = sd, log = TRUE))
+
+  # ------------------------------------------------------------------
+  # 7. Initial forward pass (Gaussian emissions)
   # ------------------------------------------------------------------
   alpha_hat   <- matrix(nrow = length(X), ncol = K)
   alpha_tilde <- matrix(nrow = length(X), ncol = K)
@@ -531,7 +536,7 @@ fit_hmm <- function (x, sd,
   }
 
   # ------------------------------------------------------------------
-  # 7. Initial backward pass (Gaussian emissions)
+  # 8. Initial backward pass (Gaussian emissions)
   # ------------------------------------------------------------------
   beta_hat   <- matrix(nrow = length(X), ncol = K)
   beta_tilde <- matrix(nrow = length(X), ncol = K)
@@ -541,7 +546,7 @@ fit_hmm <- function (x, sd,
   beta_tilde[length(X), ] <- 1
 
   for (t in (length(X) - 1):1) {
-    emissio_p      <- emit(1:K, X[t+1], t = t+1)
+    emissio_p       <- emit(1:K, X[t+1], t = t+1)
     beta_tilde[t, ] <- apply(sweep(P, 2, beta_hat[t+1, ] * emissio_p, "*"), 1, sum)
     C_t[t]          <- max(beta_tilde[t, ])
     beta_hat[t, ]   <- beta_tilde[t, ] / C_t[t]
@@ -551,9 +556,8 @@ fit_hmm <- function (x, sd,
   prob <- ab / rowSums(ab)
 
   # ------------------------------------------------------------------
-  # 8. Initial xi / transition update (Gaussian emissions)
+  # 9. Initial xi / transition update (Gaussian emissions)
   # ------------------------------------------------------------------
-  # cache emission matrix so xi and forward/backward use identical values
   emissio_mat <- matrix(0, nrow = length(X), ncol = K)
   for (t in seq_along(X))
     emissio_mat[t, ] <- emit(1:K, X[t], t = t)
@@ -565,27 +569,25 @@ fit_hmm <- function (x, sd,
     xi   <- xi + xi_t
   }
 
-  # enforce hub-and-spoke structure before normalising
   if (K > 2) xi[2:K, 2:K] <- diag(diag(xi[2:K, 2:K, drop = FALSE]))
 
-  row_sums          <- rowSums(xi)
+  row_sums              <- rowSums(xi)
   row_sums[row_sums == 0] <- 1
-  P                 <- xi / row_sums
+  P                     <- xi / row_sums
   P[P < epsilon & P != 0] <- epsilon
-  P                 <- P / rowSums(P)
+  P                     <- P / rowSums(P)
 
   # ------------------------------------------------------------------
-  # 9. Identify active states; fit ash objects
+  # 10. Identify active states; fit ash objects
   # ------------------------------------------------------------------
   idx_comp <- which(apply(prob, 2, mean) > thresh)
   if (!(1 %in% idx_comp))
     idx_comp <- c(1, idx_comp)
 
-  # *** FIX: subset mu to match the reduced state space ***
   prob <- prob[, idx_comp]
   K    <- length(idx_comp)
   P    <- P[idx_comp, idx_comp]
-  mu   <- mu[idx_comp]           # was missing in previous version
+  mu   <- mu[idx_comp]
 
   ash_obj <- list()
   x_post  <- 0 * x
@@ -593,39 +595,37 @@ fit_hmm <- function (x, sd,
   for (i in 2:K) {
     weight       <- prob[, i]
     ash_obj[[i]] <- ash(x, sd,
-                        weight       = weight,
-                        mode         = mu[i],
-                        mixcompdist  = "normal")
+                        weight      = weight,
+                        mode        = mu[i],
+                        mixcompdist = "normal")
     x_post <- x_post + weight * ash_obj[[i]]$result$PosteriorMean
   }
 
   # ------------------------------------------------------------------
-  # 10. Baum-Welch iterations with ash-based emissions
+  # 11. Baum-Welch iterations with ash-based emissions
   # ------------------------------------------------------------------
   iter <- 1
 
   while (iter < maxiter) {
 
-    # -- 10a. Cache ash-based emission matrix --
-    # (must be rebuilt after each ash update)
+    # -- 11a. Cache ash-based emission matrix (rebuilt after each ash update) --
     emissio_mat <- matrix(0, nrow = length(X), ncol = K)
     for (t in seq_along(X)) {
       data0 <- set_data(X[t], sd[t])
       emissio_mat[t, ] <- c(
-        dnorm(X[t], mean = 0, sd = sd[t]),                          # null state
+        dnorm(X[t], mean = 0, sd = sd[t]),
         sapply(2:K, function(k)
-          exp(ashr::calc_loglik(ash_obj[[k]], data0)))               # nonzero states
+          exp(ashr::calc_loglik(ash_obj[[k]], data0)))
       )
     }
 
-    # -- 10b. Forward pass --
+    # -- 11b. Forward pass --
     alpha_hat   <- matrix(nrow = length(X), ncol = K)
     alpha_tilde <- matrix(nrow = length(X), ncol = K)
     G_t         <- rep(NA, length(X))
 
-    # update pi from smoothed posteriors at t=1
-    pi      <- pmax(prob[1, ], epsilon)
-    pi      <- pi / sum(pi)
+    pi    <- pmax(prob[1, ], epsilon)
+    pi    <- pi / sum(pi)
 
     alpha_tilde[1, ] <- pi * emissio_mat[1, ]
     G_t[1]           <- sum(alpha_tilde[1, ])
@@ -633,13 +633,12 @@ fit_hmm <- function (x, sd,
 
     for (t in 1:(length(X) - 1)) {
       m                  <- alpha_hat[t, ] %*% P
-      # *** FIX: emission at t+1 uses data at t+1 (was incorrectly t before) ***
       alpha_tilde[t+1, ] <- m * emissio_mat[t+1, ]
       G_t[t+1]           <- sum(alpha_tilde[t+1, ])
       alpha_hat[t+1, ]   <- alpha_tilde[t+1, ] / G_t[t+1]
     }
 
-    # -- 10c. Backward pass --
+    # -- 11c. Backward pass --
     beta_hat   <- matrix(nrow = length(X), ncol = K)
     beta_tilde <- matrix(nrow = length(X), ncol = K)
     C_t        <- rep(NA, length(X))
@@ -657,7 +656,7 @@ fit_hmm <- function (x, sd,
     ab   <- alpha_hat * beta_hat
     prob <- ab / rowSums(ab)
 
-    # -- 10d. M-step: update ash objects --
+    # -- 11d. M-step: update ash objects --
     ash_obj <- list()
     x_post  <- 0 * x
 
@@ -670,8 +669,7 @@ fit_hmm <- function (x, sd,
       x_post <- x_post + weight * ash_obj[[k]]$result$PosteriorMean
     }
 
-    # -- 10e. M-step: update transition matrix --
-    # *** FIX: xi uses cached ash-based emissio_mat, not raw emit() ***
+    # -- 11e. M-step: update transition matrix --
     xi <- matrix(0, K, K)
     for (t in 1:(length(X) - 1)) {
       xi_t <- outer(alpha_hat[t, ], beta_hat[t+1, ] * emissio_mat[t+1, ]) * P
@@ -679,29 +677,85 @@ fit_hmm <- function (x, sd,
       xi   <- xi + xi_t
     }
 
-    # enforce hub-and-spoke structure
     if (K > 2) xi[2:K, 2:K] <- diag(diag(xi[2:K, 2:K, drop = FALSE]))
 
-    row_sums          <- rowSums(xi)
+    row_sums              <- rowSums(xi)
     row_sums[row_sums == 0] <- 1
-    P                 <- xi / row_sums
+    P                     <- xi / row_sums
     P[P < epsilon & P != 0] <- epsilon
-    P                 <- P / rowSums(P)
+    P                     <- P / rowSums(P)
 
     iter <- iter + 1
   }
 
   # ------------------------------------------------------------------
-  # 11. Compute LFSR
+  # 12. Compute LFSR (pointwise)
   # ------------------------------------------------------------------
   lfsr_est <- prob[, 1]
   for (k in 2:K)
     lfsr_est <- lfsr_est + prob[, k] * ash_obj[[k]]$result$lfsr
 
-  list(prob   = prob,
-       x_post = x_post,
-       lfsr   = lfsr_est,
-       mu     = mu)
+  # ------------------------------------------------------------------
+  # 13. Global test: Bayes Factor and Likelihood Ratio Test
+  #
+  #  H0 : X[t] ~ N(0, sd[t])  for all t  (pure null everywhere)
+  #  H1 : X[t] generated by the fitted HMM
+  #
+  #  log P(X | H1) = sum_t log(G_t)
+  #    G_t are the forward-pass normalising constants; their product is
+  #    exactly the marginal likelihood of the observed sequence under H1.
+  #
+  #  log BF  = log P(X|H1) - log P(X|H0)
+  #  LRT     = 2 * log BF
+  #
+  #  p-value: chi-sq(df = 1) approximation.
+  #    H0 sits on the boundary of H1 (it is the degenerate all-null path),
+  #    so df = 1 is conservative — treat as an upper bound on significance.
+  #
+  #  Jeffreys (1961) scale on log10(BF):
+  #    < 0        H0 supported
+  #    0 – 0.5    Barely worth mentioning
+  #    0.5 – 1    Substantial
+  #    1 – 1.5    Strong
+  #    1.5 – 2    Very strong
+  #    > 2        Decisive
+  # ------------------------------------------------------------------
+  log_marglik_H1 <- sum(log(G_t), na.rm = TRUE)
+
+  log_BF   <- log_marglik_H1 - log_marglik_null
+  log10_BF <- log_BF / log(10)
+  BF       <- exp(log_BF)
+  LRT      <- 2 * log_BF
+  pval_lrt <- pchisq(LRT, df = 1, lower.tail = FALSE)
+
+  BF_interpretation <- if      (log10_BF < 0  ) "H0 supported"
+  else if (log10_BF < 0.5 ) "Barely worth mentioning"
+  else if (log10_BF < 1.0 ) "Substantial"
+  else if (log10_BF < 1.5 ) "Strong"
+  else if (log10_BF < 2.0 ) "Very strong"
+  else                       "Decisive"
+print(BF)
+  global_test <- list(
+    log_marglik_null  = log_marglik_null,  # log P(X | H0)
+    log_marglik_H1    = log_marglik_H1,    # log P(X | H1)
+    log_BF            = log_BF,            # log Bayes Factor (natural log)
+    log10_BF          = log10_BF,          # log10 BF  (Jeffreys scale)
+    BF                = BF,                # Bayes Factor
+    BF_interpretation = BF_interpretation, # Jeffreys label
+    LRT               = LRT,              # 2 * log BF
+    pval_lrt          = pval_lrt          # chi-sq(1) p-value (approximate)
+  )
+
+  # ------------------------------------------------------------------
+  # 14. Return
+  # ------------------------------------------------------------------
+  list(
+    prob        = prob,
+    x_post      = x_post,
+    lfsr        = lfsr_est,
+    mu          = mu,
+    global_test = global_test
+  )
 }
 
 #'@title Compute refined estimate using HMM regression
