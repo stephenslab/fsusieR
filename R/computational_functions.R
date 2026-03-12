@@ -492,14 +492,32 @@ fit_hmm <- function (x,sd,
     K <- length(mu)
   }
 
-  P <- diag(0.5,K)+ matrix(epsilon, ncol=K, nrow=K) #this ensure that the HMM can only "transit via null state"
-  P[1,-1] <- 0.5
-  P[-1,1] <- 0.5
+  # Enforce hub-and-spoke topology strictly
+  P <- matrix(0, ncol=K, nrow=K)
+  diag(P) <- 0.5 # Self-transitions
 
+  # From null (1) to non-nulls (2:K)
+  P[1, 2:K] <- 0.5 / (K - 1)
 
+  # From non-nulls (2:K) to null (1)
+  P[2:K, 1] <- 0.5
 
-  pi = rep( 1/length(mu), length(mu)) #same initial guess
+  # Add epsilon for numerical stability, but keep structural zeros for non-null to non-null
+  P <- P + matrix(epsilon, ncol=K, nrow=K)
+  for (i in 2:K) {
+    for (j in 2:K) {
+      if (i != j) P[i, j] <- 0
+    }
+  }
+  P <- P / rowSums(P) # Exact row normalization
 
+  # Strong prior on starting in the null state to prevent boundary false positives
+  pi <- rep(epsilon, K)
+  pi[1] <- 1 - sum(pi[-1])
+
+ # pi = rep( 1/length(mu), length(mu)) #same initial guess
+  pi <- rep(epsilon, length(mu))
+  pi[1] <- 1 - (length(mu) - 1) * epsilon
   emit = function(k,x,t){
     dnorm(x,mean=mu[k],sd=sd[t]   )
   }
