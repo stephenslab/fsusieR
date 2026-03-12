@@ -616,7 +616,7 @@ fit_hmm <- function (x,sd,
 
   K= length(idx_comp)
   P= P[idx_comp, idx_comp]
-
+  mu <- mu[idx_comp]
   while( iter <maxiter){
 
 
@@ -624,11 +624,22 @@ fit_hmm <- function (x,sd,
     alpha_tilde = matrix(nrow = length(X),ncol=K)
     G_t <- rep(NA, length(X))
 
-    data0 <-  set_data(X[1],sd[1])
+    # Update initial state distribution (pi) from the previous EM iteration's smoothed prob
+    pi <- prob[1, ]
+    pi[pi < epsilon] <- epsilon # prevent log(0) issues
+    pi <- pi / sum(pi)
 
-    alpha_hat[1, ] <- prob[1, ]
-    alpha_hat[1, ] <- prob[1, ]
+    # Proper E-step initialization for t=1
+    data0_t1 <- set_data(X[1], sd[1])
+    emissio_p1 <- c(dnorm(X[1], mean=0, sd=sd[1]),
+                    sapply(2:K, function(k) exp(ashr::calc_loglik(ash_obj[[k]], data0_t1))))
 
+    alpha_tilde[1, ] <- pi * emissio_p1
+    G_t[1] <- sum(alpha_tilde[1, ])
+    alpha_hat[1, ] <- alpha_tilde[1, ] / G_t[1]
+
+    # Reset data0 for the t in 1:(length(X)-1) loop
+    data0 <- set_data(X[1], sd[1])
 
 
 
@@ -724,11 +735,22 @@ fit_hmm <- function (x,sd,
       xi <- xi + xi_t
     }
 
-    transition=matrix( 0, ncol=ncol(P), nrow=length(X))
+    # Enforce structural zeros for non-null to non-null transitions before normalizing
+    for (i in 2:K) {
+      for (j in 2:K) {
+        if (i != j) xi[i, j] <- 0
+      }
+    }
+
     row_sums <- rowSums(xi)
     row_sums[row_sums == 0] <- 1  # prevent division by zero
     P <- xi / row_sums
-    iter =iter +1
+
+    # Ensure no probabilities drop exactly to 0 (except structural zeros) to prevent log(0)
+    P[P < epsilon & P > 0] <- epsilon
+    P <- P / rowSums(P)
+
+    iter = iter + 1
     #lines( x_post, col=iter)
 
 
