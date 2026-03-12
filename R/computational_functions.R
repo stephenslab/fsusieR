@@ -426,352 +426,282 @@ fit_ash_level <- function (Bhat, Shat, s, indx_lst, lowc_wc,...)
 #' @importFrom ashr ash
 #' @importFrom stats dnorm
 #' @importFrom ashr calc_loglik
-fit_hmm <- function (x,sd,
-                     halfK=100,
-                     mult=3,
-                     smooth=FALSE,
-                     thresh=0.00001,
-                     prefilter=TRUE,
-                     thresh_prefilter=1e-30,
-                     maxiter=3,
-                     max_zscore=20,
-                     thresh_sd=1e-30,
-                     epsilon=1e-2
-){
+fit_hmm <- function (x, sd,
+                     halfK       = 100,
+                     mult        = 3,
+                     smooth      = FALSE,
+                     thresh      = 0.00001,
+                     prefilter   = TRUE,
+                     thresh_prefilter = 1e-30,
+                     maxiter     = 3,
+                     max_zscore  = 20,
+                     thresh_sd   = 1e-30,
+                     epsilon     = 1e-2
+) {
 
+  # ------------------------------------------------------------------
+  # 1. Input sanitisation
+  # ------------------------------------------------------------------
+  if (length(which(sd < thresh_sd)) > 0)
+    sd[which(sd < thresh_sd)] <- thresh_sd
 
-  # deal with case where very close to zero sds
-  if( length(which(sd< thresh_sd))>0){
-    sd[ which(sd< thresh_sd)] <- thresh_sd
-  }
-  if (sum(is.na(sd))>0){
-    x [ which( is.na(sd))]<- 0
-    sd[ which( is.na(x))]<- 1
-  }
-  if(sum(!is.finite(sd))>0){
-    x [which(!is.finite(sd))]=0
-    sd[which(!is.finite(sd))]=1
-
+  if (sum(is.na(sd)) > 0) {
+    x [which(is.na(sd))] <- 0
+    sd[which(is.na(sd))] <- 1
   }
 
-
-  if( length(which(abs(x/sd)> max_zscore))>0){ #avoid underflow  a z-score of 20=> pv< e-90
-
-
-    sd[which(abs(x/sd)> max_zscore)] <- abs(x[which(abs(x/sd)> max_zscore)])/ max_zscore
-
+  if (sum(!is.finite(sd)) > 0) {
+    x [which(!is.finite(sd))] <- 0
+    sd[which(!is.finite(sd))] <- 1
   }
 
-  K = 2*halfK-1
-  sd=  sd
-  X <-x
+  if (length(which(abs(x / sd) > max_zscore)) > 0) {
+    sd[which(abs(x / sd) > max_zscore)] <-
+      abs(x[which(abs(x / sd) > max_zscore)]) / max_zscore
+  }
 
-  pos <- seq(  0, 1 ,   length.out=halfK)
+  # ------------------------------------------------------------------
+  # 2. Build initial state grid
+  # ------------------------------------------------------------------
+  K  <- 2 * halfK - 1
+  X  <- x
 
-  #define the mean states
-  mu <- (pos^(1/mult))*1.5*max(abs(X)) # put 0 state at
-  #the firstplace
-  mu <- c(mu, -mu[-1] )
+  pos <- seq(0, 1, length.out = halfK)
+  mu  <- (pos^(1 / mult)) * 1.5 * max(abs(X))
+  mu  <- c(mu, -mu[-1])                      # symmetric around 0
 
-
-  min_delta <- abs(mu[2]-mu[1])
-  if( prefilter){
+  # ------------------------------------------------------------------
+  # 3. Prefilter states with negligible average emission weight
+  # ------------------------------------------------------------------
+  if (prefilter) {
     tt <- apply(
-      do.call( rbind, lapply(1:length(x), function( i){
-        tt <-dnorm(x[i],mean = mu, sd=sd[i])
-        return( tt/ sum(tt))
-      } )),
+      do.call(rbind, lapply(seq_along(x), function(i) {
+        tt <- dnorm(x[i], mean = mu, sd = sd[i])
+        tt / sum(tt)
+      })),
+      2, mean, na.rm = TRUE)
 
-      2,
-      mean,na.rm=TRUE)
     temp_idx <- which(tt > thresh_prefilter)
-    if( 1 %!in% temp_idx){
-      temp_idx <- c(1,temp_idx)
-    }
+    if (!(1 %in% temp_idx))
+      temp_idx <- c(1, temp_idx)
+
     mu <- mu[temp_idx]
-    K <- length(mu)
+    K  <- length(mu)
   }
 
-  # Enforce hub-and-spoke topology strictly
-  P <- matrix(0, ncol=K, nrow=K)
-  diag(P) <- 0.5 # Self-transitions
+  # ------------------------------------------------------------------
+  # 4. Transition matrix: hub-and-spoke (null <-> nonzero only)
+  # ------------------------------------------------------------------
+  P        <- matrix(0, nrow = K, ncol = K)
+  diag(P)  <- 0.5                              # self-transitions
+  P[1, -1] <- 0.5 / (K - 1)                   # null -> any nonzero
+  P[-1, 1] <- 0.5                              # nonzero -> null
+  # add epsilon for numerical stability (structural zeros kept at 0)
+  P[1, ]   <- P[1, ]   + epsilon
+  diag(P)  <- diag(P)  + epsilon
+  P[-1, 1] <- P[-1, 1] + epsilon
+  P        <- P / rowSums(P)                   # exact row-normalisation
 
-  # From null (1) to non-nulls (2:K)
-  P[1, 2:K] <- 0.5 / (K - 1)
+  # ------------------------------------------------------------------
+  # 5. Initial state distribution: strongly concentrated on null
+  # ------------------------------------------------------------------
+  pi      <- rep(epsilon, K)
+  pi[1]   <- 0.99
+  pi      <- pi / sum(pi)                      # safety normalisation
 
-  # From non-nulls (2:K) to null (1)
-  P[2:K, 1] <- 0.5
+  # raw Gaussian emit (used only in the initialisation E-step)
+  emit <- function(k, x, t) dnorm(x, mean = mu[k], sd = sd[t])
 
-  # Add epsilon for numerical stability, but keep structural zeros for non-null to non-null
-  P <- P + matrix(epsilon, ncol=K, nrow=K)
-  for (i in 2:K) {
-    for (j in 2:K) {
-      if (i != j) P[i, j] <- 0
-    }
-  }
-  P <- P / rowSums(P) # Exact row normalization
+  # ------------------------------------------------------------------
+  # 6. Initial forward pass (Gaussian emissions)
+  # ------------------------------------------------------------------
+  alpha_hat   <- matrix(nrow = length(X), ncol = K)
+  alpha_tilde <- matrix(nrow = length(X), ncol = K)
+  G_t         <- rep(NA, length(X))
 
-  # Strong prior on starting in the null state to prevent boundary false positives
-  pi <- rep(epsilon, K)
-  pi[1] <- 1 - sum(pi[-1])
+  alpha_tilde[1, ] <- pi * emit(1:K, x = X[1], t = 1)
+  G_t[1]           <- sum(alpha_tilde[1, ])
+  alpha_hat[1, ]   <- alpha_tilde[1, ] / G_t[1]
 
- # pi = rep( 1/length(mu), length(mu)) #same initial guess
-  pi <- rep(epsilon, length(mu))
-  pi[1] <- 1 - (length(mu) - 1) * epsilon
-  emit = function(k,x,t){
-    dnorm(x,mean=mu[k],sd=sd[t]   )
-  }
-
-
-  alpha_hat = matrix(  nrow = length(X),ncol=K)
-  alpha_tilde = matrix(  nrow = length(X),ncol=K)
-  G_t <- rep(NA, length(X))
-  for(k in 1:K){
-    alpha_hat[1, ] = pi* emit(1:K,x=X[1],t=1)
-    alpha_tilde[1, ] = pi* emit(1:K,x=X[1],t=1)
-  }
-
-
-
-  # Forward algorithm
-  for(t in 1:(length(X)-1)){
-    m = alpha_hat[t,] %*% P
-
-    alpha_tilde[t+1, ] = m *emit(1:K,x=X[t+1], t= t+1 )
-    G_t[t+1] <- sum( alpha_tilde[t+1,])
-    alpha_hat[t+1,] <-  alpha_tilde[t+1,]/ ( G_t[t+1])
-  }
-
-  beta_hat = matrix(nrow =  length(X),ncol=K)
-
-  beta_tilde = matrix(nrow =  length(X),ncol=K)
-  C_t <- rep(NA, length(X))
-  # Initialize beta
-  for(k in 1:K){
-    beta_hat[ length(X),k] = 1
-    beta_tilde [ length(X),k] = 1
-  }
-
-  # Backwards algorithm
-  for(t in ( length(X)-1):1){
-    emissio_p <- emit(1:K,X[t+1],t=t+1)
-    beta_tilde [t, ] = apply( sweep( P,2, beta_hat[t+1,]*emissio_p ,"*" ),1,sum)
-    C_t[t] <- max(beta_tilde[t,])
-    beta_hat[t,] <-  beta_tilde [t, ] /C_t[t]
-  }
-
-
-  ab = alpha_hat*beta_hat
-  prob = ab/rowSums(ab)
-
-  #image(prob)#plot(apply(prob[,-1],1, sum), type='l')
-  #plot(x)
-  #lines(1-prob[,1])
-
-
-
-  ab = alpha_hat*beta_hat
-  prob = ab/rowSums(ab)
-
-
-  xi <- array(0, dim = c(K, K))
   for (t in 1:(length(X) - 1)) {
-    xi_t <- outer(alpha_hat[t, ], beta_hat[t+1, ] * emit(1:K, X[t+1], t+1)) * P
+    m                  <- alpha_hat[t, ] %*% P
+    alpha_tilde[t+1, ] <- m * emit(1:K, x = X[t+1], t = t+1)
+    G_t[t+1]           <- sum(alpha_tilde[t+1, ])
+    alpha_hat[t+1, ]   <- alpha_tilde[t+1, ] / G_t[t+1]
+  }
+
+  # ------------------------------------------------------------------
+  # 7. Initial backward pass (Gaussian emissions)
+  # ------------------------------------------------------------------
+  beta_hat   <- matrix(nrow = length(X), ncol = K)
+  beta_tilde <- matrix(nrow = length(X), ncol = K)
+  C_t        <- rep(NA, length(X))
+
+  beta_hat[length(X), ]   <- 1
+  beta_tilde[length(X), ] <- 1
+
+  for (t in (length(X) - 1):1) {
+    emissio_p      <- emit(1:K, X[t+1], t = t+1)
+    beta_tilde[t, ] <- apply(sweep(P, 2, beta_hat[t+1, ] * emissio_p, "*"), 1, sum)
+    C_t[t]          <- max(beta_tilde[t, ])
+    beta_hat[t, ]   <- beta_tilde[t, ] / C_t[t]
+  }
+
+  ab   <- alpha_hat * beta_hat
+  prob <- ab / rowSums(ab)
+
+  # ------------------------------------------------------------------
+  # 8. Initial xi / transition update (Gaussian emissions)
+  # ------------------------------------------------------------------
+  # cache emission matrix so xi and forward/backward use identical values
+  emissio_mat <- matrix(0, nrow = length(X), ncol = K)
+  for (t in seq_along(X))
+    emissio_mat[t, ] <- emit(1:K, X[t], t = t)
+
+  xi <- matrix(0, K, K)
+  for (t in 1:(length(X) - 1)) {
+    xi_t <- outer(alpha_hat[t, ], beta_hat[t+1, ] * emissio_mat[t+1, ]) * P
     xi_t <- xi_t / sum(xi_t)
-    xi <- xi + xi_t
+    xi   <- xi + xi_t
   }
 
-  transition=matrix( 0, ncol=ncol(P), nrow=length(X))
-  row_sums <- rowSums(xi)
-  row_sums[row_sums == 0] <- 1  # prevent division by zero
-  P <- xi / row_sums
+  # enforce hub-and-spoke structure before normalising
+  if (K > 2) xi[2:K, 2:K] <- diag(diag(xi[2:K, 2:K, drop = FALSE]))
 
+  row_sums          <- rowSums(xi)
+  row_sums[row_sums == 0] <- 1
+  P                 <- xi / row_sums
+  P[P < epsilon & P != 0] <- epsilon
+  P                 <- P / rowSums(P)
 
-  idx_comp <- which( apply(prob, 2, mean) >thresh )
-  if ( !(1%in% idx_comp) ){ #ensure 0 is in the model
+  # ------------------------------------------------------------------
+  # 9. Identify active states; fit ash objects
+  # ------------------------------------------------------------------
+  idx_comp <- which(apply(prob, 2, mean) > thresh)
+  if (!(1 %in% idx_comp))
+    idx_comp <- c(1, idx_comp)
 
-    idx_comp<- c(1, idx_comp)
-  }
+  # *** FIX: subset mu to match the reduced state space ***
+  prob <- prob[, idx_comp]
+  K    <- length(idx_comp)
+  P    <- P[idx_comp, idx_comp]
+  mu   <- mu[idx_comp]           # was missing in previous version
 
   ash_obj <- list()
-  x_post <- 0*x
+  x_post  <- 0 * x
 
-
-  for ( i in 2:length(idx_comp)){
-    mu_ash <-mu[idx_comp[i] ]
-    weight <- prob[,idx_comp[i]]
-
-    ash_obj[[i]]  <- ash(x,sd,
-                         weight=weight,
-                         mode=mu_ash,
-                         mixcompdist = "normal"
-    )
-    x_post <-  x_post +weight*ash_obj[[i]]$result$PosteriorMean
-
+  for (i in 2:K) {
+    weight       <- prob[, i]
+    ash_obj[[i]] <- ash(x, sd,
+                        weight       = weight,
+                        mode         = mu[i],
+                        mixcompdist  = "normal")
+    x_post <- x_post + weight * ash_obj[[i]]$result$PosteriorMean
   }
 
-  # plot( X)
-  prob <-  prob[ ,idx_comp]
-  iter=1
+  # ------------------------------------------------------------------
+  # 10. Baum-Welch iterations with ash-based emissions
+  # ------------------------------------------------------------------
+  iter <- 1
 
-  K= length(idx_comp)
-  P= P[idx_comp, idx_comp]
-  mu <- mu[idx_comp]
-  while( iter <maxiter){
+  while (iter < maxiter) {
 
-
-    alpha_hat = matrix(nrow = length(X),ncol=K)
-    alpha_tilde = matrix(nrow = length(X),ncol=K)
-    G_t <- rep(NA, length(X))
-
-    # Update initial state distribution (pi) from the previous EM iteration's smoothed prob
-    pi <- prob[1, ]
-    pi[pi < epsilon] <- epsilon # prevent log(0) issues
-    pi <- pi / sum(pi)
-
-    # Proper E-step initialization for t=1
-    data0_t1 <- set_data(X[1], sd[1])
-    emissio_p1 <- c(dnorm(X[1], mean=0, sd=sd[1]),
-                    sapply(2:K, function(k) exp(ashr::calc_loglik(ash_obj[[k]], data0_t1))))
-
-    alpha_tilde[1, ] <- pi * emissio_p1
-    G_t[1] <- sum(alpha_tilde[1, ])
-    alpha_hat[1, ] <- alpha_tilde[1, ] / G_t[1]
-
-    # Reset data0 for the t in 1:(length(X)-1) loop
-    data0 <- set_data(X[1], sd[1])
-
-
-
-
-    # Forward algorithm
-    for(t in 1:(length(X)-1)){
-      m = alpha_hat[t,] %*% P
-      data0 <-  set_data(X[t],sd[t])
-
-
-
-      alpha_tilde[t+1, ] = m  *c(dnorm(X[t+1], mean=0, sd=sd[t+1]),
-                                 sapply( 2:K, function( k) exp(ashr::calc_loglik(ash_obj[[k]],
-                                                                                 data0)
-                                 )
-                                 )
+    # -- 10a. Cache ash-based emission matrix --
+    # (must be rebuilt after each ash update)
+    emissio_mat <- matrix(0, nrow = length(X), ncol = K)
+    for (t in seq_along(X)) {
+      data0 <- set_data(X[t], sd[t])
+      emissio_mat[t, ] <- c(
+        dnorm(X[t], mean = 0, sd = sd[t]),                          # null state
+        sapply(2:K, function(k)
+          exp(ashr::calc_loglik(ash_obj[[k]], data0)))               # nonzero states
       )
-      G_t[t+1] <- sum( alpha_tilde[t+1,])
-      alpha_hat[t+1,] <-  alpha_tilde[t+1,]/ ( G_t[t+1])
     }
 
-    beta_hat = matrix(nrow =  length(X),ncol=K)
+    # -- 10b. Forward pass --
+    alpha_hat   <- matrix(nrow = length(X), ncol = K)
+    alpha_tilde <- matrix(nrow = length(X), ncol = K)
+    G_t         <- rep(NA, length(X))
 
-    beta_tilde = matrix(nrow =  length(X),ncol=K)
-    C_t <- rep(NA, length(X))
-    # Initialize beta
-    for(k in 1:K){
-      beta_hat[ length(X),k] = 1
-      beta_tilde [ length(X),k] = 1
-    }
+    # update pi from smoothed posteriors at t=1
+    pi      <- pmax(prob[1, ], epsilon)
+    pi      <- pi / sum(pi)
 
-    # Backwards algorithm
-    for(t in ( length(X)-1):1){
+    alpha_tilde[1, ] <- pi * emissio_mat[1, ]
+    G_t[1]           <- sum(alpha_tilde[1, ])
+    alpha_hat[1, ]   <- alpha_tilde[1, ] / G_t[1]
 
-      data0 <-  set_data(X[t+1],sd[t+1])
-      emissio_p <- c(dnorm(X[t+1], mean=0, sd=sd[t+1]),
-                     sapply( 2:K, function( k) exp(ashr::calc_loglik(ash_obj[[k]],
-                                                                     data0)
-                     )
-                     )
-      )
-
-
-
-      beta_tilde [t, ] = apply( sweep( P,2, beta_hat[t+1,]*emissio_p ,"*" ),1,sum)
-
-      C_t[t] <- max(beta_tilde[t,])
-      beta_hat[t,] <-  beta_tilde [t, ] /C_t[t]
-    }
-
-
-
-
-    ab = alpha_hat*beta_hat
-    prob = ab/rowSums(ab)
-
-
-    # image(prob)#plot(apply(prob[,-1],1, sum), type='l')
-    #plot(x)
-    #lines(1-prob[,1])
-
-    ash_obj <- list()
-    x_post <- 0*x
-
-    for ( k in 2:K){
-      # mu_ash <- sum(prob[,k]*X)/(sum(prob[,k])) #M step for the mean
-      mu_ash <-mu[k ]
-
-
-
-      weight <- prob[,k]
-
-      ash_obj[[k]]  <- ash(x,sd,
-                           weight=weight,
-                           mode=mu_ash,
-                           mixcompdist = "normal"
-      )
-      x_post <-  x_post +weight*ash_obj[[k]]$result$PosteriorMean
-
-    }
-
-    #Baum_Welch
-    #Baum_Welch <-  function(X,sd,mu,P, prob, alpha, beta ){
-
-    ab = alpha_hat*beta_hat
-    prob = ab/rowSums(ab)
-
-
-    xi <- array(0, dim = c(K, K))
     for (t in 1:(length(X) - 1)) {
-      xi_t <- outer(alpha_hat[t, ], beta_hat[t+1, ] * emit(1:K, X[t+1], t+1)) * P
+      m                  <- alpha_hat[t, ] %*% P
+      # *** FIX: emission at t+1 uses data at t+1 (was incorrectly t before) ***
+      alpha_tilde[t+1, ] <- m * emissio_mat[t+1, ]
+      G_t[t+1]           <- sum(alpha_tilde[t+1, ])
+      alpha_hat[t+1, ]   <- alpha_tilde[t+1, ] / G_t[t+1]
+    }
+
+    # -- 10c. Backward pass --
+    beta_hat   <- matrix(nrow = length(X), ncol = K)
+    beta_tilde <- matrix(nrow = length(X), ncol = K)
+    C_t        <- rep(NA, length(X))
+
+    beta_hat[length(X), ]   <- 1
+    beta_tilde[length(X), ] <- 1
+
+    for (t in (length(X) - 1):1) {
+      beta_tilde[t, ] <- apply(
+        sweep(P, 2, beta_hat[t+1, ] * emissio_mat[t+1, ], "*"), 1, sum)
+      C_t[t]        <- max(beta_tilde[t, ])
+      beta_hat[t, ] <- beta_tilde[t, ] / C_t[t]
+    }
+
+    ab   <- alpha_hat * beta_hat
+    prob <- ab / rowSums(ab)
+
+    # -- 10d. M-step: update ash objects --
+    ash_obj <- list()
+    x_post  <- 0 * x
+
+    for (k in 2:K) {
+      weight       <- prob[, k]
+      ash_obj[[k]] <- ash(x, sd,
+                          weight      = weight,
+                          mode        = mu[k],
+                          mixcompdist = "normal")
+      x_post <- x_post + weight * ash_obj[[k]]$result$PosteriorMean
+    }
+
+    # -- 10e. M-step: update transition matrix --
+    # *** FIX: xi uses cached ash-based emissio_mat, not raw emit() ***
+    xi <- matrix(0, K, K)
+    for (t in 1:(length(X) - 1)) {
+      xi_t <- outer(alpha_hat[t, ], beta_hat[t+1, ] * emissio_mat[t+1, ]) * P
       xi_t <- xi_t / sum(xi_t)
-      xi <- xi + xi_t
+      xi   <- xi + xi_t
     }
 
-    # Enforce structural zeros for non-null to non-null transitions before normalizing
-    for (i in 2:K) {
-      for (j in 2:K) {
-        if (i != j) xi[i, j] <- 0
-      }
-    }
+    # enforce hub-and-spoke structure
+    if (K > 2) xi[2:K, 2:K] <- diag(diag(xi[2:K, 2:K, drop = FALSE]))
 
-    row_sums <- rowSums(xi)
-    row_sums[row_sums == 0] <- 1  # prevent division by zero
-    P <- xi / row_sums
+    row_sums          <- rowSums(xi)
+    row_sums[row_sums == 0] <- 1
+    P                 <- xi / row_sums
+    P[P < epsilon & P != 0] <- epsilon
+    P                 <- P / rowSums(P)
 
-    # Ensure no probabilities drop exactly to 0 (except structural zeros) to prevent log(0)
-    P[P < epsilon & P > 0] <- epsilon
-    P <- P / rowSums(P)
-
-    iter = iter + 1
-    #lines( x_post, col=iter)
-
-
-    #print( sum(log(G_t[-1])))
+    iter <- iter + 1
   }
 
+  # ------------------------------------------------------------------
+  # 11. Compute LFSR
+  # ------------------------------------------------------------------
+  lfsr_est <- prob[, 1]
+  for (k in 2:K)
+    lfsr_est <- lfsr_est + prob[, k] * ash_obj[[k]]$result$lfsr
 
-  lfsr_est <-prob[,1]
-  for ( k in 2: K){
-    lfsr_est <- lfsr_est + prob[,k]*ash_obj[[k]]$result$lfsr
-  }
-
-
-  out <- list( prob =prob,
-               x_post = x_post,
-               lfsr =  lfsr_est,
-               mu= mu)
-
-
-
-
+  list(prob   = prob,
+       x_post = x_post,
+       lfsr   = lfsr_est,
+       mu     = mu)
 }
 
 #'@title Compute refined estimate using HMM regression
