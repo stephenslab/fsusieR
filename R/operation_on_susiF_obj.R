@@ -1136,7 +1136,7 @@ out_prep.susiF <- function(obj ,
 
 
 
-
+  obj <-  update_cal_pip(obj)
   if(filter_cs)
   {
     obj  <- check_cs(obj,
@@ -1147,7 +1147,6 @@ out_prep.susiF <- function(obj ,
 
     obj <-  merge_effect(obj)
   }
-  obj <-  update_cal_pip(obj)
 
   obj <-  name_cs(obj,X)
 

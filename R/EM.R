@@ -59,9 +59,9 @@ EM_pi <- function(G_prior,Bhat, Shat, indx_lst,
                 lowc_wc=lowc_wc,
                 df = df)
 
-  #browser()
-  #par(mfrow=c(2,1))
-  #plot(lBF)
+
+  # par(mfrow=c(2,1))
+  # plot(lBF)
   if(length(lBF)==1){
 
 
@@ -125,8 +125,8 @@ EM_pi <- function(G_prior,Bhat, Shat, indx_lst,
     k <- k+1
 
   }
-  #plot(lBF)
-  #par(mfrow=c(1,1))
+  # plot(lBF)
+  # par(mfrow=c(1,1))
   out <- list(tpi_k = tpi_k,lBF = lBF)
   class(out) <- c("EM_pi","list")
   return(out)

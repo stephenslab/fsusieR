@@ -501,7 +501,7 @@ Y= colScale(Y)
                                    cor_small      = cor_small,
                                    e              = e
                                  )
-  #browser()
+   #browser()
   #preparing output
   obj <- out_prep(     obj            = obj,
                         Y             =    Y0,#colScale(Y0, scale = FALSE),
