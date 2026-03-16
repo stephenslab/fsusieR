@@ -858,9 +858,9 @@ HMM_regression.susiF <- function( obj,
   }
 
 
-  fitted_trend <- lapply(1:length(idx), function(l)
-    fitted_trend[[l]]/obj$csd_X[idx[l]]
-  )
+  #fitted_trend <- lapply(1:length(idx), function(l)
+   # fitted_trend[[l]]/obj$csd_X[idx[l]]
+ # )
 
 
   obj$fitted_func <- fitted_trend
@@ -1705,7 +1705,6 @@ univariate_HMM_regression   <- function(Y, X,halfK=20 ) {
   X <- as.matrix(X)
   stopifnot(ncol(X) == 1)
 
-  coeff <- qnorm(1 - alpha / 2)
 
 
   ## Scale X (matches original intent)
@@ -1734,7 +1733,7 @@ univariate_HMM_regression   <- function(Y, X,halfK=20 ) {
   s =  fit_hmm(x=est ,sd= sds ,halfK=halfK )
   out = list( effect_estimate=s$x_post*1/(csd_X),
               lfsr=s$lfsr,
-              lBF= s$HMM_lBF)
+              lBF= s$log_BF)
   return(out)
 }
 
