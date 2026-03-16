@@ -1696,44 +1696,47 @@ TI_regression.susiF <- function( obj,Y,X, verbose=TRUE,
 #univariateHMM regression
 # Y is  a matrix of observed function
 # X is a 1 column matrix
-univariate_HMM_regression <- function( Y,X,
-                                       filter.number = 1 ,
-                                       family = "DaubExPhase",
-                                       alpha=0.05){
+univariate_HMM_regression   <- function(Y, X,halfK=20 ) {
 
 
-  X     <- colScale(X)
-  csd_X <-   attr(X, "scaled:scale")
+  ## Input hygiene
 
-  tt <- lapply( 1: ncol(Y),
-                function(j){
+  Y <- as.matrix(Y)
+  X <- as.matrix(X)
+  stopifnot(ncol(X) == 1)
 
-                  summary(lm(Y[,j]~ X[,1]))$coefficients[ ,c(1,2,4 )]
-
-
-                }
+  coeff <- qnorm(1 - alpha / 2)
 
 
-  )
+  ## Scale X (matches original intent)
+
+  X <- colScale(X)
+  csd_X <- attr(X, "scaled:scale")
 
 
-  est  <- do.call(c, lapply( 1: length(tt) ,function (j) tt[[j]][ 1   ]))
+  ## Regression via cal_Bhat_Shat
+  ## Equivalent to lm(Y[,j] ~ -1 + X[,1]) for all j
 
-  sds  <- do.call(c, lapply( 1: length(tt) ,function (j) tt[[j]][ 2]))
-  pvs  <- do.call(c, lapply( 1: length(tt) ,function (j) tt[[j]][ 3]))
-  tsds <- sds#pval2se(est,pvs) # t -likelihood correction usefull to contrl lfsr in small sample size
-  tsds[ which( tsds==0)]<- sds[ which( tsds==0)]
-  if (sum(is.na(tsds))>0){
-    est [ which( is.na(tsds))]<- 0
-    tsds[ which( is.na(tsds))]<- 1
+  res <- cal_Bhat_Shat(Y, X)
+
+  est <- as.numeric(res$Bhat[1, ])
+  sds <- as.numeric(res$Shat[1, ])
+
+
+  ## Defensive fixes (same spirit as original)
+
+  bad <- is.na(sds) | sds <= 0
+  if (any(bad)) {
+    est[bad] <- 0
+    sds[bad] <- median(sds[!bad], na.rm = TRUE)
   }
-  s =  fit_hmm(x=est ,sd=tsds ,halfK=20 )
+
+  s =  fit_hmm(x=est ,sd= sds ,halfK=halfK )
   out = list( effect_estimate=s$x_post*1/(csd_X),
-              lfsr=s$lfsr)
+              lfsr=s$lfsr,
+              lBF= s$HMM_lBF)
   return(out)
-
 }
-
 
 #univariate TI regression
 # Y is  a matrix of observed function
