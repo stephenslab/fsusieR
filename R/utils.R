@@ -443,3 +443,10 @@ cs_relation <- function(cs1, cs2) {
   if (all(cs2 %in% cs1))  return("cs2_in_cs1")
   return("none")
 }
+is_evenly_spaced <- function(pos, tol = 1e-9) {
+  if (length(pos) < 2) return(TRUE)  # 0 or 1 elements are trivially evenly spaced
+
+  d <- diff(pos)
+  # Check if the largest diff and smallest diff are basically the same
+  return(max(d) - min(d) < tol)
+}
