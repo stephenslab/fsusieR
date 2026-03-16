@@ -167,8 +167,7 @@
 #' @export
 #'
 #' @examples
-#'library(ashr)
-#'library(wavethresh)
+#'library(fsusieR)
 #'set.seed(1)
 #'#Example using curves simulated under the Mixture normal per scale prior
 #'rsnr <- 0.2 #expected root signal noise ratio
@@ -371,9 +370,13 @@ susiF <- function(Y, X, L = 2,
   X <- colScale(X)
   #browser()
 # keep the same input format
-  if(post_processing=="smash" & length(unique(diff(pos)))==1){
+  if(( post_processing=="smash"|post_processing=="HMM") & is_evenly_spaced(pos)){
+
     Y0 <-  Y
     outing_grid =pos
+  }else{
+    Y0 <-  Y
+    outing_grid <- map_data$outing_grid
   }
   map_data <- remap_data(Y=Y,
                          pos=pos,
@@ -387,10 +390,6 @@ susiF <- function(Y, X, L = 2,
 
   # centering input
    #fit user function on interpolated functions
-   if( !(post_processing=="smash" & length(unique(diff(pos)))==1)){
-     Y0 <-  Y
-     outing_grid <- map_data$outing_grid
-   }
 
 Y= colScale(Y)
 
@@ -501,7 +500,7 @@ Y= colScale(Y)
                                    cor_small      = cor_small,
                                    e              = e
                                  )
-   #browser()
+    #browser()
   #preparing output
   obj <- out_prep(     obj            = obj,
                         Y             =    Y0,#colScale(Y0, scale = FALSE),
