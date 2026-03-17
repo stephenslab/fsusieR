@@ -858,9 +858,9 @@ HMM_regression.susiF <- function( obj,
   }
 
 
-  #fitted_trend <- lapply(1:length(idx), function(l)
-   # fitted_trend[[l]]/obj$csd_X[idx[l]]
- # )
+   fitted_trend <- lapply(1:length(idx), function(l)
+     fitted_trend[[l]]/obj$csd_X[idx[l]]
+   )
 
 
   obj$fitted_func <- fitted_trend
@@ -1852,7 +1852,6 @@ univariate_TI_regression <- function( Y,X,
   return(out)
 
 }
-
 univariate_smash_regression <- function(Y, X, alpha = 0.05) {
 
 
@@ -1866,18 +1865,13 @@ univariate_smash_regression <- function(Y, X, alpha = 0.05) {
 
 
   ## Scale X (matches original intent)
+  res <-do.call( rbind, lapply(1: ncol(Y), function(j)
+    summary( lm(Y[,j] ~ -1 + X[,1]))$coefficients[,c(1,2)]))
 
-  X <- colScale(X)
-  csd_X <- attr(X, "scaled:scale")
 
 
-  ## Regression via cal_Bhat_Shat
-  ## Equivalent to lm(Y[,j] ~ -1 + X[,1]) for all j
-
-  res <- cal_Bhat_Shat(Y, X)
-
-  est <- as.numeric(res$Bhat[1, ])
-  sds <- as.numeric(res$Shat[1, ])
+  est <- as.numeric(res[ , 1])
+  sds <- as.numeric(res[ , 2])
 
 
   ## Defensive fixes (same spirit as original)
@@ -1900,9 +1894,8 @@ univariate_smash_regression <- function(Y, X, alpha = 0.05) {
 
 
   ## Undo X scaling
-
-  fitted_func <- s$mu.est / csd_X
-  fitted_var  <- s$mu.est.var / (csd_X^2)
+  fitted_func <- s$mu.est
+  fitted_var  <- s$mu.est.var
 
 
   ## Credible band
@@ -1921,6 +1914,7 @@ univariate_smash_regression <- function(Y, X, alpha = 0.05) {
     fitted_var      = fitted_var
   )
 }
+
 
 
 #univariate TI regression
