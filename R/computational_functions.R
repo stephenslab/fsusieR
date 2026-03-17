@@ -1865,15 +1865,16 @@ univariate_smash_regression <- function(Y, X, alpha = 0.05) {
 
 
   ## Scale X (matches original intent)
-  res <-do.call( rbind, lapply(1: ncol(Y), function(j)
-    summary( lm(Y[,j] ~ -1 + X[,1]))$coefficients[,c(1,2)]))
 
+  Y  <- colScale(Y)
+  csd_Y <- attr(Y , "scaled:scale")
 
+  X  <- colScale(X)
+  csd_X <- attr(X , "scaled:scale")
+  res <- cal_Bhat_Shat(Y , X )
 
-  est <- as.numeric(res[ , 1])
-  sds <- as.numeric(res[ , 2])
-
-
+  est  <- as.numeric(res$Bhat[1, ])
+  sds <- as.numeric(res$Shat[1, ])
   ## Defensive fixes (same spirit as original)
 
   bad <- is.na(sds) | sds <= 0
@@ -1894,8 +1895,8 @@ univariate_smash_regression <- function(Y, X, alpha = 0.05) {
 
 
   ## Undo X scaling
-  fitted_func <- s$mu.est
-  fitted_var  <- s$mu.est.var
+  fitted_func <- s$mu.est*csd_Y/csd_X
+  fitted_var  <- s$mu.est.var*(csd_Y/csd_X)^2
 
 
   ## Credible band
