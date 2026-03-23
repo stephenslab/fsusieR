@@ -261,8 +261,8 @@ test_that("susiF two-effects recovers two curves", {
   sim <- simu_test_function(rsnr = 1, pos2 = 2, is.plot = FALSE)
   Y <- sim$noisy.data
   X <- sim$G
-  out <- susiF(Y, X, L = 2, prior = "mixture_normal_per_scale",post_processing = "smash",
-               nullweight = 0, init_pi0_w = 1)
+  out <- susiF(Y, X, L = 2, prior = "mixture_normal_per_scale", post_processing = "none",
+               nullweight = 0.75, init_pi0_w = 1)
   expect_equal(Reduce("+", out$alpha), c(1, 1, rep(0, 8)), tol = 1e-5)
 
   d1 <- min(sqrt(mean( unlist(out$fitted_func[[1]]) - sim$f1)^2),
