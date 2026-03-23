@@ -303,6 +303,7 @@ plot_susiF_effect <- function (obj,
 }
 
 
+
 #' @title fSuSiE Plots using Gviz
 #'
 #' @param obj is the fsusie object
@@ -545,8 +546,4 @@ fsusie_log_plot <- function (obj, chr, pos0, pos1, X, Y, snp_info, cs = 1,
 
 
 }
-
-
-
-
 

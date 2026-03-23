@@ -248,27 +248,27 @@ discard_cs.susiF <- function(obj, cs, out_prep=FALSE,  ...)
   }
 
 
-  if( length(cs)>0){
+    if( length(cs)>0){
 
-    obj$alpha       <-  obj$alpha[ -cs]
-    obj$lBF         <-  obj$lBF[ -cs]
-    obj$fitted_wc   <-  obj$fitted_wc[ -cs]
-    obj$fitted_wc2  <-  obj$fitted_wc2[ -cs]
-    obj$cs          <-  obj$cs[ -cs]
-    if(out_prep){
-      obj$fitted_func <-  obj$fitted_func[ -cs]
-    }else{
-      obj$greedy_backfit_update <- TRUE
-      obj$KL                    <- obj$KL[ -cs]
-      obj$ELBO                  <- -Inf
+      obj$alpha       <-  obj$alpha[ -cs]
+      obj$lBF         <-  obj$lBF[ -cs]
+      obj$fitted_wc   <-  obj$fitted_wc[ -cs]
+      obj$fitted_wc2  <-  obj$fitted_wc2[ -cs]
+      obj$cs          <-  obj$cs[ -cs]
+      if(out_prep){
+        obj$fitted_func <-  obj$fitted_func[ -cs]
+      }else{
+        obj$greedy_backfit_update <- TRUE
+        obj$KL                    <- obj$KL[ -cs]
+        obj$ELBO                  <- -Inf
+      }
+
+      obj$est_sd      <-  obj$est_sd[ -cs]
+      obj$est_pi      <-  obj$est_pi[ -cs]
+      obj$cred_band   <-  obj$cred_band[ -cs]
+      obj$lfsr_wc     <-  obj$lfsr_wc [ -cs]
+      obj$L           <-  obj$L -length(cs)
     }
-
-    obj$est_sd      <-  obj$est_sd[ -cs]
-    obj$est_pi      <-  obj$est_pi[ -cs]
-    obj$cred_band   <-  obj$cred_band[ -cs]
-    obj$lfsr_wc     <-  obj$lfsr_wc [ -cs]
-    obj$L           <-  obj$L -length(cs)
-  }
 
 
 
@@ -762,7 +762,7 @@ greedy_backfit.susiF <-  function(obj,
                         out_prep= FALSE
       )
 
-      #obj <- merge_effect (obj, verbose = verbose)
+     # obj <- merge_effect (obj, verbose = verbose)
 
       if(verbose){
         print( paste( "Discarding ",(temp_L- obj$L), " effects"))
@@ -782,7 +782,7 @@ greedy_backfit.susiF <-  function(obj,
                       cs= (obj$L_max+1):obj$L,
                       out_prep= FALSE
     )
-    #obj <- merge_effect (obj, verbose = verbose)
+   # obj <- merge_effect (obj, verbose = verbose)
     if(verbose){
       print( paste( "Discarding ",(obj$L_max- obj$L), " effects"))
       print( "Greedy search and backfitting done")
@@ -1006,6 +1006,7 @@ merge_effect <- function( obj, verbose,  ...)
 
 merge_effect.susiF  <- function(obj, verbose = FALSE,  ...) {
 
+  #return(obj)
   if (obj$L < 2) return(obj)
 
   to_drop <- integer(0)
@@ -1132,14 +1133,10 @@ out_prep.susiF <- function(obj ,
                            ...)
 {
 
+
+
+
   obj <-  update_cal_pip(obj)
-
-  obj <-  name_cs(obj,X)
-
-
-
-
-
   if(filter_cs)
   {
     obj  <- check_cs(obj,
@@ -1151,6 +1148,8 @@ out_prep.susiF <- function(obj ,
     obj <-  merge_effect(obj)
   }
 
+  obj <-  name_cs(obj,X)
+
 
   obj <-  update_cal_fit_func(obj,
                               Y             =  Y,
@@ -1160,14 +1159,14 @@ out_prep.susiF <- function(obj ,
                               filter.number = filter.number,
                               family        = family)
 
-  # if( ! (post_processing== "HMM")){
+ # if( ! (post_processing== "HMM")){
 
   #  obj <-  update_cal_indf(obj = obj ,
   #                          Y         =  Y,
   #                          X         = X,
-  #                           indx_lst  = indx_lst,
+ #                           indx_lst  = indx_lst,
   #                          TI        = ifelse(post_processing %in% c('TI', 'smash'), TRUE, FALSE))
-  #
+#
 
   #}
 
@@ -1317,10 +1316,10 @@ test_stop_cond.susiF <- function(obj, check, cal_obj, Y, X, D, C, indx_lst,...)
 
 
         if(!(obj$L==nrow(T2))){
+          obj$check=1
           return(obj)
         }
-        T2 <- T2[1:obj$L,]
-        if(obj$L==1){
+         if(obj$L==1){
           T2 <- T2[1,]
         }
 
@@ -1333,7 +1332,8 @@ test_stop_cond.susiF <- function(obj, check, cal_obj, Y, X, D, C, indx_lst,...)
         }
 
 
-        check <- sum(abs(T1-T2))/nrow(X)
+        check <- max(abs(T1-T2)) #sum(abs(T1-T2))/nrow(X)
+
         obj$check <- check
         return(obj)
         #print(check)

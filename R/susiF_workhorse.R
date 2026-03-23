@@ -83,13 +83,11 @@ susiF.workhorse <- function(obj,
     df =NULL
   }
 
-
   if(missing(tt)){
     init=FALSE
   }else{
     init=FALSE
   }
-
   if( obj$L_max==1)
   {
     tt   <-cal_Bhat_Shat(Y       = update_Y,
@@ -146,7 +144,6 @@ susiF.workhorse <- function(obj,
   }else{
     ##### Start While -----
     iter <- 1
-
 
     while( (check >tol & iter <maxit))
     {
@@ -248,9 +245,10 @@ susiF.workhorse <- function(obj,
                                               Y         = Y_f,
                                               X         = X)
       #print(sigma2)
+
       obj <- update_residual_variance(obj     = obj,
                                             sigma2    = sigma2 )
-      obj <- test_stop_cond(obj      = obj,
+      obj <- test_stop_cond(      obj      = obj,
                                   check     = check,
                                   cal_obj   = cal_obj,
                                   Y         = Y_f,
@@ -261,7 +259,6 @@ susiF.workhorse <- function(obj,
       #  print(obj$alpha)
       #print(obj$ELBO)
       check <- obj$check
-
 
       iter <- iter +1
 

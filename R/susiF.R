@@ -65,7 +65,7 @@
 #' @param L_start number of effect initialized at the start of the algorithm
 #'
 #' @param nullweight numeric value for penalizing likelihood at point mass 0. This number roughly corresponds
-#' to the number of zeros observation you add  (useful in small sample size). Default is .1 as recommended by Stephens in
+#' to the number of zeros observation you add  (useful in small sample size). Default is 10 as recommended by Stephens in
 #' False discovery rate a new deal. Setting it too low tend lead to adding false discoveries. Setting it too
 #' high may reduce power.
 #'
@@ -167,11 +167,10 @@
 #' @export
 #'
 #' @examples
-#'library(ashr)
-#'library(wavethresh)
+#'library(fsusieR)
 #'set.seed(1)
 #'#Example using curves simulated under the Mixture normal per scale prior
-#'rsnr <- 0.5 #expected root signal noise ratio
+#'rsnr <- 0.2 #expected root signal noise ratio
 #'N <- 100    #Number of individuals
 #'P <- 100     #Number of covariates/SNP
 #'pos1 <- 1   #Position of the causal covariate for effect 1
@@ -246,7 +245,7 @@
 #'par(mfrow=c(1,2))
 #'
 #'
-#'plot( f1, type="l", main="Estimated effect 1", xlab="")
+#'plot( f2, type="l", main="Estimated effect 1", xlab="")
 #'lines(unlist(out$fitted_func[[1]]),col='blue' )
 #'lines(unlist(out$cred_band[[1]][1,]),col='darkblue',lty=2 )
 #'lines(unlist(out$cred_band[[1]][2,]),col='darkblue' ,lty=2 )
@@ -257,7 +256,7 @@
 #'       legend = c("effect 1"," fSuSiE est "),
 #'       col=c("black","blue" )
 #')
-#'plot( f2, type="l", main="Estimated effect 2", xlab="")
+#'plot( f1, type="l", main="Estimated effect 2", xlab="")
 #'lines(unlist(out$fitted_func[[2]]),col='darkgreen' )
 #'lines(unlist(out$cred_band[[2]][1,]),col='darkgreen',lty=2 )
 #'lines(unlist(out$cred_band[[2]][2,]),col='darkgreen' ,lty=2 )
@@ -279,12 +278,12 @@ susiF <- function(Y, X, L = 2,
                   prior = c("mixture_normal","mixture_normal_per_scale" ),
                   verbose = TRUE,
                   maxit = 100,
-                  tol = 1e-3,
+                  tol = 1e-6,
                   cov_lev = 0.95,
                   min_purity=0.5,
                   filter_cs =TRUE,
                   init_pi0_w= 1,
-                  nullweight= .1 ,
+                  nullweight= .01 ,
                   control_mixsqp =  list(verbose=FALSE,
                                          eps = 1e-6,
                                          numiter.em = 40
@@ -318,16 +317,15 @@ susiF <- function(Y, X, L = 2,
   prior           <- match.arg(prior)
   post_processing <- match.arg( post_processing)
 
-  if(post_processing=="none"){
-    warning("Option none is not recommended and the effect estimate can be poor")
-  }
+ if(post_processing=="none"){
+  warning("Option none is not recommended and the effect estimate can be poor")
+ }
   if(post_processing=="smash"){
     #warning("Option is experimental, the credible band tend to be to narrow")
   }
 
   ####Cleaning input -----
   pt <- proc.time()
-
 
 
   if(L>ncol(X)){
@@ -357,7 +355,7 @@ susiF <- function(Y, X, L = 2,
   }
 
   if(prior== "mixture_normal"){
-    # nullweight= nullweight*2
+   # nullweight= nullweight*2
   }
   names_colX <-  colnames(X)
   tidx <- which(apply(X,2,var)==0)
@@ -371,28 +369,30 @@ susiF <- function(Y, X, L = 2,
   X0=X
   X <- colScale(X)
   #browser()
-  if(post_processing=="smash" & length(unique(diff(pos)))==1){
-    Y0 <-  Y
-    outing_grid =pos
-  }
-
   map_data <- remap_data(Y=Y,
                          pos=pos,
                          verbose=verbose,
                          max_scale=max_scale)
 
-  Y           <- map_data$Y
-  # centering and scaling covariate
+# keep the same input format
+  if(( post_processing=="smash"|post_processing=="HMM") & is_evenly_spaced(pos)){
 
-
-  # centering input
-  #fit user function on interpolated functions
-  if( !(post_processing=="smash" & length(unique(diff(pos)))==1)){
+    Y0 <-  Y
+    outing_grid =pos
+  }else{
     Y0 <-  Y
     outing_grid <- map_data$outing_grid
   }
 
-  Y= colScale(Y)
+
+  Y           <- map_data$Y
+
+  # centering and scaling covariate
+
+  # centering input
+   #fit user function on interpolated functions
+
+Y= colScale(Y)
 
   W <- DWT2(Y,
             filter.number = filter.number,
@@ -408,7 +408,6 @@ susiF <- function(Y, X, L = 2,
   if(verbose){
     print("Data transform")
   }
-
   ### Definition of some static parameters ---
 
   indx_lst <-  gen_wavelet_indx(log2(length(map_data$outing_grid)))
@@ -420,7 +419,7 @@ susiF <- function(Y, X, L = 2,
     print( paste("Discarding ", length(lowc_wc), "wavelet coefficients out of ", ncol(Y_f)))
   }
   if(length(lowc_wc)> (ncol(Y_f )-3)){
-    print("almost all the wavelet coefficients are null/low variance, consider using univariate fine mapping")
+   print("almost all the wavelet coefficients are null/low variance, consider using univariate fine mapping")
     return(NULL)
   }
 
@@ -445,8 +444,8 @@ susiF <- function(Y, X, L = 2,
   if(verbose){
     print("Initializing prior")
   }
-  # browser()
-  #Using a column like phenotype, temporary matrix that will be regularly updated
+ # browser()
+     #Using a column like phenotype, temporary matrix that will be regularly updated
   temp        <- init_prior(Y              = cbind( W$D,W$C),
                             X              = X,
                             prior          = prior ,
@@ -465,13 +464,13 @@ susiF <- function(Y, X, L = 2,
 
   #Recycled for the first step of the while loop
   obj   <-  init_susiF_obj(L_max=L,
-                           G_prior=G_prior,
-                           Y=Y,
-                           X=X,
-                           L_start=L_start,
-                           greedy=greedy,
-                           backfit=backfit,
-                           tol_null_prior= tol_null_prior,
+                                 G_prior=G_prior,
+                                 Y=Y,
+                                 X=X,
+                                 L_start=L_start,
+                                 greedy=greedy,
+                                 backfit=backfit,
+                                 tol_null_prior= tol_null_prior,
                            cov_lev=cov_lev)
 
   if(verbose){
@@ -481,45 +480,44 @@ susiF <- function(Y, X, L = 2,
 
 
 
-  #browser()
   obj     <- susiF.workhorse(obj      = obj,
-                             W              = W,
-                             X              = X,
-                             tol            = tol,
-                             init_pi0_w     = init_pi0_w ,
-                             control_mixsqp = control_mixsqp ,
-                             indx_lst       = indx_lst,
-                             lowc_wc        = lowc_wc,
-                             nullweight     = nullweight,
-                             cal_obj        = cal_obj,
-                             verbose        = verbose,
-                             cov_lev        = cov_lev,
-                             min_purity     = min_purity,
-                             maxit          = maxit,
-                             tt             = tt,
-                             max_SNP_EM     = max_SNP_EM,
-                             max_step_EM    = max_step_EM,
-                             cor_small      = cor_small,
-                             e              = e)
-
+                                   W              = W,
+                                   X              = X,
+                                   tol            = tol,
+                                   init_pi0_w     = init_pi0_w ,
+                                   control_mixsqp = control_mixsqp ,
+                                   indx_lst       = indx_lst,
+                                   lowc_wc        = lowc_wc,
+                                   nullweight     = nullweight,
+                                   cal_obj        = cal_obj,
+                                   verbose        = verbose,
+                                   cov_lev        = cov_lev,
+                                   min_purity     = min_purity,
+                                   maxit          = maxit,
+                                   tt             = tt,
+                                   max_SNP_EM     = max_SNP_EM,
+                                   max_step_EM    = max_step_EM,
+                                   cor_small      = cor_small,
+                                   e              = e
+                                 )
+    #browser()
   #preparing output
-
   obj <- out_prep(     obj            = obj,
-                       Y             =    Y0,#colScale(Y0, scale = FALSE),
-                       X             =  X0 ,# sweep(
-                       #sweep(X , 2, attr(X, "scaled:scale"), "*"),
-                       #  2, attr(X , "scaled:center"), "+")
+                        Y             =    Y0,#colScale(Y0, scale = FALSE),
+                        X             =  X0 ,# sweep(
+                        #sweep(X , 2, attr(X, "scaled:scale"), "*"),
+                      #  2, attr(X , "scaled:center"), "+")
 
-                       indx_lst      = indx_lst,
-                       filter_cs     = filter_cs,
-                       outing_grid   = outing_grid,
-                       filter.number = filter.number,
-                       family        = family,
-                       post_processing=  post_processing,
-                       tidx          = tidx,
-                       names_colX    = names_colX,
-                       pos           = pos,
-                       verbose       = verbose
+                        indx_lst      = indx_lst,
+                        filter_cs     = filter_cs,
+                        outing_grid   = outing_grid,
+                        filter.number = filter.number,
+                        family        = family,
+                        post_processing=  post_processing,
+                        tidx          = tidx,
+                        names_colX    = names_colX,
+                        pos           = pos,
+                        verbose       = verbose
   )
   obj$runtime <- proc.time()-pt
   return(obj)

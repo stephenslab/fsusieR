@@ -12,12 +12,12 @@ susiF(
   prior = c("mixture_normal", "mixture_normal_per_scale"),
   verbose = TRUE,
   maxit = 100,
-  tol = 0.001,
+  tol = 1e-06,
   cov_lev = 0.95,
   min_purity = 0.5,
   filter_cs = TRUE,
   init_pi0_w = 1,
-  nullweight = 0.1,
+  nullweight = 0.01,
   control_mixsqp = list(verbose = FALSE, eps = 1e-06, numiter.em = 40),
   thresh_lowcount = 0,
   cal_obj = FALSE,
@@ -80,7 +80,7 @@ cs and cs with estimated prior equal to 0). Set as TRUE by default.}
 (between 0 and 1)}
 
 \item{nullweight}{numeric value for penalizing likelihood at point mass 0. This number roughly corresponds
-to the number of zeros observation you add  (useful in small sample size). Default is .1 as recommended by Stephens in
+to the number of zeros observation you add  (useful in small sample size). Default is 10 as recommended by Stephens in
 False discovery rate a new deal. Setting it too low tend lead to adding false discoveries. Setting it too
 high may reduce power.}
 
@@ -206,11 +206,10 @@ Implementation of the SuSiF method.
 Implementation of the SuSiF method
 }
 \examples{
-library(ashr)
-library(wavethresh)
+library(fsusieR)
 set.seed(1)
 #Example using curves simulated under the Mixture normal per scale prior
-rsnr <- 0.5 #expected root signal noise ratio
+rsnr <- 0.2 #expected root signal noise ratio
 N <- 100    #Number of individuals
 P <- 100     #Number of covariates/SNP
 pos1 <- 1   #Position of the causal covariate for effect 1
@@ -285,7 +284,7 @@ affected_reg(obj = out)
 par(mfrow=c(1,2))
 
 
-plot( f1, type="l", main="Estimated effect 1", xlab="")
+plot( f2, type="l", main="Estimated effect 1", xlab="")
 lines(unlist(out$fitted_func[[1]]),col='blue' )
 lines(unlist(out$cred_band[[1]][1,]),col='darkblue',lty=2 )
 lines(unlist(out$cred_band[[1]][2,]),col='darkblue' ,lty=2 )
@@ -296,7 +295,7 @@ legend(x= 35,
       legend = c("effect 1"," fSuSiE est "),
       col=c("black","blue" )
 )
-plot( f2, type="l", main="Estimated effect 2", xlab="")
+plot( f1, type="l", main="Estimated effect 2", xlab="")
 lines(unlist(out$fitted_func[[2]]),col='darkgreen' )
 lines(unlist(out$cred_band[[2]][1,]),col='darkgreen',lty=2 )
 lines(unlist(out$cred_band[[2]][2,]),col='darkgreen' ,lty=2 )
