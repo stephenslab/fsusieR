@@ -369,6 +369,10 @@ susiF <- function(Y, X, L = 2,
   X0=X
   X <- colScale(X)
   #browser()
+  map_data <- remap_data(Y=Y,
+                         pos=pos,
+                         verbose=verbose,
+                         max_scale=max_scale)
 # keep the same input format
   if(( post_processing=="smash"|post_processing=="HMM") & is_evenly_spaced(pos)){
 
@@ -378,10 +382,7 @@ susiF <- function(Y, X, L = 2,
     Y0 <-  Y
     outing_grid <- map_data$outing_grid
   }
-  map_data <- remap_data(Y=Y,
-                         pos=pos,
-                         verbose=verbose,
-                         max_scale=max_scale)
+
 
 
   Y           <- map_data$Y
