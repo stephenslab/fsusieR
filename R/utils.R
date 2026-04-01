@@ -61,7 +61,7 @@ shifter <- function(x, n = 1) {
 #' @importFrom stats qqnorm
 Quantile_transform  <- function(x)
 {
-
+  set.seed(1)
   x.rank = rank(x, ties.method="random")
   #x.rank = rank(x, ties.method="average")
   return(qqnorm(x.rank,plot.it = F)$x)
