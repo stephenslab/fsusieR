@@ -601,6 +601,8 @@ fit_hmm <- function (x, sd,
   P = P[idx_comp, idx_comp, drop=FALSE]
   P <- P / rowSums(P)
 
+  mu <- mu[idx_comp]
+
   while( iter < maxiter ){
 
     alpha_hat = matrix(nrow = length(X), ncol=K)
