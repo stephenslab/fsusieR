@@ -26,32 +26,47 @@ cal_KL_l <- function(obj, l, X, D,C , indx_lst, ...)
 
 #' @title Compute KL divergence for effect l (correct ELBO version)
 #'
+#' @description
+#' Per-effect KL between q_l(b_l, gamma_l) and the prior p(b_l, gamma_l),
+#' using the susieR identity
+#'   KL(q_l || p_l) = log p(R_l) - E_{q_l}[ log p(R_l | b_l, gamma_l) ]
+#'                  = loglik_SFR(R_l) - loglik_SFR_post(R_l)
+#' where R_l = Y - X * sum_{k != l} alpha_k * mu_k is the partial residual.
+#'
+#' This always returns a non-negative quantity at the SER posterior optimum,
+#' so the ELBO formed as Eloglik(Y, X) - sum_l KL_l is a valid lower bound.
+#'
+#' The previous implementation computed
+#'   (1/(2 sigma^2)) * (||X E[F]||^2 - sum_j d_j E[F^2_j])
+#' which is generically negative and therefore not a KL.
+#'
 #' @export
 #' @keywords internal
-cal_KL_l.susiF <- function(obj, l, X, ...) {
+cal_KL_l.susiF <- function(obj, l, X, D, C, indx_lst, ...) {
 
-  # posterior mixture weights
-  alpha <- get_alpha(obj, l)      # length p
-  alpha <- pmax(alpha, 1e-16)
+  ## Reconstruct full wavelet-domain Y from detail (D) and scaling (C) coefs.
+  Y <- cbind(D, C)
 
-  # prior weights
-  prior_weights <- rep(1 / length(alpha), length(alpha))
+  ## Partial residual R_l = Y - X * sum_{k != l} alpha_k * mu_k.
+  if (obj$L > 1) {
+    other_F <- matrix(0, nrow = ncol(X), ncol = ncol(Y))
+    for (k in seq_len(obj$L)) {
+      if (k != l) {
+        other_F <- other_F + obj$alpha[[k]] * obj$fitted_wc[[k]]
+      }
+    }
+    R_l <- Y - X %*% other_F
+  } else {
+    R_l <- Y
+  }
 
-  # posterior moments
-  EF  <- get_post_F(obj, l)       # p x t
-  EF2 <- get_post_F2(obj, l)      # p x t
+  log_marg <- loglik_SFR     (obj, l, Y = R_l, X = X, indx_lst = indx_lst)
+  log_post <- loglik_SFR_post(obj, l, Y = R_l, X = X)
 
-  # expected squared signal
-  EXF2 <- sum((X %*% EF)^2)
-
-  # component-wise expected signal
-  comp_EXF2 <- colSums((X^2) %*% EF2)
-
-  # KL
-  KL_mix <- sum(alpha * log(alpha / prior_weights))
-  KL_gauss <- (1 / (2 * obj$sigma2)) * (EXF2 - sum(  comp_EXF2))
-
-  return(KL_mix + KL_gauss)
+  out <- log_marg - log_post
+  ## Numerical floor: at the SER optimum out >= 0 in exact arithmetic.
+  if (!is.finite(out)) return(0)
+  max(out, 0)
 }
 
 
@@ -128,13 +143,31 @@ loglik_SFR_post <- function (obj, l, ...)
 #' @keywords internal
 loglik_SFR_post.susiF <- function (obj, l, Y, X, ...)
 {
+  ## E_{q_l}[ log p(Y | X, b_l, gamma_l) ] for the single-effect SuSiE model.
+  ##
+  ## Under q_l, gamma_l selects exactly one component, so cross terms in
+  ## E_q[(X b_l)^2] vanish and
+  ##   E_q[||Y - X b_l||^2]
+  ##     = ||Y||^2 - 2 sum(Y * (X * E[b_l])) + sum_t sum_j d_j * E[b^2_l][j,t]
+  ## with E[b_l]   = alpha_l * mu_l        (= get_post_F (obj, l)),
+  ##      E[b^2_l] = alpha_l * (mu^2 + s2_post)  (= get_post_F2(obj, l)),
+  ##      d_j      = ||X[,j]||^2.
+  ##
+  ## The previous version used `s2/2` (should be `1/(2*s2)`) and
+  ## `sum(t(EF2) %*% EF2)` (should be `sum(d * EF2)`); both are corrected here.
+
   n   <- nrow(Y)
   t   <- ncol(Y)
-  EF  <- get_post_F(obj,l)
-  EF2 <- get_post_F2(obj,l)
+  EF  <- get_post_F (obj, l)              # p x t
+  EF2 <- get_post_F2(obj, l)              # p x t
   s2  <- obj$sigma2
-  return(-n*t/2*log(2*pi*s2)
-         - s2/2*(sum(t(Y)%*%Y) - 2*sum(t(Y)%*%X%*%EF) + sum(t(EF2)%*%EF2)))
+
+  d <- attr(X, "d")
+  if (is.null(d)) d <- rep(nrow(X) - 1, ncol(X))
+
+  e_quad <- sum(Y * Y) - 2 * sum(Y * (X %*% EF)) + sum(d * EF2)
+
+  return(-(n * t / 2) * log(2 * pi * s2) - e_quad / (2 * s2))
 }
 
 
@@ -210,9 +243,14 @@ get_objective <- function    (obj,  Y, X, D, C , indx_lst,  ...)
 #' @keywords internal
 get_objective.susiF <- function    (obj, Y, X, D, C , indx_lst,  ...)
 {
-#print(obj$KL)
-  out <-sum(obj$KL)#  Eloglik(obj, Y, X)  #+
-  return(out)
+  ## ELBO = E_q[log p(Y | X, beta)] - sum_l KL(q_l || p_l)
+  ## With the corrected cal_KL_l.susiF, obj$KL[l] >= 0 holds at the optimum,
+  ## so this expression is a proper lower bound on log p(Y | X).
+  ##
+  ## Previously the Eloglik(...) call was commented out, leaving just
+  ## sum(obj$KL); that was a sign-and-structure mismatch with the rest
+  ## of the IBSS update.
 
+  return(Eloglik(obj, Y, X) - sum(obj$KL))
 }
 

@@ -92,7 +92,7 @@ susiF.workhorse <- function(obj,
   {
     tt   <-cal_Bhat_Shat(Y       = update_Y,
                          X       = X,
-                         v1      = v1 ,
+                         sigma2= obj$sigma2,
                          lowc_wc = lowc_wc )
     Bhat <- tt$Bhat
     Shat <- tt$Shat #UPDATE. could be nicer
@@ -184,7 +184,7 @@ susiF.workhorse <- function(obj,
 
           tt   <- cal_Bhat_Shat(Y = update_Y,
                                 X = X,
-                                v1 =v1 ,
+                                sigma2= obj$sigma2,
                                 lowc_wc =lowc_wc )
 
           tpi <-  get_pi(obj,l)

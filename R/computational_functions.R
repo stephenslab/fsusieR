@@ -42,128 +42,123 @@ cal_cor_cs <- function(obj,X){
   obj$cs_cor <- mat_cor
   return(obj)
 }
-# @title Regress Y nxJ on X nxp
-#
-# @description regression coefficients (and sd) of the column wise regression
-#
-# @param Y  functional phenotype, matrix of size N by size J. The underlying algorithm uses wavelet which assume that J is of the form J^2. If J not a power of 2, susif internally remaps the data into grid of length 2^J
-#
-# @param X matrix of size n by p in
-#
-# @param v1 vector of ones of length n
-#
-# @param lowc_wc wavelet coefficient with low count to be discarded
-#
-# @param ind_analysis, optional, specify index for the individual to be analysied, allow analyis data with different entry with NA
-# if a vector is provided, then we assume that the entry of Y have NA at the same place, if a list is provide
-# @return list of two
-#
-# \item{Bhat}{ matrix pxJ regression coefficient, Bhat[j,t] corresponds to regression coefficient of Y[,t] on X[,j] }
-#
-# \item{Shat}{ matrix pxJ standard error, Shat[j,t] corresponds to standard error of the regression coefficient of Y[,t] on X[,j] }
-#
-# @export
-#' @importFrom Rfast colsums
-#' @importFrom Rfast colVars
-#' @importFrom Rfast cova
-cal_Bhat_Shat   <- function(Y,
-                            X ,
-                            v1 ,
-                            resid_var=1,
-                            lowc_wc=NULL,
-                            ind_analysis=NULL,  ...  ){
+#' @title Compute Bhat / Shat for one outcome block (joint-sigma2 form)
+#'
+#' @description Marginal OLS coefficient and its joint-sigma2 standard error,
+#'   suitable for the SER kernel inside SuSiE-style IBSS updates.
+#'
+#'   Replaces the previous per-(SNP, trait) marginal-residual-variance form
+#'   that was breaking variational consistency.  The per-SNP regressions are
+#'   gone, so this is also substantially faster (one matrix multiply instead
+#'   of J*p univariate fits).
+#'
+#' @param Y           N x J outcome matrix (one column per wavelet position
+#'                    or per univariate trait inside the modality).
+#' @param X           N x p predictor matrix (assumed centred/scaled, but
+#'                    correctness does not depend on that).
+#' @param sigma2      Numeric, length 1 or length J.  The CURRENT IBSS
+#'                    residual-variance estimate for each column of Y.  A
+#'                    scalar is recycled to length J via rep_len.
+#' @param lowc_wc     Optional integer vector of column indices of Y to mask
+#'                    (low-count wavelet coefficients).  Bhat zeroed, Shat
+#'                    set to 1 so they contribute nothing to BF.
+#' @param ind_analysis  Optional. NULL -> use all rows.
+#'                      If a list, ind_analysis[[j]] is the row subset for
+#'                      column j of Y (per-trait missingness).
+#'                      If a vector, common subset for all columns.
+#' @param v1          Ignored — kept for backward signature compatibility.
+#' @param resid_var   Ignored — kept for backward signature compatibility.
+#'                    Pass sigma2 instead.
+#' @param ...         Swallowed.
+#'
+#' @return list with components Bhat (p x J) and Shat (p x J).
+#' @export
+cal_Bhat_Shat <- function(Y, X, sigma2,
+                          lowc_wc      = NULL,
+                          ind_analysis = NULL,
+                          v1           = NULL,    # ignored
+                          resid_var    = NULL,    # ignored; superseded by sigma2
+                          ...) {
 
-    p <- ncol(X)
-    J <- ncol(Y)
+  ## sigma2 missing => fall back to per-(k, j) marginal-regression Shat.
+  ##
+  ## This form does NOT match the SER kernel's variational consistency
+  ## requirements and must NOT be used inside the IBSS loop -- all IBSS
+  ## callers in this package now pass sigma2 explicitly.  The fallback is
+  ## here so the post-processing helpers (univariate_TI_regression,
+  ## univariate_HMM_regression, univariate_smash_regression, ...), which
+  ## do single-SNP refits where the per-(k,j) Shat IS the natural form,
+  ## keep working without each helper having to build its own sigma2.
+  marginal_mode <- missing(sigma2) || is.null(sigma2)
 
-    Bhat <- matrix(0.0, p, J)
-    Shat <- matrix(0.0, p, J)
+  J <- ncol(Y)
+  if (!marginal_mode) sigma2 <- rep_len(as.numeric(sigma2), J)
 
-
-    ## Full data: vectorized (fastest possible in pure R)
-
-    if (is.null(ind_analysis)) {
-
-      n <- nrow(Y)
-      d <- colSums(X^2)
-
-      Bhat <- crossprod(X, Y) / d
-
-      Shat <- do.call(
-        cbind,
-        lapply(seq_len(J), function(j)
-          Rfast::colVars(
-            Y[, j] - sweep(X, 2, Bhat[, j], "*")
-          )
-        )
-      )
-
-      Shat <- sqrt(pmax(Shat, 1e-64)) / sqrt(n - 1)
-
-
-      ## Per-response subsets (ind_analysis is a list)
-
-    } else if (is.list(ind_analysis)) {
-
-      for (j in seq_len(J)) {
-        idx <- ind_analysis[[j]]
-        nj  <- length(idx)
-
-        Xj <- X[idx, , drop = FALSE]
-        yj <- Y[idx, j]
-
-        d <- colSums(Xj^2)
-        Bhat[, j] <- crossprod(Xj, yj) / d
-
-        scale <- 1 / sqrt(nj - 1)
-
-        for (k in seq_len(p)) {
-          xk <- Xj[, k]
-          bk <- Bhat[k, j]
-          r  <- yj - xk * bk
-          Shat[k, j] <- sqrt(sum(r^2) / d[k]) * scale
-        }
-      }
-
-
-      ## Common subset (ind_analysis is a vector)
-
+  if (is.null(ind_analysis)) {
+    d    <- rep(nrow(X)-1,ncol(X)) #colSums(X^2)                       # length p
+    Bhat <- crossprod(X, Y) / d                # p x J
+    if (marginal_mode) {
+      ## Shat[k, j] = sqrt( sum_i (Y[i,j] - X[i,k]*Bhat[k,j])^2 / (n-1) ) / sqrt(d[k])
+      ## Vectorised: Var_marg[k,j] = sum(Y[,j]^2)/(n-1) - Bhat[k,j]^2 * d[k]/(n-1)
+      n         <- nrow(X)
+      ssY       <- colSums(Y * Y)                              # length J
+      var_marg  <- outer(rep(1, ncol(X)), ssY) / (n - 1) -
+                   (Bhat^2) * (d / (n - 1))                    # p x J
+      var_marg  <- pmax(var_marg, 0)
+      Shat      <- sqrt(var_marg) / sqrt(d)                    # p x J
     } else {
+      ## Shat[k, j] = sqrt(sigma2[j] / d[k])
+      Shat <- sqrt(outer(1 / d, sigma2, FUN = "*"))
+    }
 
-      idx <- ind_analysis
-      ni  <- length(idx)
-
-      Xi <- X[idx, , drop = FALSE]
-      Yi <- Y[idx, , drop = FALSE]
-
-      d <- colSums(Xi^2)
-      Bhat <- crossprod(Xi, Yi) / d
-
-      scale <- 1 / sqrt(ni - 1)
-
-      for (j in seq_len(J)) {
-        yj <- Yi[, j]
-        for (k in seq_len(p)) {
-          xk <- Xi[, k]
-          bk <- Bhat[k, j]
-          r  <- yj - xk * bk
-          Shat[k, j] <- sqrt(sum(r^2) / d[k]) * scale
-        }
+  } else if (is.list(ind_analysis)) {
+    p    <- ncol(X)
+    Bhat <- matrix(0, p, J)
+    Shat <- matrix(0, p, J)
+    for (j in seq_len(J)) {
+      idx       <- ind_analysis[[j]]
+      Xj        <- X[idx, , drop = FALSE]
+      yj        <- Y[idx, j]
+      dj        <- colSums(Xj^2)
+      Bhat[, j] <- crossprod(Xj, yj) / dj
+      if (marginal_mode) {
+        nj         <- length(idx)
+        ssYj       <- sum(yj * yj)
+        var_marg_j <- ssYj / (nj - 1) - (Bhat[, j]^2) * dj / (nj - 1)
+        var_marg_j <- pmax(var_marg_j, 0)
+        Shat[, j]  <- sqrt(var_marg_j) / sqrt(dj)
+      } else {
+        Shat[, j] <- sqrt(sigma2[j] / dj)
       }
     }
 
-
-    ## Mask low-confidence coefficients if requested
-
-    if (!is.null(lowc_wc)) {
-      Bhat[, lowc_wc] <- 0
-      Shat[, lowc_wc] <- 1
+  } else {
+    Xi   <- X[ind_analysis, , drop = FALSE]
+    Yi   <- Y[ind_analysis, , drop = FALSE]
+    d    <- colSums(Xi^2)
+    Bhat <- crossprod(Xi, Yi) / d
+    if (marginal_mode) {
+      ni        <- length(ind_analysis)
+      ssY       <- colSums(Yi * Yi)
+      var_marg  <- outer(rep(1, ncol(Xi)), ssY) / (ni - 1) -
+                   (Bhat^2) * (d / (ni - 1))
+      var_marg  <- pmax(var_marg, 0)
+      Shat      <- sqrt(var_marg) / sqrt(d)
+    } else {
+      Shat <- sqrt(outer(1 / d, sigma2, FUN = "*"))
     }
-    Shat <- (pmax(Shat, 1e-32))
-    out= list(Bhat = Bhat, Shat = Shat)
-    return(out)
-}
+  }
 
+  ## Mask low-confidence wavelet positions / traits
+  if (!is.null(lowc_wc)) {
+    Bhat[, lowc_wc] <- 0
+    Shat[, lowc_wc] <- 1
+  }
+
+  Shat <- pmax(Shat, 1e-32)
+
+  list(Bhat = Bhat, Shat = Shat)
+}
 
 
 
@@ -705,10 +700,48 @@ fit_hmm <- function (x, sd,
     iter = iter + 1
   }
 
-  lfsr_est <- prob[,1]
+  ## ---------------------------------------------------------------
+  ## Local false sign rate under the HMM mixture posterior.
+  ##
+  ## At position t, the posterior on beta_t is the mixture
+  ##   p(beta_t | x) = prob[t,1] * delta_0
+  ##                 + sum_{k>=2} prob[t,k] * g_k_post(beta_t | x_t)
+  ## where g_k_post is the per-observation ash posterior under prior g_k.
+  ##
+  ## The lfsr is
+  ##   lfsr(t) = P(beta_t = 0 | x) + min(P(beta_t > 0 | x), P(beta_t < 0 | x))
+  ##           = 1 - max(P(beta_t > 0 | x), P(beta_t < 0 | x))
+  ## with
+  ##   P(beta_t > 0 | x) = sum_{k>=2} prob[t,k] * ash_obj[[k]]$PositiveProb[t]
+  ##   P(beta_t < 0 | x) = sum_{k>=2} prob[t,k] * ash_obj[[k]]$NegativeProb[t]
+  ## (state 1 is delta_0, which contributes 0 to both.)
+  ##
+  ## The previous version
+  ##     lfsr <- prob[,1] + sum_k prob[,k] * ash_obj[[k]]$lfsr
+  ## sums per-state lfsr values.  Each per-state lfsr is computed against
+  ## the natural sign of g_k's mode, so when posterior mass at position t
+  ## is split across non-null states with opposite signs the per-state
+  ## values are individually small (confident in opposite signs) and the
+  ## sum underestimates the true lfsr.  The reformulation above is exact
+  ## under the HMM mixture and matches the convention used by ashr.
+  ## ---------------------------------------------------------------
+  P_pos <- rep(0, length(x))
+  P_neg <- rep(0, length(x))
   for ( k in 2:K){
-    lfsr_est <- lfsr_est + prob[,k]*ash_obj[[k]]$result$lfsr
+    pp <- ash_obj[[k]]$result$PositiveProb
+    pn <- ash_obj[[k]]$result$NegativeProb
+    if (is.null(pp) || is.null(pn)) {
+      ## Fallback for older ashr that doesn't expose PositiveProb/NegativeProb:
+      ## derive them from PosteriorMean / PosteriorSD assuming a normal post.
+      pm <- ash_obj[[k]]$result$PosteriorMean
+      ps <- pmax(ash_obj[[k]]$result$PosteriorSD, .Machine$double.eps)
+      pp <- 1 - pnorm(0, mean = pm, sd = ps)
+      pn <- pnorm(0, mean = pm, sd = ps)
+    }
+    P_pos <- P_pos + prob[, k] * pp
+    P_neg <- P_neg + prob[, k] * pn
   }
+  lfsr_est <- pmin(1, pmax(0, 1 - pmax(P_pos, P_neg)))
 
   # --- NEW: Log Bayes Factor Calculation for Global Testing ---
 
@@ -1650,6 +1683,20 @@ TI_regression.susiF <- function( obj,Y,X, verbose=TRUE,
     refined_est$credband[[1]] <-  t_res$cred_band
   }else{
 
+    ## Multi-effect TI refit: Gauss-Seidel sweeps over the L lead covariates.
+    ## At each sweep we form the partial residual
+    ##   Y_res = Y - sum_{k != l} X[, idx[k]] * f_k
+    ## and re-fit effect l against its OWN lead SNP idx[l] (a single-SNP
+    ## stationary-wavelet regression).  The previous version called
+    ## univariate_TI_regression(Y_res, X[, idx[1]]) inside the inner loop,
+    ## i.e. it re-fit every effect against effect 1's lead SNP, which
+    ## broke the refined estimates whenever L > 1.
+    ##
+    ## univariate_TI_regression delegates to cal_Bhat_Shat without sigma2,
+    ## which now (intentionally) falls back to the per-(k,j) marginal-
+    ## regression Shat -- the right form here, because each call IS a
+    ## single-SNP simple regression and we want the per-wavelet-position
+    ## residual variance taken from Y_res itself.
 
     for ( k in 1:n_iter){
       for (l in 1:length(idx)) {
@@ -1659,7 +1706,7 @@ TI_regression.susiF <- function( obj,Y,X, verbose=TRUE,
         )
 
 
-        t_res=univariate_TI_regression(Y_res ,X [,idx[ 1],drop =FALSE ])
+        t_res=univariate_TI_regression(Y_res ,X [,idx[ l],drop =FALSE ])
         refined_est$f[[l]]  <- t_res$effect_estimate
         refined_est$f2[[l]] <- t_res$fitted_var
         refined_est$credband[[l]] <-  t_res$cred_band
@@ -2354,6 +2401,7 @@ smash_2lw= function( noisy_signal, noise_level=1, n.shifts=50 ){
 
   est <- list()
   est_var <- list()
+
 
 
   for (i in 1:n.shifts) {

@@ -62,7 +62,7 @@ init_prior.default <- function(Y,
   }else{
     df =NULL
   }
-
+#browser()
 
   if(missing(ind_analysis)){
 

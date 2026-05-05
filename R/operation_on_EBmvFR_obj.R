@@ -123,12 +123,19 @@ get_G_prior.EBmvFR <- function( obj, ...){
 
 get_ER2.EBmvFR = function (   obj,Y, X,  ...) {
 
+  ## EBmvFR is multivariate functional ash on a single effect (no SuSiE
+  ## inclusion mixture).  fitted_wc[[1]] is E[beta] and fitted_wc2[[1]]
+  ## is the posterior VARIANCE (post_mat_sd^2) -- see update_effect.EBmvFR.
+  ##
+  ## E_q[||Y - X beta||^2] = ||Y - X * E[beta]||^2 + sum_j d_j * Var(beta_j,t)
+  ## where d_j = ||X[,j]||^2.
 
-  obj <- obj
-  postF  <- obj$fitted_wc[[1]]# J by N matrix
-  postF2 <- obj$fitted_wc2[[1]] # Posterior second moment.
+  postF  <- obj$fitted_wc[[1]]
+  postF2 <- obj$fitted_wc2[[1]]   # posterior variance
+  d <- attr(X, "d")
+  if (is.null(d)) d <- rep(nrow(X) - 1, ncol(X))
 
-  return(sum(t((Y - X%*%postF ))%*%(Y - X%*%postF ) )  -sum(t(postF)%*%postF) + sum(    postF2))
+  return(sum((Y - X %*% postF)^2) + sum(d * postF2))
 }
 
 

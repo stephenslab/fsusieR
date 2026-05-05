@@ -524,13 +524,30 @@ get_ER2 <- function( obj,Y,X,... )
 
 get_ER2.susiF = function (  obj,Y, X,  ...) {
 
+  ## Canonical SuSiE form (matches susieR::get_ER2):
+  ##   E_q[||Y - sum_l X b_l||^2]
+  ##     = ||Y - X * sum_l(alpha_l * mu_l)||^2
+  ##       - sum_l ||X * (alpha_l * mu_l)||^2
+  ##       + sum_l sum_t sum_j d_j * alpha_{l,j} * (mu^2_{l,j,t} + sigma^2_{l,j,t})
+  ##
+  ## d_j = ||X[,j]||^2.  fsusieR standardizes columns of X to var = 1, so
+  ## d_j = N - 1; we still honor attr(X,"d") if a caller supplies it.
 
-  obj <- obj
-  postF <- get_post_F(obj )# J by N matrix
-  #Xr_L = t(X%*% postF)
-  postF2 <- get_post_F2(obj ) # Posterior second moment.
+  L <- obj$L
+  d <- attr(X, "d")
+  if (is.null(d)) d <- rep(nrow(X) - 1, ncol(X))
 
-  return(sum(t((Y - X%*%postF ))%*%(Y - X%*%postF ) )  -sum(t(postF)%*%postF) + sum(    postF2))
+  postF <- get_post_F(obj)              # p x t  : sum_l alpha_l * mu_l
+  rss   <- sum((Y - X %*% postF)^2)
+
+  var_corr <- 0
+  for (l in seq_len(L)) {
+    Fbar_l   <- get_post_F (obj, l)     # p x t  : alpha_l * mu_l
+    postb2_l <- get_post_F2(obj, l)     # p x t  : alpha_l * (mu_l^2 + sigma^2_l)
+    var_corr <- var_corr - sum((X %*% Fbar_l)^2) + sum(d * postb2_l)
+  }
+
+  return(rss + var_corr)
 }
 
 
@@ -1782,31 +1799,56 @@ update_cal_fit_func.susiF <- function(obj,
     )
   }
   if( post_processing=="none"){
+    ## "vanilla" wavelet effect estimate: no resmoothing, just invert all
+    ## the standardisation that was applied before IBSS so that
+    ## fitted_func[[l]] is on the same scale as the input Y.
+    ##
+    ## Scaling chain in susiF():
+    ##   X        scaled by csd_X     (per SNP)
+    ##   Y        scaled by csd_Y_pos (per outcome position)  [stored on obj]
+    ##   Y_f      = wavelet(scaled Y), then scaled by csd_Yf  (per wavelet coef)
+    ##
+    ## fitted_wc[[l]] lives in the fully-standardised space, so to recover
+    ## an effect curve in the original Y units we need:
+    ##   (i)   weight by alpha and divide by csd_X     (collapse over SNPs)
+    ##   (ii)  multiply each wavelet coefficient by csd_Yf
+    ##   (iii) inverse wavelet transform
+    ##   (iv)  multiply per-position by csd_Y_pos
+    ## The previous code did only (i) and (iii); the missing csd_Yf and
+    ## csd_Y_pos factors caused fitted_func to come out shrunk by a factor
+    ## of roughly csd_Y_pos (~5x in typical genotype noise simulations).
+
     temp <- wavethresh::wd(rep(0, obj$n_wac))
 
-    if(inherits(get_G_prior(obj),"mixture_normal_per_scale" ))
-    {
+    csd_Yf    <- obj$csd_Yf
+    csd_Y_pos <- obj$csd_Y_pos
 
-      for ( l in 1:obj$L)
-      {
-        temp$D                     <- (obj$alpha[[l]])%*%sweep( obj$fitted_wc[[l]][,-indx_lst[[length(indx_lst)]], drop=FALSE],
-                                                                1,
-                                                                1/(obj$csd_X ), "*")
-        temp$C[length(temp$C)]     <- (obj$alpha[[l]])%*% (obj$fitted_wc[[l]][,indx_lst[[length(indx_lst)]], drop=FALSE]*( 1/(obj$csd_X )))
-        obj$fitted_func[[l]] <-  wavethresh::wr(temp)
+    last_idx <- indx_lst[[length(indx_lst)]]
+    is_per_scale <- inherits(get_G_prior(obj), "mixture_normal_per_scale")
+    is_normal    <- inherits(get_G_prior(obj), "mixture_normal")
 
-      }
-    }
-    if(inherits(get_G_prior(obj),"mixture_normal" ))
-    {
-      for ( l in 1:obj$L)
-      {
-        temp$D                     <- (obj$alpha[[l]])%*%sweep(obj$fitted_wc[[l]][,-dim(obj$fitted_wc[[l]])[2], drop=FALSE],
-                                                               1,
-                                                               1/(obj$csd_X ), "*")
-        temp$C[length(temp$C)]     <- (obj$alpha[[l]])%*% (obj$fitted_wc[[l]][,dim(obj$fitted_wc[[l]])[2], drop=FALSE]*( 1/(obj$csd_X )) )
-        obj$fitted_func[[l]] <- wr(temp)
+    if (is_per_scale || is_normal) {
+      ## Both prior families use the same back-conversion; the only
+      ## historic difference was the index vector for the C-coefficient.
+      C_idx <- if (is_per_scale) last_idx else dim(obj$fitted_wc[[1]])[2]
 
+      for (l in 1:obj$L) {
+
+        ## (i) collapse over SNPs with alpha and undo X scaling
+        wc_collapsed <- (obj$alpha[[l]] / obj$csd_X) %*% obj$fitted_wc[[l]]
+        wc_collapsed <- as.numeric(wc_collapsed)        # length n_wac
+
+        ## (ii) undo Y_f wavelet-coefficient scaling
+        if (!is.null(csd_Yf)) wc_collapsed <- wc_collapsed * csd_Yf
+
+        temp$D                 <- wc_collapsed[-C_idx]
+        temp$C[length(temp$C)] <- wc_collapsed[ C_idx]
+
+        ## (iii) inverse wavelet transform, then (iv) undo Y per-position scaling
+        f_hat <- wavethresh::wr(temp)
+        if (!is.null(csd_Y_pos)) f_hat <- f_hat * csd_Y_pos
+
+        obj$fitted_func[[l]] <- f_hat
       }
     }
   }

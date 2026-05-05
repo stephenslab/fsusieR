@@ -368,7 +368,7 @@ susiF <- function(Y, X, L = 2,
   }
   X0=X
   X <- colScale(X)
-  #browser()
+   #browser()
   map_data <- remap_data(Y=Y,
                          pos=pos,
                          verbose=verbose,
@@ -393,12 +393,17 @@ susiF <- function(Y, X, L = 2,
    #fit user function on interpolated functions
 
 Y= colScale(Y)
+  ## Per-position sd of the (mapped) input Y -- needed to undo Y scaling
+  ## when reporting fitted_func in original units (post_processing="none").
+  csd_Y_pos <- attr(Y, "scaled:scale")
 
   W <- DWT2(Y,
             filter.number = filter.number,
             family        = family)
   Y_f      <-  cbind( W$D,W$C)
   Y_f  <- colScale(Y_f  )
+  ## Per-wavelet-coefficient sd of the wavelet-transformed scaled Y.
+  csd_Yf <- attr(Y_f, "scaled:scale")
   W$C=Y_f[, ncol(Y)]
   W$D=Y_f[, -ncol(Y)]
 
@@ -473,6 +478,10 @@ Y= colScale(Y)
                                  backfit=backfit,
                                  tol_null_prior= tol_null_prior,
                            cov_lev=cov_lev)
+  ## Persist Y-side scale factors so update_cal_fit_func can return
+  ## fitted_func in original Y units for post_processing = "none".
+  obj$csd_Y_pos <- csd_Y_pos
+  obj$csd_Yf    <- csd_Yf
 
   if(verbose){
     print("Initialization done")
