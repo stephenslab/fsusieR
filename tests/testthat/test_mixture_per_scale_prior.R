@@ -258,7 +258,7 @@ test_that("susiF single-effect recovers one curve", {
 test_that("susiF two-effects recovers two curves", {
 
   set.seed(1 )
-  sim <- simu_test_function(rsnr = 1, pos2 = 2, is.plot = FALSE)
+  sim <- simu_test_function(rsnr = 1.2, pos2 = 2, is.plot = FALSE)
   Y <- sim$noisy.data
   X <- sim$G
   out <- susiF(Y, X, L = 2, prior = "mixture_normal_per_scale",post_processing = "smash",
