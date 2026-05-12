@@ -375,7 +375,7 @@ susiF <- function(Y, X, L = 2,
                          max_scale=max_scale)
 
 # keep the same input format
-  if(( post_processing=="smash"|post_processing=="HMM") & is_evenly_spaced(pos)){
+  if (post_processing %in% c("smash", "HMM")) {
 
     Y0 <-  Y
     outing_grid =pos
