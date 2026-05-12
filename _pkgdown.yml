@@ -53,5 +53,6 @@ articles:
   navbar: ~
   contents:
   - Limitation_SuSiE
+  - susie_top_PC_vs_fsusie
   - Adjusting_covariate
   - Coloc_fsusie
