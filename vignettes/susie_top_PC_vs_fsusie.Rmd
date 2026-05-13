@@ -250,7 +250,7 @@ effect_plot <- function(i) {
     upper = out[[i]]$cred_band["up", ]
   )
   rows <- with(pdat, which(lower > 0 | upper < 0))
-  pdat2 <- data.frame(cpg = rows, estimate = 0)
+  pdat2 <- data.frame(cpg = rows, estimate = rep(0, length(rows)))
   ggplot(pdat, aes(x = cpg, y = estimate, ymin = lower, ymax = upper)) +
     geom_point(color = cs_colors[i], size = 1) +
     geom_errorbar(color = cs_colors[i], linewidth = 0.4) +
