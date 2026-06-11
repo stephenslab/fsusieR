@@ -81,10 +81,12 @@
 #' regulariser whose absolute scale is approximate. The σ²-update and
 #' VGA blocks of the ELBO are exact under the model assumptions.
 #'
-#' Convergence: we declare convergence when both
-#' (a) `|ELBO_new - ELBO_old| / |ELBO_old| < elbo_tol`, and
-#' (b) `max(abs(B_pm - B_pm_old)) < tol`. (b) is also reported as a
-#' diagnostic.
+#' Convergence: we declare convergence on the relative ELBO change,
+#' `|ELBO_new - ELBO_old| / |ELBO_old| < elbo_tol`. The per-iteration
+#' `max(abs(B_pm - B_pm_old))` is still reported but is **only a
+#' diagnostic** -- it is not used to gate convergence, because within-CS
+#' SNP label-switching keeps it above `tol` indefinitely and previously
+#' forced every fit to run all `maxit_outer` iterations.
 #'
 #' Differences from the manuscript: the per-position intercept
 #' \eqn{\alpha_{0,t}} is implicitly handled by susiF's own column
@@ -200,7 +202,13 @@ Pois_fSuSiE <- function(Y,
                                    beta     = B_pm[i, ],
                                    sigma2   = sigma2),
                    silent = TRUE)
-        if (inherits(sol, "try-error")) {
+        if (inherits(sol, "try-error") ||
+            !all(is.finite(sol$m)) || !all(is.finite(sol$v)) ||
+            any(sol$v <= 0)) {
+          ## Solver failed or returned a non-finite / invalid estimate.
+          ## Fall back to the log1p transform so downstream susiF/ash never
+          ## sees NaN/Inf (which previously crashed ashr::squarem with
+          ## "missing value where TRUE/FALSE needed").
           Mu_pm[i, ] <- log1p(Y[i, ] / scaling[i])
           Mu_pv[i, ] <- sigma2
         } else {
@@ -208,6 +216,11 @@ Pois_fSuSiE <- function(Y,
           Mu_pv[i, ] <- sol$v
         }
       }
+      ## Final safety net: clamp the latent log-rate to a sane range and
+      ## guarantee strictly-positive, finite variances before refitting.
+      Mu_pm[!is.finite(Mu_pm)] <- 0
+      Mu_pm <- pmin(pmax(Mu_pm, -30), 30)
+      Mu_pv[!is.finite(Mu_pv) | Mu_pv <= 0] <- sigma2
     }
 
     ## 3b. Refit fSuSiE on Mu_pm. susiF column-centres its response;
@@ -252,15 +265,23 @@ Pois_fSuSiE <- function(Y,
     if (diagnostic_plot)
       pois_fsusie_diagnostic_plot(Y, Mu_pm, susiF.obj, True_intensity, B_pm)
 
-    ## 3e. Convergence: relative ELBO change AND max |dB_pm| both small.
+    ## 3e. Convergence: relative ELBO change small (the principled VI
+    ##     stopping rule). max|dB_pm| is reported only as a DIAGNOSTIC and
+    ##     no longer gates convergence: within a credible set the selected
+    ##     SNP can keep switching between near-equivalent (highly correlated)
+    ##     SNPs, so the PIP-weighted B_pm wiggles at the 1e-2 level
+    ##     indefinitely without changing the ELBO. Gating on max|dB| < tol
+    ##     therefore almost never triggered and forced every fit to run the
+    ##     full maxit_outer iterations (each a costly susiF refit), which was
+    ##     the main reason benchmark jobs hit their wall-clock limit.
     if (iter > 1) {
       d_elbo <- elbo - elbo_prev
       rel    <- abs(d_elbo) / (abs(elbo_prev) + 1e-12)
       d_B    <- max(abs(B_pm - B_pm_old))
       if (verbose)
-        message(sprintf("  dELBO = %.4g  rel = %.3g  max|dB| = %.3g",
+        message(sprintf("  dELBO = %.4g  rel = %.3g  max|dB| = %.3g (diag)",
                         d_elbo, rel, d_B))
-      converged <- (rel < elbo_tol) && (d_B < tol)
+      converged <- (rel < elbo_tol)
     }
     elbo_prev <- elbo
     iter <- iter + 1

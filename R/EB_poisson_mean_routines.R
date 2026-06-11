@@ -200,13 +200,13 @@ vga_pois_solver = function(init_val,x,s,beta,sigma2,maxiter=1000,tol=1e-5,method
   if(method=='newton'){
     # use Newton's method fist
     res = try(vga_pois_solver_Newton(init_val,x,s,beta,sigma2,maxiter=maxiter,tol=tol),silent = TRUE)
-    if(class(res)=='try-error'){
+    if(inherits(res,'try-error')){
       # If Newton failed, use bisection
       res = try(vga_pois_solver_bisection(x,s,beta,sigma2,maxiter=maxiter,tol=tol),silent=TRUE)
-      if(class(res)=='try-error'){
-        # If bisection also failed, return initial  values with a warning.
-        warnings('Both Newton and Bisection methods failed. Returning initial values.')
-        return(list(m = init_val,v = sigma2/(sigma2*x+beta+1-init_val)))
+      if(inherits(res,'try-error')){
+        # If bisection also failed, return initial values with a warning.
+        warning('Both Newton and Bisection methods failed. Returning initial values.')
+        return(list(m = init_val, v = pmax(sigma2/pmax(sigma2*x+beta+1-init_val, 1e-8), 1e-8)))
       }else{
         return(res)
       }
@@ -215,8 +215,8 @@ vga_pois_solver = function(init_val,x,s,beta,sigma2,maxiter=1000,tol=1e-5,method
     }
   }else if(method=='bisection'){
     res = try(vga_pois_solver_bisection(x,s,beta,sigma2,maxiter=maxiter,tol=tol),silent=TRUE)
-    if(class(res)=='try-error'){
-      return(list(m = init_val,v = sigma2/(sigma2*x+beta+1-init_val)))
+    if(inherits(res,'try-error')){
+      return(list(m = init_val, v = pmax(sigma2/pmax(sigma2*x+beta+1-init_val, 1e-8), 1e-8)))
     }else{
       return(res)
     }
@@ -298,13 +298,13 @@ vga_pois_solver_Newton = function(m,x,s,beta,sigma2,maxiter=1000,tol=1e-5){
   const2 = sigma2/2
   const3 = beta/sigma2
 
-  # make sure m < sigma2*x+beta
-  m = pmin(m,const0-1)
-  # idx = (m>(const0-1))
-  # if(sum(idx)>0){
-  #   m[idx] =suppressWarnings(vga_pois_solver_bisection(x[idx],s[idx],beta[idx],sigma2[idx],maxiter = 10)$m)
-  # }
-
+  # The posterior variance is v = sigma2 / (const0 - m), so the iterate must
+  # stay strictly below const0 for v to be positive and finite. The original
+  # code clamped only the *initial* m; a Newton step could then push m past
+  # const0, making temp <= 0 and returning a negative/Inf variance (or NaN f)
+  # silently. We re-clamp every iteration and guard against non-finite steps.
+  eps = 1e-8
+  m = pmin(m, const0 - eps)
 
   for(i in 1:maxiter){
 
@@ -312,16 +312,31 @@ vga_pois_solver_Newton = function(m,x,s,beta,sigma2,maxiter=1000,tol=1e-5){
     sexp = s*exp(m+const2/temp)
     # f = x - sexp - (m-beta)/sigma2
     f = x - sexp - m*const1 + const3
+    if(!all(is.finite(f))){
+      stop("vga_pois_solver_Newton: non-finite objective")
+    }
     if(max(abs(f))<tol){
       break
     }
     # f_grad = -sexp*(1+const2/temp^2)-const1
-    m = m - f/(-sexp*(1+const2/temp^2)-const1)
+    step = f/(-sexp*(1+const2/temp^2)-const1)
+    m_new = m - step
+    # keep the iterate in the valid region (temp > 0) and finite
+    bad = !is.finite(m_new)
+    if(any(bad)) m_new[bad] = m[bad]
+    m = pmin(m_new, const0 - eps)
   }
   if(i>=maxiter){
-    warnings('Newton method not converged yet.')
+    warning('Newton method not converged yet.')
   }
-  return(list(m=m,v=sigma2/temp))
+  temp = pmax(const0 - m, eps)
+  v = sigma2/temp
+  if(!all(is.finite(m)) || !all(is.finite(v)) || any(v <= 0)){
+    # signal failure so vga_pois_solver() falls back to bisection, which
+    # brackets the root in (0, sigma2] and is numerically safe.
+    stop("vga_pois_solver_Newton: non-finite estimate")
+  }
+  return(list(m=m,v=v))
 
 }
 

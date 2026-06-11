@@ -85,7 +85,8 @@ We compare three methods for fine-mapping this data:
 
 
 ```{r}
-res <- Pois_fSuSiE(Y = Y, X = X, L = 3  )
+res <- Pois_fSuSiE(Y = Y, X = X, L = 3 ,
+                 post_processing ="HMM" )
 res0 <- susiF(Y = log1p(Y), X = X, L = 3)
 res1 <- susiF(Y = HFT(Y), X = X, L = 3)
 ```
