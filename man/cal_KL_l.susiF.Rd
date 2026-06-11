@@ -4,9 +4,20 @@
 \alias{cal_KL_l.susiF}
 \title{Compute KL divergence for effect l (correct ELBO version)}
 \usage{
-\method{cal_KL_l}{susiF}(obj, l, X, ...)
+\method{cal_KL_l}{susiF}(obj, l, X, D, C, indx_lst, ...)
 }
 \description{
-Compute KL divergence for effect l (correct ELBO version)
+Per-effect KL between q_l(b_l, gamma_l) and the prior p(b_l, gamma_l),
+using the susieR identity
+  KL(q_l || p_l) = log p(R_l) - E_{q_l}[ log p(R_l | b_l, gamma_l) ]
+                 = loglik_SFR(R_l) - loglik_SFR_post(R_l)
+where R_l = Y - X * sum_{k != l} alpha_k * mu_k is the partial residual.
+
+This always returns a non-negative quantity at the SER posterior optimum,
+so the ELBO formed as Eloglik(Y, X) - sum_l KL_l is a valid lower bound.
+
+The previous implementation computed
+  (1/(2 sigma^2)) * (||X E[F]||^2 - sum_j d_j E[F^2_j])
+which is generically negative and therefore not a KL.
 }
 \keyword{internal}
