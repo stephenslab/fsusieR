@@ -1176,18 +1176,17 @@ out_prep.susiF <- function(obj ,
                               filter.number = filter.number,
                               family        = family)
 
- # if( ! (post_processing== "HMM")){
-
-  #  obj <-  update_cal_indf(obj = obj ,
-  #                          Y         =  Y,
-  #                          X         = X,
- #                           indx_lst  = indx_lst,
-  #                          TI        = ifelse(post_processing %in% c('TI', 'smash'), TRUE, FALSE))
-#
-
-  #}
-
-
+  ## Reconstruct the per-individual fitted curves (N x J). Must run BEFORE
+  ## rename_format_output(), which pads alpha back to the full SNP set with
+  ## zeros at the removed constant columns -- at this point alpha and X are
+  ## still aligned in the constant-column-removed space, so which.max(alpha)
+  ## indexes X correctly.
+  obj <-  update_cal_indf(obj      = obj,
+                          Y        = Y,
+                          X        = X,
+                          indx_lst = indx_lst,
+                          TI       = ifelse(post_processing %in% c('TI', 'smash'),
+                                            TRUE, FALSE))
 
   obj             <-  rename_format_output (obj        = obj,
                                             names_colX = names_colX,
@@ -1678,29 +1677,43 @@ update_cal_indf <- function(obj, Y, X, indx_lst, TI=FALSE,...)
 #' @importFrom wavethresh wd
 update_cal_indf.susiF <- function(obj, Y, X, indx_lst, TI = FALSE, ...) {
 
-  L <- length(obj$alpha)
   N <- nrow(Y)
   J <- ncol(Y)
 
-  # Leading covariate for each effect
-  idx_lead_cov <- vapply(obj$alpha, which.max, integer(1))
+  ## Per-individual fitted curves via the lead-SNP post-processed effects.
+  ##
+  ## IMPORTANT (offset handling): before the wavelet regression, BOTH Y and
+  ## X are column-centred (and scaled) by colScale(., center = TRUE). The
+  ## post-processed effect curves obj$fitted_func[[l]] are therefore slopes
+  ## estimated on CENTRED data, already expressed in original-Y-per-
+  ## original-X units (the post-processors divide by csd_X and multiply by
+  ## csd_Y). To reconstruct an individual's curve on the original scale we
+  ## must (i) add back the per-position column mean of Y removed by the
+  ## centring, and (ii) centre X by its own column means so the lead-SNP
+  ## contribution is measured relative to the same origin:
+  ##
+  ##   yhat_i(t) = mean_t(Y) + sum_l ( X[i, j_l] - mean(X[, j_l]) ) * f_l(t)
+  ##
+  ## with j_l = which.max(alpha_l) the lead SNP of effect l. The previous
+  ## implementation omitted the X-centring and multiplied by
+  ## attr(X, "scaled:scale"), which is NULL at the out_prep() call site
+  ## (X is passed unscaled there) -- so the slot stayed at its zero init.
+  offset_t   <- colMeans(Y)                       # per-position Y offset
+  ind_fitted <- matrix(offset_t, nrow = N, ncol = J, byrow = TRUE)
 
-  # Extract scaling and centering information
-  mean_Y  <- apply(Y,2,mean)# attr(Y, "scaled:center")
-  scale_X <- attr(X, "scaled:scale")
+  ## Only effects that have a post-processed curve (one per surviving CS).
+  L_fit <- length(obj$fitted_func)
+  if (L_fit == 0L) {
+    obj$ind_fitted_func <- ind_fitted
+    return(obj)
+  }
 
-  # Preallocate fitted curves for all individuals
-  ind_fitted <- matrix(mean_Y, nrow = N, ncol = J, byrow = TRUE)
+  X_centered <- sweep(X, 2, colMeans(X), "-")
 
-  # Add each effect's fitted function
-  for (l in seq_len(L)) {
-
-    j <- idx_lead_cov[l]                       # leading covariate
-    fitted_l <- obj$fitted_func[[l]]           # 1 × J curve
-    xj <- X[, j] * scale_X[j]                  # scaled covariate, length N
-
-    # Outer product: N × 1  times  1 × J  = N × J
-    ind_fitted <- ind_fitted + xj %o% fitted_l
+  for (l in seq_len(L_fit)) {
+    j   <- which.max(obj$alpha[[l]])              # lead SNP of effect l
+    f_l <- as.numeric(obj$fitted_func[[l]])       # 1 x J post-processed curve
+    ind_fitted <- ind_fitted + outer(X_centered[, j], f_l)
   }
 
   obj$ind_fitted_func <- ind_fitted

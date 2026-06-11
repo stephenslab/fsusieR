@@ -40,8 +40,9 @@
 #' @param s2 Initial value of \eqn{\sigma^{2}}. Default `0.5`.
 #'
 #' @return A list with components `Mu_pm`, `Mu_pv`, `B_pm`, `B_pv`,
-#'   `est_effect_fm`, `sigma2`, `fitted`, `elbo_trace`, `converged`,
-#'   `n_iter`, `susiF.obj`. See Details.
+#'   `est_effect_fm`, `sigma2`, `fitted_latent` (lead-SNP reconstructed
+#'   latent log-intensity), `fitted` (`= exp(fitted_latent)`), `elbo_trace`,
+#'   `converged`, `n_iter`, `susiF.obj`. See Details.
 #'
 #' @details
 #' The algorithm is a two-block coordinate ascent on the split-variational
@@ -60,9 +61,10 @@
 #'     (X - colMeans(X)) %*% est_effect_fm`. This re-parametrises the
 #'     per-position intercept \eqn{\alpha_{0,t}} as the column mean of the
 #'     susiF response, and uses the PIP-weighted prediction so that all
-#'     SNPs in a CS contribute (not just the leading SNP). We do **not**
-#'     read `susiF.obj$ind_fitted_func` directly because susiF currently
-#'     leaves that slot at its zero initial value (see Notes);
+#'     SNPs in a CS contribute (not just the leading SNP). This drives the
+#'     optimisation; the *reported* `fitted` value instead uses the lead-SNP
+#'     post-processed reconstruction (`build_fitted_leadSNP`), consistent
+#'     with susiF's `ind_fitted_func`;
 #'   \item compute the variance contribution `Var_q[b_{i,t}]` (see below)
 #'     and update \eqn{\sigma^{2}} from its closed-form ELBO maximiser.
 #' }
@@ -295,7 +297,12 @@ Pois_fSuSiE <- function(Y,
   ## ------------------------------------------------------------------ ##
   susiF.obj <- fsusieR::update_cal_pip(susiF.obj)
 
-  fitted_intensity <- exp(B_pm)
+  ## Fitted value reported to the user: lead-SNP reconstruction from the
+  ## POST-PROCESSED effect curves, with the Y/Mu offset added back (see
+  ## build_fitted_leadSNP). The internal prior-mean B_pm above (PIP-weighted)
+  ## is left unchanged and still drives the VGA / sigma2 / ELBO updates.
+  fitted_latent    <- build_fitted_leadSNP(Mu_pm, X, susiF.obj)
+  fitted_intensity <- exp(fitted_latent)
 
   list(Mu_pm         = Mu_pm,
        Mu_pv         = Mu_pv,
@@ -303,6 +310,7 @@ Pois_fSuSiE <- function(Y,
        B_pv          = B_pv,
        est_effect_fm = est_effect_fm,
        sigma2        = sigma2,
+       fitted_latent = fitted_latent[, idx_out, drop = FALSE],
        fitted        = fitted_intensity[, idx_out, drop = FALSE],
        elbo_trace    = elbo_trace,
        converged     = converged,
@@ -338,16 +346,42 @@ reconstruct_effect <- function(susiF.obj) {
 # alpha_0 + X %*% F as colMeans(response) + X_centered %*% F so that the
 # intercept matches the column means of the susiF response.
 #
-# We do this ourselves (rather than reading susiF.obj$ind_fitted_func)
-# because susiF leaves ind_fitted_func at its zero initial value:
-# out_prep.susiF currently has the update_cal_indf call commented out
-# (see R/operation_on_susiF_obj.R around line 1182), so the slot returned
-# by susiF() is an N x T matrix of zeros.
+# This PIP-weighted prior-mean drives the optimisation. (The reported
+# fitted value uses the lead-SNP post-processed reconstruction instead --
+# see build_fitted_leadSNP() / susiF.obj$ind_fitted_func, which is now
+# populated by out_prep.susiF.)
 build_B_pm <- function(response, X, est_effect_fm) {
   X_centered <- sweep(X, 2, colMeans(X), "-")
   effect_pred <- X_centered %*% est_effect_fm
   intercept_t <- colMeans(response)
   sweep(effect_pred, 2, intercept_t, "+")
+}
+
+# Lead-SNP reconstruction of the per-individual latent log-intensity, using
+# susiF's POST-PROCESSED effect curves (susiF.obj$fitted_func) rather than the
+# raw PIP-weighted estimate. This is the analogue of susiF's ind_fitted_func
+# and is what we report as the fitted value (output only; the optimisation
+# still uses the PIP-weighted build_B_pm above).
+#
+# Offset handling mirrors build_B_pm / update_cal_indf.susiF: the post-
+# processed curves are slopes fit on column-centred data, so we add back the
+# per-position mean of the response (colMeans) and centre X by its column
+# means before applying each lead-SNP effect:
+#   yhat_i(t) = mean_t(response) + sum_l ( X[i,j_l] - mean(X[,j_l]) ) * f_l(t)
+# with j_l = which.max(alpha_l).
+build_fitted_leadSNP <- function(response, X, susiF.obj) {
+  N  <- nrow(X)
+  Tt <- ncol(response)
+  out <- matrix(colMeans(response), nrow = N, ncol = Tt, byrow = TRUE)
+  if (length(susiF.obj$cs) == 0 || length(susiF.obj$fitted_func) == 0)
+    return(out)
+  X_centered <- sweep(X, 2, colMeans(X), "-")
+  for (l in seq_along(susiF.obj$fitted_func)) {
+    j   <- which.max(susiF.obj$alpha[[l]])
+    f_l <- as.numeric(susiF.obj$fitted_func[[l]])
+    out <- out + outer(X_centered[, j], f_l)
+  }
+  out
 }
 
 # Approximate Var_q[b_{i,t}] under the leading-SNP-curve approximation,
