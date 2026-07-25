@@ -511,7 +511,6 @@ HMM_regression.susiF <- function( obj,
     }
 
 
-    print("b")
     s =  fit_hmm(x=est ,sd=tsds   )
 
     fitted_lfsr [[1]] <- s$lfsr
@@ -532,10 +531,9 @@ HMM_regression.susiF <- function( obj,
         tsds[ which( is.na(tsds))]<- 1
       }
 
-      print("c")
       #browser()
       s =  fit_hmm(x=est ,sd=(tsds)  ,verbose=TRUE , maxit=100)
-      plot(s$posterior$mean)
+
       fitted_lfsr [[idx_cs]] <- s$posterior$lfsr
       fitted_trend[[idx_cs]] <- s$posterior$mean
 
