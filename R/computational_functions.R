@@ -513,8 +513,8 @@ HMM_regression.susiF <- function( obj,
 
     s =  fit_hmm(x=est ,sd=tsds   )
 
-    fitted_lfsr [[1]] <- s$lfsr
-    fitted_trend[[1]] <- s$x_post
+    fitted_lfsr [[1]] <- s$posterior$lfsr
+    fitted_trend[[1]] <- s$posterior$mean
   }else{
     for (  lp in 1: length(idx))
     {
