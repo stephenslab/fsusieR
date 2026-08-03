@@ -13,7 +13,7 @@ Pois_fSuSiE(
   maxit_outer = 10,
   maxit_inner = 10,
   tol = 0.001,
-  elbo_tol = 1e-04,
+  elbo_tol = NULL,
   control_mixsqp = list(verbose = FALSE, eps = 1e-06, numiter.em = 4),
   nullweight = 0.1,
   cov_lev = 0.95,
@@ -27,123 +27,84 @@ Pois_fSuSiE(
   print = NULL,
   Z = NULL,
   update_Mu_each_iter = TRUE,
-  s2 = 0.5
+  s2 = 0.5,
+  outer_tol = 0.001,
+  stable_iterations = 2L,
+  solver_failure = c("error", "log1p")
 )
 }
 \arguments{
-\item{Y}{N x T integer matrix of counts.}
+\item{Y}{N by T numeric matrix of non-negative integer counts.}
 
-\item{X}{N x J covariate matrix. Required.}
+\item{X}{N by J numeric covariate matrix.}
 
 \item{L}{Upper bound on the number of single effects.}
 
-\item{scaling}{Length-N vector of per-sample scaling factors \eqn{s_i}.
-Defaults to ones.}
+\item{scaling}{Length-N vector of finite, strictly positive sample-specific
+Poisson scaling factors. Defaults to one.}
 
-\item{reflect}{Logical; if `TRUE` and `ncol(Y)` is not a power of two,
-the data are mirrored to the next power of two before wavelet
-processing. Set automatically when needed.}
+\item{reflect}{Logical; mirror the observations before wavelet processing.
+Reflection is enabled automatically when \code{ncol(Y)} is not a power of two.}
 
-\item{maxit_outer}{Maximum number of outer (coordinate-ascent) iterations.}
+\item{maxit_outer}{Maximum number of outer iterations.}
 
-\item{maxit_inner}{Maximum number of inner IBSS iterations forwarded to
-[susiF()].}
+\item{maxit_inner}{Maximum number of inner \code{\link[=susiF]{susiF()}} iterations.}
 
-\item{tol}{Convergence tolerance on the per-iteration change in `B_pm`
-(used as a backup criterion to the ELBO check).}
+\item{tol}{Positive convergence tolerance forwarded to \code{\link[=susiF]{susiF()}}.}
 
-\item{elbo_tol}{Relative tolerance on the ELBO increment used for the
-primary convergence check (default `1e-4`).}
+\item{elbo_tol}{Deprecated alias for \code{outer_tol}. Kept for compatibility.}
 
-\item{control_mixsqp, nullweight, cov_lev, min_purity, cor_small, post_processing, thresh_lowcount}{Forwarded to [susiF()].}
+\item{control_mixsqp, nullweight, cov_lev, min_purity, cor_small, post_processing, thresh_lowcount}{Forwarded to \code{\link[=susiF]{susiF()}}. \code{post_processing = "none"} is not supported because its \code{fitted_func} is already alpha-collapsed.}
 
-\item{verbose}{Logical; print outer-iteration progress.}
+\item{verbose}{Logical; report outer-iteration progress.}
 
-\item{diagnostic_plot}{Logical; if `TRUE`, plot fit diagnostics each
-outer iteration. Replaces the old `print` argument.}
+\item{diagnostic_plot}{Logical; draw diagnostic plots each outer iteration.}
 
-\item{True_intensity}{Optional N x T matrix of ground-truth log
-intensities, used only when `diagnostic_plot = TRUE`. Not used in
-any computation.}
+\item{True_intensity}{Optional N by T matrix of true latent log-intensities,
+used only by \code{diagnostic_plot}.}
 
-\item{print}{Deprecated alias for `diagnostic_plot`.}
+\item{print}{Deprecated alias for \code{diagnostic_plot}.}
 
-\item{Z}{Reserved for future support of unpenalised technical
-covariates. Must be `NULL` (errors otherwise).}
+\item{Z}{Reserved for future dense-covariate support. Must be \code{NULL}.}
 
-\item{update_Mu_each_iter}{Logical; if `FALSE`, the latent-mean update
-is skipped after the first outer iteration. Mainly for debugging.}
+\item{update_Mu_each_iter}{Logical; update the latent Gaussian posterior at
+every outer iteration. Setting this to \code{FALSE} is intended for debugging.}
 
-\item{s2}{Initial value of \eqn{\sigma^{2}}. Default `0.5`.}
+\item{s2}{Positive initial value of the noise variance \code{sigma2}.}
+
+\item{outer_tol}{Positive convergence tolerance for the maximum relative
+change in \code{Mu_pm}, \code{B_pm}, and \code{sigma2}.}
+
+\item{stable_iterations}{Number of consecutive iterations below \code{outer_tol}
+required for convergence.}
+
+\item{solver_failure}{Either \code{"error"} (the default) or \code{"log1p"}. The latter
+records a failed VGA row and uses a log1p fallback instead of stopping.}
 }
 \value{
-A list with components `Mu_pm`, `Mu_pv`, `B_pm`, `B_pv`,
-  `est_effect_fm`, `sigma2`, `fitted_latent` (lead-SNP reconstructed
-  latent log-intensity), `fitted` (`= exp(fitted_latent)`), `elbo_trace`,
-  `converged`, `n_iter`, `susiF.obj`. See Details.
+A list containing posterior moments, fitted values, \code{sigma2}, an
+iteration-level \code{convergence_trace}, solver failures, and the inner
+\code{susiF.obj}. \code{partial_objective_trace} contains only the Poisson latent and
+Gaussian coupling terms. The legacy \code{elbo_trace} component is retained as
+an alias, but is not a complete joint ELBO.
 }
 \description{
-Fine-mapping of inhomogeneous Poisson process data via the
-  split-variational empirical-Bayes framework of Denault, Xie and
-  Stephens. Counts \eqn{y_{i,t}\sim\mathrm{Pois}(s_i\exp(\mu_{i,t}))}
-  are modelled with a Gaussian latent log-intensity
-  \eqn{\mu_{i,t}\sim N(\alpha_{0,t}+b_{i,t},\sigma^{2})}, where the
-  per-position intercept \eqn{\alpha_{0,t}} and the SNP effects
-  \eqn{b_{i,t}=\sum_j x_{i,j}F_{j,t}} are estimated by an inner fSuSiE
-  fit to the variational posterior mean of \eqn{M}.
+Fine-mapping of inhomogeneous Poisson process data with a
+Gaussian variational approximation for the latent log-intensity and an
+inner \code{\link[=susiF]{susiF()}} fit for the structured genetic mean.
 }
 \details{
-The algorithm is a two-block coordinate ascent on the split-variational
-ELBO
-\deqn{F = \sum_{i,t}\bigl[y_{i,t}\bar\mu_{i,t}-s_i e^{\bar\mu_{i,t}+\nu_{i,t}/2}\bigr]
-  -\tfrac{NT}{2}\log\sigma^{2}
-  -\tfrac{1}{2\sigma^{2}}\!\sum_{i,t}\!\bigl[(\bar\mu_{i,t}-\bar b_{i,t})^{2}+\nu_{i,t}+\mathrm{Var}_q[b_{i,t}]\bigr]
-  +\tfrac{1}{2}\sum_{i,t}\log\nu_{i,t}
-  -\sum_r\!\mathrm{KL}(q_r\|g_r) + \text{const.}}
-At each outer iteration we
-\enumerate{
-  \item update the per-sample VGA posterior on the latent log-rate
-    via the Newton solver [vga_pois_solver()];
-  \item refit [susiF()] on `Mu_pm` to get an updated PIP-weighted SNP
-    effect matrix and rebuild `B_pm = colMeans(Mu_pm) +
-    (X - colMeans(X)) %*% est_effect_fm`. This re-parametrises the
-    per-position intercept \eqn{\alpha_{0,t}} as the column mean of the
-    susiF response, and uses the PIP-weighted prediction so that all
-    SNPs in a CS contribute (not just the leading SNP). This drives the
-    optimisation; the *reported* `fitted` value instead uses the lead-SNP
-    post-processed reconstruction (`build_fitted_leadSNP`), consistent
-    with susiF's `ind_fitted_func`;
-  \item compute the variance contribution `Var_q[b_{i,t}]` (see below)
-    and update \eqn{\sigma^{2}} from its closed-form ELBO maximiser.
-}
-`Var_q[b_{i,t}]` captures the SuSiE selection uncertainty about which
-SNP within an SER is causal:
-\deqn{\mathrm{Var}_q[b_{i,t}] \approx
-  \sum_r (m^{(r)}_t)^{2}\,\bigl(A^{(r)}_i - (M^{(r)}_i)^{2}\bigr),
-  \quad A^{(r)}_i=\sum_j x_{i,j}^{2}\alpha^{(r)}_j,\;M^{(r)}_i=\sum_j x_{i,j}\alpha^{(r)}_j,}
-which is zero when the CS is one-hot (high purity) and grows with
-selection uncertainty. The effect-magnitude posterior variance is
-absorbed into `sigma2` for simplicity.
+The noise-variance update is
+\deqn{\sigma^2 = \mathrm{mean}\{(\bar\mu-\bar B)^2 + V_\mu + V_B\}.}
+The approximation to \code{V_B} uses centered \code{X} and includes both SNP-selection
+uncertainty and the available post-processed effect-curve variance.
 
-The per-SER KL terms are taken from `susiF.obj$KL` when available.
-Note that those KLs are computed with susiF's own internal
-\eqn{\sigma^{2}_{\text{inner}}}; they enter the ELBO as a soft
-regulariser whose absolute scale is approximate. The σ²-update and
-VGA blocks of the ELBO are exact under the model assumptions.
-
-Convergence: we declare convergence on the relative ELBO change,
-`|ELBO_new - ELBO_old| / |ELBO_old| < elbo_tol`. The per-iteration
-`max(abs(B_pm - B_pm_old))` is still reported but is **only a
-diagnostic** -- it is not used to gate convergence, because within-CS
-SNP label-switching keeps it above `tol` indefinitely and previously
-forced every fit to run all `maxit_outer` iterations.
-
-Differences from the manuscript: the per-position intercept
-\eqn{\alpha_{0,t}} is implicitly handled by susiF's own column
-centring of its response (rather than via an EBNM prior, as the paper
-describes in Eq. 35). The technical-covariate matrix `Z` is not yet
-supported.
+This implementation is deliberately labelled a hybrid approximation. The
+public \code{\link[=susiF]{susiF()}} update standardizes its response and re-estimates an inner
+Gaussian residual variance, so its KL term is not on the scale of the outer
+Poisson model. Consequently \code{partial_objective_trace} is a diagnostic and
+convergence is based on parameter changes rather than a claimed joint ELBO.
 }
 \seealso{
-[susiF()], [vga_pois_solver()]
+\code{\link[=susiF]{susiF()}}, \code{\link[=vga_pois_solver]{vga_pois_solver()}}
 }
