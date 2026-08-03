@@ -1737,10 +1737,8 @@ univariate_functional_regression <- function(Y,X,
   }
   if( method=="HMM"){
     out= univariate_HMM_regression( Y=Y,
-                                    X=X,
-                                    filter.number =filter.number  ,
-                                    family = family,
-                                    alpha=  alpha)
+                                    X=X
+                                     )
 
   }
   if(method=="smash"){

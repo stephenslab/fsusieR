@@ -78,8 +78,9 @@ is skipped after the first outer iteration. Mainly for debugging.}
 }
 \value{
 A list with components `Mu_pm`, `Mu_pv`, `B_pm`, `B_pv`,
-  `est_effect_fm`, `sigma2`, `fitted`, `elbo_trace`, `converged`,
-  `n_iter`, `susiF.obj`. See Details.
+  `est_effect_fm`, `sigma2`, `fitted_latent` (lead-SNP reconstructed
+  latent log-intensity), `fitted` (`= exp(fitted_latent)`), `elbo_trace`,
+  `converged`, `n_iter`, `susiF.obj`. See Details.
 }
 \description{
 Fine-mapping of inhomogeneous Poisson process data via the
@@ -108,9 +109,10 @@ At each outer iteration we
     (X - colMeans(X)) %*% est_effect_fm`. This re-parametrises the
     per-position intercept \eqn{\alpha_{0,t}} as the column mean of the
     susiF response, and uses the PIP-weighted prediction so that all
-    SNPs in a CS contribute (not just the leading SNP). We do **not**
-    read `susiF.obj$ind_fitted_func` directly because susiF currently
-    leaves that slot at its zero initial value (see Notes);
+    SNPs in a CS contribute (not just the leading SNP). This drives the
+    optimisation; the *reported* `fitted` value instead uses the lead-SNP
+    post-processed reconstruction (`build_fitted_leadSNP`), consistent
+    with susiF's `ind_fitted_func`;
   \item compute the variance contribution `Var_q[b_{i,t}]` (see below)
     and update \eqn{\sigma^{2}} from its closed-form ELBO maximiser.
 }
