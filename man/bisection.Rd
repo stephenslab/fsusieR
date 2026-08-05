@@ -25,7 +25,7 @@ bisection(
 \item{auto_adjust_interval}{Logical. If `TRUE`, try to expand `upper`
 when the root is not initially bracketed. Default `FALSE`.}
 
-\item{maxiter, tol}{Iteration cap and tolerance on |f(mid)|.}
+\item{maxiter, tol}{Iteration cap and relative tolerance on the bracket width.}
 }
 \value{
 Numeric vector of roots.

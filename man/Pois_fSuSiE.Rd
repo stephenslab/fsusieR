@@ -28,6 +28,7 @@ Pois_fSuSiE(
   Z = NULL,
   update_Mu_each_iter = TRUE,
   s2 = 0.5,
+  warm_start_sigma2 = TRUE,
   outer_tol = 0.001,
   stable_iterations = 2L,
   solver_failure = c("error", "log1p")
@@ -70,7 +71,12 @@ used only by \code{diagnostic_plot}.}
 \item{update_Mu_each_iter}{Logical; update the latent Gaussian posterior at
 every outer iteration. Setting this to \code{FALSE} is intended for debugging.}
 
-\item{s2}{Positive initial value of the noise variance \code{sigma2}.}
+\item{s2}{Positive fallback initial value of the noise variance \code{sigma2}.}
+
+\item{warm_start_sigma2}{Logical; if \code{TRUE} (the default), use the existing
+\code{maxit_inner}-iteration \code{susiF(log1p(Y/scaling))} warm fit to initialize
+\code{sigma2}. The estimate is computed on the original log1p scale, subtracts
+first-order Poisson sampling variance, and corrects log1p attenuation.}
 
 \item{outer_tol}{Positive convergence tolerance for the maximum relative
 change in \code{Mu_pm}, \code{B_pm}, and \code{sigma2}.}

@@ -252,7 +252,7 @@
 #'
 #' @export
 fit_ash_hmm <- function(y, se, mu = NULL, prior_sd = NULL,
-                        half_grid = 20L,
+                        half_grid = 50L,
                         grid_shape = 3,
                         grid_expansion = 3,
                         grid_max_abs = NULL,
@@ -273,7 +273,7 @@ fit_ash_hmm <- function(y, se, mu = NULL, prior_sd = NULL,
                         variational_probability_floor = 1e-12,
                         variational_final_exact = TRUE,
                         cache_component_emissions = TRUE,
-                        topology = c( "full" ,"hub"   ),
+                        topology = c("full"  ,"hub"     ),
                         transition_mask = NULL,
                         init_transition = NULL,
                         init_prob = NULL,

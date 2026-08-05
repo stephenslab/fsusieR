@@ -17,7 +17,7 @@
 #' @param ... Extra arguments forwarded to `f`.
 #' @param auto_adjust_interval Logical. If `TRUE`, try to expand `upper`
 #'   when the root is not initially bracketed. Default `FALSE`.
-#' @param maxiter,tol Iteration cap and tolerance on |f(mid)|.
+#' @param maxiter,tol Iteration cap and relative tolerance on the bracket width.
 #'
 #' @return Numeric vector of roots.
 #' @keywords internal
@@ -29,27 +29,56 @@ bisection <- function(f, lower, upper, ...,
   fl <- f(lower, ...)
   fu <- f(upper, ...)
 
+  bracketed <- function(fl, fu) {
+    (fl <= 0 & fu >= 0) | (fl >= 0 & fu <= 0)
+  }
+
   if (auto_adjust_interval) {
     expand <- 0L
-    while (any(sign(fl) == sign(fu)) && expand < 50L) {
-      bad <- sign(fl) == sign(fu)
+    while (any(!bracketed(fl, fu)) && expand < 50L) {
+      bad <- !bracketed(fl, fu)
       upper[bad] <- pmin(upper[bad] * 2, 1e10)
       fu <- f(upper, ...)
       expand <- expand + 1L
     }
   }
 
+  if (any(is.na(fl)) || any(is.na(fu)) ||
+      any(!bracketed(fl, fu))) {
+    stop("bisection: the root is not bracketed", call. = FALSE)
+  }
+
+  root <- rep(NA_real_, length(lower))
+  root[fl == 0] <- lower[fl == 0]
+  root[fu == 0] <- upper[fu == 0]
+  active <- is.na(root)
+
   for (i in seq_len(maxiter)) {
+    if (!any(active)) break
     mid <- (lower + upper) / 2
     fm  <- f(mid, ...)
-    same_as_lower <- sign(fm) == sign(fl)
-    lower <- ifelse(same_as_lower, mid, lower)
-    upper <- ifelse(same_as_lower, upper, mid)
-    fl    <- ifelse(same_as_lower, fm,  fl)
-    if (max(abs(fm), na.rm = TRUE) < tol) break
-    if (max(upper - lower, na.rm = TRUE) < tol) break
+    if (any(is.na(fm[active]))) {
+      stop("bisection: function returned NA inside the bracket", call. = FALSE)
+    }
+
+    width_scale <- pmax(abs(mid), sqrt(.Machine$double.eps))
+    done <- active & (fm == 0 | (upper - lower) <= tol * width_scale)
+    root[done] <- mid[done]
+    active[done] <- FALSE
+
+    same_as_lower <- active &
+      ((fm >= 0 & fl >= 0) | (fm <= 0 & fl <= 0))
+    opposite_lower <- active & !same_as_lower
+    lower[same_as_lower] <- mid[same_as_lower]
+    fl[same_as_lower] <- fm[same_as_lower]
+    upper[opposite_lower] <- mid[opposite_lower]
   }
-  (lower + upper) / 2
+
+  if (any(active)) {
+    warning("bisection did not converge within maxiter", call. = FALSE)
+    root[active] <- (lower[active] + upper[active]) / 2
+  }
+  root
 }
 
 

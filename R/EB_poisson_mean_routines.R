@@ -173,10 +173,41 @@ ebpm_normal_obj = function(x,s,beta,sigma2,m,v,const){
   return(sum(x*m-s*exp(m+v/2)-log(sigma2)/2-(m^2+v-2*m*beta+beta^2)/2/sigma2+log(v)/2)+const)
 }
 
+vga_pois_solution_is_valid = function(res, x, s, beta, sigma2,
+                                      tol = 1e-4) {
+  n = length(x)
+  recycle_parameter = function(value) {
+    if(length(value) == 1) rep(value, n) else value
+  }
+  s = recycle_parameter(s)
+  beta = recycle_parameter(beta)
+  sigma2 = recycle_parameter(sigma2)
 
+  if(is.null(res) || is.null(res$m) || is.null(res$v) ||
+     length(res$m) != n || length(res$v) != n ||
+     length(s) != n || length(beta) != n || length(sigma2) != n ||
+     any(!is.finite(res$m)) || any(!is.finite(res$v)) ||
+     any(!is.finite(s)) || any(!is.finite(beta)) ||
+     any(!is.finite(sigma2)) || any(s <= 0) || any(sigma2 <= 0) ||
+     any(res$v <= 0) || any(res$v > sigma2 * (1 + tol))) {
+    return(FALSE)
+  }
 
+  log_rate = log(s) + res$m + res$v/2
+  if(any(!is.finite(log_rate)) ||
+     any(log_rate > log(.Machine$double.xmax))) {
+    return(FALSE)
+  }
+  rate = exp(log_rate)
+  mean_score = x - rate - (res$m - beta)/sigma2
+  variance_score = 1/res$v - rate - 1/sigma2
+  mean_scale = 1 + x + rate + abs((res$m - beta)/sigma2)
+  variance_scale = 1 + 1/res$v + rate + 1/sigma2
 
-
+  all(is.finite(mean_score)) && all(is.finite(variance_score)) &&
+    max(abs(mean_score)/mean_scale) <= tol &&
+    max(abs(variance_score)/variance_scale) <= tol
+}
 
 
 #'@title Optimize vga poisson problem
@@ -197,16 +228,27 @@ vga_pois_solver = function(init_val,x,s,beta,sigma2,maxiter=1000,tol=1e-5,method
   if(length(s)==1){
     s = rep(s,n)
   }
+  if(length(init_val) != n || length(sigma2) != n || length(beta) != n ||
+     length(s) != n || any(!is.finite(init_val)) || any(!is.finite(x)) ||
+     any(!is.finite(s)) || any(!is.finite(beta)) ||
+     any(!is.finite(sigma2)) || any(x < 0) || any(s <= 0) ||
+     any(sigma2 <= 0)) {
+    stop('Invalid Poisson VGA inputs.', call. = FALSE)
+  }
   if(method=='newton'){
-    # use Newton's method fist
+    # Use safeguarded Newton first. A finite return value is not sufficient:
+    # both variational score equations must also be satisfied.
     res = try(vga_pois_solver_Newton(init_val,x,s,beta,sigma2,maxiter=maxiter,tol=tol),silent = TRUE)
-    if(inherits(res,'try-error')){
+    if(inherits(res,'try-error') ||
+       !vga_pois_solution_is_valid(res,x,s,beta,sigma2,
+                                   tol=max(10*tol,1e-8))){
       # If Newton failed, use bisection
       res = try(vga_pois_solver_bisection(x,s,beta,sigma2,maxiter=maxiter,tol=tol),silent=TRUE)
-      if(inherits(res,'try-error')){
-        # If bisection also failed, return initial values with a warning.
-        warning('Both Newton and Bisection methods failed. Returning initial values.')
-        return(list(m = init_val, v = pmax(sigma2/pmax(sigma2*x+beta+1-init_val, 1e-8), 1e-8)))
+      if(inherits(res,'try-error') ||
+         !vga_pois_solution_is_valid(res,x,s,beta,sigma2,
+                                     tol=max(10*tol,1e-8))){
+        stop('Both Newton and Bisection methods failed to solve the Poisson VGA equations.',
+             call. = FALSE)
       }else{
         return(res)
       }
@@ -215,8 +257,11 @@ vga_pois_solver = function(init_val,x,s,beta,sigma2,maxiter=1000,tol=1e-5,method
     }
   }else if(method=='bisection'){
     res = try(vga_pois_solver_bisection(x,s,beta,sigma2,maxiter=maxiter,tol=tol),silent=TRUE)
-    if(inherits(res,'try-error')){
-      return(list(m = init_val, v = pmax(sigma2/pmax(sigma2*x+beta+1-init_val, 1e-8), 1e-8)))
+    if(inherits(res,'try-error') ||
+       !vga_pois_solution_is_valid(res,x,s,beta,sigma2,
+                                   tol=max(10*tol,1e-8))){
+      stop('Bisection failed to solve the Poisson VGA equations.',
+           call. = FALSE)
     }else{
       return(res)
     }
@@ -250,6 +295,17 @@ h_v = function(v,x,s,beta,sigma2){
   return(-val)
 }
 
+h_m = function(m,x,s,beta,sigma2){
+  const0 = sigma2*x+beta+1
+  temp = const0-m
+  log_rate = log(s)+m+sigma2/(2*temp)
+  rate = rep(Inf,length(x))
+  safe = is.finite(log_rate) & log_rate <= log(.Machine$double.xmax)
+  rate[safe] = exp(log_rate[safe])
+  # Negative mean score; this is monotone increasing in m.
+  rate+(m-beta)/sigma2-x
+}
+
 # h_m = function(v,x,s,beta,sigma2){
 #   m = sigma2*x + beta + 1 - sigma2/v
 #   val = x - s*exp(m+v/2) - (m-beta)/sigma2
@@ -274,69 +330,132 @@ h_v = function(v,x,s,beta,sigma2){
 #'@export
 vga_pois_solver_bisection = function(x,s,beta,sigma2,maxiter=1000,tol=1e-5){
   n = length(x)
-  if(length(sigma2)==1){
-    upper = rep(sigma2,n)
-  }else if(length(sigma2)==n){
-    upper = sigma2
-  }else{
-    stop('check length of sigma2')
+  recycle_parameter = function(value) {
+    if(length(value) == 1) rep(value,n) else value
   }
-  v = bisection(h_v,
-                lower = rep(0,n),upper = upper,
+  s = recycle_parameter(s)
+  beta = recycle_parameter(beta)
+  sigma2 = recycle_parameter(sigma2)
+  if(length(s) != n || length(beta) != n || length(sigma2) != n){
+    stop('check Poisson VGA parameter lengths')
+  }
+
+  upper = beta+sigma2*x
+  lower = pmin(beta,log1p(x)-log(s))-1
+  lower_step = rep(1,n)
+  lower_value = h_m(lower,x,s,beta,sigma2)
+  for(k in 1:100){
+    bad_lower = is.na(lower_value) | lower_value >= 0
+    if(!any(bad_lower)) break
+    lower[bad_lower] = lower[bad_lower]-lower_step[bad_lower]
+    lower_step[bad_lower] = 2*lower_step[bad_lower]
+    lower_value = h_m(lower,x,s,beta,sigma2)
+  }
+  if(any(is.na(lower_value)) || any(lower_value >= 0)){
+    stop('vga_pois_solver_bisection: failed to bracket the root',
+         call. = FALSE)
+  }
+
+  m = bisection(h_m,
+                lower = lower,upper = upper,
                 x=x,s=s,beta=beta,sigma2=sigma2,
                 auto_adjust_interval = FALSE,
                 maxiter=maxiter,tol=tol)
-  m = sigma2*x + beta + 1 - sigma2/v
+  v = sigma2/(sigma2*x+beta+1-m)
   return(list(m=m,v=v))
 }
 
 #'@export
 vga_pois_solver_Newton = function(m,x,s,beta,sigma2,maxiter=1000,tol=1e-5){
 
-  const0 = sigma2*x+beta + 1
-  const1 = 1/sigma2
-  const2 = sigma2/2
-  const3 = beta/sigma2
+  n = length(x)
+  recycle_parameter = function(value) {
+    if(length(value) == 1) rep(value, n) else value
+  }
+  s = recycle_parameter(s)
+  beta = recycle_parameter(beta)
+  sigma2 = recycle_parameter(sigma2)
+  if(length(m) != n || length(s) != n || length(beta) != n ||
+     length(sigma2) != n || any(!is.finite(m)) || any(!is.finite(x)) ||
+     any(!is.finite(s)) || any(!is.finite(beta)) ||
+     any(!is.finite(sigma2)) || any(x < 0) || any(s <= 0) ||
+     any(sigma2 <= 0)) {
+    stop('vga_pois_solver_Newton: invalid inputs', call. = FALSE)
+  }
 
-  # The posterior variance is v = sigma2 / (const0 - m), so the iterate must
-  # stay strictly below const0 for v to be positive and finite. The original
-  # code clamped only the *initial* m; a Newton step could then push m past
-  # const0, making temp <= 0 and returning a negative/Inf variance (or NaN f)
-  # silently. We re-clamp every iteration and guard against non-finite steps.
-  eps = 1e-8
-  m = pmin(m, const0 - eps)
+  const0 = sigma2*x+beta + 1
+  upper = beta + sigma2*x
+  if(any(!is.finite(const0)) || any(!is.finite(upper))) {
+    stop('vga_pois_solver_Newton: non-finite search interval', call. = FALSE)
+  }
+
+  evaluate_score = function(value) {
+    temp = const0-value
+    log_rate = log(s) + value + sigma2/(2*temp)
+    rate = rep(Inf, n)
+    safe = is.finite(log_rate) & log_rate <= log(.Machine$double.xmax)
+    rate[safe] = exp(log_rate[safe])
+    score = x - rate - (value-beta)/sigma2
+    gradient = -rate*(1+sigma2/(2*temp^2))-1/sigma2
+    list(score=score,gradient=gradient,rate=rate)
+  }
+
+  # At upper = beta + sigma2*x the score is strictly negative. Move the lower
+  # bound down until its score is positive, giving each coordinate a guaranteed
+  # bracket around the unique root.
+  lower = pmin(m,beta,log1p(x)-log(s))-1
+  lower_step = rep(1,n)
+  lower_score = evaluate_score(lower)$score
+  for(k in 1:100){
+    bad_lower = is.na(lower_score) | lower_score <= 0
+    if(!any(bad_lower)) break
+    lower[bad_lower] = lower[bad_lower]-lower_step[bad_lower]
+    lower_step[bad_lower] = 2*lower_step[bad_lower]
+    if(any(!is.finite(lower[bad_lower]))) {
+      stop('vga_pois_solver_Newton: failed to bracket the root', call. = FALSE)
+    }
+    lower_score = evaluate_score(lower)$score
+  }
+  if(any(is.na(lower_score)) || any(lower_score <= 0)) {
+    stop('vga_pois_solver_Newton: failed to bracket the root', call. = FALSE)
+  }
+
+  m = pmin(pmax(m,lower),upper)
+  converged = rep(FALSE,n)
 
   for(i in 1:maxiter){
+    evaluated = evaluate_score(m)
+    f = evaluated$score
+    f_grad = evaluated$gradient
+    score_scale = 1+x+evaluated$rate+abs((m-beta)/sigma2)
+    newly_converged = is.finite(f) & is.finite(score_scale) &
+      abs(f) <= tol*score_scale
+    converged = converged | newly_converged
+    if(all(converged)) break
 
-    temp = (const0-m)
-    sexp = s*exp(m+const2/temp)
-    # f = x - sexp - (m-beta)/sigma2
-    f = x - sexp - m*const1 + const3
-    if(!all(is.finite(f))){
-      stop("vga_pois_solver_Newton: non-finite objective")
-    }
-    if(max(abs(f))<tol){
-      break
-    }
-    # f_grad = -sexp*(1+const2/temp^2)-const1
-    step = f/(-sexp*(1+const2/temp^2)-const1)
-    m_new = m - step
-    # keep the iterate in the valid region (temp > 0) and finite
-    bad = !is.finite(m_new)
-    if(any(bad)) m_new[bad] = m[bad]
-    m = pmin(m_new, const0 - eps)
+    active = !converged
+    positive = active & is.finite(f) & f > 0
+    lower[positive] = m[positive]
+    upper[active & !positive] = m[active & !positive]
+
+    candidate = m-f/f_grad
+    midpoint = lower+(upper-lower)/2
+    use_newton = active & is.finite(candidate) &
+      candidate > lower & candidate < upper
+    m[active] = midpoint[active]
+    m[use_newton] = candidate[use_newton]
   }
-  if(i>=maxiter){
-    warning('Newton method not converged yet.')
+  if(!all(converged)){
+    stop('vga_pois_solver_Newton: method did not converge', call. = FALSE)
   }
-  temp = pmax(const0 - m, eps)
+  temp = const0-m
   v = sigma2/temp
-  if(!all(is.finite(m)) || !all(is.finite(v)) || any(v <= 0)){
-    # signal failure so vga_pois_solver() falls back to bisection, which
-    # brackets the root in (0, sigma2] and is numerically safe.
-    stop("vga_pois_solver_Newton: non-finite estimate")
+  res = list(m=m,v=v)
+  if(!vga_pois_solution_is_valid(res,x,s,beta,sigma2,
+                                 tol=max(10*tol,1e-8))){
+    stop("vga_pois_solver_Newton: invalid stationary point", call. = FALSE)
   }
-  return(list(m=m,v=v))
+  return(res)
 
 }
 

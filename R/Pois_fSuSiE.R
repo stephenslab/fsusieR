@@ -26,7 +26,11 @@
 #' @param Z Reserved for future dense-covariate support. Must be `NULL`.
 #' @param update_Mu_each_iter Logical; update the latent Gaussian posterior at
 #'   every outer iteration. Setting this to `FALSE` is intended for debugging.
-#' @param s2 Positive initial value of the noise variance `sigma2`.
+#' @param s2 Positive fallback initial value of the noise variance `sigma2`.
+#' @param warm_start_sigma2 Logical; if `TRUE` (the default), use the existing
+#'   `maxit_inner`-iteration `susiF(log1p(Y/scaling))` warm fit to initialize
+#'   `sigma2`. The estimate is computed on the original log1p scale, subtracts
+#'   first-order Poisson sampling variance, and corrects log1p attenuation.
 #' @param outer_tol Positive convergence tolerance for the maximum relative
 #'   change in `Mu_pm`, `B_pm`, and `sigma2`.
 #' @param stable_iterations Number of consecutive iterations below `outer_tol`
@@ -80,6 +84,7 @@ Pois_fSuSiE <- function(Y,
                         Z = NULL,
                         update_Mu_each_iter = TRUE,
                         s2 = 0.5,
+                        warm_start_sigma2 = TRUE,
                         outer_tol = 1e-3,
                         stable_iterations = 2L,
                         solver_failure = c("error", "log1p")) {
@@ -110,6 +115,10 @@ Pois_fSuSiE <- function(Y,
   }
   positive_integer <- function(x) {
     positive_scalar(x) && x == as.integer(x)
+  }
+  if (!is.logical(warm_start_sigma2) || length(warm_start_sigma2) != 1L ||
+      is.na(warm_start_sigma2)) {
+    stop("`warm_start_sigma2` must be TRUE or FALSE.", call. = FALSE)
   }
   if (!positive_integer(maxit_outer) || !positive_integer(maxit_inner) ||
       !positive_integer(stable_iterations) || !positive_scalar(tol) ||
@@ -172,7 +181,19 @@ Pois_fSuSiE <- function(Y,
   B_pv <- compute_B_pv(susiF.obj, X, Tt)
   Mu_pm <- B_pm
   Mu_pv <- matrix(1 / Tt, nrow = N, ncol = Tt)
-  sigma2 <- max(s2, 1e-8)
+  warm_start <- estimate_pois_sigma2_warm_start(
+    response_log1p = Y_warm,
+    fitted_log1p = B_pm,
+    fitted_variance = B_pv,
+    scaling = scaling,
+    fallback_sigma2 = s2,
+    enabled = warm_start_sigma2
+  )
+  sigma2 <- warm_start$sigma2
+  if (verbose) {
+    message(sprintf("Initial sigma2 = %.5g (%s)", sigma2,
+                    warm_start$method))
+  }
 
   partial_objective_trace <- numeric(0)
   convergence_trace <- vector("list", maxit_outer)
@@ -202,11 +223,22 @@ Pois_fSuSiE <- function(Y,
             NULL
           }
         )
-        invalid <- is.null(sol) || is.null(sol$m) || is.null(sol$v) ||
-          !all(is.finite(sol$m)) || !all(is.finite(sol$v)) || any(sol$v <= 0)
+        invalid <- !vga_pois_solution_is_valid(
+          sol,
+          x = Y[i, ],
+          s = scaling[i],
+          beta = B_pm[i, ],
+          sigma2 = sigma2,
+          tol = 1e-4
+        )
 
         if (invalid) {
-          if (is.null(failure_message)) failure_message <- "invalid VGA output"
+          if (is.null(failure_message)) {
+            failure_message <- paste(
+              "invalid VGA output: moments do not satisfy the Poisson",
+              "variational score equations"
+            )
+          }
           solver_failures <- rbind(
             solver_failures,
             data.frame(iteration = iter, row = i, message = failure_message)
@@ -315,6 +347,8 @@ Pois_fSuSiE <- function(Y,
     B_pv = crop(B_pv),
     est_effect_fm = est_effect_fm[, output_index, drop = FALSE],
     sigma2 = sigma2,
+    sigma2_initial = warm_start$sigma2,
+    sigma2_warm_start = warm_start,
     fitted_latent = fitted_latent,
     fitted = exp(pmin(fitted_latent, 700)),
     posterior_count_mean = crop(posterior_count_mean),
@@ -387,6 +421,71 @@ validate_pois_fsusie_inputs <- function(Y, X, L, scaling) {
   storage.mode(Y) <- "double"
   storage.mode(X) <- "double"
   list(Y = Y, X = X, L = as.integer(L), scaling = as.numeric(scaling))
+}
+
+
+## Initialize latent log-rate variance from the already-computed log1p fit.
+## The internal susiF sigma2 is deliberately not used: it is estimated after
+## position/wavelet standardization and is not on the latent log-rate scale.
+estimate_pois_sigma2_warm_start <- function(response_log1p,
+                                            fitted_log1p,
+                                            fitted_variance,
+                                            scaling,
+                                            fallback_sigma2,
+                                            enabled = TRUE) {
+  fallback_sigma2 <- max(as.numeric(fallback_sigma2), 1e-8)
+  fallback <- list(
+    sigma2 = fallback_sigma2,
+    method = "user-supplied s2 fallback",
+    used = FALSE,
+    transformed_residual_mse = NA_real_,
+    structured_variance = NA_real_,
+    poisson_variance = NA_real_,
+    attenuation_sq = NA_real_,
+    untruncated_sigma2 = NA_real_
+  )
+  if (!isTRUE(enabled)) {
+    fallback$method <- "user-supplied s2"
+    return(fallback)
+  }
+
+  valid <- is.matrix(response_log1p) && is.matrix(fitted_log1p) &&
+    is.matrix(fitted_variance) &&
+    identical(dim(response_log1p), dim(fitted_log1p)) &&
+    identical(dim(response_log1p), dim(fitted_variance)) &&
+    length(scaling) == nrow(response_log1p) &&
+    all(is.finite(response_log1p)) && all(is.finite(fitted_log1p)) &&
+    all(is.finite(fitted_variance)) && all(fitted_variance >= 0) &&
+    all(is.finite(scaling)) && all(scaling > 0)
+  if (!valid) return(fallback)
+
+  fitted_rate <- pmax(expm1(pmin(fitted_log1p, 700)), 0)
+  scaling_matrix <- matrix(scaling, nrow(response_log1p),
+                           ncol(response_log1p))
+  transformed_residual_mse <- mean((response_log1p - fitted_log1p)^2)
+  structured_variance <- mean(fitted_variance)
+  poisson_variance <- mean(
+    fitted_rate / (scaling_matrix * (1 + fitted_rate)^2)
+  )
+  attenuation_sq <- mean((fitted_rate / (1 + fitted_rate))^2)
+  if (!is.finite(attenuation_sq) ||
+      attenuation_sq <= sqrt(.Machine$double.eps)) return(fallback)
+
+  untruncated_sigma2 <-
+    (transformed_residual_mse + structured_variance - poisson_variance) /
+    attenuation_sq
+  if (!is.finite(untruncated_sigma2)) return(fallback)
+
+  list(
+    sigma2 = max(untruncated_sigma2, 1e-8),
+    method = "log1p-fSuSiE delta correction",
+    used = TRUE,
+    transformed_residual_mse = transformed_residual_mse,
+    structured_variance = structured_variance,
+    poisson_variance = poisson_variance,
+    attenuation_sq = attenuation_sq,
+    untruncated_sigma2 = untruncated_sigma2
+  )
 }
 
 
