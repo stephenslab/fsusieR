@@ -47,6 +47,6 @@ LinkingTo:
     Rcpp
 License: BSD_3_clause + file LICENSE
 NeedsCompilation: yes
-RoxygenNote: 7.3.3
 ByteCompile: yes
 VignetteBuilder: knitr
+Config/roxygen2/version: 8.1.0

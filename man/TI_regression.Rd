@@ -37,8 +37,6 @@ TI_regression(obj, Y, X, verbose, filter.number, family, alpha, n_iter, ...)
 \item{n_iter}{numeric number of iteration}
 
 \item{\dots}{Other arguments.}
-
-\item{n_iter}{numeric number of iteration}
 }
 \description{
 Compute refined estimate using translation invariant wavelet transform

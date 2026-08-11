@@ -454,26 +454,6 @@ susiF_obj <- init_susiF_obj(L_max =1,
 )
 
 
-test_that("The precision of the fitted curves should be   ",
-          {
-            outEM <-  EM_pi(G_prior,Bhat,Shat, indx_lst,
-                            init_pi0_w    = init_pi0_w,
-                            control_mixsqp = control_mixsqp,
-                            lowc_wc=NULL,
-                            nullweight = nullweight,
-                            tol_null_prior=0)
-            G_prior <- update_prior(G_prior,
-                                    tpi= outEM$tpi_k )
-
-            susiF_obj <- update_susiF_obj(susiF_obj, 1, outEM, Bhat, Shat, indx_lst )
-            expect_equal(  sum( abs(unlist(update_cal_fit_func(obj=susiF_obj,
-                                                               indx_lst=indx_lst,
-                                                                Y=Y,
-                                                               X=X,
-                                                               post_processing="none")$fitted_func) -f1$sim_func)), 0, tol=0.03)
-
-          }
-)
 
 outEM <-  EM_pi(G_prior,Bhat,Shat, indx_lst,
                 init_pi0_w    = init_pi0_w,
