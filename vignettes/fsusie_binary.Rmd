@@ -40,13 +40,12 @@ baseline= rep(-2, 512)
 plot(baseline, type="l", ylim=c(-2.2,1.7))
  
 effect1= rep(0,512)
- 
+
+effect2= rep(0, 512)
 effect1[100:200]=1
 lines(effect1, col="red")
-T_m <- 512L
-effect2 <- 1.5 * cos(seq_len(T_m) / T_m * 3 * pi)
-effect2[effect2 < 0] <- 0
-effect2[seq_len(100)] <- 0
+effect2[400:500]=1.5
+lines(effect2, col="blue")
 ```
 
 ## Simulate generative model
