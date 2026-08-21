@@ -22,6 +22,8 @@ out_prep(obj, Y, X, indx_lst, outing_grid, ...)
   family = "DaubLeAsymm",
   post_processing = "TI",
   tidx = NULL,
+  kept_index = NULL,
+  original_P = NULL,
   names_colX = NULL,
   pos,
   verbose = TRUE,
@@ -44,6 +46,14 @@ out_prep(obj, Y, X, indx_lst, outing_grid, ...)
 \item{pos}{the original position of the Y column}
 
 \item{verbose}{TRUE or FALSE verbose}
+
+\item{tidx}{original positions of constant X columns excluded from fitting}
+
+\item{kept_index}{original positions of X columns retained for fitting}
+
+\item{original_P}{number of columns in the user-supplied X}
+
+\item{names_colX}{original column names of X, if present}
 }
 \value{
 susiF object

@@ -44,7 +44,9 @@ underlying algorithm uses wavelet, which assumes that J is of the
 form J^2. If J is not a power of 2, susiF internally remaps the data
 into a grid of length 2^J}
 
-\item{X}{matrix of size n by p contains the covariates}
+\item{X}{matrix of size n by p containing the covariates. Constant columns
+are excluded from fitting, but all SNP-indexed outputs are restored to the
+original p columns.}
 
 \item{L}{upper bound on the number of effects to fit (if not specified, set to =2)}
 
@@ -131,7 +133,10 @@ The Bayes factor from Valen E Johnson JRSSB 2005 tends to have better coverage i
 "none" for simple wavelet estimate (not recommended) and "smashr" experimental. In general we recommend using TI as post processing,
  Nonetheless the HMM perform particularly well when analysing data with say few sampling points (i.e ncol(Y)<30) or when the data are particularly noisy (low signal noise ratio).
  However, we found that the HMM post processing is quite sensitive to the Gaussian assumption and we advise to use data transformation if your data are not
- normally distributed, e.g., using log1p( Y[i,]/si) for  count data data where si is the individual scaling factor as defined in  $s_i = \frac{\sum_{j=1}^p \tilde{Y}_{ij} }{\frac{1}{n}\sum_{i=1}^n\sum_{j=1}^p \tilde{Y}_{ij}}$
+ normally distributed, e.g., using log1p(Y[i, ] / si) for count data,
+ where si is the individual scaling factor defined by
+ \eqn{s_i = \frac{\sum_{j=1}^p \tilde{Y}_{ij}}
+ {\frac{1}{n}\sum_{i=1}^n\sum_{j=1}^p \tilde{Y}_{ij}}}.
  or using M-value instead of Beta value when analysing DNA methylation data. The option smashr is experimental and tend to give good point estimate but the credible band
  can be to narrow and so should be used with caution.}
 
@@ -148,10 +153,11 @@ A \code{"susiF"} object with some or all of the following
 elements:
 
 \item{alpha}{List of length L containing the posterior inclusion
-  probabilities for each effect.}
+  probabilities for each effect and each original column of X.}
 
-\item{pip}{Vector of length J, containing the posterior inclusion
-  probability for each covariate.}
+\item{pip}{Vector of length p, containing the posterior inclusion
+  probability for each original covariate. Excluded constant columns have
+  probability zero.}
 
 \item{cs}{List of length L. Each element is the credible set of
 the lth effect.}
@@ -198,6 +204,13 @@ the lth effect.}
 \item{fitted_wc2}{List of length L. Each element is a matrix
   containing the conditional wavelet coefficients (second-moment) for
   a single effect.}
+
+\item{variable_index}{Original column positions retained for fitting.}
+
+\item{removed_variable_index}{Original constant-column positions excluded
+  from fitting. All returned SNP indices still refer to the original X.}
+
+\item{n_cs, cs_size}{Number of reported credible sets and their sizes.}
 }
 \description{
 Implementation of the SuSiF method.

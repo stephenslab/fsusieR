@@ -10,3 +10,5 @@
 ^pixi\.toml$
 ^pixi\.lock$
 ^\.pixi/.*$
+^\.positai$
+^\.claude$
