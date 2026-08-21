@@ -211,19 +211,6 @@ check_cs.susiF <- function(obj, min_purity=0.5,X,  ...)
 }
 
 
-#' @title Discard credible sets
-#
-#' @param obj a susif object defined by init_susiF_obj function
-#
-#' @param cs vector of integer containing the credible sets to discard
-#
-#' @param out_prep logical, if set to true perform cleaning for final output
-#
-#' @return a obj without "dummy" credible sets
-#
-#' @export
-#' @keywords internal
-
 .fs_effect_fields <- c(
   "alpha", "lBF", "fitted_wc", "fitted_wc2", "cs", "est_sd",
   "est_pi", "cred_band", "lfsr_wc", "KL", "fitted_func",
@@ -245,6 +232,19 @@ check_cs.susiF <- function(obj, min_purity=0.5,X,  ...)
   }
   invisible(obj)
 }
+
+#' @title Discard credible sets
+#
+#' @param obj a susif object defined by init_susiF_obj function
+#
+#' @param cs vector of integer containing the credible sets to discard
+#
+#' @param out_prep logical, if set to true perform cleaning for final output
+#
+#' @return a obj without "dummy" credible sets
+#
+#' @export
+#' @keywords internal
 
 discard_cs <- function(obj, cs,out_prep,...)
   UseMethod("discard_cs")
