@@ -44,9 +44,7 @@ underlying algorithm uses wavelet, which assumes that J is of the
 form J^2. If J is not a power of 2, susiF internally remaps the data
 into a grid of length 2^J}
 
-\item{X}{matrix of size n by p containing the covariates. Constant columns
-are excluded from fitting, but all SNP-indexed outputs are restored to the
-original p columns.}
+\item{X}{matrix of size n by p contains the covariates}
 
 \item{L}{upper bound on the number of effects to fit (if not specified, set to =2)}
 
@@ -153,11 +151,10 @@ A \code{"susiF"} object with some or all of the following
 elements:
 
 \item{alpha}{List of length L containing the posterior inclusion
-  probabilities for each effect and each original column of X.}
+  probabilities for each effect.}
 
-\item{pip}{Vector of length p, containing the posterior inclusion
-  probability for each original covariate. Excluded constant columns have
-  probability zero.}
+\item{pip}{Vector of length J, containing the posterior inclusion
+  probability for each covariate.}
 
 \item{cs}{List of length L. Each element is the credible set of
 the lth effect.}
@@ -204,13 +201,6 @@ the lth effect.}
 \item{fitted_wc2}{List of length L. Each element is a matrix
   containing the conditional wavelet coefficients (second-moment) for
   a single effect.}
-
-\item{variable_index}{Original column positions retained for fitting.}
-
-\item{removed_variable_index}{Original constant-column positions excluded
-  from fitting. All returned SNP indices still refer to the original X.}
-
-\item{n_cs, cs_size}{Number of reported credible sets and their sizes.}
 }
 \description{
 Implementation of the SuSiF method.

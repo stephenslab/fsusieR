@@ -10,9 +10,7 @@
 #'   form J^2. If J is not a power of 2, susiF internally remaps the data
 #'   into a grid of length 2^J
 #'
-#' @param X matrix of size n by p containing the covariates. Constant columns
-#' are excluded from fitting, but all SNP-indexed outputs are restored to the
-#' original p columns.
+#' @param X matrix of size n by p contains the covariates
 #'
 #' @param L upper bound on the number of effects to fit (if not specified, set to =2)
 #'
@@ -118,11 +116,10 @@
 #' elements:
 #'
 #' \item{alpha}{List of length L containing the posterior inclusion
-#'   probabilities for each effect and each original column of X.}
+#'   probabilities for each effect.}
 #'
-#' \item{pip}{Vector of length p, containing the posterior inclusion
-#'   probability for each original covariate. Excluded constant columns have
-#'   probability zero.}
+#' \item{pip}{Vector of length J, containing the posterior inclusion
+#'   probability for each covariate.}
 #'
 #' \item{cs}{List of length L. Each element is the credible set of
 #' the lth effect.}
@@ -169,13 +166,6 @@
 #' \item{fitted_wc2}{List of length L. Each element is a matrix
 #'   containing the conditional wavelet coefficients (second-moment) for
 #'   a single effect.}
-#'
-#' \item{variable_index}{Original column positions retained for fitting.}
-#'
-#' \item{removed_variable_index}{Original constant-column positions excluded
-#'   from fitting. All returned SNP indices still refer to the original X.}
-#'
-#' \item{n_cs, cs_size}{Number of reported credible sets and their sizes.}
 #'
 #' @export
 #'
@@ -370,21 +360,12 @@ susiF <- function(Y, X, L = 2,
   if(prior== "mixture_normal"){
    # nullweight= nullweight*2
   }
-  names_colX <- colnames(X)
-  original_P <- ncol(X)
-  X_variance <- apply(X, 2, var)
-  tidx <- which(!is.finite(X_variance) | X_variance == 0)
-  kept_index <- setdiff(seq_len(original_P), tidx)
-  if (length(kept_index) == 0L) {
-    stop("All columns of X are constant")
+  names_colX <-  colnames(X)
+  tidx <- which(apply(X,2,var)==0)
+  if( length(tidx)>0){
+    warning(paste("Some of the columns of X are constants, we removed" ,length(tidx), "columns"))
+    X <- X[,-tidx]
   }
-  if (length(tidx) > 0L) {
-    warning(paste("Some of the columns of X are constants, we removed",
-                  length(tidx), "columns"))
-    X <- X[, kept_index, drop = FALSE]
-  }
-  L <- min(L, ncol(X))
-  L_start <- min(L_start, L)
   if( verbose){
     print("Scaling columns of X and Y to have unit variance")
   }
@@ -537,8 +518,6 @@ Y= colScale(Y)
                         family        = family,
                         post_processing=  post_processing,
                         tidx          = tidx,
-                        kept_index    = kept_index,
-                        original_P    = original_P,
                         names_colX    = names_colX,
                         pos           = pos,
                         verbose       = verbose

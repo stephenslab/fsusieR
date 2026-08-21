@@ -1117,10 +1117,6 @@ name_cs.susiF <- function(obj,X,...){
 #' @param pos the original position of the Y column
 #'
 #' @param verbose TRUE or FALSE verbose
-#' @param tidx original positions of constant X columns excluded from fitting
-#' @param kept_index original positions of X columns retained for fitting
-#' @param original_P number of columns in the user-supplied X
-#' @param names_colX original column names of X, if present
 #' @return susiF object
 #
 #' @export
@@ -1148,8 +1144,6 @@ out_prep.susiF <- function(obj ,
                            family =  "DaubLeAsymm",
                            post_processing="TI",
                            tidx =NULL ,
-                           kept_index = NULL,
-                           original_P = NULL,
                            names_colX =NULL,
                            pos,
                            verbose=TRUE,
@@ -1183,9 +1177,10 @@ out_prep.susiF <- function(obj ,
                               family        = family)
 
   ## Reconstruct the per-individual fitted curves (N x J). Must run BEFORE
-  ## rename_format_output(), which restores every SNP-indexed field to the
-  ## original X columns. At this point alpha and X are still aligned in the
-  ## constant-column-removed space, so which.max(alpha) indexes X correctly.
+  ## rename_format_output(), which pads alpha back to the full SNP set with
+  ## zeros at the removed constant columns -- at this point alpha and X are
+  ## still aligned in the constant-column-removed space, so which.max(alpha)
+  ## indexes X correctly.
   obj <-  update_cal_indf(obj      = obj,
                           Y        = Y,
                           X        = X,
@@ -1195,9 +1190,7 @@ out_prep.susiF <- function(obj ,
 
   obj             <-  rename_format_output (obj        = obj,
                                             names_colX = names_colX,
-                                            tidx       = tidx,
-                                            kept_index = kept_index,
-                                            original_P = original_P)
+                                            tidx       = tidx)
   obj$outing_grid   <-  outing_grid
   # obj$purity        <-  cal_purity(l_cs= obj$cs, X=X)
   obj$original_grid <- pos
@@ -1208,98 +1201,44 @@ out_prep.susiF <- function(obj ,
 
 
 
-.fs_expand_snp_vector <- function(x, kept_index, original_P, fill = 0,
-                                  variable_names = NULL) {
-  if (is.null(x)) {
-    return(NULL)
-  }
-  if (length(x) != length(kept_index)) {
-    stop("Internal error: SNP vector is not aligned with the fitted columns")
-  }
-  out <- rep(fill, original_P)
-  out[kept_index] <- x
-  if (!is.null(variable_names)) {
-    names(out) <- variable_names
-  }
-  out
-}
+rename_format_output <- function(obj, names_colX, tidx, ...){
 
-.fs_expand_snp_matrix_rows <- function(x, kept_index, original_P, fill = 0,
-                                       variable_names = NULL) {
-  if (is.null(x)) {
-    return(NULL)
-  }
-  x <- as.matrix(x)
-  if (nrow(x) != length(kept_index)) {
-    stop("Internal error: SNP matrix rows are not aligned with the fitted columns")
-  }
-  out <- matrix(fill, nrow = original_P, ncol = ncol(x),
-                dimnames = list(variable_names, colnames(x)))
-  out[kept_index, ] <- x
-  out
-}
 
-rename_format_output <- function(obj, names_colX = NULL, tidx = integer(),
-                                 kept_index = NULL, original_P = NULL, ...){
-  if (is.null(original_P)) {
-    original_P <- obj$P + length(tidx)
-  }
-  if (is.null(kept_index)) {
-    kept_index <- setdiff(seq_len(original_P), tidx)
-  }
-  fitted_P <- length(kept_index)
-  if (obj$P != fitted_P) {
-    stop("Internal error: fitted object and covariate-column map disagree")
-  }
+  if (!is.null(names_colX)){
 
-  expand_vector <- function(x, fill = 0) {
-    .fs_expand_snp_vector(x, kept_index, original_P, fill, names_colX)
-  }
-  expand_rows <- function(x, fill = 0) {
-    .fs_expand_snp_matrix_rows(x, kept_index, original_P, fill, names_colX)
-  }
 
-  obj$alpha <- lapply(obj$alpha, expand_vector, fill = 0)
-  obj$pip <- expand_vector(obj$pip, fill = 0)
-  obj$lBF <- lapply(obj$lBF, expand_vector, fill = -Inf)
-  obj$fitted_wc <- lapply(obj$fitted_wc, expand_rows, fill = 0)
-  obj$fitted_wc2 <- lapply(obj$fitted_wc2, expand_rows, fill = 0)
 
-  if (!is.null(obj$alpha_hist)) {
-    obj$alpha_hist <- lapply(obj$alpha_hist, function(snapshot) {
-      if (is.list(snapshot)) {
-        lapply(snapshot, function(x) {
-          if (is.numeric(x) && length(x) == fitted_P) expand_vector(x, 0) else x
-        })
-      } else if (is.numeric(snapshot) && length(snapshot) == fitted_P) {
-        expand_vector(snapshot, 0)
-      } else {
-        snapshot
+    if ( length(tidx)>0){
+      for ( l in 1:length(obj$cs)){
+
+
+        talpha  <- rep (0, length(names_colX))
+        talpha[-tidx] <- obj$alpha[[l]]
+        obj$alpha[[l]] <- talpha
+        names(obj$alpha[[l]]) <- names_colX
+
+        names(obj$fitted_func)[l]<- paste("fitted_function_effect_", l, sep = "")
+
       }
-    })
-  }
+      tpip  <- rep (0, length(names_colX))
+      tpip[-tidx] <- obj$pip
+      obj$pip  <- tpip
+      names(obj$pip) <- names_colX
+      obj <- update_cal_cs(obj, cov_lev =obj$cov_lev)
+    }else{
+      for ( l in 1:length(obj$cs)){
 
-  obj$csd_X <- expand_vector(obj$csd_X, fill = 1)
-  obj$d <- expand_vector(obj$d, fill = 0)
-  obj$fitted_P <- fitted_P
-  obj$P <- original_P
-  obj$original_P <- original_P
-  obj$variable_index <- kept_index
-  obj$removed_variable_index <- tidx
-  obj$variable_names <- names_colX
+        names(obj$alpha[[l]]) <- names_colX
+        names(obj$fitted_func)[l]<- paste("fitted_function_effect_", l, sep = "")
 
-  obj <- update_cal_cs(obj, cov_lev = obj$cov_lev)
-  if (!is.null(names_colX)) {
-    for (l in seq_along(obj$cs)) {
-      names(obj$cs[[l]]) <- names_colX[obj$cs[[l]]]
+      }
+      names(obj$pip) <- names_colX
+      obj <- update_cal_cs(obj, cov_lev = obj$cov_lev)
     }
   }
-  if (!is.null(obj$fitted_func)) {
-    names(obj$fitted_func) <- paste0("fitted_function_effect_", seq_along(obj$fitted_func))
-  }
-  obj$n_cs <- length(obj$cs)
-  obj$cs_size <- lengths(obj$cs)
-  obj
+
+
+  return(obj)
 }
 
 
