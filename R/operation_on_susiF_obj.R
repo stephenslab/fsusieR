@@ -224,6 +224,28 @@ check_cs.susiF <- function(obj, min_purity=0.5,X,  ...)
 #' @export
 #' @keywords internal
 
+.fs_effect_fields <- c(
+  "alpha", "lBF", "fitted_wc", "fitted_wc2", "cs", "est_sd",
+  "est_pi", "cred_band", "lfsr_wc", "KL", "fitted_func",
+  "fitted_var", "lfsr_func", "posthoc", "purity"
+)
+
+.fs_validate_effect_alignment <- function(obj, fields = .fs_effect_fields) {
+  if (length(obj$L) != 1L || !is.finite(obj$L) || obj$L < 1L) {
+    stop("Internal error: a susiF object must retain at least one effect")
+  }
+  for (field in fields) {
+    value <- obj[[field]]
+    if (!is.null(value) && length(value) > 0L && length(value) != obj$L) {
+      stop(sprintf(
+        "Internal error: effect-indexed field '%s' has length %d but L is %d",
+        field, length(value), obj$L
+      ))
+    }
+  }
+  invisible(obj)
+}
+
 discard_cs <- function(obj, cs,out_prep,...)
   UseMethod("discard_cs")
 
@@ -238,41 +260,43 @@ discard_cs <- function(obj, cs,out_prep,...)
 
 discard_cs.susiF <- function(obj, cs, out_prep=FALSE,  ...)
 {
-
-
-  if( length(cs)==obj$L | obj$L==1){# keep just first cs
-    cs <- cs[-1]
-    if(length(cs)==0){
-      return(obj)
-    }
+  old_L <- obj$L
+  cs <- sort(unique(as.integer(cs)))
+  if (anyNA(cs) || any(cs < 1L | cs > old_L)) {
+    stop("cs contains an invalid effect index")
   }
 
+  # The returned object and the IBSS routines both require L >= 1.
+  if (length(cs) == old_L) {
+    cs <- cs[-1L]
+  }
+  if (length(cs) == 0L) {
+    return(obj)
+  }
 
-    if( length(cs)>0){
-
-      obj$alpha       <-  obj$alpha[ -cs]
-      obj$lBF         <-  obj$lBF[ -cs]
-      obj$fitted_wc   <-  obj$fitted_wc[ -cs]
-      obj$fitted_wc2  <-  obj$fitted_wc2[ -cs]
-      obj$cs          <-  obj$cs[ -cs]
-      if(out_prep){
-        obj$fitted_func <-  obj$fitted_func[ -cs]
-      }else{
-        obj$greedy_backfit_update <- TRUE
-        obj$KL                    <- obj$KL[ -cs]
-        obj$ELBO                  <- -Inf
-      }
-
-      obj$est_sd      <-  obj$est_sd[ -cs]
-      obj$est_pi      <-  obj$est_pi[ -cs]
-      obj$cred_band   <-  obj$cred_band[ -cs]
-      obj$lfsr_wc     <-  obj$lfsr_wc [ -cs]
-      obj$L           <-  obj$L -length(cs)
+  for (field in .fs_effect_fields) {
+    value <- obj[[field]]
+    if (is.null(value) || length(value) == 0L) {
+      next
     }
+    if (length(value) != old_L) {
+      stop(sprintf(
+        "Internal error: cannot discard effects because field '%s' has length %d but L is %d",
+        field, length(value), old_L
+      ))
+    }
+    obj[[field]] <- value[-cs]
+  }
 
-
-
-  return(obj)
+  obj$L <- old_L - length(cs)
+  if (out_prep) {
+    obj <- update_cal_pip(obj)
+  } else {
+    obj$greedy_backfit_update <- TRUE
+    obj$ELBO <- -Inf
+  }
+  .fs_validate_effect_alignment(obj)
+  obj
 }
 
 #' @title Update residual variance
@@ -318,41 +342,50 @@ estimate_residual_variance.susiF <- function( obj,Y,X,... )
 
 expand_susiF_obj <- function(obj,L_extra)
 {
-  #browser()
-  L_extra <- ifelse (  obj$L_max - (obj$L+L_extra)<=0 ,#check if we are adding more effect that maximum specified by user
-                       abs(obj$L_max -(obj$L)),
-                       L_extra
+  if (length(L_extra) != 1L || !is.finite(L_extra) ||
+      L_extra < 0L || L_extra != as.integer(L_extra)) {
+    stop("L_extra must be a non-negative integer")
+  }
+  if (identical(obj$column_index_space, "original")) {
+    stop("Cannot expand an object after original-column output formatting")
+  }
 
-  )
-  if( L_extra==0){
-    return(obj)
-  }else{
-    L_old <- obj$L
-    L_new <- obj$L+L_extra
-    obj$L <- ifelse(L_new<(obj$P+1),L_new,obj$P)
-
-    for ( l in (L_old+1):obj$L )
-    {
-      obj$fitted_wc[[l]]        <-  0*obj$fitted_wc[[1]]
-      obj$fitted_wc2[[l]]       <-  0*obj$fitted_wc2[[1]] +1
-      obj$alpha [[l]]           <-  rep(0, length(obj$alpha [[1]]))
-      obj$cs[[l]]               <-  list()
-      obj$est_pi [[l]]          <-  obj$est_pi[[1]]
-      obj$est_sd [[l]]          <-  obj$est_sd[[1]]
-      obj$lBF[[l]]              <-  rep(NA, length( obj$lBF[[1]]))
-      obj$cred_band[[l]]        <-  matrix(0, ncol = ncol(obj$cred_band[[1]] ), nrow = 2)
-      obj$KL                    <-  rep(NA,obj$L)
-      obj$ELBO                  <-  c()
-    }
-
-    obj$n_expand <- obj$n_expand+1
-    if(obj$L==obj$L_max){
-      obj$greedy=FALSE
-    }
-    obj$greedy_backfit_update <- TRUE
+  L_old <- obj$L
+  L_target <- min(L_old + as.integer(L_extra), obj$L_max, obj$P)
+  if (L_target <= L_old) {
     return(obj)
   }
 
+  lfsr_is_aligned <- !is.null(obj$lfsr_wc) &&
+    length(obj$lfsr_wc) == L_old
+  obj$L <- L_target
+  for (l in seq.int(L_old + 1L, L_target)) {
+    obj$fitted_wc[[l]]   <- 0 * obj$fitted_wc[[1]]
+    obj$fitted_wc2[[l]]  <- 0 * obj$fitted_wc2[[1]] + 1
+    obj$alpha[[l]]       <- rep(0, length(obj$alpha[[1]]))
+    obj$cs[[l]]          <- integer(0)
+    obj$est_pi[[l]]      <- obj$est_pi[[1]]
+    obj$est_sd[[l]]      <- obj$est_sd[[1]]
+    obj$lBF[[l]]         <- rep(NA_real_, length(obj$lBF[[1]]))
+    obj$cred_band[[l]]   <- matrix(
+      0,
+      ncol = ncol(obj$cred_band[[1]]),
+      nrow = 2
+    )
+    if (lfsr_is_aligned) {
+      obj$lfsr_wc[[l]] <- rep(1, obj$n_wac)
+    }
+  }
+
+  obj$KL <- rep(NA_real_, obj$L)
+  obj$ELBO <- numeric(0)
+  obj$n_expand <- obj$n_expand + 1L
+  if (obj$L == min(obj$L_max, obj$P)) {
+    obj$greedy <- FALSE
+  }
+  obj$greedy_backfit_update <- TRUE
+  .fs_validate_effect_alignment(obj)
+  obj
 }
 
 #' Access fitted effect
@@ -1117,6 +1150,10 @@ name_cs.susiF <- function(obj,X,...){
 #' @param pos the original position of the Y column
 #'
 #' @param verbose TRUE or FALSE verbose
+#' @param tidx original positions of constant X columns excluded from fitting
+#' @param kept_index original positions of X columns retained for fitting
+#' @param original_P number of columns in the user-supplied X
+#' @param names_colX original column names of X, if present
 #' @return susiF object
 #
 #' @export
@@ -1144,6 +1181,8 @@ out_prep.susiF <- function(obj ,
                            family =  "DaubLeAsymm",
                            post_processing="TI",
                            tidx =NULL ,
+                           kept_index = NULL,
+                           original_P = NULL,
                            names_colX =NULL,
                            pos,
                            verbose=TRUE,
@@ -1163,6 +1202,7 @@ out_prep.susiF <- function(obj ,
 
 
     obj <-  merge_effect(obj)
+    obj <- update_cal_pip(obj)
   }
 
   obj <-  name_cs(obj,X)
@@ -1177,10 +1217,8 @@ out_prep.susiF <- function(obj ,
                               family        = family)
 
   ## Reconstruct the per-individual fitted curves (N x J). Must run BEFORE
-  ## rename_format_output(), which pads alpha back to the full SNP set with
-  ## zeros at the removed constant columns -- at this point alpha and X are
-  ## still aligned in the constant-column-removed space, so which.max(alpha)
-  ## indexes X correctly.
+  ## All calculations above use the fitted-column space. Original-column
+  ## formatting is deliberately the last operation.
   obj <-  update_cal_indf(obj      = obj,
                           Y        = Y,
                           X        = X,
@@ -1190,7 +1228,9 @@ out_prep.susiF <- function(obj ,
 
   obj             <-  rename_format_output (obj        = obj,
                                             names_colX = names_colX,
-                                            tidx       = tidx)
+                                            tidx       = tidx,
+                                            kept_index = kept_index,
+                                            original_P = original_P)
   obj$outing_grid   <-  outing_grid
   # obj$purity        <-  cal_purity(l_cs= obj$cs, X=X)
   obj$original_grid <- pos
@@ -1201,44 +1241,139 @@ out_prep.susiF <- function(obj ,
 
 
 
-rename_format_output <- function(obj, names_colX, tidx, ...){
+.fs_expand_snp_vector <- function(x, kept_index, original_P, fill = 0,
+                                  variable_names = NULL) {
+  if (is.null(x)) {
+    return(NULL)
+  }
+  if (length(x) != length(kept_index)) {
+    stop("Internal error: SNP vector is not aligned with the fitted columns")
+  }
+  out <- rep(fill, original_P)
+  out[kept_index] <- x
+  if (!is.null(variable_names)) {
+    names(out) <- variable_names
+  }
+  out
+}
 
+.fs_expand_snp_matrix_rows <- function(x, kept_index, original_P, fill = 0,
+                                       variable_names = NULL) {
+  if (is.null(x)) {
+    return(NULL)
+  }
+  x <- as.matrix(x)
+  if (nrow(x) != length(kept_index)) {
+    stop("Internal error: SNP matrix rows are not aligned with the fitted columns")
+  }
+  out <- matrix(
+    fill,
+    nrow = original_P,
+    ncol = ncol(x),
+    dimnames = list(variable_names, colnames(x))
+  )
+  out[kept_index, ] <- x
+  out
+}
 
-  if (!is.null(names_colX)){
-
-
-
-    if ( length(tidx)>0){
-      for ( l in 1:length(obj$cs)){
-
-
-        talpha  <- rep (0, length(names_colX))
-        talpha[-tidx] <- obj$alpha[[l]]
-        obj$alpha[[l]] <- talpha
-        names(obj$alpha[[l]]) <- names_colX
-
-        names(obj$fitted_func)[l]<- paste("fitted_function_effect_", l, sep = "")
-
-      }
-      tpip  <- rep (0, length(names_colX))
-      tpip[-tidx] <- obj$pip
-      obj$pip  <- tpip
-      names(obj$pip) <- names_colX
-      obj <- update_cal_cs(obj, cov_lev =obj$cov_lev)
-    }else{
-      for ( l in 1:length(obj$cs)){
-
-        names(obj$alpha[[l]]) <- names_colX
-        names(obj$fitted_func)[l]<- paste("fitted_function_effect_", l, sep = "")
-
-      }
-      names(obj$pip) <- names_colX
-      obj <- update_cal_cs(obj, cov_lev = obj$cov_lev)
+.fs_map_cs_to_original <- function(cs, kept_index, variable_names = NULL) {
+  lapply(cs, function(index) {
+    index <- as.integer(index)
+    if (length(index) == 0L) {
+      return(index)
     }
+    if (anyNA(index) || any(index < 1L | index > length(kept_index))) {
+      stop("Internal error: credible-set index is outside the fitted columns")
+    }
+    mapped <- kept_index[index]
+    if (!is.null(variable_names)) {
+      names(mapped) <- variable_names[mapped]
+    }
+    mapped
+  })
+}
+
+rename_format_output <- function(obj, names_colX = NULL, tidx = integer(),
+                                 kept_index = NULL, original_P = NULL, ...){
+  if (identical(obj$column_index_space, "original")) {
+    return(obj)
+  }
+  if (is.null(original_P)) {
+    original_P <- obj$P + length(tidx)
+  }
+  if (is.null(kept_index)) {
+    kept_index <- setdiff(seq_len(original_P), tidx)
+  }
+  kept_index <- as.integer(kept_index)
+  fitted_P <- length(kept_index)
+  if (obj$P != fitted_P ||
+      anyNA(kept_index) ||
+      anyDuplicated(kept_index) ||
+      any(kept_index < 1L | kept_index > original_P)) {
+    stop("Internal error: fitted object and covariate-column map disagree")
+  }
+  if (!is.null(names_colX) && length(names_colX) != original_P) {
+    stop("Internal error: X column names and original column count disagree")
+  }
+  .fs_validate_effect_alignment(obj)
+
+  expand_vector <- function(x, fill = 0) {
+    .fs_expand_snp_vector(x, kept_index, original_P, fill, names_colX)
+  }
+  expand_rows <- function(x, fill = 0) {
+    .fs_expand_snp_matrix_rows(x, kept_index, original_P, fill, names_colX)
   }
 
+  original_cs <- .fs_map_cs_to_original(
+    obj$cs,
+    kept_index,
+    variable_names = names_colX
+  )
+  obj$alpha <- lapply(obj$alpha, expand_vector, fill = 0)
+  obj$pip <- expand_vector(obj$pip, fill = 0)
+  obj$lBF <- lapply(obj$lBF, expand_vector, fill = -Inf)
+  obj$fitted_wc <- lapply(obj$fitted_wc, expand_rows, fill = 0)
+  obj$fitted_wc2 <- lapply(obj$fitted_wc2, expand_rows, fill = 0)
 
-  return(obj)
+  if (!is.null(obj$alpha_hist)) {
+    obj$alpha_hist <- lapply(obj$alpha_hist, function(snapshot) {
+      if (is.list(snapshot)) {
+        lapply(snapshot, function(x) {
+          if (is.numeric(x) && length(x) == fitted_P) {
+            expand_vector(x, 0)
+          } else {
+            x
+          }
+        })
+      } else if (is.numeric(snapshot) && length(snapshot) == fitted_P) {
+        expand_vector(snapshot, 0)
+      } else {
+        snapshot
+      }
+    })
+  }
+
+  obj$cs <- original_cs
+  obj$csd_X <- expand_vector(obj$csd_X, fill = 1)
+  obj$d <- expand_vector(obj$d, fill = 0)
+  obj$fitted_P <- fitted_P
+  obj$P <- original_P
+  obj$original_P <- original_P
+  obj$variable_index <- kept_index
+  obj$removed_variable_index <- setdiff(seq_len(original_P), kept_index)
+  obj$variable_names <- names_colX
+  obj$column_index_space <- "original"
+
+  if (!is.null(obj$fitted_func)) {
+    names(obj$fitted_func) <- paste0(
+      "fitted_function_effect_",
+      seq_along(obj$fitted_func)
+    )
+  }
+  obj$n_cs <- length(obj$cs)
+  obj$cs_size <- lengths(obj$cs)
+  .fs_validate_effect_alignment(obj)
+  obj
 }
 
 
@@ -2221,37 +2356,38 @@ which_dummy_cs.susiF <- function(obj, min_purity=0.5,X,median_crit=FALSE,lbf_min
     lbf_min=Inf
   }
   f_crit <- function (obj, min_purity=0.5, l, median_crit=FALSE,lbf_min){
-    if( median_crit){
-      #if( length(obj$cs[[l]] )  < ncol(X)/10) {
-      #  is.dummy.cs <- FALSE
-      #   return(is.dummy.cs )
-      #}
-      if(length(obj$cs[[l]]) <5){
-
-        if(length(obj$cs[[l]])==0 ){
-
-          is.dummy.cs <- TRUE
-          return( is.dummy.cs)
-        }
-        is.dummy.cs <- FALSE
-      }else{
-
-        tt <-  cor( X[,obj$cs[[l]]])
-
-        is.dummy.cs <-   median(abs( tt[lower.tri(tt, diag =FALSE)]))  <  min_purity & max(obj$lBF[[l]])<lbf_min
-      }
-
-
-    }else{
-      if(length(obj$cs[[l]])==0 ){
-
-        is.dummy.cs <- TRUE
-        return( is.dummy.cs)
-      }
-      is.dummy.cs <-   min(abs(cor( X[,obj$cs[[l]]]))) <  min_purity & max(obj$lBF[[l]])<lbf_min
+    cs_l <- obj$cs[[l]]
+    if (length(cs_l) == 0L) {
+      return(TRUE)
+    }
+    if (median_crit && length(cs_l) < 5L) {
+      return(FALSE)
     }
 
-    return( is.dummy.cs)
+    if (length(cs_l) == 1L) {
+      purity <- 1
+    } else {
+      correlation <- suppressWarnings(stats::cor(
+        X[, cs_l, drop=FALSE]
+      ))
+      off_diagonal <- abs(correlation[lower.tri(correlation)])
+      if (length(off_diagonal) == 0L ||
+        any(!is.finite(off_diagonal))) {
+        purity <- -Inf
+      } else if (median_crit) {
+        purity <- stats::median(off_diagonal)
+      } else {
+        purity <- min(off_diagonal)
+      }
+    }
+
+    effect_lbf <- obj$lBF[[l]]
+    max_lbf <- if (any(is.finite(effect_lbf))) {
+      max(effect_lbf[is.finite(effect_lbf)])
+    } else {
+      -Inf
+    }
+    isTRUE(purity < min_purity && max_lbf < lbf_min)
   }
 
 
