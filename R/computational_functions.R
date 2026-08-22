@@ -56,6 +56,8 @@ cal_cor_cs <- function(obj,X){
 #'                    or per univariate trait inside the modality).
 #' @param X           N x p predictor matrix (assumed centred/scaled, but
 #'                    correctness does not depend on that).
+#' @param v1          Ignored legacy third argument, retained so older
+#'                    positional calls continue to work.
 #' @param sigma2      Numeric, length 1 or length J.  The CURRENT IBSS
 #'                    residual-variance estimate for each column of Y.  A
 #'                    scalar is recycled to length J via rep_len.
@@ -66,17 +68,16 @@ cal_cor_cs <- function(obj,X){
 #'                      If a list, ind_analysis[[j]] is the row subset for
 #'                      column j of Y (per-trait missingness).
 #'                      If a vector, common subset for all columns.
-#' @param v1          Ignored — kept for backward signature compatibility.
 #' @param resid_var   Ignored — kept for backward signature compatibility.
 #'                    Pass sigma2 instead.
 #' @param ...         Swallowed.
 #'
 #' @return list with components Bhat (p x J) and Shat (p x J).
 #' @export
-cal_Bhat_Shat <- function(Y, X, sigma2,
+cal_Bhat_Shat <- function(Y, X, v1 = NULL,
                           lowc_wc      = NULL,
                           ind_analysis = NULL,
-                          v1           = NULL,    # ignored
+                          sigma2       = NULL,
                           resid_var    = NULL,    # ignored; superseded by sigma2
                           ...) {
 
@@ -89,13 +90,13 @@ cal_Bhat_Shat <- function(Y, X, sigma2,
   ## univariate_HMM_regression, univariate_smash_regression, ...), which
   ## do single-SNP refits where the per-(k,j) Shat IS the natural form,
   ## keep working without each helper having to build its own sigma2.
-  marginal_mode <- missing(sigma2) || is.null(sigma2)
+  marginal_mode <- is.null(sigma2)
 
   J <- ncol(Y)
   if (!marginal_mode) sigma2 <- rep_len(as.numeric(sigma2), J)
 
   if (is.null(ind_analysis)) {
-    d    <- rep(nrow(X)-1,ncol(X)) #colSums(X^2)                       # length p
+    d    <- colSums(X^2)
     Bhat <- crossprod(X, Y) / d                # p x J
     if (marginal_mode) {
       ## Shat[k, j] = sqrt( sum_i (Y[i,j] - X[i,k]*Bhat[k,j])^2 / (n-1) ) / sqrt(d[k])
@@ -1080,60 +1081,29 @@ post_mat_sd.mixture_normal  <- function( G_prior,
                                          indx_lst,
                                          e=0.001,...  )
 {
-
-  if( !is.null( lBF)){
-
-    alpha  <- cal_zeta(   lBF)
-    idx_c <-  which( alpha >e )
-  }else{
-    idx_c=NULL
+  idx_c <- if (is.null(lBF)) {
+    seq_len(nrow(Bhat))
+  } else {
+    which(cal_zeta(lBF) > e)
   }
 
-  if ( length(idx_c)==0|| is.null( lBF)){
-    t_col_post <- function(t){
-      m <- G_prior [[1]]
-      data <-  ashr::set_data(Bhat[t,  ] ,Shat[t, ] )
-      return(ashr::postsd(ashr::get_fitted_g(m),data))
+  # Coefficients skipped by the alpha threshold are approximated by a
+  # point mass at zero. Giving them unit posterior variance would inject
+  # artificial uncertainty into ERSS.
+  out <- matrix(0, nrow=nrow(Bhat), ncol=ncol(Bhat))
+  if (length(idx_c) > 0L) {
+    t_col_post <- function(t) {
+      m <- G_prior[[1]]
+      data <- ashr::set_data(Bhat[t, ], Shat[t, ])
+      ashr::postsd(ashr::get_fitted_g(m), data)
     }
-
-
-
-    out <- lapply(1:(dim(Bhat)[1] ),t_col_post )
-
-
-    out <- t(Reduce("cbind", out))
-
-
-    if( !is.null(lowc_wc)){
-      out[, lowc_wc] <-1
-    }
-  }else{
-
-
-    t_out <- 0*Shat+1
-    t_col_post <- function(t){
-      m <- G_prior [[1]]
-      data <-  ashr::set_data(Bhat[t,  ] ,Shat[t, ] )
-      return(ashr::postsd(ashr::get_fitted_g(m),data))
-    }
-
-
-
-    out <- lapply(idx_c,t_col_post )
-
-
-    out <- t(Reduce("cbind", out))
-
-    t_out[idx_c,] <- out
-    out <- t_out
-    if( !is.null(lowc_wc)){
-      out[, lowc_wc] <-1
-    }
-
+    out[idx_c, ] <- do.call(rbind, lapply(idx_c, t_col_post))
+  }
+  if (!is.null(lowc_wc)) {
+    out[, lowc_wc] <- 0
   }
 
-
-  return(out)
+  out
 }
 
 #' @rdname post_mat_sd
@@ -1157,82 +1127,34 @@ post_mat_sd.mixture_normal_per_scale <-  function( G_prior,
                                                    indx_lst,
                                                    e=0.001,...  )
 {
-
-
-  if( !is.null( lBF)){
-
-    alpha  <- cal_zeta(   lBF)
-    idx_c <-  which( alpha >e )
-  }else{
-    idx_c=NULL
+  idx_c <- if (is.null(lBF)) {
+    seq_len(nrow(Bhat))
+  } else {
+    which(cal_zeta(lBF) > e)
   }
 
-  if ( length(idx_c)==0|| is.null( lBF)){
-
-    t_col_post <- function(t  ){
-
-      t_sd_post <- function(s ){
-        m <- G_prior [[ s]]
-
-        data <-  ashr::set_data(Bhat[t,indx_lst[[s]] ],
-                                Shat[t, indx_lst[[s]] ]
-        )
-        return(ashr::postsd(ashr::get_fitted_g(m),data))
+  # See the mixture_normal method above: skipped coefficients are treated
+  # as exactly zero by this approximation.
+  out <- matrix(0, nrow=nrow(Bhat), ncol=ncol(Bhat))
+  if (length(idx_c) > 0L) {
+    t_col_post <- function(t) {
+      t_sd_post <- function(s) {
+        m <- G_prior[[s]]
+        data <- ashr::set_data(Bhat[t, indx_lst[[s]]],
+                               Shat[t, indx_lst[[s]]])
+        ashr::postsd(ashr::get_fitted_g(m), data)
       }
-      return(unlist(lapply( c((length(indx_lst)  -1): 1,length(indx_lst)   ), #important to maintain the ordering of the wavethresh package !!!!
-                            t_sd_post  )
-      )
-      )
+      # Preserve the coefficient ordering used by wavethresh.
+      unlist(lapply(c((length(indx_lst) - 1):1, length(indx_lst)),
+                    t_sd_post))
     }
-
-
-
-    out <- lapply(1:(dim(Bhat)[1] ),t_col_post )
-
-
-    out <- t(Reduce("cbind", out))
-
-
-    if( !is.null(lowc_wc)){
-      out[, lowc_wc] <-1
-    }
-  }else{
-
-    t_out <- 0*Shat+1
-
-    t_col_post <- function(t  ){
-
-      t_sd_post <- function(s ){
-        m <- G_prior [[ s]]
-
-        data <-  ashr::set_data(Bhat[t,indx_lst[[s]] ],
-                                Shat[t, indx_lst[[s]] ]
-        )
-        return(ashr::postsd(ashr::get_fitted_g(m),data))
-      }
-      return(unlist(lapply( c((length(indx_lst)  -1): 1,length(indx_lst)   ), #important to maintain the ordering of the wavethresh package !!!!
-                            t_sd_post  )
-      )
-      )
-    }
-
-
-
-    out <- lapply(idx_c,t_col_post )
-
-
-    out <- t(Reduce("cbind", out))
-
-    t_out[idx_c,] <- out
-    out <- t_out
-    if( !is.null(lowc_wc)){
-      out[, lowc_wc] <-1
-    }
-
-
+    out[idx_c, ] <- do.call(rbind, lapply(idx_c, t_col_post))
+  }
+  if (!is.null(lowc_wc)) {
+    out[, lowc_wc] <- 0
   }
 
-  return(out)
+  out
 }
 
 

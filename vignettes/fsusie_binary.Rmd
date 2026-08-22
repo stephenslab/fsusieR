@@ -1,0 +1,114 @@
+---
+title: "fSuSiE applied to binary data"
+author: "William Denault"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    toc: no
+    highlight: textmate
+    theme: readable
+vignette: >
+  %\VignetteIndexEntry{Introduction to fSuSiE}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+library(susieR)
+library(fsusieR)
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Generating Binary data
+
+Here we generate $Y$ from a logistic model. Each position as a non zero
+probability of being a 1. Two SNP affect the count over specific region
+the SNP affect a logistic model, so carrying a variant increase the likelihood
+of have a 1 at a given position.
+
+We display the effect of the SNP and the baseline below
+
+
+```{r cars}
+
+set.seed(1)
+sigmoid= function(x){
+  1/ (1+exp(-x))
+}
+
+baseline= rep(-2, 512)
+plot(baseline, type="l", ylim=c(-2.2,1.7))
+
+effect1= rep(0,512)
+
+effect2= rep(0, 512)
+effect1[100:200]=1
+lines(effect1, col="red")
+effect2[400:500]=1.5
+lines(effect2, col="blue")
+```
+
+## Simulate generative model
+
+We load some data and sample $Y$ under the model described above
+```{r }
+
+
+library(susieR)
+X= N3finemapping$X[1:300, 1:200]
+#so having a variant increase the likleihood of getting a 1
+for ( j in 1: ncol(X)){
+
+  X[,j]= X[,j]- min(X[,j])
+}
+true_pos= sample (size=2, 1:ncol(X))
+
+Y= matrix(0, nrow = nrow(X), ncol=512)
+for ( i in 1:nrow(Y)){
+  prob=sigmoid (baseline+X[i,true_pos[[1]]]*effect1+X[i,true_pos[[2]]]*effect2)
+  Y[i,]= rbinom( size=1,prob=prob, n= length(prob) )
+}
+image(t(Y), main="Binary Y, row= individual")
+```
+
+
+```{r}
+plot( apply(Y,2,mean),
+
+    main= "Average  number of 1s per position")
+```
+
+## Application of fSuSiE
+As starting point let's just apply fSuSiE with Quantile transform of the
+wavelet coefficients. I cut it a 5 iteration for speed purpose but you can let it
+run you will get similar results
+
+```{r message=FALSE}
+res_wav= susiF(Y,X, L=10,
+           quantile_trans = TRUE,
+           maxit=5
+            )
+
+res_hmm= susiF(Y,X, L=10,post_processing = "HMM",
+           quantile_trans = TRUE,
+           maxit=5
+            )
+res_hmm$cs
+res_wav$cs
+true_pos
+
+```
+You can visualize the estimated effect using plot.
+The wavelet fit give you credible band but they can undercover sometimes
+
+
+```{r}
+plot(res_wav)
+```
+
+
+The HMM fit give you point wise local false discovery rate (in black lines ) they
+have pretty good lfsr control
+```{r}
+plot(res_hmm)
+```

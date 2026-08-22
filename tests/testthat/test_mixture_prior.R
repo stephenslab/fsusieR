@@ -238,7 +238,7 @@ test_that("update_susiF_obj sets fitted_wc / fitted_wc2 / alpha / G_prior", {
 
 # ---- 2f. partial residual ------------------------------------------------
 
-test_that("cal_partial_resid matches the manual residualisation", {
+test_that("cal_partial_resid keeps the response unchanged for one effect", {
   obj   <- init_susiF_obj(L_max = 1, G_prior, Y, X,
                           L_start = 1, greedy = greedy, backfit = backfit)
   outEM <- EM_pi(G_prior, Bhat, Shat, indx_lst,
@@ -258,16 +258,7 @@ test_that("cal_partial_resid matches the manual residualisation", {
     indx_lst = indx_lst
   )
 
-  id_L <- 1
-  update_D <- W$D - Reduce("+", lapply(id_L, function(l)
-    (X * rep(obj$alpha[[l]], rep.int(N, P))) %*%
-      obj$fitted_wc[[l]][, -dim(obj$fitted_wc[[l]])[2]]))
-  update_C <- W$C - Reduce("+", lapply(id_L, function(l)
-    (X * rep(obj$alpha[[l]], rep.int(N, P))) %*%
-      obj$fitted_wc[[l]][,  dim(obj$fitted_wc[[l]])[2]]))
-  manual_update <- cbind(update_D, update_C)
-
-  expect_equal(update_T, manual_update)
+  expect_equal(update_T, cbind(W$D, W$C))
 })
 
 

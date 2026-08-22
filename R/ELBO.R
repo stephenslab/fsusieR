@@ -1,3 +1,11 @@
+.fs_log_mean_exp <- function(x) {
+  max_x <- max(x)
+  if (is.infinite(max_x) && max_x < 0) {
+    return(-Inf)
+  }
+  max_x + log(mean(exp(x - max_x)))
+}
+
 #' @title Compute KL divergence effect l
 #
 #' @param obj a susisF object defined by  init_susiF_obj  function
@@ -43,30 +51,35 @@ cal_KL_l <- function(obj, l, X, D,C , indx_lst, ...)
 #' @export
 #' @keywords internal
 cal_KL_l.susiF <- function(obj, l, X, D, C, indx_lst, ...) {
+  # q_l is the exact single-effect posterior for the partial residual R_l.
+  # Therefore
+  #   KL(q_l || prior_l)
+  #     = E_q[log p(R_l | b_l) - log p(R_l | b_l = 0)]
+  #       - log BF_l.
+  # This identity includes both the categorical SNP-assignment term and the
+  # conditional coefficient-prior term, including mixture priors.
+  partial_residual <- cal_partial_resid(
+    obj = obj,
+    l = l - 1L,
+    X = X,
+    D = D,
+    C = C,
+    indx_lst = indx_lst
+  )
 
-  ## Reconstruct full wavelet-domain Y from detail (D) and scaling (C) coefs.
-  Y <- cbind(D, C)
+  effect_mean <- get_post_F(obj, l)
+  effect_second <- get_post_F2(obj, l)
+  predicted_mean <- X %*% effect_mean
+  d <- colSums(X^2)
 
-  ## Partial residual R_l = Y - X * sum_{k != l} alpha_k * mu_k.
-  if (obj$L > 1) {
-    other_F <- matrix(0, nrow = ncol(X), ncol = ncol(Y))
-    for (k in seq_len(obj$L)) {
-      if (k != l) {
-        other_F <- other_F + obj$alpha[[k]] * obj$fitted_wc[[k]]
-      }
-    }
-    R_l <- Y - X %*% other_F
-  } else {
-    R_l <- Y
-  }
+  expected_log_likelihood_ratio <-
+    sum(partial_residual * predicted_mean) / obj$sigma2 -
+    sum(d * rowSums(effect_second)) / (2 * obj$sigma2)
 
-  log_marg <- loglik_SFR     (obj, l, Y = R_l, X = X, indx_lst = indx_lst)
-  log_post <- loglik_SFR_post(obj, l, Y = R_l, X = X)
+  lBF <- get_lBF(obj, l)
+  log_model_BF <- .fs_log_mean_exp(lBF)
 
-  out <- log_marg - log_post
-  ## Numerical floor: at the SER optimum out >= 0 in exact arithmetic.
-  if (!is.finite(out)) return(0)
-  max(out, 0)
+  expected_log_likelihood_ratio - log_model_BF
 }
 
 
@@ -101,12 +114,7 @@ loglik_SFR <- function    (obj, l,  ...)
 loglik_SFR.susiF <- function (obj, l, Y , X, indx_lst, ...)
 {
   lBF            <- get_lBF(obj,l)
-  prior_weights  <- rep(1/ncol(X),ncol(X))
-  maxlBF         <- max(lBF)
-  w              <- exp(lBF - maxlBF)
-  w_weighted     <- w * prior_weights
-  weighted_sum_w <- sum(w_weighted)
-  lBF_model      <- maxlBF + log(weighted_sum_w)
+  lBF_model      <- .fs_log_mean_exp(lBF)
   return(lBF_model + sum(dnorm(Y,0,sd = sqrt(obj$sigma2),log = TRUE)))
 }
 
@@ -161,13 +169,11 @@ loglik_SFR_post.susiF <- function (obj, l, Y, X, ...)
   EF  <- get_post_F (obj, l)              # p x t
   EF2 <- get_post_F2(obj, l)              # p x t
   s2  <- obj$sigma2
-
-  d <- attr(X, "d")
-  if (is.null(d)) d <- rep(nrow(X) - 1, ncol(X))
-
-  e_quad <- sum(Y * Y) - 2 * sum(Y * (X %*% EF)) + sum(d * EF2)
-
-  return(-(n * t / 2) * log(2 * pi * s2) - e_quad / (2 * s2))
+  predicted_mean <- X %*% EF
+  expected_signal_ss <- sum(colSums(X^2) * rowSums(EF2))
+  return(-n*t/2*log(2*pi*s2)
+         - (sum(Y^2) - 2*sum(Y * predicted_mean) + expected_signal_ss) /
+           (2*s2))
 }
 
 
@@ -244,13 +250,6 @@ get_objective <- function    (obj,  Y, X, D, C , indx_lst,  ...)
 get_objective.susiF <- function    (obj, Y, X, D, C , indx_lst,  ...)
 {
   ## ELBO = E_q[log p(Y | X, beta)] - sum_l KL(q_l || p_l)
-  ## With the corrected cal_KL_l.susiF, obj$KL[l] >= 0 holds at the optimum,
-  ## so this expression is a proper lower bound on log p(Y | X).
-  ##
-  ## Previously the Eloglik(...) call was commented out, leaving just
-  ## sum(obj$KL); that was a sign-and-structure mismatch with the rest
-  ## of the IBSS update.
-
-  return(Eloglik(obj, Y, X) - sum(obj$KL))
+  Eloglik(obj, Y, X) - sum(obj$KL)
 }
 
