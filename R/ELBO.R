@@ -1,3 +1,11 @@
+.fs_log_mean_exp <- function(x) {
+  max_x <- max(x)
+  if (is.infinite(max_x) && max_x < 0) {
+    return(-Inf)
+  }
+  max_x + log(mean(exp(x - max_x)))
+}
+
 #' @title Compute KL divergence effect l
 #
 #' @param obj a susisF object defined by  init_susiF_obj  function
@@ -28,30 +36,36 @@ cal_KL_l <- function(obj, l, X, D,C , indx_lst, ...)
 #'
 #' @export
 #' @keywords internal
-cal_KL_l.susiF <- function(obj, l, X, ...) {
+cal_KL_l.susiF <- function(obj, l, X, D, C, indx_lst, ...) {
+  # q_l is the exact single-effect posterior for the partial residual R_l.
+  # Therefore
+  #   KL(q_l || prior_l)
+  #     = E_q[log p(R_l | b_l) - log p(R_l | b_l = 0)]
+  #       - log BF_l.
+  # This identity includes both the categorical SNP-assignment term and the
+  # conditional coefficient-prior term, including mixture priors.
+  partial_residual <- cal_partial_resid(
+    obj = obj,
+    l = l - 1L,
+    X = X,
+    D = D,
+    C = C,
+    indx_lst = indx_lst
+  )
 
-  # posterior mixture weights
-  alpha <- get_alpha(obj, l)      # length p
-  alpha <- pmax(alpha, 1e-16)
+  effect_mean <- get_post_F(obj, l)
+  effect_second <- get_post_F2(obj, l)
+  predicted_mean <- X %*% effect_mean
+  d <- colSums(X^2)
 
-  # prior weights
-  prior_weights <- rep(1 / length(alpha), length(alpha))
+  expected_log_likelihood_ratio <-
+    sum(partial_residual * predicted_mean) / obj$sigma2 -
+    sum(d * rowSums(effect_second)) / (2 * obj$sigma2)
 
-  # posterior moments
-  EF  <- get_post_F(obj, l)       # p x t
-  EF2 <- get_post_F2(obj, l)      # p x t
+  lBF <- get_lBF(obj, l)
+  log_model_BF <- .fs_log_mean_exp(lBF)
 
-  # expected squared signal
-  EXF2 <- sum((X %*% EF)^2)
-
-  # component-wise expected signal
-  comp_EXF2 <- colSums((X^2) %*% EF2)
-
-  # KL
-  KL_mix <- sum(alpha * log(alpha / prior_weights))
-  KL_gauss <- (1 / (2 * obj$sigma2)) * (EXF2 - sum(  comp_EXF2))
-
-  return(KL_mix + KL_gauss)
+  expected_log_likelihood_ratio - log_model_BF
 }
 
 
@@ -86,12 +100,7 @@ loglik_SFR <- function    (obj, l,  ...)
 loglik_SFR.susiF <- function (obj, l, Y , X, indx_lst, ...)
 {
   lBF            <- get_lBF(obj,l)
-  prior_weights  <- rep(1/ncol(X),ncol(X))
-  maxlBF         <- max(lBF)
-  w              <- exp(lBF - maxlBF)
-  w_weighted     <- w * prior_weights
-  weighted_sum_w <- sum(w_weighted)
-  lBF_model      <- maxlBF + log(weighted_sum_w)
+  lBF_model      <- .fs_log_mean_exp(lBF)
   return(lBF_model + sum(dnorm(Y,0,sd = sqrt(obj$sigma2),log = TRUE)))
 }
 
@@ -133,8 +142,11 @@ loglik_SFR_post.susiF <- function (obj, l, Y, X, ...)
   EF  <- get_post_F(obj,l)
   EF2 <- get_post_F2(obj,l)
   s2  <- obj$sigma2
+  predicted_mean <- X %*% EF
+  expected_signal_ss <- sum(colSums(X^2) * rowSums(EF2))
   return(-n*t/2*log(2*pi*s2)
-         - s2/2*(sum(t(Y)%*%Y) - 2*sum(t(Y)%*%X%*%EF) + sum(t(EF2)%*%EF2)))
+         - (sum(Y^2) - 2*sum(Y * predicted_mean) + expected_signal_ss) /
+           (2*s2))
 }
 
 
@@ -210,9 +222,7 @@ get_objective <- function    (obj,  Y, X, D, C , indx_lst,  ...)
 #' @keywords internal
 get_objective.susiF <- function    (obj, Y, X, D, C , indx_lst,  ...)
 {
-#print(obj$KL)
-  out <-sum(obj$KL)#  Eloglik(obj, Y, X)  #+
-  return(out)
+  Eloglik(obj, Y, X) - sum(obj$KL)
 
 }
 

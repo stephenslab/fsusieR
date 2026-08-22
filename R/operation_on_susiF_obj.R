@@ -44,7 +44,7 @@ cal_partial_resid.susiF <- function(obj, l, X, D, C, indx_lst, ...) {
   if (L > 1) {
     id_L <- setdiff(seq_len(L), (l %% L) + 1)
   } else {
-    id_L <- 1
+    id_L <- integer(0)
   }
 
   # Determine index of scaling coefficient (last column)
@@ -327,7 +327,7 @@ estimate_residual_variance.susiF <- function( obj,Y,X,... )
 {
 
   out <-  (1/(prod(dim(Y))))*get_ER2 (  obj,Y, X  )
-  return(out)
+  return(max(out, sqrt(.Machine$double.eps)))
 }
 
 # @title Expand obj by adding L_extra effect
@@ -968,7 +968,7 @@ init_susiF_obj <- function(L_max,
   N               <- dim(Y)[1]
   n_wac           <- dim(Y)[2]
   P               <- dim(X)[2]
-  sigma2          <- mean(apply(Y,2 ,var))
+  sigma2          <- max(mean(apply(Y, 2, var)), sqrt(.Machine$double.eps))
   lBF             <- list()
   KL              <- rep(NA,L_start)
   ELBO            <- c()

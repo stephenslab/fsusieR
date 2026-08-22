@@ -67,12 +67,12 @@ init_prior.default <- function(Y,
   if(missing(ind_analysis)){
 
 
-    temp <- cal_Bhat_Shat(Y, X ,v1,
+    temp <- cal_Bhat_Shat(Y, X, sigma2 = 1,
                           lowc_wc=lowc_wc
                          )   ## Speed Gain would be good to call directly cal_Bhat_Shat in the ash function
 
   }else{
-    temp <- cal_Bhat_Shat(Y[ind_analysis,], X [ind_analysis,,drop=FALSE] ,v1,
+    temp <- cal_Bhat_Shat(Y[ind_analysis,], X [ind_analysis,,drop=FALSE], sigma2 = 1,
                           lowc_wc=lowc_wc
                          )
   }
