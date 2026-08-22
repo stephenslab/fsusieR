@@ -35,7 +35,7 @@ fit_ash_hmm(
   init_transition = NULL,
   init_prob = NULL,
   init_rho = NULL,
-  stay_probability = 0.98,
+  stay_probability = 0.95,
   null_state = c("pointmass", "adaptive"),
   fixed_pointmass_states = NULL,
   shared_mixture = FALSE,

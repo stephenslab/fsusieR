@@ -21,8 +21,8 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Generating Binary data
 
-Here we generate $Y$ from a logistic model. Each position as a non zero
-probability of being a 1. Two SNP affect the count over specific region
+Here we generate $Y$ from a logistic model. Each position as a non zero 
+probability of being a 1. Two SNP affect the count over specific region 
 the SNP affect a logistic model, so carrying a variant increase the likelihood
 of have a 1 at a given position.
 
@@ -38,7 +38,7 @@ sigmoid= function(x){
 
 baseline= rep(-2, 512)
 plot(baseline, type="l", ylim=c(-2.2,1.7))
-
+ 
 effect1= rep(0,512)
 
 effect2= rep(0, 512)
@@ -49,7 +49,7 @@ lines(effect2, col="blue")
 ```
 
 ## Simulate generative model
-
+ 
 We load some data and sample $Y$ under the model described above
 ```{r }
 
@@ -67,7 +67,7 @@ Y= matrix(0, nrow = nrow(X), ncol=512)
 for ( i in 1:nrow(Y)){
   prob=sigmoid (baseline+X[i,true_pos[[1]]]*effect1+X[i,true_pos[[2]]]*effect2)
   Y[i,]= rbinom( size=1,prob=prob, n= length(prob) )
-}
+} 
 image(t(Y), main="Binary Y, row= individual")
 ```
 
@@ -80,24 +80,26 @@ plot( apply(Y,2,mean),
 
 ## Application of fSuSiE
 As starting point let's just apply fSuSiE with Quantile transform of the
-wavelet coefficients. I cut it a 5 iteration for speed purpose but you can let it
+wavelet coefficients. I cut it a 5 iteration for speed purpose but you can let it 
 run you will get similar results
 
 ```{r message=FALSE}
-res_wav= susiF(Y,X, L=10,
+res_wav= susiF(Y,X, L=10, 
            quantile_trans = TRUE,
-           maxit=5
+           maxit=5 
             )
 
 res_hmm= susiF(Y,X, L=10,post_processing = "HMM",
            quantile_trans = TRUE,
-           maxit=5
+           maxit=5 
             )
 res_hmm$cs
 res_wav$cs
 true_pos
 
 ```
+
+
 You can visualize the estimated effect using plot.
 The wavelet fit give you credible band but they can undercover sometimes
 
@@ -112,3 +114,5 @@ have pretty good lfsr control
 ```{r}
 plot(res_hmm)
 ```
+
+

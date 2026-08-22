@@ -34,20 +34,6 @@ cal_KL_l <- function(obj, l, X, D,C , indx_lst, ...)
 
 #' @title Compute KL divergence for effect l (correct ELBO version)
 #'
-#' @description
-#' Per-effect KL between q_l(b_l, gamma_l) and the prior p(b_l, gamma_l),
-#' using the susieR identity
-#'   KL(q_l || p_l) = log p(R_l) - E_{q_l}[ log p(R_l | b_l, gamma_l) ]
-#'                  = loglik_SFR(R_l) - loglik_SFR_post(R_l)
-#' where R_l = Y - X * sum_{k != l} alpha_k * mu_k is the partial residual.
-#'
-#' This always returns a non-negative quantity at the SER posterior optimum,
-#' so the ELBO formed as Eloglik(Y, X) - sum_l KL_l is a valid lower bound.
-#'
-#' The previous implementation computed
-#'   (1/(2 sigma^2)) * (||X E[F]||^2 - sum_j d_j E[F^2_j])
-#' which is generically negative and therefore not a KL.
-#'
 #' @export
 #' @keywords internal
 cal_KL_l.susiF <- function(obj, l, X, D, C, indx_lst, ...) {
@@ -151,23 +137,10 @@ loglik_SFR_post <- function (obj, l, ...)
 #' @keywords internal
 loglik_SFR_post.susiF <- function (obj, l, Y, X, ...)
 {
-  ## E_{q_l}[ log p(Y | X, b_l, gamma_l) ] for the single-effect SuSiE model.
-  ##
-  ## Under q_l, gamma_l selects exactly one component, so cross terms in
-  ## E_q[(X b_l)^2] vanish and
-  ##   E_q[||Y - X b_l||^2]
-  ##     = ||Y||^2 - 2 sum(Y * (X * E[b_l])) + sum_t sum_j d_j * E[b^2_l][j,t]
-  ## with E[b_l]   = alpha_l * mu_l        (= get_post_F (obj, l)),
-  ##      E[b^2_l] = alpha_l * (mu^2 + s2_post)  (= get_post_F2(obj, l)),
-  ##      d_j      = ||X[,j]||^2.
-  ##
-  ## The previous version used `s2/2` (should be `1/(2*s2)`) and
-  ## `sum(t(EF2) %*% EF2)` (should be `sum(d * EF2)`); both are corrected here.
-
   n   <- nrow(Y)
   t   <- ncol(Y)
-  EF  <- get_post_F (obj, l)              # p x t
-  EF2 <- get_post_F2(obj, l)              # p x t
+  EF  <- get_post_F(obj,l)
+  EF2 <- get_post_F2(obj,l)
   s2  <- obj$sigma2
   predicted_mean <- X %*% EF
   expected_signal_ss <- sum(colSums(X^2) * rowSums(EF2))
@@ -249,7 +222,7 @@ get_objective <- function    (obj,  Y, X, D, C , indx_lst,  ...)
 #' @keywords internal
 get_objective.susiF <- function    (obj, Y, X, D, C , indx_lst,  ...)
 {
-  ## ELBO = E_q[log p(Y | X, beta)] - sum_l KL(q_l || p_l)
   Eloglik(obj, Y, X) - sum(obj$KL)
+
 }
 

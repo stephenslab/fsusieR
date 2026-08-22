@@ -1216,9 +1216,9 @@ out_prep.susiF <- function(obj ,
                               filter.number = filter.number,
                               family        = family)
 
-  ## Reconstruct the per-individual fitted curves while alpha and X are still
-  ## aligned in fitted-column space. Original-column formatting, which pads
-  ## removed constant columns back into alpha, must remain the last operation.
+  ## Reconstruct the per-individual fitted curves (N x J). Must run BEFORE
+  ## All calculations above use the fitted-column space. Original-column
+  ## formatting is deliberately the last operation.
   obj <-  update_cal_indf(obj      = obj,
                           Y        = Y,
                           X        = X,

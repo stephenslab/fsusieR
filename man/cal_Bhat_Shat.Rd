@@ -7,10 +7,10 @@
 cal_Bhat_Shat(
   Y,
   X,
-  v1 = NULL,
+  sigma2,
   lowc_wc = NULL,
   ind_analysis = NULL,
-  sigma2 = NULL,
+  v1 = NULL,
   resid_var = NULL,
   ...
 )
@@ -22,8 +22,9 @@ or per univariate trait inside the modality).}
 \item{X}{N x p predictor matrix (assumed centred/scaled, but
 correctness does not depend on that).}
 
-\item{v1}{Ignored legacy third argument, retained so older positional
-calls continue to work.}
+\item{sigma2}{Numeric, length 1 or length J.  The CURRENT IBSS
+residual-variance estimate for each column of Y.  A
+scalar is recycled to length J via rep_len.}
 
 \item{lowc_wc}{Optional integer vector of column indices of Y to mask
 (low-count wavelet coefficients).  Bhat zeroed, Shat
@@ -34,12 +35,9 @@ If a list, ind_analysis[[j]] is the row subset for
 column j of Y (per-trait missingness).
 If a vector, common subset for all columns.}
 
-\item{sigma2}{Numeric, length 1 or length J. The current IBSS
-residual-variance estimate for each column of Y. A scalar is recycled
-to length J via rep_len. If NULL, marginal-regression standard errors
-are computed for backward compatibility with helper routines.}
+\item{v1}{Ignored — kept for backward signature compatibility.}
 
-\item{resid_var}{Ignored; kept for backward signature compatibility.
+\item{resid_var}{Ignored — kept for backward signature compatibility.
 Pass sigma2 instead.}
 
 \item{...}{Swallowed.}
