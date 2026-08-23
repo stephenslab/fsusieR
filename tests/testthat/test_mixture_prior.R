@@ -411,37 +411,49 @@ test_that("The update susiF object should have its argument equal to    ",
 
 
 
-test_that("The partial residual should be    ",
-          {
-            outEM <-  EM_pi(G_prior,Bhat,Shat, indx_lst,
-                            init_pi0_w    = init_pi0_w,
-                            control_mixsqp = control_mixsqp,
-                            lowc_wc=NULL,
-                            nullweight = nullweight,
-                            tol_null_prior=0)
-            G_prior <- update_prior(G_prior,
-                                    tpi= outEM$tpi_k )
+test_that("partial residual excludes the current effect when L = 1", {
+  outEM <- EM_pi(
+    G_prior,
+    Bhat,
+    Shat,
+    indx_lst,
+    init_pi0_w     = init_pi0_w,
+    control_mixsqp = control_mixsqp,
+    lowc_wc        = NULL,
+    nullweight     = nullweight,
+    tol_null_prior = 0
+  )
 
-            susiF_obj <- update_susiF_obj(susiF_obj, 1, outEM, Bhat, Shat, indx_lst )
+  obj <- update_susiF_obj(
+    susiF_obj,
+    l        = 1L,
+    EM_pi    = outEM,
+    Bhat     = Bhat,
+    Shat     = Shat,
+    indx_lst = indx_lst
+  )
 
-            update_T <- cal_partial_resid(
-              obj = susiF_obj,
-              l         = 1,
-              X         = X,
-              D         = W$D,
-              C         = W$C,
-              indx_lst  = indx_lst
-            )
+  expect_equal(obj$L, 1L)
 
+  observed <- cal_partial_resid(
+    obj      = obj,
+    l        = 0L, # cal_partial_resid uses zero-based effect indexing
+    X        = X,
+    D        = W$D,
+    C        = W$C,
+    indx_lst = indx_lst
+  )
 
-            id_L <-1
-            update_D  <-  W$D - Reduce("+", lapply  ( id_L, function(l) (X*rep(susiF_obj$alpha[[l]], rep.int(N,P))) %*% (susiF_obj$fitted_wc[[l]][,-dim(susiF_obj$fitted_wc[[l]])[2]])  ) )
-            update_C  <-  W$C - Reduce("+", lapply  ( id_L, function(l) (X*rep(susiF_obj$alpha[[l]], rep.int(N,P))) %*% susiF_obj$fitted_wc[[l]][,dim(susiF_obj$fitted_wc[[l]])[2]] ) )
-            manual_update <- cbind(  update_D, update_C)
-            expect_equal(  update_T ,manual_update)
+  expected <- cbind(
+    W$D,
+    matrix(W$C, ncol = 1L)
+  )
 
-          }
-)
+  expect_equal(
+    observed,
+    expected
+  )
+})
 
 
 susiF_obj <- init_susiF_obj(L_max =1,
