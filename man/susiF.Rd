@@ -35,7 +35,9 @@ susiF(
   post_processing = c("smash", "TI", "HMM", "none"),
   e = 0.001,
   tol_null_prior = 0.001,
-  lbf_min = 0.1
+  lbf_min = 0.1,
+  standardize_Y = TRUE,
+  residual_variance = NULL
 )
 }
 \arguments{
@@ -92,11 +94,22 @@ high may reduce power.}
 problematic distribution (very low dispersion even after standardization).
 Basically, check if the median of the absolute value of the distribution of
  a wavelet coefficient is below this threshold. If yes, the algorithm discards
- this wavelet coefficient (setting its estimate effect to 0 and estimate sd to 1).
+ this wavelet coefficient (setting its estimated effect and posterior SD to 0).
  Set to 0 by default. It can be useful when analyzing sparse data from sequence
   based assay or small samples.}
 
 \item{cal_obj}{logical if set as TRUE compute ELBO for convergence monitoring}
+
+\item{standardize_Y}{Logical; center and scale the response before and after
+the wavelet transform. The default preserves the historical fSuSiE
+behavior. Set to \code{FALSE} when a residual variance on the input-response
+scale is supplied.}
+
+\item{residual_variance}{Optional finite positive residual variance. When
+supplied, this value is held fixed throughout IBSS. This is used by
+Poisson fSuSiE so that the Gaussian block uses the current outer
+variational variance rather than estimating a second variance on a
+standardized scale.}
 
 \item{L_start}{number of effect initialized at the start of the algorithm}
 

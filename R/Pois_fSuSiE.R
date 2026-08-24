@@ -18,6 +18,7 @@
 #' @param control_mixsqp,nullweight,cov_lev,min_purity,cor_small,post_processing,thresh_lowcount
 #'   Forwarded to [susiF()]. `post_processing = "none"` is not supported by
 #'   this approximation because its `fitted_func` is already alpha-collapsed.
+#' @param filter.number,family Wavelet filter passed to [susiF()].
 #' @param verbose Logical; report outer-iteration progress.
 #' @param diagnostic_plot Logical; draw diagnostic plots each outer iteration.
 #' @param True_intensity Optional N by T matrix of true latent log-intensities,
@@ -40,21 +41,28 @@
 #'
 #' @return A list containing posterior moments, fitted values, `sigma2`, an
 #'   iteration-level `convergence_trace`, solver failures, and the inner
-#'   `susiF.obj`. `partial_objective_trace` contains only the Poisson latent and
-#'   Gaussian coupling terms. The legacy `elbo_trace` component is retained as
-#'   an alias, but is not a complete joint ELBO.
+#'   `susiF.obj`. `est_effect_fm` is the raw variational posterior mean effect
+#'   matrix in the original X units; `postprocessed_effect_fm` is retained for
+#'   reporting. `sigma2_used_for_final_susif` records the variance used to fit
+#'   the final inner posterior, before its subsequent M-step. The
+#'   `partial_objective_trace` contains only the Poisson latent and Gaussian
+#'   coupling terms. The legacy `elbo_trace` component is retained as an alias,
+#'   but is not a complete joint ELBO.
 #'
 #' @details
 #' The noise-variance update is
 #' \deqn{\sigma^2 = \mathrm{mean}\{(\bar\mu-\bar B)^2 + V_\mu + V_B\}.}
-#' The approximation to `V_B` uses centered `X` and includes both SNP-selection
-#' uncertainty and the available post-processed effect-curve variance.
+#' Here `B` denotes the complete structured Gaussian mean, including the
+#' plug-in intercept. `V_B` is computed from the raw fSuSiE variational
+#' factors, including both SNP-selection uncertainty and conditional
+#' wavelet-coefficient uncertainty.
 #'
-#' This implementation is deliberately labelled a hybrid approximation. The
-#' public [susiF()] update standardizes its response and re-estimates an inner
-#' Gaussian residual variance, so its KL term is not on the scale of the outer
-#' Poisson model. Consequently `partial_objective_trace` is a diagnostic and
-#' convergence is based on parameter changes rather than a claimed joint ELBO.
+#' During each Gaussian block update, [susiF()] centers but does not scale the
+#' latent response and holds its residual variance fixed at the current outer
+#' `sigma2`. Post-processing is used only for reported effect curves; it does
+#' not feed the variational moments or the variance update. The
+#' `partial_objective_trace` still excludes the fSuSiE prior/KL contribution,
+#' so convergence is based on parameter changes rather than this diagnostic.
 #'
 #' @seealso [susiF()], [vga_pois_solver()]
 #'
@@ -64,7 +72,7 @@ Pois_fSuSiE <- function(Y,
                         L = 3,
                         scaling = NULL,
                         reflect = FALSE,
-                        maxit_outer = 10,
+                        maxit_outer = 20,
                         maxit_inner = 10,
                         tol = 1e-3,
                         elbo_tol = NULL,
@@ -87,7 +95,9 @@ Pois_fSuSiE <- function(Y,
                         warm_start_sigma2 = TRUE,
                         outer_tol = 1e-3,
                         stable_iterations = 2L,
-                        solver_failure = c("error", "log1p")) {
+                        solver_failure = c("error", "log1p"),
+                        filter.number = 10,
+                        family = "DaubLeAsymm") {
 
   if (missing(X) || is.null(X)) stop("Please provide X matrix", call. = FALSE)
   if (missing(Y) || is.null(Y)) stop("Please provide Y matrix", call. = FALSE)
@@ -160,6 +170,11 @@ Pois_fSuSiE <- function(Y,
 
   N <- nrow(Y)
   Tt <- ncol(Y)
+  inverse_dwt <- pois_inverse_dwt_matrix(
+    n_grid = Tt,
+    filter.number = filter.number,
+    family = family
+  )
   Y_warm <- log1p(sweep(Y, 1L, scaling, "/"))
   susiF.obj <- fit_pois_susif(
     response = Y_warm,
@@ -173,11 +188,16 @@ Pois_fSuSiE <- function(Y,
     min_purity = min_purity,
     cor_small = cor_small,
     post_processing = post_processing,
-    thresh_lowcount = thresh_lowcount
+    thresh_lowcount = thresh_lowcount,
+    filter.number = filter.number,
+    family = family,
+    standardize_Y = TRUE,
+    residual_variance = NULL
   )
 
-  est_effect_fm <- reconstruct_effect(susiF.obj, ncol(X), Tt)
-  B_pm <- build_B_pm(Y_warm, X, est_effect_fm)
+  postprocessed_effect_fm <- reconstruct_effect(susiF.obj, ncol(X), Tt)
+  est_effect_fm <- postprocessed_effect_fm
+  B_pm <- build_B_pm(Y_warm, X, postprocessed_effect_fm)
   B_pv <- compute_B_pv(susiF.obj, X, Tt)
   Mu_pm <- B_pm
   Mu_pv <- matrix(1 / Tt, nrow = N, ncol = Tt)
@@ -256,6 +276,7 @@ Pois_fSuSiE <- function(Y,
       }
     }
 
+    sigma2_for_inner <- sigma2
     susiF.obj <- fit_pois_susif(
       response = Mu_pm,
       X = X,
@@ -268,22 +289,34 @@ Pois_fSuSiE <- function(Y,
       min_purity = min_purity,
       cor_small = cor_small,
       post_processing = post_processing,
-      thresh_lowcount = thresh_lowcount
+      thresh_lowcount = thresh_lowcount,
+      filter.number = filter.number,
+      family = family,
+      standardize_Y = FALSE,
+      residual_variance = sigma2_for_inner
     )
-    est_effect_fm <- reconstruct_effect(susiF.obj, ncol(X), Tt)
-    B_pm <- build_B_pm(Mu_pm, X, est_effect_fm)
-    B_pv <- compute_B_pv(susiF.obj, X, Tt)
-
-    residual_component <- mean((Mu_pm - B_pm)^2)
-    latent_variance_component <- mean(Mu_pv)
-    structured_variance_component <- mean(B_pv)
-    sigma2 <- residual_component + latent_variance_component +
-      structured_variance_component
-    if (!is.finite(sigma2) || sigma2 <= 0) {
-      stop("The sigma2 update produced a non-positive or non-finite value.",
+    if (!isTRUE(all.equal(susiF.obj$sigma2, sigma2_for_inner,
+                          tolerance = 0))) {
+      stop("The inner susiF fit changed its fixed residual variance.",
            call. = FALSE)
     }
-    sigma2 <- max(sigma2, 1e-8)
+    postprocessed_effect_fm <- reconstruct_effect(susiF.obj, ncol(X), Tt)
+    structured_moments <- compute_pois_structured_moments(
+      susiF.obj = susiF.obj,
+      X = X,
+      response = Mu_pm,
+      inverse_dwt = inverse_dwt
+    )
+    B_pm <- structured_moments$mean
+    B_pv <- structured_moments$variance
+    est_effect_fm <- structured_moments$coefficient_mean
+
+    sigma2_update <- pois_sigma2_update(Mu_pm, Mu_pv, B_pm, B_pv)
+    sigma2 <- sigma2_update$sigma2
+    residual_component <- sigma2_update$residual_component
+    latent_variance_component <- sigma2_update$latent_variance_component
+    structured_variance_component <-
+      sigma2_update$structured_variance_component
 
     partial_objective <- pois_fsusie_partial_objective(
       Y, scaling, Mu_pm, Mu_pv, B_pm, B_pv, sigma2
@@ -297,6 +330,7 @@ Pois_fSuSiE <- function(Y,
     convergence_trace[[iter]] <- data.frame(
       iteration = iter,
       sigma2 = sigma2,
+      inner_sigma2 = sigma2_for_inner,
       noise_sd = sqrt(sigma2),
       residual_component = residual_component,
       latent_variance_component = latent_variance_component,
@@ -346,7 +380,10 @@ Pois_fSuSiE <- function(Y,
     B_pm = crop(B_pm),
     B_pv = crop(B_pv),
     est_effect_fm = est_effect_fm[, output_index, drop = FALSE],
+    postprocessed_effect_fm =
+      postprocessed_effect_fm[, output_index, drop = FALSE],
     sigma2 = sigma2,
+    sigma2_used_for_final_susif = susiF.obj$sigma2,
     sigma2_initial = warm_start$sigma2,
     sigma2_warm_start = warm_start,
     fitted_latent = fitted_latent,
@@ -363,16 +400,17 @@ Pois_fSuSiE <- function(Y,
     approximation = list(
       exact_joint_cavi = FALSE,
       reason = paste(
-        "susiF re-estimates a residual variance on its internally standardized",
-        "response instead of using the outer Poisson-FSuSiE sigma2."
+        "The Gaussian fSuSiE block and sigma2 M-step now match the stated",
+        "mean-field updates; the intercept remains a plug-in column mean and",
+        "each inner block is optimized for at most maxit_inner iterations."
       ),
       B_moments = paste(
-        "Post-processed lead-SNP curves are alpha-distributed; B_pv includes",
-        "selection and available curve-magnitude variance but remains approximate."
+        "B_pm and B_pv use the raw alpha, conditional wavelet means, and",
+        "conditional wavelet variances; post-processing is output-only."
       ),
       objective = paste(
-        "partial_objective_trace excludes the incompatible inner KL and is",
-        "a diagnostic, not a complete joint ELBO."
+        "partial_objective_trace excludes the fSuSiE prior/KL contribution and",
+        "is a diagnostic, not the complete joint ELBO."
       )
     ),
     reflected_internal_grid = Tt != original_grid_size,
@@ -500,7 +538,11 @@ fit_pois_susif <- function(response,
                            min_purity,
                            cor_small,
                            post_processing,
-                           thresh_lowcount) {
+                           thresh_lowcount,
+                           filter.number = 10,
+                           family = "DaubLeAsymm",
+                           standardize_Y = TRUE,
+                           residual_variance = NULL) {
   fit <- susiF(
     Y = response,
     X = X,
@@ -515,6 +557,11 @@ fit_pois_susif <- function(response,
     cor_small = cor_small,
     post_processing = post_processing,
     thresh_lowcount = thresh_lowcount,
+    filter.number = filter.number,
+    family = family,
+    standardize_Y = standardize_Y,
+    residual_variance = residual_variance,
+    filter_cs = FALSE,
     cal_obj = FALSE,
     verbose = FALSE
   )
@@ -523,6 +570,182 @@ fit_pois_susif <- function(response,
          call. = FALSE)
   }
   fit
+}
+
+
+## Matrix mapping wavelet coefficients in the package's c(D, C) ordering
+## back to the observation grid. A row vector of coefficients c is inverted by
+## c %*% inverse_dwt.
+pois_inverse_dwt_matrix <- function(n_grid,
+                                    filter.number = 10,
+                                    family = "DaubLeAsymm") {
+  if (length(n_grid) != 1L || !is.finite(n_grid) || n_grid < 2L ||
+      n_grid != as.integer(n_grid) || log2(n_grid) %% 1 != 0) {
+    stop("`n_grid` must be an integer power of two greater than one.",
+         call. = FALSE)
+  }
+  n_grid <- as.integer(n_grid)
+  ## GenW stores coefficients as c(C, D), whereas fSuSiE stores c(D, C).
+  ## Reorder the rows of the inverse transform to match fSuSiE exactly.
+  inverse_cd <- t(wavethresh::GenW(
+    n = n_grid,
+    filter.number = filter.number,
+    family = family
+  ))
+  inverse_dwt <- inverse_cd[c(seq.int(2L, n_grid), 1L), , drop = FALSE]
+  if (!identical(dim(inverse_dwt), c(n_grid, n_grid)) ||
+      any(!is.finite(inverse_dwt))) {
+    stop("Could not construct the inverse wavelet-transform matrix.",
+         call. = FALSE)
+  }
+  inverse_dwt
+}
+
+
+pois_raw_effects <- function(susiF.obj) {
+  effect_counts <- c(
+    length(susiF.obj$alpha),
+    length(susiF.obj$fitted_wc),
+    length(susiF.obj$fitted_wc2)
+  )
+  if (length(unique(effect_counts)) != 1L ||
+      (!is.null(susiF.obj$L) && susiF.obj$L != effect_counts[1L])) {
+    stop("The raw susiF effect fields are not aligned.", call. = FALSE)
+  }
+  n_effect <- effect_counts[1L]
+  if (n_effect == 0L) integer(0) else seq_len(n_effect)
+}
+
+
+## First two pointwise moments of the complete structured mean under the raw
+## fSuSiE variational distribution. For each single effect, gamma selects one
+## SNP for the entire curve, so the calculation retains the covariance across
+## wavelet coefficients induced by that shared SNP selection.
+compute_pois_structured_moments <- function(susiF.obj,
+                                            X,
+                                            response,
+                                            inverse_dwt) {
+  X <- as.matrix(X)
+  response <- as.matrix(response)
+  inverse_dwt <- as.matrix(inverse_dwt)
+  N <- nrow(X)
+  P <- ncol(X)
+  Tt <- ncol(response)
+  if (nrow(response) != N ||
+      !identical(dim(inverse_dwt), c(Tt, Tt))) {
+    stop("Incompatible dimensions in the structured-moment calculation.",
+         call. = FALSE)
+  }
+
+  x_scale <- as.numeric(susiF.obj$csd_X)
+  if (length(x_scale) != P || any(!is.finite(x_scale)) ||
+      any(x_scale <= 0)) {
+    x_scale <- apply(X, 2L, stats::sd)
+  }
+  if (any(!is.finite(x_scale)) || any(x_scale <= 0)) {
+    stop("Cannot reconstruct moments for constant columns of X.",
+         call. = FALSE)
+  }
+  X_centered <- sweep(X, 2L, colMeans(X), "-")
+  X_scaled <- sweep(X_centered, 2L, x_scale, "/")
+
+  structured_mean <- matrix(0, nrow = N, ncol = Tt)
+  structured_variance <- matrix(0, nrow = N, ncol = Tt)
+  coefficient_mean <- matrix(0, nrow = P, ncol = Tt)
+  inverse_dwt_sq <- inverse_dwt^2
+
+  for (l in pois_raw_effects(susiF.obj)) {
+    alpha_l <- as.numeric(susiF.obj$alpha[[l]])
+    mean_wc <- as.matrix(susiF.obj$fitted_wc[[l]])
+    variance_wc <- as.matrix(susiF.obj$fitted_wc2[[l]])
+    if (length(alpha_l) != P ||
+        !identical(dim(mean_wc), c(P, Tt)) ||
+        !identical(dim(variance_wc), c(P, Tt)) ||
+        any(!is.finite(alpha_l)) || any(alpha_l < 0) ||
+        any(!is.finite(mean_wc)) || any(!is.finite(variance_wc))) {
+      stop("Invalid raw posterior moments in the susiF object.",
+           call. = FALSE)
+    }
+    alpha_mass <- sum(alpha_l)
+    if (alpha_mass <= 1e-12) {
+      if (any(abs(mean_wc) > 1e-12)) {
+        stop("An uninitialized susiF effect has non-zero posterior means.",
+             call. = FALSE)
+      }
+      next
+    }
+    if (abs(alpha_mass - 1) > 1e-6) {
+      stop("A fitted susiF effect has alpha values that do not sum to one.",
+           call. = FALSE)
+    }
+
+    conditional_mean <- mean_wc %*% inverse_dwt
+    conditional_variance <- pmax(variance_wc, 0) %*% inverse_dwt_sq
+    weighted_mean <- sweep(conditional_mean, 1L, alpha_l, "*")
+    weighted_second <- sweep(
+      conditional_mean^2 + conditional_variance,
+      1L,
+      alpha_l,
+      "*"
+    )
+    effect_mean <- X_scaled %*% weighted_mean
+    effect_second <- (X_scaled^2) %*% weighted_second
+
+    structured_mean <- structured_mean + effect_mean
+    structured_variance <- structured_variance +
+      pmax(effect_second - effect_mean^2, 0)
+    coefficient_mean <- coefficient_mean +
+      sweep(weighted_mean, 1L, x_scale, "/")
+  }
+
+  structured_mean <- sweep(
+    structured_mean,
+    2L,
+    colMeans(response),
+    "+"
+  )
+  list(
+    mean = structured_mean,
+    variance = structured_variance,
+    coefficient_mean = coefficient_mean
+  )
+}
+
+
+pois_sigma2_update <- function(Mu_pm, Mu_pv, B_pm, B_pv,
+                               minimum_sigma2 = 1e-8) {
+  Mu_pm <- as.matrix(Mu_pm)
+  Mu_pv <- as.matrix(Mu_pv)
+  B_pm <- as.matrix(B_pm)
+  B_pv <- as.matrix(B_pv)
+  if (length(minimum_sigma2) != 1L || !is.finite(minimum_sigma2) ||
+      minimum_sigma2 <= 0) {
+    stop("`minimum_sigma2` must be a finite positive scalar.", call. = FALSE)
+  }
+  if (!identical(dim(Mu_pm), dim(Mu_pv)) ||
+      !identical(dim(Mu_pm), dim(B_pm)) ||
+      !identical(dim(Mu_pm), dim(B_pv)) ||
+      any(!is.finite(Mu_pm)) || any(!is.finite(Mu_pv)) ||
+      any(!is.finite(B_pm)) || any(!is.finite(B_pv)) ||
+      any(Mu_pv < 0) || any(B_pv < 0)) {
+    stop("Invalid posterior moments in the sigma2 update.", call. = FALSE)
+  }
+  residual_component <- mean((Mu_pm - B_pm)^2)
+  latent_variance_component <- mean(Mu_pv)
+  structured_variance_component <- mean(B_pv)
+  untruncated_sigma2 <- residual_component + latent_variance_component +
+    structured_variance_component
+  if (!is.finite(untruncated_sigma2) || untruncated_sigma2 <= 0) {
+    stop("The sigma2 update produced a non-positive or non-finite value.",
+         call. = FALSE)
+  }
+  list(
+    sigma2 = max(untruncated_sigma2, minimum_sigma2),
+    untruncated_sigma2 = untruncated_sigma2,
+    residual_component = residual_component,
+    latent_variance_component = latent_variance_component,
+    structured_variance_component = structured_variance_component
+  )
 }
 
 

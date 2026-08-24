@@ -10,7 +10,7 @@ Pois_fSuSiE(
   L = 3,
   scaling = NULL,
   reflect = FALSE,
-  maxit_outer = 10,
+  maxit_outer = 20,
   maxit_inner = 10,
   tol = 0.001,
   elbo_tol = NULL,
@@ -31,7 +31,9 @@ Pois_fSuSiE(
   warm_start_sigma2 = TRUE,
   outer_tol = 0.001,
   stable_iterations = 2L,
-  solver_failure = c("error", "log1p")
+  solver_failure = c("error", "log1p"),
+  filter.number = 10,
+  family = "DaubLeAsymm"
 )
 }
 \arguments{
@@ -55,7 +57,9 @@ Reflection is enabled automatically when \code{ncol(Y)} is not a power of two.}
 
 \item{elbo_tol}{Deprecated alias for \code{outer_tol}. Kept for compatibility.}
 
-\item{control_mixsqp, nullweight, cov_lev, min_purity, cor_small, post_processing, thresh_lowcount}{Forwarded to \code{\link[=susiF]{susiF()}}. \code{post_processing = "none"} is not supported because its \code{fitted_func} is already alpha-collapsed.}
+\item{control_mixsqp, nullweight, cov_lev, min_purity, cor_small, post_processing, thresh_lowcount}{Forwarded to \code{\link[=susiF]{susiF()}}. \code{post_processing = "none"} is not supported by this approximation because its \code{fitted_func} is already alpha-collapsed.}
+
+\item{filter.number, family}{Wavelet filter passed to \code{\link[=susiF]{susiF()}}.}
 
 \item{verbose}{Logical; report outer-iteration progress.}
 
@@ -90,9 +94,13 @@ records a failed VGA row and uses a log1p fallback instead of stopping.}
 \value{
 A list containing posterior moments, fitted values, \code{sigma2}, an
 iteration-level \code{convergence_trace}, solver failures, and the inner
-\code{susiF.obj}. \code{partial_objective_trace} contains only the Poisson latent and
-Gaussian coupling terms. The legacy \code{elbo_trace} component is retained as
-an alias, but is not a complete joint ELBO.
+\code{susiF.obj}. \code{est_effect_fm} is the raw variational posterior mean effect
+matrix in the original X units; \code{postprocessed_effect_fm} is retained for
+reporting. \code{sigma2_used_for_final_susif} records the variance used to fit
+the final inner posterior, before its subsequent M-step. The
+\code{partial_objective_trace} contains only the Poisson latent and Gaussian
+coupling terms. The legacy \code{elbo_trace} component is retained as an alias,
+but is not a complete joint ELBO.
 }
 \description{
 Fine-mapping of inhomogeneous Poisson process data with a
@@ -102,14 +110,17 @@ inner \code{\link[=susiF]{susiF()}} fit for the structured genetic mean.
 \details{
 The noise-variance update is
 \deqn{\sigma^2 = \mathrm{mean}\{(\bar\mu-\bar B)^2 + V_\mu + V_B\}.}
-The approximation to \code{V_B} uses centered \code{X} and includes both SNP-selection
-uncertainty and the available post-processed effect-curve variance.
+Here \code{B} denotes the complete structured Gaussian mean, including the
+plug-in intercept. \code{V_B} is computed from the raw fSuSiE variational
+factors, including both SNP-selection uncertainty and conditional
+wavelet-coefficient uncertainty.
 
-This implementation is deliberately labelled a hybrid approximation. The
-public \code{\link[=susiF]{susiF()}} update standardizes its response and re-estimates an inner
-Gaussian residual variance, so its KL term is not on the scale of the outer
-Poisson model. Consequently \code{partial_objective_trace} is a diagnostic and
-convergence is based on parameter changes rather than a claimed joint ELBO.
+During each Gaussian block update, \code{\link[=susiF]{susiF()}} centers but does not scale the
+latent response and holds its residual variance fixed at the current outer
+\code{sigma2}. Post-processing is used only for reported effect curves; it does
+not feed the variational moments or the variance update. The
+\code{partial_objective_trace} still excludes the fSuSiE prior/KL contribution,
+so convergence is based on parameter changes rather than this diagnostic.
 }
 \seealso{
 \code{\link[=susiF]{susiF()}}, \code{\link[=vga_pois_solver]{vga_pois_solver()}}

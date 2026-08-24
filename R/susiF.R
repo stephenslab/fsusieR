@@ -64,6 +64,17 @@
 #'
 #' @param  cal_obj logical if set as TRUE compute ELBO for convergence monitoring
 #'
+#' @param standardize_Y Logical; center and scale the response before and after
+#'   the wavelet transform. The default preserves the historical fSuSiE
+#'   behavior. Set to `FALSE` when a residual variance on the input-response
+#'   scale is supplied.
+#'
+#' @param residual_variance Optional finite positive residual variance. When
+#'   supplied, this value is held fixed throughout IBSS. This is used by
+#'   Poisson fSuSiE so that the Gaussian block uses the current outer
+#'   variational variance rather than estimating a second variance on a
+#'   standardized scale.
+#'
 #' @param quantile_trans logical, if set as TRUE perform normal quantile, transform
 #' on wavelet coefficients
 #'
@@ -78,7 +89,7 @@
 #'  problematic distribution (very low dispersion even after standardization).
 #'  Basically, check if the median of the absolute value of the distribution of
 #'   a wavelet coefficient is below this threshold. If yes, the algorithm discards
-#'   this wavelet coefficient (setting its estimate effect to 0 and estimate sd to 1).
+#'   this wavelet coefficient (setting its estimated effect and posterior SD to 0).
 #'   Set to 0 by default. It can be useful when analyzing sparse data from sequence
 #'    based assay or small samples.
 #'
@@ -317,7 +328,9 @@ susiF <- function(Y, X, L = 2,
                   post_processing=c("smash","TI","HMM","none"),
                   e = 0.001,
                   tol_null_prior=0.001,
-                  lbf_min=0.1
+                  lbf_min=0.1,
+                  standardize_Y=TRUE,
+                  residual_variance=NULL
 
 )
 {
@@ -329,6 +342,24 @@ susiF <- function(Y, X, L = 2,
 
   prior           <- match.arg(prior)
   post_processing <- match.arg( post_processing)
+
+  if (!is.logical(standardize_Y) || length(standardize_Y) != 1L ||
+      is.na(standardize_Y)) {
+    stop("`standardize_Y` must be TRUE or FALSE")
+  }
+  if (!is.null(residual_variance)) {
+    if (length(residual_variance) != 1L ||
+        !is.finite(residual_variance) || residual_variance <= 0) {
+      stop("`residual_variance` must be a finite positive scalar")
+    }
+    if (isTRUE(standardize_Y)) {
+      stop("Fixed `residual_variance` requires `standardize_Y = FALSE`")
+    }
+    if (isTRUE(quantile_trans)) {
+      stop("Fixed `residual_variance` is incompatible with `quantile_trans`")
+    }
+    residual_variance <- as.numeric(residual_variance)
+  }
 
  if(post_processing=="none"){
   warning("Option none is not recommended and the effect estimate can be poor")
@@ -396,7 +427,11 @@ susiF <- function(Y, X, L = 2,
   L <- min(L, ncol(X))
   L_start <- min(L_start, L)
   if( verbose){
-    print("Scaling columns of X and Y to have unit variance")
+    if (isTRUE(standardize_Y)) {
+      print("Scaling columns of X and Y to have unit variance")
+    } else {
+      print("Scaling columns of X and centering Y without variance scaling")
+    }
   }
   X0=X
   X <- colScale(X)
@@ -424,13 +459,17 @@ susiF <- function(Y, X, L = 2,
   # centering input
    #fit user function on interpolated functions
 
-Y= colScale(Y)
+Y <- colScale(Y, scale = standardize_Y)
+csd_Y_pos <- attr(Y, "scaled:scale")
+if (is.null(csd_Y_pos)) csd_Y_pos <- rep(1, ncol(Y))
 
   W <- DWT2(Y,
             filter.number = filter.number,
             family        = family)
   Y_f      <-  cbind( W$D,W$C)
-  Y_f  <- colScale(Y_f  )
+  Y_f  <- colScale(Y_f, scale = standardize_Y)
+  csd_Yf <- attr(Y_f, "scaled:scale")
+  if (is.null(csd_Yf)) csd_Yf <- rep(1, ncol(Y_f))
   W$C=Y_f[, ncol(Y)]
   W$D=Y_f[, -ncol(Y)]
 
@@ -490,7 +529,8 @@ Y= colScale(Y)
                             max_SNP_EM     = max_SNP_EM,
                             max_step_EM    = max_step_EM,
                             cor_small      = cor_small,
-                            tol_null_prior = tol_null_prior)
+                            tol_null_prior = tol_null_prior,
+                            sigma2         = if (is.null(residual_variance)) 1 else residual_variance)
   G_prior     <- temp$G_prior
   tt          <- temp$tt
 
@@ -504,6 +544,14 @@ Y= colScale(Y)
                                  backfit=backfit,
                                  tol_null_prior= tol_null_prior,
                            cov_lev=cov_lev)
+
+  if (!is.null(residual_variance)) {
+    obj <- update_residual_variance(obj, residual_variance)
+  }
+  obj$standardize_Y <- standardize_Y
+  obj$residual_variance_fixed <- !is.null(residual_variance)
+  obj$csd_Y_pos <- csd_Y_pos
+  obj$csd_Yf <- csd_Yf
 
   if(verbose){
     print("Initialization done")
@@ -530,7 +578,8 @@ Y= colScale(Y)
                                    max_SNP_EM     = max_SNP_EM,
                                    max_step_EM    = max_step_EM,
                                    cor_small      = cor_small,
-                                   e              = e
+                                   e              = e,
+                                   estimate_sigma2 = is.null(residual_variance)
                                  )
     #browser()
   #preparing output

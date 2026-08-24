@@ -39,7 +39,7 @@ set.seed(1)
 data(N3finemapping)
 X_raw <- N3finemapping$X
 N <- 200
-mysd <- 1.1
+mysd <-  .1
 genotype <- X_raw[sample(1:nrow(X_raw), size = N), 1:100]
 idx_zero_var <- which(apply(genotype, 2, var) < 1e-15)
 if (length(idx_zero_var) > 0) genotype <- genotype[, -idx_zero_var]
@@ -49,8 +49,8 @@ G <- X
 lev_res <- 6
 L <- 2
 lf <- list()
-lf[[1]] <- rep(0, 2^lev_res); lf[[1]][20:30] <- 1.5
-lf[[2]] <- rep(0, 2^lev_res); lf[[2]][50:60] <- 1.5
+lf[[1]] <- rep(0, 2^lev_res); lf[[1]][20:30] <-  .7
+lf[[2]] <- rep(0, 2^lev_res); lf[[2]][50:60] <-  .7
 
 true_pos <- sample(1:ncol(G), replace = FALSE, size = L)
 
@@ -63,7 +63,7 @@ for (i in 1:N) {
   predictor <- rep(0, 2^lev_res)
   for (l in 1:L) {
     G[, true_pos[l]] <- G[, true_pos[l]] - min(G[, true_pos[l]])
-    predictor <- predictor + G[i, true_pos[l]] * lf[[l]] + 0.3
+    predictor <- predictor + G[i, true_pos[l]] * lf[[l]] + 0.03
   }
   lambda <- exp(predictor + rnorm(length(predictor), sd = mysd))
   count.data[[i]] <- rpois(n = length(predictor), lambda = lambda)
@@ -85,7 +85,7 @@ We compare three methods for fine-mapping this data:
 
 
 ```{r}
-res <- Pois_fSuSiE(Y = Y, X = X, L = 3 ,
+res <- Pois_fSuSiE(Y = Y, X = X, L = 3 ,maxit_outer=20,
                  post_processing ="HMM" )
 res0 <- susiF(Y = log1p(Y), X = X, L = 3)
 res1 <- susiF(Y = HFT(Y), X = X, L = 3)

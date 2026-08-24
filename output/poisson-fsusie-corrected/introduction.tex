@@ -1,0 +1,117 @@
+
+\section*{Abstract}
+
+
+ Integrative analysis sequence-based assay datasets allow for more comprehensive
+characterizations of genomic variants, but systematic technical differences between datasets, known as 'batch effects' need
+to be removed before integration to avoid misleading interpretation of the data. Although many batch-effect-removal methods have been developed, most of the existing approaches focus on correcting a single base pair measurement, thus overlooking the spatial structure of sequence-based assay.
+Here, we present a  novel regression method for inhomogeneous Poisson processes that accounts for the functional aspect of modern sequence-based assay and allows us to simultaneously account for batch-effect in Poisson processes while performing fine-mapping/variable selection. More generally, our approach can be framed as a mix of a  penalized regression and a variable selection approach for inhomogeneous  Poisson processes.
+% Talk about EB for curves, quite usefull and not that much in use in modern appraoch.
+ The inference is performed using a novel novel empirical  variational Bayes approximation approach for   Poisson data, which allows us to perform efficient  inference for of the model parameters. We showcase that our approach out perform current state of the art method for fine mapping molecular QTL and perform particularly well when analyzing overdispersed counts.
+
+%Something  the performance
+
+\section{Introduction}
+
+ 
+
+
+To gain a deeper understanding of gene regulation at the molecular level, scientists investigate various molecular phenotypes such as gene expression, chromatin accessibility, and transcription factor binding \cite{visscher_10_2017,pickrell_joint_2014,degner_dnase_2012,bock_analysing_2012,teschendorff_statistical_2018}. These phenotypes are typically measured using sequencing-based assays, including RNA-seq, ChIP-seq, DNase-seq, and ATAC-seq \citep{robertson_genome-wide_2007, mortazavi_mapping_2008,buenrostro_ATAC-seq_2015}. Collectively referred to as $^*$-seq assays, these methods are cost-effective, high-throughput, and provide detailed genome-wide measurements of molecular phenotype variations. Each location in the genome is associated with a "count" of sequences originating from that site, reflecting the intensity of the phenotype at that location. Recent efforts have shown that, these counts    are well-modeled by Poisson processes \citep{sarkar_separating_2021} thus warranting more effort  developping more efficient to model Poisson processes in the area of large scale *-seq data. In particular, improving computational approaches to identify single nucleotide polymorphisms (SNPs) that modify the intensity of these Poisson processes is a key step toward better understanding the regulation of these molecular traits \cite{aguet_molecular_2023}.
+
+Current methods for this task often involve dividing the genome into regions and summing the counts within each region across samples. However, these approaches face challenges in selecting appropriate region sizes, which can result in a lack of power due to low counts or a loss of sensitivity by potentially overlooking signals in smaller regions. To address these limitations, recent work by \cite{shim_multi-scale_2021} has proposed a multiscale approach that leverages high-resolution data more effectively. Their method, based on the multiscale transform for counts proposed by \cite{kolaczyk_bayesian_1999}, tests for differences at multiple resolutions simultaneously. While the method proposed by \cite{shim_multi-scale_2021} is promising, it relies on normal approximation model likelihoods, which can be less effective for small sample sizes or low counts. Additionally, existing approaches do not account for high-dimensional covariates or the high degree of correlation among them. SNPs often exhibit strong correlations due to linkage disequilibrium (LD), and current methods struggle to differentiate causal variants from those in LD with the true causal SNPs.
+
+In this paper, we introduce a novel method called Poisson-FSuSiE, designed for variable selection and batch correction in spatially structured count data, such as $^*$-seq data. Our work builds on ideas proposed by \cite{kolaczyk_bayesian_1999}, \cite{xing_flexible_2019}, and \cite{shim_multi-scale_2021}. The methodological contributions of our paper are threefold. First, we extend the ideas from \cite{kolaczyk_bayesian_1999} and \cite{shim_multi-scale_2021} to a multi-sample context where high-dimensional covariates may influence the Poisson process intensity. Specifically, we propose a model that allows for variable selection with uncertainty quantification in inhomogeneous Poisson process data, tailored to handle highly correlated covariates—a process known as fine-mapping in genetic studies \cite{wang_simple_2020}. Second, our model accounts for potential high-dimensional technical covariates $\bm{Z}$ that can confound the association between the inhomogeneous Poisson process and $\bm{X}$. While this might not seem particularly novel, it is important to note that standard procedures for analyzing *-seq data often proceed in a two-step fashion. First, adjust the observed counts for the observed technical covariates $\bm{Z}$ using methods like Combat-seq \cite{zhang_combat-seq_2020}, resulting in "corrected" counts. In a second time, use the  "corrected" counts for downstream analysis (e.g., regressing $\bm{X}$ on the "corrected" counts). Such a procedure works well   for Gaussian data, it is more questionable for count data, and joint modeling of the effects of $\bm{Z}$ and $\bm{X}$ on $\bm{Y}$ is a more principled approach. Third, our model parameterization allows for the modeling of overdispersion and nugget effects in the observed multi-sample inhomogeneous Poisson process. Previous multiscale parameterizations \cite{kolaczyk_bayesian_1999, xing_flexible_2019,shim_multi-scale_2021} do not naturally account for overdispersion, which is a common issue in sequencing-based analyses. Lastly, on a more technical note, we introduce a novel variational inference method \citep{blei_variational_2017} called split Variational Inference (split VA) for Poisson and Binomial data. In a nutshell,  Split VA allows fitting complex overdispersed Poisson model by solving a  series of convex problems. Hence allowing for efficient computation of the model parameter which is key in modern large scale *-seq data analysis.
+
+We motivate this work with real data applications, we show that Poisson fSuSiE can fine map RNA seq count data to detect  quantitative trait loci (QTL). We demonstrate the effectiveness of our approach, Poisson-FSuSiE, using both simulation studies and real data analyses by fine mapping   RNA seq count data from \cite{noauthor_gtex_2020}.  In particular, Poisson-FSuSiE is well-suited for analyzing small sample sizes or low counts, making it a valuable tool for analyzing modern $^*$-seq data and inferring molecular QTL \cite{aguet_molecular_2023}.
+
+The implementation of Poisson-FSuSiE is made available in an R package, providing a valuable resource for researchers in the fields of molecular biology and genetics.
+
+
+
+%\paragraph{Story to be told}
+
+%\begin{itemize}
+%    \item Present split VA
+%    \item Do Poisson fsusie with split Va
+%    \item remark doing it one works fine
+%    \item estimate b in the normal mean
+%    \item showcase in simulation the transform vs log x+1
+%    \item show pip calibration other methods
+%\end{itemize}
+
+
+%\subsection{Notation}
+
+%We first introduce the notation we will use in the rest of the manuscript. Matrices are denoted by bold, uppercase letters (e.g., ${\bm A}$), column vectors are denoted by bold, lowercase letters (${\bm a}$), and scalars are denoted by letters ($a$ or $A$). For indexing, we use capital letters to denote the total number of elements and the corresponding lowercase symbol to denote the index, e.g., $i = 1,\ldots, I$. For wavelets/data projected into the wavelet space, we use two sets of indexes; when necessary, we use the classic double indexing of wavelet  \citep{mallat_wavelet_2009}, where the index $s \in 0,\ldots,S$ corresponds to the scale (or level of resolution) index and $l \in 1,\ldots, 2^s +1$ to the location index. \textbf{We only use  the indexing} by $t \in 1,..., T$ \textbf{for data that are NOT in the wavelet space}. We denote sets by calligraphic letters (e.g., $\mathcal{A}$). To lighten the notation, a collection of elements described by a set of indexes is indicated between parenthesis without specifying the index support; e.g., $(a_{u,h})=(a_{u,h})_{ u\in \mathcal{U}, h \in \mathcal{H}} $. The Hadamard product (entry-wise product) is noted $\odot$. For matrices, the notation $\bm{A}_{i,.}$ corresponds to the row i of $\bm{A} $, and  $\bm{A}_{.,j}$ corresponds to the column j of $\bm{A} $.
+
+%Further, in the manuscript, we will often deal with a matrix of parameters of size $P\times T$ (P number covariates, T number of position/trait) in which a row corresponds to the effect of a covariate and a column corresponds to the effect of the different covariate on a specific trait/position. In order to lighten the equation, we introduce the following notation; if $\bTheta = (\theta_{j,_{s,l}}) $ is a matrix of size  $P\times T$, then we refer to $\btheta_j =\bTheta_{j,} $ and to $\btheta_{s,l}= \bTheta_{.,_{s,l}}$
+
+
+
+%We first introduce the notation that will be used throughout this manuscript. Matrices are denoted by bold, uppercase letters (e.g., ${\bm A}$), column vectors by bold, lowercase letters (e.g., ${\bm a}$), and scalars by regular letters (e.g., $a$ or $A$). For indexing, capital letters denote the total number of elements, while the corresponding lowercase symbol denotes the index (e.g., $i = 1,\ldots, I$). For data projected into the wavelet space, we use two sets of indexes. Specifically, we follow the classic double indexing convention for wavelets \citep{mallat_wavelet_2009}, where the index $s \in 0,\ldots,S$ corresponds to the scale (or level of resolution), and $l \in 1,\ldots, 2^s +1$ corresponds to the location index. \textbf{We only use indexing by} $t \in 1,\ldots, T$ \textbf{for data that are NOT in the wavelet space}. Sets are denoted by calligraphic letters (e.g., $\mathcal{A}$). To simplify the notation, a collection of elements described by a set of indexes is indicated in parentheses without specifying the index support; for example, $(a_{u,h})$ represents $(a_{u,h}){ u\in \mathcal{U}, h \in \mathcal{H}}$. The Hadamard product (element-wise product) is denoted by $\odot$. For matrices, the notation $\bm{A}{i,.}$ refers to the $i$-th row of $\bm{A}$, and $\bm{A}_{.,j}$ refers to the $j$-th column of $\bm{A}$.
+
+%In the remainder of the manuscript, we will frequently work with a matrix of parameters of size $P \times T$ (where $P$ is the number of covariates and $T$ is the number of positions/traits). In this context, a row corresponds to the effect of a covariate, and a column corresponds to the effect of different covariates on a specific trait or position.In order to lighten the notation, we introduce the following notation: if $\bTheta = (\theta_{j,{s,l}})$ is a matrix of size $P \times T$, then we refer to $\btheta_j =\bTheta{j,.}$ and $\btheta_{s,l}= \bTheta_{.,_{s,l}}$.
+
+ 
+\subsection{Model description}\label{sec:model_desc}
+
+  Suppose we observe N-independent inhomogeneous Poisson processes observed at T times points or genomic position. We store the data in a matrix $\bY$, in which each line corresponds to the observed  Poisson process for an individual $\by_i= (y_{i,1}, \ldots, y_{i,T})$ with
+ \begin{align} \label{eq:Poisson_model}
+    y_{i,t} \sim \text{Pois}(s_i\exp( \mu_{i,t} ))
+ \end{align}
+
+ 
+
+ where each $\bm{\mu}_i$ is spatially structured, i.e., $|\bm{\mu}_{i,t} -\bm{\mu}_{i,t+1}|$ is small for most $t$. For simplicity, we assume that $T = 2^S$ (this assumption will be relaxed later). Suppose we observe a  matrix $\bm{X}$ of covariates (in our example, a matrix of SNP data) with dimensions $N \times P$, where we assume there is at least one column that affects the parameter of the Poisson process, and the number of covariates $P$ can be much larger than $N$ (i.e., $N \ll P$). We model the intensities using the following regression model. 
+ \begin{align} \label{eq:Poisson_model_mat}
+   \mathbf{  M }  &= {\bm 1}_N {\bm M_0}^{\intercal} +    \bX\bF +  \mathbf{ U}' 
+ \end{align}
+ Where $ \mathbf{  M } $ is a $N\times T$ matrix in which  $ \mathbf{  M } _{i,t} = \mu_{i,t}$, $\mathbf{U}'$ is an $N \times T$ matrix of independent and identically distributed Gaussian noise and $ \bm M_0 $ is a vector where each entry $\bm M_{0,t}$  contains the intercept of the Poisson process at base pair $t$.   Let's denote projection matrix $\mathbf{W}$ into the wavelet space and write the projected version of model \ref{eq:Poisson_model_mat} as
+ 
+ 
+ \begin{align} \label{eq:Poisson_model_mat_proj}
+   \mathbf{  A }  &= {\bm 1}_N {\bm\alpha_0}^{\intercal} +    \bX\bB +  \mathbf{ U} 
+ \end{align}
+
+\noindent Where $\mathbf{  A }=  \mathbf{  M } \mathbf{W} $,  $\bm\alpha_0= \bm  M_0 \mathbf{W}  $, $\bB= \bF\mathbf{W}$ , %$\bTheta= \bm{G}\mathbf{W}$ 
+ and $\mathbf{ U} =\mathbf{U}' \mathbf{ W}   $. % While $\bm{X}$ and $\bm{Z}$ enter the linear model similarly, we treat them differently by using different prior that are designed to perform different tasks. We first start by describing the prior for $\bTheta$ (the effect of noise covariates in  $\bm{Z}$), which essentially corresponds to a penalization approach.  %\paragraph{Prior on $\bm{B}$}
+We   are interested in fine-mapping the  columns  of   $\bm{X}$ to identify the covariates that are likely to affect the Poisson process. . This is achieved using a sum of single effect prior (SuSiE) \citep{wang_simple_2020}, which has the following form.
+
+\begin{align}\label{eq:susie_prior}
+  \bm{B}&=  \sum_{e=1}^E \bm{B}^{(e)} \\
+  \bbeta_{  s,l}^{(e)}& =  \left(\operatorname{diag}(\bgamma_e)\bm{B}^e\right)_{ . ,_{  s,l}}\\
+    \bgamma_e & \sim Mult(1, \bm p)\\
+   b^e_{j,s,l} &\sim  \pi^e_{0,s}\delta_0 +\sum_{k=1}^K \pi^e_{k,s} N(0,\sigma_{k,s }^2) \label{eq:ash_wav_prior}
+\end{align} 
+
+Where $E$ is an upper bound on the number of covariates affecting  the underlying Poisson processes and the indexing $s,l$ is the standard double indexing of wavelet coefficient \cite{nason_wavelet_2008} where $s$ is the scale index and $l$ is the location index. %In general inference using SuSiE prior are  robust to the choice of  $E$ \citep{wang_simple_2020} . 
+Equivalently, the single-effect selection can be written as $\bB^{(e)}=\operatorname{diag}(\bgamma_e)\bm{B}^e$. The SuSiE  prior is designed to  perform i) variable selection in the presence of correlation among covariates (a typical
+problem in SNP data) and  ii) quantify the uncertainty in the selected variables via credible sets \citep{maller_bayesian_2012}. More precisely,  the posterior distribution of $\bgamma_e $ allows computing credible sets level-$\rho $, which are defined as follows.
+
+
+ \begin{definition}[Credible Set from \cite{wang_simple_2020}]
+In the context of a multiple regression model, a level-$\rho $ Credible Set is  a subset of variables that
+has probability   $\geq \rho$  of containing at least one effect variable (i.e., a variable with non-zero regression coefficient). Equivalently,
+the probability that all variables in the Credible Set have zero regression coefficients is $\leq 1- \rho $.
+\end{definition}
+Given that we can compute the posterior distribution of each $\bgamma_e $, the $E$ credible sets can be computed as follows \citep{maller_bayesian_2012,wang_simple_2020}. Let's denote $ \bar{\bgamma }_e=( \bar{\gamma}_{e,1}, \ldots  , \bar{\gamma}_{e,P}) $ the posterior mean of $ \bgamma_e $  and  $r= (r_1, \ldots r_{P} ) $ denote the indices of the variables ranked in order of decreasing  $\bar{\bgamma }_e $. Let  $S_k$ denotes the cumulative sum of the k largest entries of $\bar{\bgamma }_e$
+         $$ S_k= \sum_{j=1}^k\bar{ \gamma}_{e,r_j}$$ 
+
+Then the  smallest credible set  \citep{maller_bayesian_2012} at level $\rho$ is for the $e^{th}$ effect under the sum of single effects in  \ref{eq:susie_prior} is 
+\begin{align}
+    CS (\bar{\bgamma}_e; \rho)&= \{r_1, \ldots r_{k_0} \} \\
+    &\text{ where } \\
+    k_0&= min \{k: S_k\geq\rho\}
+\end{align}
+ 
+
+
+
+
+
+
+
+
+
+ 
+ 

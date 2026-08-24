@@ -25,7 +25,8 @@ susiF.workhorse(
   max_step_EM = 1,
   cor_small = FALSE,
   is.pois = FALSE,
-  e = 0.001
+  e = 0.001,
+  estimate_sigma2 = TRUE
 )
 }
 \arguments{
@@ -80,6 +81,9 @@ expected level of coverage of the cs if not specified set to 0.95}
 \item{is.pois}{check susiF  description}
 
 \item{e}{threshold value to avoid computing posterior that have low alpha value. Set it to 0 to compute the entire posterio. default value is 0.001}
+
+\item{estimate_sigma2}{Logical; if \code{FALSE}, keep \code{obj$sigma2} fixed during
+all IBSS updates.}
 }
 \description{
 Implementation of the SuSiF method

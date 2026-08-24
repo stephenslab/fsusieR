@@ -19,7 +19,8 @@
   max_step_EM = 1,
   cor_small = FALSE,
   tol_null_prior = 0.001,
-  ...
+  ...,
+  sigma2 = 1
 )
 }
 \arguments{
@@ -38,6 +39,10 @@
 \item{control_mixsqp}{list of parameter for mixsqp function see  mixsqp package}
 
 \item{nullweight}{numeric value for penalizing likelihood at point mass 0 (should be between 0 and 1)}
+
+\item{sigma2}{finite positive residual variance used to initialize the
+marginal-regression standard errors. Defaults to one for backward
+compatibility.}
 
 \item{gridmult}{numeric used to control the number of component used in the mixture prior (see ashr package}
 
