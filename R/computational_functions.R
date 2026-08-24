@@ -454,7 +454,7 @@ HMM_regression<- function (obj,
 HMM_regression.susiF <- function( obj,
                                   Y ,
                                   X ,
-                                  verbose=TRUE,
+                                  verbose=FALSE,
                                   fit_indval=TRUE ,...
 ){
   if(verbose){
@@ -533,7 +533,7 @@ HMM_regression.susiF <- function( obj,
       }
 
       #browser()
-      s =  fit_hmm(x=est ,sd=(tsds)  ,verbose=TRUE , maxit=100)
+      s =  fit_hmm(x=est ,sd=(tsds)  ,verbose=verbose , maxit=100)
 
       fitted_lfsr [[idx_cs]] <- s$posterior$lfsr
       fitted_trend[[idx_cs]] <- s$posterior$mean

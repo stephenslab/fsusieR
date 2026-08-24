@@ -1896,7 +1896,7 @@ update_cal_fit_func.susiF <- function(obj,
                                       post_processing="TI",
                                       filter.number = 10,
                                       family = "DaubLeAsymm" ,
-                                      verbose=TRUE,
+                                      verbose=FALSE,
                                       ...)
 {
 
