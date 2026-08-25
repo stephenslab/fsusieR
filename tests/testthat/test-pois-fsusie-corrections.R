@@ -21,6 +21,14 @@ test_that("Poisson inputs are validated", {
     fsusieR:::validate_pois_fsusie_inputs(Y, cbind(X, 1), 2, rep(1, 4)),
     "constant column"
   )
+  expect_error(
+    Pois_fSuSiE(Y, X, L = 1, sigma2_subcycles = -1, verbose = FALSE),
+    "non-negative integer"
+  )
+  expect_error(
+    Pois_fSuSiE(Y, X, L = 1, sigma2_subcycles = 1.5, verbose = FALSE),
+    "non-negative integer"
+  )
 })
 
 
@@ -338,7 +346,8 @@ test_that("susiF can hold an input-scale residual variance fixed", {
 })
 
 
-test_that("Poisson fSuSiE uses the preceding outer sigma2 in each inner fit", {
+test_that("Poisson fSuSiE subcycles latent moments and sigma2 before fSuSiE", {
+  expect_identical(formals(Pois_fSuSiE)$sigma2_subcycles, 5L)
   set.seed(21)
   N <- 20
   Tt <- 8
@@ -357,15 +366,35 @@ test_that("Poisson fSuSiE uses the preceding outer sigma2 in each inner fit", {
     family = "DaubExPhase",
     warm_start_sigma2 = FALSE,
     s2 = 0.4,
+    sigma2_subcycles = 3,
     stable_iterations = 3,
     verbose = FALSE
   )
 
   expect_equal(observed$n_iter, 2L)
-  expect_equal(observed$convergence_trace$inner_sigma2[1],
+  expect_equal(observed$convergence_trace$sigma2_start[1],
                observed$sigma2_initial, tolerance = 0)
-  expect_equal(observed$convergence_trace$inner_sigma2[2],
+  expect_equal(observed$convergence_trace$sigma2_start[2],
                observed$convergence_trace$sigma2[1], tolerance = 0)
+  expect_identical(observed$convergence_trace$sigma2_subcycles, c(1L, 3L))
+  expect_identical(observed$sigma2_subcycle_trace$iteration,
+                   c(1L, 2L, 2L, 2L))
+  expect_identical(observed$sigma2_subcycle_trace$subcycle,
+                   c(1L, 1L, 2L, 3L))
+  last_subcycle <- vapply(
+    split(observed$sigma2_subcycle_trace$sigma2,
+          observed$sigma2_subcycle_trace$iteration),
+    tail,
+    numeric(1),
+    n = 1
+  )
+  expect_equal(observed$convergence_trace$inner_sigma2,
+               unname(last_subcycle), tolerance = 0)
+  second_iteration_objective <-
+    observed$sigma2_subcycle_trace$partial_objective[
+      observed$sigma2_subcycle_trace$iteration == 2L
+    ]
+  expect_true(all(diff(second_iteration_objective) >= -1e-8))
   expect_equal(observed$sigma2_used_for_final_susif,
                tail(observed$convergence_trace$inner_sigma2, 1),
                tolerance = 0)
@@ -379,4 +408,45 @@ test_that("Poisson fSuSiE uses the preceding outer sigma2 in each inner fit", {
     observed$B_pm,
     tolerance = 1e-8
   )
+
+  no_subcycle <- Pois_fSuSiE(
+    Y = Y,
+    X = X,
+    L = 1,
+    maxit_outer = 1,
+    maxit_inner = 1,
+    post_processing = "TI",
+    filter.number = 1,
+    family = "DaubExPhase",
+    warm_start_sigma2 = FALSE,
+    s2 = 0.4,
+    sigma2_subcycles = 0,
+    stable_iterations = 2,
+    verbose = FALSE
+  )
+  expect_equal(no_subcycle$convergence_trace$inner_sigma2,
+               no_subcycle$sigma2_initial, tolerance = 0)
+  expect_identical(no_subcycle$convergence_trace$sigma2_subcycles, 0L)
+  expect_equal(nrow(no_subcycle$sigma2_subcycle_trace), 0L)
+})
+
+
+test_that("SMASH post-processing is finite for a sharp low-noise effect", {
+  set.seed(121)
+  n <- 40L
+  tt <- 64L
+  x <- rnorm(n)
+  effect <- numeric(tt)
+  effect[20:30] <- 1
+  y <- outer(x, effect) + matrix(rnorm(n * tt, sd = 0.02), nrow = n)
+
+  fit <- univariate_smash_regression(y, matrix(x, ncol = 1L))
+
+  expect_length(fit$effect_estimate, tt)
+  expect_equal(dim(fit$cred_band), c(2L, tt))
+  expect_length(fit$fitted_var, tt)
+  expect_true(all(is.finite(fit$effect_estimate)))
+  expect_true(all(is.finite(fit$cred_band)))
+  expect_true(all(is.finite(fit$fitted_var)))
+  expect_true(all(fit$fitted_var >= 0))
 })

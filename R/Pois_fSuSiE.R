@@ -36,6 +36,11 @@
 #'   change in `Mu_pm`, `B_pm`, and `sigma2`.
 #' @param stable_iterations Number of consecutive iterations below `outer_tol`
 #'   required for convergence.
+#' @param sigma2_subcycles Non-negative integer giving the number of conditional
+#'   `q(mu)`--`sigma2` subcycles performed while holding `q(B)` fixed in each
+#'   outer iteration after the first. The default is 5. When this value is
+#'   positive, the first outer iteration uses one subcycle; setting it to zero
+#'   recovers the previous update order with no pre-fSuSiE variance update.
 #' @param solver_failure Either `"error"` (the default) or `"log1p"`. The latter
 #'   records a failed VGA row and uses a log1p fallback instead of stopping.
 #'
@@ -45,6 +50,8 @@
 #'   matrix in the original X units; `postprocessed_effect_fm` is retained for
 #'   reporting. `sigma2_used_for_final_susif` records the variance used to fit
 #'   the final inner posterior, before its subsequent M-step. The
+#'   `sigma2_subcycle_trace` records every conditional variance update and its
+#'   conditional partial objective before the fSuSiE block. The
 #'   `partial_objective_trace` contains only the Poisson latent and Gaussian
 #'   coupling terms. The legacy `elbo_trace` component is retained as an alias,
 #'   but is not a complete joint ELBO.
@@ -61,6 +68,11 @@
 #' latent response and holds its residual variance fixed at the current outer
 #' `sigma2`. Post-processing is used only for reported effect curves; it does
 #' not feed the variational moments or the variance update. The
+#' latent Gaussian posterior and `sigma2` are conditionally subcycled with the
+#' current structured posterior held fixed before each fSuSiE update. The first
+#' outer iteration uses at most one such subcycle; later iterations use
+#' `sigma2_subcycles`. A final `sigma2` M-step is performed after updating the
+#' structured posterior. The
 #' `partial_objective_trace` still excludes the fSuSiE prior/KL contribution,
 #' so convergence is based on parameter changes rather than this diagnostic.
 #'
@@ -97,7 +109,8 @@ Pois_fSuSiE <- function(Y,
                         stable_iterations = 2L,
                         solver_failure = c("error", "log1p"),
                         filter.number = 10,
-                        family = "DaubLeAsymm") {
+                        family = "DaubLeAsymm",
+                        sigma2_subcycles = 5L) {
 
   if (missing(X) || is.null(X)) stop("Please provide X matrix", call. = FALSE)
   if (missing(Y) || is.null(Y)) stop("Please provide Y matrix", call. = FALSE)
@@ -126,19 +139,27 @@ Pois_fSuSiE <- function(Y,
   positive_integer <- function(x) {
     positive_scalar(x) && x == as.integer(x)
   }
+  nonnegative_integer <- function(x) {
+    length(x) == 1L && is.finite(x) && x >= 0 && x == as.integer(x)
+  }
   if (!is.logical(warm_start_sigma2) || length(warm_start_sigma2) != 1L ||
       is.na(warm_start_sigma2)) {
     stop("`warm_start_sigma2` must be TRUE or FALSE.", call. = FALSE)
   }
   if (!positive_integer(maxit_outer) || !positive_integer(maxit_inner) ||
       !positive_integer(stable_iterations) || !positive_scalar(tol) ||
-      !positive_scalar(outer_tol) || !positive_scalar(s2)) {
-    stop("Iteration counts, tolerances, and `s2` must be strictly positive.",
+      !positive_scalar(outer_tol) || !positive_scalar(s2) ||
+      !nonnegative_integer(sigma2_subcycles)) {
+    stop(paste(
+      "Iteration counts, tolerances, and `s2` must be strictly positive;",
+      "`sigma2_subcycles` must be a non-negative integer."
+    ),
          call. = FALSE)
   }
   maxit_outer <- as.integer(maxit_outer)
   maxit_inner <- as.integer(maxit_inner)
   stable_iterations <- as.integer(stable_iterations)
+  sigma2_subcycles <- as.integer(sigma2_subcycles)
 
   original_grid_size <- ncol(Y)
   true_intensity_internal <- NULL
@@ -217,7 +238,9 @@ Pois_fSuSiE <- function(Y,
 
   partial_objective_trace <- numeric(0)
   convergence_trace <- vector("list", maxit_outer)
+  sigma2_subcycle_trace <- vector("list", maxit_outer)
   solver_failures <- data.frame(iteration = integer(0),
+                                subcycle = integer(0),
                                 row = integer(0),
                                 message = character(0))
   stable_count <- 0L
@@ -229,52 +252,94 @@ Pois_fSuSiE <- function(Y,
     old_B_pm <- B_pm
     old_sigma2 <- sigma2
 
-    if (isTRUE(update_Mu_each_iter) || iter == 1L) {
-      for (i in seq_len(N)) {
-        failure_message <- NULL
-        sol <- tryCatch(
-          vga_pois_solver(init_val = Mu_pm[i, ],
-                          x = Y[i, ],
-                          s = scaling[i],
-                          beta = B_pm[i, ],
-                          sigma2 = sigma2),
-          error = function(e) {
-            failure_message <<- conditionMessage(e)
-            NULL
-          }
-        )
-        invalid <- !vga_pois_solution_is_valid(
-          sol,
-          x = Y[i, ],
-          s = scaling[i],
-          beta = B_pm[i, ],
-          sigma2 = sigma2,
-          tol = 1e-4
-        )
+    requested_subcycles <- if (sigma2_subcycles == 0L) {
+      0L
+    } else if (iter == 1L) {
+      1L
+    } else {
+      sigma2_subcycles
+    }
+    should_update_mu <- isTRUE(update_Mu_each_iter) || iter == 1L
+    n_mu_updates <- if (should_update_mu) max(1L, requested_subcycles) else 0L
+    subcycle_sigma2 <- numeric(0)
+    subcycle_objective <- numeric(0)
 
-        if (invalid) {
-          if (is.null(failure_message)) {
-            failure_message <- paste(
-              "invalid VGA output: moments do not satisfy the Poisson",
-              "variational score equations"
-            )
-          }
-          solver_failures <- rbind(
-            solver_failures,
-            data.frame(iteration = iter, row = i, message = failure_message)
-          )
-          if (solver_failure == "error") {
-            stop(sprintf("VGA failed at iteration %d, row %d: %s",
-                         iter, i, failure_message), call. = FALSE)
-          }
-          Mu_pm[i, ] <- log1p(Y[i, ] / scaling[i])
-          Mu_pv[i, ] <- sigma2
+    if (n_mu_updates > 0L) {
+      for (subcycle_index in seq_len(n_mu_updates)) {
+        subcycle_label <- if (requested_subcycles > 0L) {
+          subcycle_index
         } else {
-          Mu_pm[i, ] <- sol$m
-          Mu_pv[i, ] <- sol$v
+          0L
+        }
+        for (i in seq_len(N)) {
+          failure_message <- NULL
+          sol <- tryCatch(
+            vga_pois_solver(init_val = Mu_pm[i, ],
+                            x = Y[i, ],
+                            s = scaling[i],
+                            beta = B_pm[i, ],
+                            sigma2 = sigma2),
+            error = function(e) {
+              failure_message <<- conditionMessage(e)
+              NULL
+            }
+          )
+          invalid <- !vga_pois_solution_is_valid(
+            sol,
+            x = Y[i, ],
+            s = scaling[i],
+            beta = B_pm[i, ],
+            sigma2 = sigma2,
+            tol = 1e-4
+          )
+
+          if (invalid) {
+            if (is.null(failure_message)) {
+              failure_message <- paste(
+                "invalid VGA output: moments do not satisfy the Poisson",
+                "variational score equations"
+              )
+            }
+            solver_failures <- rbind(
+              solver_failures,
+              data.frame(iteration = iter,
+                         subcycle = subcycle_label,
+                         row = i,
+                         message = failure_message)
+            )
+            if (solver_failure == "error") {
+              stop(sprintf(
+                "VGA failed at iteration %d, subcycle %d, row %d: %s",
+                iter, subcycle_label, i, failure_message
+              ), call. = FALSE)
+            }
+            Mu_pm[i, ] <- log1p(Y[i, ] / scaling[i])
+            Mu_pv[i, ] <- sigma2
+          } else {
+            Mu_pm[i, ] <- sol$m
+            Mu_pv[i, ] <- sol$v
+          }
+        }
+
+        if (requested_subcycles > 0L) {
+          latent_sigma2_update <- pois_sigma2_update(
+            Mu_pm, Mu_pv, B_pm, B_pv
+          )
+          sigma2 <- latent_sigma2_update$sigma2
+          subcycle_sigma2[subcycle_index] <- sigma2
+          subcycle_objective[subcycle_index] <- pois_fsusie_partial_objective(
+            Y, scaling, Mu_pm, Mu_pv, B_pm, B_pv, sigma2
+          )
         }
       }
     }
+
+    sigma2_subcycle_trace[[iter]] <- data.frame(
+      iteration = rep.int(iter, length(subcycle_sigma2)),
+      subcycle = seq_along(subcycle_sigma2),
+      sigma2 = subcycle_sigma2,
+      partial_objective = subcycle_objective
+    )
 
     sigma2_for_inner <- sigma2
     susiF.obj <- fit_pois_susif(
@@ -330,6 +395,8 @@ Pois_fSuSiE <- function(Y,
     convergence_trace[[iter]] <- data.frame(
       iteration = iter,
       sigma2 = sigma2,
+      sigma2_start = old_sigma2,
+      sigma2_subcycles = length(subcycle_sigma2),
       inner_sigma2 = sigma2_for_inner,
       noise_sd = sqrt(sigma2),
       residual_component = residual_component,
@@ -345,8 +412,9 @@ Pois_fSuSiE <- function(Y,
     stable_count <- if (maximum_change < outer_tol) stable_count + 1L else 0L
     if (verbose) {
       message(sprintf(
-        "  sigma2=%.5g  max relative change=%.3g  partial objective=%.5g",
-        sigma2, maximum_change, partial_objective
+        paste0("  sigma2=%.5g  max relative change=%.3g  ",
+               "subcycles=%d  partial objective=%.5g"),
+        sigma2, maximum_change, length(subcycle_sigma2), partial_objective
       ))
     }
     if (diagnostic_plot) {
@@ -362,6 +430,10 @@ Pois_fSuSiE <- function(Y,
 
   n_iter <- length(partial_objective_trace)
   convergence_trace <- do.call(rbind, convergence_trace[seq_len(n_iter)])
+  sigma2_subcycle_trace <- do.call(
+    rbind,
+    sigma2_subcycle_trace[seq_len(n_iter)]
+  )
   if (!converged && verbose) {
     warning("Pois_fSuSiE did not converge in ", maxit_outer, " iterations",
             call. = FALSE)
@@ -393,6 +465,7 @@ Pois_fSuSiE <- function(Y,
     elbo_trace = partial_objective_trace,
     elbo_trace_is_partial = TRUE,
     convergence_trace = convergence_trace,
+    sigma2_subcycle_trace = sigma2_subcycle_trace,
     converged = converged,
     n_iter = n_iter,
     solver_failures = solver_failures,

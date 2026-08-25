@@ -1214,7 +1214,13 @@ out_prep.susiF <- function(obj ,
                               indx_lst      = indx_lst,
                               post_processing = post_processing,
                               filter.number = filter.number,
-                              family        = family)
+                              family        = family,
+                              verbose       = if (identical(post_processing,
+                                                           "HMM")) {
+                                FALSE
+                              } else {
+                                isTRUE(verbose)
+                              })
 
   ## Reconstruct the per-individual fitted curves (N x J). Must run BEFORE
   ## All calculations above use the fitted-column space. Original-column

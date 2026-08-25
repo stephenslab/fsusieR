@@ -33,7 +33,8 @@ Pois_fSuSiE(
   stable_iterations = 2L,
   solver_failure = c("error", "log1p"),
   filter.number = 10,
-  family = "DaubLeAsymm"
+  family = "DaubLeAsymm",
+  sigma2_subcycles = 5L
 )
 }
 \arguments{
@@ -88,6 +89,12 @@ change in \code{Mu_pm}, \code{B_pm}, and \code{sigma2}.}
 \item{stable_iterations}{Number of consecutive iterations below \code{outer_tol}
 required for convergence.}
 
+\item{sigma2_subcycles}{Non-negative integer giving the number of conditional
+\code{q(mu)}--\code{sigma2} subcycles performed while holding \code{q(B)} fixed in each
+outer iteration after the first. The default is 5. When this value is
+positive, the first outer iteration uses one subcycle; setting it to zero
+recovers the previous update order with no pre-fSuSiE variance update.}
+
 \item{solver_failure}{Either \code{"error"} (the default) or \code{"log1p"}. The latter
 records a failed VGA row and uses a log1p fallback instead of stopping.}
 }
@@ -98,6 +105,8 @@ iteration-level \code{convergence_trace}, solver failures, and the inner
 matrix in the original X units; \code{postprocessed_effect_fm} is retained for
 reporting. \code{sigma2_used_for_final_susif} records the variance used to fit
 the final inner posterior, before its subsequent M-step. The
+\code{sigma2_subcycle_trace} records every conditional variance update and its
+conditional partial objective before the fSuSiE block. The
 \code{partial_objective_trace} contains only the Poisson latent and Gaussian
 coupling terms. The legacy \code{elbo_trace} component is retained as an alias,
 but is not a complete joint ELBO.
@@ -119,6 +128,11 @@ During each Gaussian block update, \code{\link[=susiF]{susiF()}} centers but doe
 latent response and holds its residual variance fixed at the current outer
 \code{sigma2}. Post-processing is used only for reported effect curves; it does
 not feed the variational moments or the variance update. The
+latent Gaussian posterior and \code{sigma2} are conditionally subcycled with the
+current structured posterior held fixed before each fSuSiE update. The first
+outer iteration uses at most one such subcycle; later iterations use
+\code{sigma2_subcycles}. A final \code{sigma2} M-step is performed after updating the
+structured posterior. The
 \code{partial_objective_trace} still excludes the fSuSiE prior/KL contribution,
 so convergence is based on parameter changes rather than this diagnostic.
 }

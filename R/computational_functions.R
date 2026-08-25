@@ -512,7 +512,7 @@ HMM_regression.susiF <- function( obj,
     }
 
 
-    s =  fit_hmm(x=est ,sd=tsds   )
+    s =  fit_hmm(x=est, sd=tsds, verbose=verbose)
 
     fitted_lfsr [[1]] <- s$posterior$lfsr
     fitted_trend[[1]] <- s$posterior$mean
@@ -1508,7 +1508,7 @@ univariate_smash_regression <- function(Y, X, alpha = 0.05) {
   s <- smashr::smash.gaus(
     x         = est,
     sigma    = sds,
-    ashparam = list(optmethod = "mixVBEM"),
+    ashparam = list(optmethod = "mixSQP"),
     post.var = TRUE
   )
 

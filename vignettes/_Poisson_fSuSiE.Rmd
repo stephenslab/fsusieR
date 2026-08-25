@@ -153,7 +153,7 @@ Poisson-fSuSiE performs iterative updates that require repeatedly fitting fSuSiE
 We find that **just two iterations** of coordinate ascent typically yield credible sets that are sufficiently calibrated for fine-mapping, though with less accurate effect estimates.
 
 ```{r}
-res_2iter <- Pois_fSuSiE(Y = Y, X = X, L = 3, maxit_outer = 1 )
+res_2iter <- Pois_fSuSiE(Y = Y, X = X, L = 3, maxit_outer = 2 )
 res_2iter$susiF.obj$cs
 
 plot(res_2iter$susiF.obj$ind_fitted_func, True_intensity, col = "lightblue", pch = 19, xlab = "Estimated Intensity", ylab = "True Intensity")
