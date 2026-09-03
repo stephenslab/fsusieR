@@ -2,15 +2,23 @@
 #'
 #' @description Empirical Bayes multivariate functional regression
 #'
-#' @details Empirical Bayes multivariate functional regression
+#' @details Fits a factorized variational posterior by coordinate ascent in
+#' wavelet space. Normal-mixture prior variances are on the coefficient scale
+#' and are not multiplied by the residual variance. Mixture weights are
+#' updated by averaging posterior component responsibilities, separately at
+#' each wavelet scale when using \code{mixture_normal_per_scale}.
+#' A shared residual variance is estimated from the expected residual sum of
+#' squares over the retained wavelet columns.
 #'
 #'
 #' @param Y functional phenotype, matrix of size N by size J. The
-#'   underlying algorithm uses wavelet, which assumes that J is of the
-#'   form J^2. If J is not a power of 2, susiF internally remaps the data
-#'   into a grid of length 2^J
+#'   underlying algorithm uses wavelets and expects a power-of-two grid.
+#'   Otherwise the data are interpolated to a power-of-two grid. At least
+#'   two individuals and four response positions are required.
 #'
-#' @param X matrix of size n by p contains the covariates
+#' @param X finite numeric matrix of size n by p containing the covariates.
+#'   Constant columns, including an explicit intercept, must be omitted;
+#'   the response and predictors are centered internally.
 #' @param adjust logical if set to TRUE (default FALSE), then the output contains the adjusted coeficients (usefull to correct for batch effect)
 #' @param pos vector of length J, corresponding to position/time pf
 #' the observed column in Y, if missing, suppose that the observation
@@ -23,34 +31,46 @@
 #' console.
 #'
 #'
-#' @param tol a small, non-negative number specifying the convergence
-#' tolerance for the IBSS fitting procedure. The fitting procedure
-#' will halt when the difference in the variational lower bound, or
-#' \dQuote{ELBO} (the objective function to be maximized), is less
-#' than \code{tol}.
+#' @param tol Non-negative convergence tolerance. With \code{cal_obj=TRUE},
+#'   stop when the absolute ELBO change is at most \code{tol}. Otherwise,
+#'   check relative changes in coefficients and residual variance, and
+#'   absolute changes in mixture probabilities. An explicitly supplied
+#'   tolerance is always respected. When omitted, the default is 0.1 for
+#'   ELBO monitoring and 0.001 for parameter monitoring.
 #'
-#' @param maxit Maximum number of IBSS iterations.
+#' @param maxit Maximum number of complete coordinate-ascent sweeps.
 #'
-#' @param init_pi0_w starting value of weight on null compoenent in mixsqp
-#'  (between 0 and 1)
-#' @param control_mixsqp list of parameter for mixsqp function see  mixsqp package
-#' @param  cal_obj logical if set as TRUE compute ELBO for convergence monitoring
+#' @param init_pi0_w,control_mixsqp,nullweight,max_step_EM,max_SNP_EM Legacy
+#'   optimizer controls retained for call compatibility. These do not control
+#'   the coordinate-ascent updates, which use one exact responsibility M-step
+#'   per sweep and do not penalize the null mixture weight.
+#' @param cal_obj If TRUE, record and monitor the ELBO, including the initial
+#'   value. If FALSE, monitor parameter changes without storing ELBO history.
 #' @param quantile_trans logical if set as TRUE perform normal quantile transform
 #' on wavelet coefficients
-#' @param nullweight numeric value for penalizing likelihood at point mass 0
-#' (usefull in small sample size)
 #' @param thresh_lowcount numeric, used to check the wavelet coefficients have
 #'  problematic distribution (very low dispersion even after standardization).
 #'  Basically check if the median of the absolute value of the distribution of
 #'   a wavelet coefficient is below this threshold. If yes, the algorithm discard
-#'   this wavelet coefficient (setting its estimate effect to 0 and estimate sd to 1).
+#'   this wavelet column from fitting, prior learning and noise estimation;
+#'   its effect and posterior variance are set to zero.
 #'   Set to 0 by default. It can be useful when analyzing sparse data from sequence
 #'    based assay or small samples.
 #' @param gridmult numeric used to control the number of components used in the mixture prior (see ashr package
 #'  for more details). From the ash function:  multiplier by which the default grid values for mixsd differ from one another.
 #'   (Smaller values produce finer grids.). Increasing this value may reduce computational time
-#' @param  max_step_EM see susiF function
-#' @param max_SNP_EM  see susiF function
+#' @return An \code{EBmvFR} object. \code{fitted_func} contains effect curves
+#'   in the original predictor units; \code{ind_fitted_func} contains the
+#'   fitted centered response. \code{fitted_wc[[1]]} contains posterior means
+#'   and \code{fitted_wc2[[1]]} posterior variances in the standardized design.
+#'   \code{MLE_wc2[[1]]} retains standard errors, despite its historical name.
+#'   \code{mixture_counts} stores summed responsibilities by predictor and
+#'   prior group. \code{KL} contains augmented-posterior KL divergences to the
+#'   current prior, \code{sigma2} the fitted noise variance, and
+#'   \code{active_wc} the retained wavelet columns. \code{niter} counts
+#'   completed sweeps and \code{converged} indicates whether the requested
+#'   stopping criterion was reached. \code{ELBO} is populated only when
+#'   \code{cal_obj=TRUE}.
 #' @examples
 #'
 #'
@@ -167,7 +187,7 @@ EBmvFR <- function(Y, X,
 
   ####Cleaning input -----
   pt <- proc.time()
-  if( prior %!in% c("normal", "mixture_normal", "mixture_normal_per_scale"))
+  if( prior %!in% c("mixture_normal", "mixture_normal_per_scale"))
   {
     stop("Error: provide valid prior input")
   }
@@ -175,11 +195,20 @@ EBmvFR <- function(Y, X,
   {
     nullweight <- 10#/(sqrt(nrow(X)))
   }
-  if(!cal_obj){
+  if(missing(tol) && !cal_obj){
     tol <-10^-3
   }
 
   ## Input error messages
+  if (!is.matrix(Y) || !is.numeric(Y) || !is.matrix(X) || !is.numeric(X) ||
+      nrow(Y) != nrow(X) || nrow(Y) < 2L || ncol(X) < 1L || ncol(Y) < 4L ||
+      any(!is.finite(Y)) || any(!is.finite(X))) {
+    stop("Y and X must be finite numeric matrices with matching rows, at least two rows, four response columns and one predictor")
+  }
+  if (length(tol) != 1L || !is.finite(tol) || tol < 0 ||
+      length(maxit) != 1L || !is.finite(maxit) || maxit < 1 || maxit != floor(maxit)) {
+    stop("tol must be non-negative and maxit must be a positive integer")
+  }
 
   if (is.null(pos))
   {
@@ -218,6 +247,7 @@ EBmvFR <- function(Y, X,
   }
   # centering and scaling covariate
   X <- colScale(X)
+  if (any(colSums(X^2) == 0)) stop("X must not contain constant columns")
   # centering input
   Y <- colScale(Y, scale=FALSE)
   W <- DWT2(Y)
@@ -260,6 +290,8 @@ EBmvFR <- function(Y, X,
   ### Definition of some dynamic parameters ------
 
   update_Y    <- cbind( W$D,W$C) #Using a column like phenotype, temporary matrix that will be regularly updated
+  sigma2_init <- mean(update_Y[, setdiff(seq_len(ncol(update_Y)), lowc_wc),
+                              drop = FALSE]^2)
   temp        <- init_prior(Y              = update_Y,
                             X              = X,
                             prior          = prior ,
@@ -269,6 +301,7 @@ EBmvFR <- function(Y, X,
                             control_mixsqp = control_mixsqp,
                             nullweight     = nullweight,
                             gridmult       = gridmult,
+                            sigma2         = sigma2_init,
                             max_SNP_EM     = max_SNP_EM,
                             max_step_EM    = max_step_EM)
   G_prior     <- temp$G_prior
@@ -276,8 +309,9 @@ EBmvFR <- function(Y, X,
 
   #Recycled for the first step of the while loop
   obj   <-  init_EBmvFR_obj(G_prior=G_prior,
-                                   Y=Y,
-                                   X=X)
+                                   Y=update_Y,
+                                   X=X,
+                                   lowc_wc=lowc_wc)
 
   obj   <- EBmvFR.workhorse(       obj            = obj,
                                    W              = W,

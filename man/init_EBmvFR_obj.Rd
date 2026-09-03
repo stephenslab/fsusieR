@@ -4,7 +4,7 @@
 \alias{init_EBmvFR_obj}
 \title{Create an EBmvFR object}
 \usage{
-init_EBmvFR_obj(G_prior, Y, X, ...)
+init_EBmvFR_obj(G_prior, Y, X, ..., lowc_wc = NULL)
 }
 \arguments{
 \item{G_prior}{a prior generated vi the init_prior function}
@@ -14,6 +14,8 @@ init_EBmvFR_obj(G_prior, Y, X, ...)
 \item{X}{matrix of covariates}
 
 \item{\dots}{Other arguments.}
+
+\item{lowc_wc}{Wavelet columns excluded from fitting.}
 }
 \description{
 Create an EBmvFR object
