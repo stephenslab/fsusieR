@@ -12,3 +12,5 @@
 ^\.pixi/.*$
 ^\.positai$
 ^\.claude$
+^tmp$
+^fsusieR_.*\.tar\.gz$

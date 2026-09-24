@@ -451,6 +451,12 @@ test_that("partial residual excludes the current effect when L = 1", {
 
   expect_equal(
     observed,
+    expected
+  )
+})
+
+  expect_equal(
+    observed,
     expected,
     tolerance = 1e-6
   )

@@ -44,6 +44,8 @@
 #' @param max_SNP_EM check susiF  description
 #' @param cor_small check susiF  description
 #' @param is.pois check susiF  description
+#' @param estimate_sigma2 Logical; if `FALSE`, keep `obj$sigma2` fixed during
+#'   all IBSS updates.
 #' @param e threshold value to avoid computing posterior that have low alpha value. Set it to 0 to compute the entire posterio. default value is 0.001
 #' @export
 susiF.workhorse <- function(obj,
@@ -66,7 +68,13 @@ susiF.workhorse <- function(obj,
                             max_step_EM=1,
                             cor_small=FALSE,
                             is.pois=FALSE,
-                            e = 0.001){
+                            e = 0.001,
+                            estimate_sigma2=TRUE){
+
+  if (!is.logical(estimate_sigma2) || length(estimate_sigma2) != 1L ||
+      is.na(estimate_sigma2)) {
+    stop("`estimate_sigma2` must be TRUE or FALSE")
+  }
 
   G_prior  <- get_G_prior(obj )
   Y_f      <-  cbind( W$D,W$C)
@@ -131,10 +139,12 @@ susiF.workhorse <- function(obj,
                                    e         = e
     )
 
-    sigma2 <- estimate_residual_variance(obj,
-                                         Y = Y_f,
-                                         X = X)
-    obj <- update_residual_variance(obj, sigma2 = sigma2)
+    if (isTRUE(estimate_sigma2)) {
+      sigma2 <- estimate_residual_variance(obj,
+                                           Y = Y_f,
+                                           X = X)
+      obj <- update_residual_variance(obj, sigma2 = sigma2)
+    }
     obj <- update_KL(obj,
                      X = X,
                      D = W$D,
@@ -251,13 +261,12 @@ susiF.workhorse <- function(obj,
                                    min_purity = min_purity
       )
 
-      sigma2    <- estimate_residual_variance(obj,
-                                              Y         = Y_f,
-                                              X         = X)
-      #print(sigma2)
-
-      obj <- update_residual_variance(obj     = obj,
-                                            sigma2    = sigma2 )
+      if (isTRUE(estimate_sigma2)) {
+        sigma2 <- estimate_residual_variance(obj,
+                                             Y = Y_f,
+                                             X = X)
+        obj <- update_residual_variance(obj = obj, sigma2 = sigma2)
+      }
       obj <- test_stop_cond(      obj      = obj,
                                   check     = check,
                                   cal_obj   = cal_obj,

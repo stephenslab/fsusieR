@@ -1,0 +1,139 @@
+ 
+
+
+\section{Fitting the Model.  }
+
+To fit model \ref{eq:Poisson_model_mat}, we employ variational inference approach \citep{blei_variational_2017}. Variational inference reframes the problem of posterior computation as an optimization problem over a family of candidate posteriors, which helps to alleviate some of the computational challenges associated with traditional methods \citep{blei_variational_2017}. Specifically, we seek a distribution $q(\mathbf{  M },\bm{\mu}_0, \bB )$  known as a variational approximation (VA), that approximates the true posterior $p(\mathbf{  M },\bm{\mu}_0, \bB |\bY,\bX)$. A common strategy is to impose conditional independence across the components of  $q(\mathbf{  M },\bm{\mu}_0, \bB )$, which simplifies the optimization problem and makes it more tractable.
+Although the VA introduces some simplification over the candidate posterior, variational inference has been shown to perform well in practice, especially for fitting univariate and multivariate multiple regression models \citep{carbonetto_scalable_2012, zhang_improved_2021, morgante_flexible_2023}.  Additionally, variational approaches allow for the estimation of model hyperparameters (here  $  (\pi^e_{k,s})$ in equation \ref{eq:susie_prior}) by maximizing the approximate marginal likelihood of the model \ref{eq:Poisson_model_mat}. This technique is often referred to as variational empirical Bayes (VEB) \citep{blei_latent_2003}.  Below, we present briefly the main idea underlying our  split variational inference (split VA)  and illustrate how it can be used to fit model \ref{eq:Poisson_model} in an Empirical Bayes (EB). 
+ 
+ 
+    
+\subsection{Split variational inference for Poisson Normal mean problem}\label{subsec:pois_normal_mean}
+
+
+Let's consider the following model 
+\begin{align}
+ y_{ i,t}|  \mu_{i,t}\sim & \text{Pois} \left(s_i\exp ( \mu_{i,t})\right)\label{eq:split_pb}\\
+ \mu_{i,t}|b , \sigma^2 \sim & N(b, \sigma^2)\\
+b\sim & g(.)
+\end{align} 
+
+Where is   $h$ is a link function and $g(.)$ is a hyperprior to be estimated. Suppose that the   posterior distribution of  $q( \mu_{i,t}  ,b)$ can be written as
+ \begin{align}
+q( \mu_{i,t},b)&= q(b)q( \mu_{i,t})\\
+& =q(b)N( \mu_{i,t},  \Bar{\mu}_{i,t} , \nu _{\mu_{i,t}})
+\end{align} 
+Introducing a conditional Gaussian distribution on  $  \mu_{i,t} $ allows splitting the estimation problem of model \ref{eq:split_pb}  into two simpler inference problems, which can be framed as a VEB approximation of the posterior~\citep{blei_latent_2003}.   Essentially, the posterior of model \ref{eq:split_pb} can be approximated by alternating the following steps
+
+\begin{enumerate}
+  \item Estimate the posteriors of $\mu _{i,t}$  that are of  the form $N( \Bar{\mu}_{i,t} ,  \nu _{\mu_{i,t}}) $  while assuming  that % $\mu_{i,t} |b,  \sigma^2 \sim N(b, \sigma^2)$ and
+   $b$ and $ \sigma^2$ are known and fixed.
+
+    \item  Assuming that $\mu_{i,t}$ is known and fixed (e.g. using the posterior mean  $ \Bar{\mu}_{i,t} $), solve the empirical Bayes normal mean problem for Gaussian data    \citep{stephens_false_2017, willwerscheid_ebnm_2024}, i.e., 
+    \begin{enumerate}
+        \item  Estimate $\hat{g}(.)$
+        \item compute the posterior mean of $b|\mu_{i,t}$ using $\hat{g}(.)$ as prior for $g(.)$ . 
+    \end{enumerate}
+\end{enumerate}
+
+%\cite{xie_empirical_2023} showed that the objective function associated with the factorization $q( \mu_{i,t},b)=q(b)N( \mu_{i,t},  \Bar{\mu}_{i,t} , \nu _{\mu_{i,t}})$ is a lower bound for the evidence lower for the reduced model 
+
+
+
+%\begin{align}
+% y_{ i,t}|  \mu_{i,t}\sim &\text{Pois}\left(h ( \mu_{i,t})\right)\\
+ %\mu_{i,t}\sim f(.)
+%\end{align} 
+
+
+
+\paragraph{A note on computational efficiency:}
+
+Given the large scale nature of modern genomics data, providing  computational efficient is a paramount for practical use of novel method. We pay a particular attention of this aspect in this work. We would like to highlight that  step a) is a strictly concave maximization problem (equivalently, minimization of a convex negative objective) that can be solved efficiently at each iteration.  We provide numerical details for computing $( \Bar{\mu}_{i,t} ,  \nu _{\mu_{i,t}})$  in section ~\ref{sec:split_VA_sup}.  Step  b) i) is also a convex problem \citep{kim_fast_2019} for prior that have a similar form as the one presented in \ref{eq:ash_wav_prior}. Finally  step b) ii) is a standard posterior mean computation for Gaussian model, which the complexity depends on $\hat{g}(.)$, but given adequate conjugacy this posterior often of simple closed form that easy to evaluate. Overall the proposed procedure allow efficient computation of approximate posterior that would not be practical using standard computational methods.
+ 
+
+\subsection{Fine mapping Poisson process via split-variational inference }
+
+
+Suppose we can i) select  $  (\hat{\pi}^e_{k,s})$  that maximize the marginal likelihood of the Gaussian model \ref{eq:Poisson_model_mat_proj} i.e., finding  $\hat g (.) $ under the SuSiE prior in equation \ref{eq:susie_prior}  and ii) we can  compute the posterior mean $\bar{ \bm A}$ of  $\bm A$ in \ref{eq:Poisson_model_mat_proj} under the SuSiE prior \ref{eq:susie_prior} with hyperparameter set to  $  (\hat{\pi}^e_{k,s})$. Then it is straightforward to apply split-variational inference for fitting model \ref{eq:Poisson_model} with a SuSiE prior on the effect of $\bm X $. It essentially simplifies into the two following steps
+
+
+\begin{enumerate}
+    \item Compute the posterior mean $\bar {\bm M} $ under the Gaussian variational factor for ${\bm M}$, with prior mean $\bar{\bm A}\bm W^{-1}$ and prior variance $\sigma^2$.
+
+    \item Fit model \ref{eq:Poisson_model_mat_proj} setting $\bm A =\bar {\bm M} \bm W $  and update $ \bar{ \bm A} ={\bm 1}_N\bar {\bm\alpha_0}^{\intercal} +    \bX\bar{\bB} $  where $\bar {\bm\alpha_0}$ and  $\bar{\bB}$ are the posterior mean of $\bm\alpha_0$ and $\bB$
+\end{enumerate}
+
+
+
+We provide a more formal algorithm in Algorithm \ref{algo_cavi} of this procedure in Appendix. In the appendix we also  extend model \ref{eq:Poisson_model_mat} to allow modeling potentially high dimensional covariate that we would like to account for but not fine map (e.g., batch, ancestry, gender and other technical covariate). This extended model has the following form.  
+ \begin{align}  \label{eq:extension_main}
+   \mathbf{  M }  &= {\bm 1}_N {\bm\mu_0}^{\intercal} +    \bX\bF + \bZ\bm{G} +\mathbf{ U}' 
+ \end{align}
+
+ Where $\bZ$ is a matrix of size  $N\times P_{\bm Z}$ where $P_{\bm Z}$ can be much  larger than $N$ i.e.,$P_{\bm Z}\gg N$.  We model the effect of $\bZ$ in the wavelet space using ($\bTheta= \bm{G} \bm{W}$) a prior of the form 
+
+
+
+ \begin{align}
+    \theta_{j,_{ s,l}} &  \sim \sum_{k=0}^K \pi_{k ,s} N(0,\sigma_{k }^2)\\
+\end{align}
+
+which is an extension of the adaptive shrinkage prior proposed by \cite{kim_flexible_2022} in a functional data context. In supplementary section \ref{subsec:detalEBmvFR} we detail how to find \ref{eq:extension_main} via VEB. 
+
+
+
+ 
+ 
+
+\begin{algorithm}[H]
+\caption{Learning Algorithm for Poisson fSuSiE}\label{alg:SplitVA_fsusie}
+\begin{algorithmic}
+\STATE \textbf{Input:} Observations $\{y_{it}\}$, covariates $\bm{x}$
+ 
+
+\STATE \textbf{Step 1: Initialization}
+\STATE Estimate prior parameters:
+\[
+(\bar{b}, \bar{\sigma}^2) \gets \arg\max_{b, \sigma^2} \prod_i \prod_t\int p(y_{it}|\mu_{it})p(\mu_{it}|b,\sigma^2) \, d\mu_{it}
+\]
+\STATE Compute the Gaussian variational factors:
+\[
+q_{\mu_{it}}=N(\mu_{it};m_{it},v_{it})
+\gets \arg\max_{m_{it},v_{it}>0} F_i(m_{it},v_{it}),
+\qquad (\bar{\mu}_{it},\nu_{\mu_{it}})\gets(m_{it},v_{it}),
+\]
+\STATE Here $F_i$ is given in \eqref{eq:Poisson_elbo}, with $(y_i,\theta,\sigma^2)$ replaced by $(y_{it},\bar b,\bar\sigma^2)$.
+
+\STATE Fit fSuSiE using response matrix $\bar{\bm A}=\bar{\bm M}\bm W$ and design matrix $\bm{x}$, with residual variance fixed at $\bar{\sigma}^2$, to estimate $\bar{\bm B}$ and set $\bar{\bm F}=\bar{\bm B}\bm W^{-1}$
+
+\STATE \textbf{Step 2: Coordinate ascent}
+\While{not converged}
+    \STATE For each $i,t$, define $\bar{b}_{it} \gets \bar\mu_{0t} + \bm{x}_i^\top \bar{\bm{F}}_{.t}$
+    \STATE Update prior variance:
+    \[
+    \bar{\sigma}^2 \gets \frac{1}{NT}\sum_{i=1}^N\sum_{t=1}^T
+    \mathbb E_q\!\left[\left(\mu_{it}-\mu_{0t}-\bm{x}_i^\top\bm F_{.t}\right)^2\right]
+    \]
+    \STATE Update the Gaussian variational factors:
+    \[
+    q_{\mu_{it}}=N(\mu_{it};m_{it},v_{it})
+    \gets \arg\max_{m_{it},v_{it}>0} F_i(m_{it},v_{it}),
+    \qquad (\bar{\mu}_{it},\nu_{\mu_{it}})\gets(m_{it},v_{it}),
+    \]
+    \STATE Here $F_i$ is given in \eqref{eq:Poisson_elbo}, with $(y_i,\theta,\sigma^2)$ replaced by $(y_{it},\bar b_{it},\bar\sigma^2)$.
+    \STATE Refit fSuSiE using updated response matrix $\bar{\bm A}=\bar{\bm M}\bm W$ and covariates $\bm{x}$, with residual variance fixed at $\bar{\sigma}^2$, to obtain new $\bar{\bm B}$ and $\bar{\bm F}=\bar{\bm B}\bm W^{-1}$
+\EndWhile
+
+\STATE \textbf{Return:} Posterior mean matrix $\bar{\bm{M}}$, the fSuSiE posterior for $\bm B$, the posterior mean $\bar{\bm F}=\bar{\bm B}\bm W^{-1}$, and the credible sets.
+\end{algorithmic}
+\end{algorithm}
+
+The integrated marginal-likelihood optimization in Step 1 is an optional initialization. During coordinate ascent, the update of $\sigma^2$ is the variational M-step. If $q$ were the exact conditional posterior and the structured mean were held fixed, this would be the usual EM update associated with the integrated likelihood, and the two procedures would have the same stationary points. With the Gaussian variational approximation used here, however, the update maximizes the ELBO rather than the exact marginal likelihood.
+
+\paragraph{Step 1 only for efficient fine-mapping}
+
+In our experiment described below, we noticed that actually simply running step 1 for fine-mapping purpose is normally good enough to infer  correct credible sets and already improve performance compared to other method we benchmarked against. However running the full coordinate ascend generally give more precise posterior mean for $\bar{\bm{F}}$. Therefore we suggest that the when performing large scale fine mapping such as genome-wide fine mapping to simply run the first step of Algorithm \ref{alg:SplitVA_fsusie} to infer the CS and to refit in a second time the model for region of interest.
+
+
+ 

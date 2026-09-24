@@ -454,7 +454,7 @@ HMM_regression<- function (obj,
 HMM_regression.susiF <- function( obj,
                                   Y ,
                                   X ,
-                                  verbose=TRUE,
+                                  verbose=FALSE,
                                   fit_indval=TRUE ,...
 ){
   if(verbose){
@@ -512,7 +512,7 @@ HMM_regression.susiF <- function( obj,
     }
 
 
-    s =  fit_hmm(x=est ,sd=tsds   )
+    s =  fit_hmm(x=est, sd=tsds, verbose=verbose)
 
     fitted_lfsr [[1]] <- s$posterior$lfsr
     fitted_trend[[1]] <- s$posterior$mean
@@ -533,7 +533,7 @@ HMM_regression.susiF <- function( obj,
       }
 
       #browser()
-      s =  fit_hmm(x=est ,sd=(tsds)  ,verbose=TRUE , maxit=100)
+      s =  fit_hmm(x=est ,sd=(tsds)  ,verbose=verbose , maxit=100)
 
       fitted_lfsr [[idx_cs]] <- s$posterior$lfsr
       fitted_trend[[idx_cs]] <- s$posterior$mean
@@ -1508,7 +1508,7 @@ univariate_smash_regression <- function(Y, X, alpha = 0.05) {
   s <- smashr::smash.gaus(
     x         = est,
     sigma    = sds,
-    ashparam = list(optmethod = "mixVBEM"),
+    ashparam = list(optmethod = "mixSQP"),
     post.var = TRUE
   )
 
