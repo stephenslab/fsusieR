@@ -455,6 +455,12 @@ test_that("partial residual excludes the current effect when L = 1", {
   )
 })
 
+  expect_equal(
+    observed,
+    expected,
+    tolerance = 1e-6
+  )
+})
 
 susiF_obj <- init_susiF_obj(L_max =1,
                             G_prior,
