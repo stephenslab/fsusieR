@@ -17,7 +17,7 @@ susiF(
   min_purity = 0.5,
   filter_cs = TRUE,
   init_pi0_w = 1,
-  nullweight = 0.01,
+  nullweight = 0.1,
   control_mixsqp = list(verbose = FALSE, eps = 1e-06, numiter.em = 40),
   thresh_lowcount = 0,
   cal_obj = FALSE,
@@ -100,17 +100,6 @@ Basically, check if the median of the absolute value of the distribution of
 
 \item{cal_obj}{logical if set as TRUE compute ELBO for convergence monitoring}
 
-\item{standardize_Y}{Logical; center and scale the response before and after
-the wavelet transform. The default preserves the historical fSuSiE
-behavior. Set to \code{FALSE} when a residual variance on the input-response
-scale is supplied.}
-
-\item{residual_variance}{Optional finite positive residual variance. When
-supplied, this value is held fixed throughout IBSS. This is used by
-Poisson fSuSiE so that the Gaussian block uses the current outer
-variational variance rather than estimating a second variance on a
-standardized scale.}
-
 \item{L_start}{number of effect initialized at the start of the algorithm}
 
 \item{quantile_trans}{logical, if set as TRUE perform normal quantile, transform
@@ -160,6 +149,17 @@ then set prior weight on point mass to be 1. In the mixture normal this correspo
 to setting the prior of a given scale to at point mass at 0.}
 
 \item{lbf_min}{numeric  discard low purity cs in the IBSS fitting procedure if the largest log Bayes factors is lower than this value}
+
+\item{standardize_Y}{Logical; center and scale the response before and after
+the wavelet transform. The default preserves the historical fSuSiE
+behavior. Set to `FALSE` when a residual variance on the input-response
+scale is supplied.}
+
+\item{residual_variance}{Optional finite positive residual variance. When
+supplied, this value is held fixed throughout IBSS. This is used by
+Poisson fSuSiE so that the Gaussian block uses the current outer
+variational variance rather than estimating a second variance on a
+standardized scale.}
 }
 \value{
 A \code{"susiF"} object with some or all of the following

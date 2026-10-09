@@ -33,7 +33,7 @@ vga_binomial_solver(
 \item{tol}{Projected-gradient tolerance.}
 }
 \value{
-A list containing posterior mean \code{m}, posterior variance \code{v}, the
+A list containing posterior mean `m`, posterior variance `v`, the
   optimizer convergence code, and the optimized local variational objective.
 }
 \description{

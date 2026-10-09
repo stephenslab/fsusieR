@@ -4,7 +4,7 @@
 \alias{cal_KL_l.susiF}
 \title{Compute KL divergence for effect l (correct ELBO version)}
 \usage{
-\method{cal_KL_l}{susiF}(obj, l, X, ...)
+\method{cal_KL_l}{susiF}(obj, l, X, D, C, indx_lst, ...)
 }
 \description{
 Compute KL divergence for effect l (correct ELBO version)
