@@ -493,7 +493,7 @@ susiF_obj <-  out_prep(susiF_obj,Y=Y,
 #lines( susiF_obj$cred_band [[1]][1,])
 #lines( susiF_obj$cred_band [[1]][2,])
 
-lines(f1$sim_func, col="red")
+#lines(f1$sim_func, col="red")
 
 
 

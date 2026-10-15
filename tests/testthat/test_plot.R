@@ -62,6 +62,7 @@ out2 <- susiF(Y,X,L=3 , prior = 'mixture_normal_per_scale',
              post_processing = "HMM")
 
 test_that("some_function does not crash", {
+
   expect_error(plot_susiF_effect(out,effect = c(1,3),cred_band = FALSE), NA)
   expect_error(plot_susiF_effect(out,effect = c(1,3)), NA)
   expect_error(plot_susiF_effect(out), NA)
@@ -74,6 +75,5 @@ test_that("some_function does not crash", {
   expect_error(plot_susiF_pip(out2), NA)
   expect_error(plot_susiF(out2), NA)
   expect_error(plot(out2), NA)
-
 
 })
