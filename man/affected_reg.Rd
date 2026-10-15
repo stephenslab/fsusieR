@@ -7,15 +7,19 @@
 affected_reg(obj, lfsr_thresh = 0.05)
 }
 \arguments{
-\item{obj}{at fitted obj object}
+\item{obj}{a fitted susiF object}
 
 \item{lfsr_thresh}{threshold for affected region when using HMM postprocessing}
+}
+\value{
+A data frame with columns CS, Start and End. If no regions are
+affected, the data frame has zero rows.
 }
 \description{
 Extract coordinates of the regions affected by the different CS
 }
 \details{
-return a matrix with 3 columns. Each lines corresponds to a regions
-in which the estimated credible bands are "crossing zero"/i.e. the effects are likely not to be 0 in this region.
-the second column corresponds to the start of the region  and the third to the end of the affected region
+Each row corresponds to a contiguous region where the credible
+band excludes zero (SMASH or TI), or the local false sign rate is below
+lfsr_thresh (HMM).
 }
