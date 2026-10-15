@@ -26,13 +26,13 @@ beta1       <- 1
 beta2       <- 1
 noisy.data  <- list()
 
-#for ( i in 1:N)
-#{
-#  f1_obs <- f1
-#  f2_obs <- f2
-#  noise <- rnorm(length(f1), sd=  (1/  rsnr ) * var(f1))
-#  noisy.data [[i]] <-   beta1*G[i,pos1]*f1_obs + beta2*G[i,pos2]*f2_obs+ beta1*G[i,15]*f1_obs + noise
-#}
+for ( i in 1:N)
+ {
+   f1_obs <- f1
+   f2_obs <- f2
+   noise <- rnorm(length(f1), sd=  (1/  rsnr ) * var(f1))
+   noisy.data [[i]] <-   beta1*G[i,pos1]*f1_obs + beta2*G[i,pos2]*f2_obs+ beta1*G[i,15]*f1_obs + noise
+ }
 noisy.data <- do.call(rbind, noisy.data)
 
 

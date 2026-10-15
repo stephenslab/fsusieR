@@ -6,7 +6,7 @@ library(fsusieR)
 set.seed(2)
 f1 <- simu_IBSS_per_level(lev_res=9, alpha=1, prop_decay =1.5)
 lowc_wc=NULL
-plot(f1$sim_func, type="l", ylab="y")
+#plot(f1$sim_func, type="l", ylab="y")
 N=500
 P=10
 set.seed(23)
@@ -221,8 +221,8 @@ test_that("Class of the prior is", {
   "mixture_normal"
   )
 })
-plot( Bhat,  post_mat_mean(G_prior,Bhat,Shat, indx_lst=indx_lst,lowc_w= lowc_wc) )
-plot( Shat,  (post_mat_sd(G_prior,Bhat,Shat, indx_lst=indx_lst,lowc_w= lowc_wc) ))
+#plot( Bhat,  post_mat_mean(G_prior,Bhat,Shat, indx_lst=indx_lst,lowc_w= lowc_wc) )
+#plot( Shat,  (post_mat_sd(G_prior,Bhat,Shat, indx_lst=indx_lst,lowc_w= lowc_wc) ))
 test_that("Class of the prior is", {
 
   expect_equal(class(get_pi_G_prior(G_prior))
@@ -489,9 +489,9 @@ susiF_obj <-  out_prep(susiF_obj,Y=Y,
                        pos=1:ncol(Y),
                        lfsr_curve = 0.05 )
 
-plot( unlist(susiF_obj$fitted_func) , type="l", col="green")
-lines( susiF_obj$cred_band [[1]][1,])
-lines( susiF_obj$cred_band [[1]][2,])
+#plot( unlist(susiF_obj$fitted_func) , type="l", col="green")
+#lines( susiF_obj$cred_band [[1]][1,])
+#lines( susiF_obj$cred_band [[1]][2,])
 
 lines(f1$sim_func, col="red")
 
