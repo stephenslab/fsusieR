@@ -45,7 +45,7 @@ out <- susiF(Y,X,L=2 , prior = 'mixture_normal_per_scale',
              post_processing = "HMM" )
 
 out1 <- susiF(Y,X,L=2 , prior = 'mixture_normal_per_scale'   )
-lines(out$fitted_func[[1]])
+#lines(out$fitted_func[[1]])
 
 
 susiF.obj <- susiF(Y,X,L=2 , prior = 'mixture_normal_per_scale',
