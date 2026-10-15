@@ -1513,9 +1513,15 @@ univariate_smash_regression <- function(Y, X, alpha = 0.05) {
   )
 
 
+  ## SMASH retains the coarsest mean but omits its uncertainty.
+  ## Reflected copies share noise: combine their weights before squaring.
+  mean_weights <- tabulate(smashr::reflect(seq_along(est))$x,
+                           nbins = length(est))
+  mean_var <- sum((mean_weights / sum(mean_weights) * sds)^2)
+
   ## Undo X scaling
   fitted_func <- s$mu.est*csd_Y/csd_X
-  fitted_var  <- s$mu.est.var*(csd_Y/csd_X)^2
+  fitted_var  <- (s$mu.est.var + mean_var)*(csd_Y/csd_X)^2
 
 
   ## Credible band
