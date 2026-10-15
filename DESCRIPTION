@@ -2,7 +2,7 @@ Package: fsusieR
 Encoding: UTF-8
 Type: Package
 Version: 0.3.58
-Date: 2026-08-21
+Date: 2026-10-13
 Title: Sum of Single Functions
 Authors@R: c(person("William R. P.","Denault",role = c("aut","cre"),
                     email = "wdenault@uchicago.edu"),
@@ -50,3 +50,4 @@ NeedsCompilation: yes
 ByteCompile: yes
 VignetteBuilder: knitr
 Config/roxygen2/version: 8.1.0
+RoxygenNote: 7.3.1

@@ -49,13 +49,13 @@ trial totals, rather than their ratio, must be supplied.}
 \item{L}{Upper bound on the number of single effects.}
 
 \item{reflect}{Logical; mirror observations before wavelet processing.
-Reflection is enabled automatically when \code{ncol(Y)} is not a power of two.}
+Reflection is enabled automatically when `ncol(Y)` is not a power of two.}
 
 \item{maxit_outer}{Maximum number of split-VA outer iterations.}
 
-\item{maxit_inner}{Maximum number of inner \code{\link[=susiF]{susiF()}} iterations.}
+\item{maxit_inner}{Maximum number of inner [susiF()] iterations.}
 
-\item{tol}{Positive convergence tolerance forwarded to \code{\link[=susiF]{susiF()}}.}
+\item{tol}{Positive convergence tolerance forwarded to [susiF()].}
 
 \item{outer_tol}{Positive tolerance for the maximum relative change in the
 latent mean, structured mean, and splitting variance.}
@@ -69,23 +69,23 @@ outer iteration uses at most one subcycle.}
 
 \item{s2}{Positive initial splitting variance on the latent log-odds scale.}
 
-\item{estimate_sigma2}{Logical; estimate the splitting variance when \code{TRUE}.
-Set this to \code{FALSE} to keep it fixed at \code{s2}, particularly when trial
+\item{estimate_sigma2}{Logical; estimate the splitting variance when `TRUE`.
+Set this to `FALSE` to keep it fixed at `s2`, particularly when trial
 totals are mostly one and the variance is weakly identified.}
 
 \item{warm_start_sigma2}{Logical; initialize the splitting variance from an
 empirical-logit fSuSiE fit when possible. Ignored if
-\code{estimate_sigma2 = FALSE}.}
+`estimate_sigma2 = FALSE`.}
 
 \item{quadrature_order}{Positive integer number of Gauss--Hermite nodes used
 for logistic-normal expectations.}
 
-\item{solver_failure}{Either \code{"error"} or \code{"empirical_logit"}. The latter
+\item{solver_failure}{Either `"error"` or `"empirical_logit"`. The latter
 records a failed local update and substitutes a finite empirical logit.}
 
-\item{control_mixsqp, nullweight, cov_lev, min_purity, cor_small, post_processing, thresh_lowcount}{Forwarded to \code{\link[=susiF]{susiF()}}. \code{post_processing = "none"} is not supported.}
+\item{control_mixsqp, nullweight, cov_lev, min_purity, cor_small, post_processing, thresh_lowcount}{Forwarded to [susiF()]. `post_processing = "none"` is not supported.}
 
-\item{filter.number, family}{Wavelet filter passed to \code{\link[=susiF]{susiF()}}.}
+\item{filter.number, family}{Wavelet filter passed to [susiF()].}
 
 \item{verbose}{Logical; report outer-iteration progress.}
 
@@ -94,40 +94,38 @@ records a failed local update and substitutes a finite empirical logit.}
 \item{True_probability}{Optional N by T matrix of true probabilities, used
 only for diagnostic plots.}
 
-\item{Z}{Reserved for future dense-covariate support. Must be \code{NULL}.}
+\item{Z}{Reserved for future dense-covariate support. Must be `NULL`.}
 
 \item{update_Mu_each_iter}{Logical; update latent Gaussian moments in every
-outer iteration. Setting this to \code{FALSE} is intended for debugging.}
+outer iteration. Setting this to `FALSE` is intended for debugging.}
 }
 \value{
 A list with latent and structured posterior moments, fitted
   probabilities and success counts, the splitting variance, convergence
-  diagnostics, and the inner \code{susiF.obj}.
+  diagnostics, and the inner `susiF.obj`.
 }
 \description{
 Fine-mapping of aggregated binary functional data with a binomial-logistic
 likelihood, a Gaussian variational approximation for the latent log-odds,
-and an inner \code{\link[=susiF]{susiF()}} fit for the structured genetic mean.
+and an inner [susiF()] fit for the structured genetic mean.
 }
 \details{
 The fitted model is
 \deqn{Y_{it} \mid \mu_{it} \sim
       \mathrm{Binomial}(n_{it},\mathrm{logit}^{-1}(\mu_{it})),}
 \deqn{\mu_{it} \mid B_{it} \sim N(B_{it},\sigma^2),}
-where \code{B} has the sum-of-single-functions prior implemented by
-\code{\link[=susiF]{susiF()}}.
+where `B` has the sum-of-single-functions prior implemented by [susiF()].
 The local variational distribution is Gaussian. Logistic-normal
 expectations and their derivatives are evaluated with Gauss--Hermite
 quadrature. The Gaussian block centers but does not scale the latent
-response and holds its residual variance fixed at the current \code{sigma2}.
+response and holds its residual variance fixed at the current `sigma2`.
 
-Estimating \code{sigma2} from Bernoulli data can be weakly identified. At a zero
+Estimating `sigma2` from Bernoulli data can be weakly identified. At a zero
 latent prior mean, the marginal success probability is one half for every
 symmetric logistic-normal variance. Replicated trials add the
 extra-binomial component needed to learn latent heterogeneity. The function
 warns when all trial totals equal one.
 }
 \seealso{
-\code{\link[=susiF]{susiF()}}, \code{\link[=Pois_fSuSiE]{Pois_fSuSiE()}},
-\code{\link[=vga_binomial_solver]{vga_binomial_solver()}}
+[susiF()], [Pois_fSuSiE()], [vga_binomial_solver()]
 }

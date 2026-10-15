@@ -62,21 +62,18 @@ out2 <- susiF(Y,X,L=3 , prior = 'mixture_normal_per_scale',
              post_processing = "HMM")
 
 test_that("some_function does not crash", {
-  # Exercise plotting methods without opening a window or writing Rplots.pdf.
-  grDevices::pdf(file = NULL)
-  plot_device <- grDevices::dev.cur()
-  tryCatch({
-    expect_error(plot_susiF_effect(out,effect = c(1,3),cred_band = FALSE), NA)
-    expect_error(plot_susiF_effect(out,effect = c(1,3)), NA)
-    expect_error(plot_susiF_effect(out), NA)
-    expect_error(plot_susiF_pip(out), NA)
-    expect_error(plot_susiF(out), NA)
-    expect_error(plot(out), NA)
-    expect_error(plot_susiF_effect(out2,effect = c(1,3),lfsr_curve  = FALSE), NA)
-    expect_error(plot_susiF_effect(out2,effect = c(1,3)), NA)
-    expect_error(plot_susiF_effect(out2), NA)
-    expect_error(plot_susiF_pip(out2), NA)
-    expect_error(plot_susiF(out2), NA)
-    expect_error(plot(out2), NA)
-  }, finally = grDevices::dev.off(plot_device))
+
+  expect_error(plot_susiF_effect(out,effect = c(1,3),cred_band = FALSE), NA)
+  expect_error(plot_susiF_effect(out,effect = c(1,3)), NA)
+  expect_error(plot_susiF_effect(out), NA)
+  expect_error(plot_susiF_pip(out), NA)
+  expect_error(plot_susiF(out), NA)
+  expect_error(plot(out), NA)
+  expect_error(plot_susiF_effect(out2,effect = c(1,3),lfsr_curve  = FALSE), NA)
+  expect_error(plot_susiF_effect(out2,effect = c(1,3)), NA)
+  expect_error(plot_susiF_effect(out2), NA)
+  expect_error(plot_susiF_pip(out2), NA)
+  expect_error(plot_susiF(out2), NA)
+  expect_error(plot(out2), NA)
+
 })

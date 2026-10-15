@@ -48,94 +48,95 @@ Pois_fSuSiE(
 Poisson scaling factors. Defaults to one.}
 
 \item{reflect}{Logical; mirror the observations before wavelet processing.
-Reflection is enabled automatically when \code{ncol(Y)} is not a power of two.}
+Reflection is enabled automatically when `ncol(Y)` is not a power of two.}
 
 \item{maxit_outer}{Maximum number of outer iterations.}
 
-\item{maxit_inner}{Maximum number of inner \code{\link[=susiF]{susiF()}} iterations.}
+\item{maxit_inner}{Maximum number of inner [susiF()] iterations.}
 
-\item{tol}{Positive convergence tolerance forwarded to \code{\link[=susiF]{susiF()}}.}
+\item{tol}{Positive convergence tolerance forwarded to [susiF()].}
 
-\item{elbo_tol}{Deprecated alias for \code{outer_tol}. Kept for compatibility.}
+\item{elbo_tol}{Deprecated alias for `outer_tol`. Kept for compatibility.}
 
-\item{control_mixsqp, nullweight, cov_lev, min_purity, cor_small, post_processing, thresh_lowcount}{Forwarded to \code{\link[=susiF]{susiF()}}. \code{post_processing = "none"} is not supported by this approximation because its \code{fitted_func} is already alpha-collapsed.}
-
-\item{filter.number, family}{Wavelet filter passed to \code{\link[=susiF]{susiF()}}.}
+\item{control_mixsqp, nullweight, cov_lev, min_purity, cor_small, post_processing, thresh_lowcount}{Forwarded to [susiF()]. `post_processing = "none"` is not supported by
+this approximation because its `fitted_func` is already alpha-collapsed.}
 
 \item{verbose}{Logical; report outer-iteration progress.}
 
 \item{diagnostic_plot}{Logical; draw diagnostic plots each outer iteration.}
 
 \item{True_intensity}{Optional N by T matrix of true latent log-intensities,
-used only by \code{diagnostic_plot}.}
+used only by `diagnostic_plot`.}
 
-\item{print}{Deprecated alias for \code{diagnostic_plot}.}
+\item{print}{Deprecated alias for `diagnostic_plot`.}
 
-\item{Z}{Reserved for future dense-covariate support. Must be \code{NULL}.}
+\item{Z}{Reserved for future dense-covariate support. Must be `NULL`.}
 
 \item{update_Mu_each_iter}{Logical; update the latent Gaussian posterior at
-every outer iteration. Setting this to \code{FALSE} is intended for debugging.}
+every outer iteration. Setting this to `FALSE` is intended for debugging.}
 
-\item{s2}{Positive fallback initial value of the noise variance \code{sigma2}.}
+\item{s2}{Positive fallback initial value of the noise variance `sigma2`.}
 
-\item{warm_start_sigma2}{Logical; if \code{TRUE} (the default), use the existing
-\code{maxit_inner}-iteration \code{susiF(log1p(Y/scaling))} warm fit to initialize
-\code{sigma2}. The estimate is computed on the original log1p scale, subtracts
+\item{warm_start_sigma2}{Logical; if `TRUE` (the default), use the existing
+`maxit_inner`-iteration `susiF(log1p(Y/scaling))` warm fit to initialize
+`sigma2`. The estimate is computed on the original log1p scale, subtracts
 first-order Poisson sampling variance, and corrects log1p attenuation.}
 
 \item{outer_tol}{Positive convergence tolerance for the maximum relative
-change in \code{Mu_pm}, \code{B_pm}, and \code{sigma2}.}
+change in `Mu_pm`, `B_pm`, and `sigma2`.}
 
-\item{stable_iterations}{Number of consecutive iterations below \code{outer_tol}
+\item{stable_iterations}{Number of consecutive iterations below `outer_tol`
 required for convergence.}
 
+\item{solver_failure}{Either `"error"` (the default) or `"log1p"`. The latter
+records a failed VGA row and uses a log1p fallback instead of stopping.}
+
+\item{filter.number, family}{Wavelet filter passed to [susiF()].}
+
 \item{sigma2_subcycles}{Non-negative integer giving the number of conditional
-\code{q(mu)}--\code{sigma2} subcycles performed while holding \code{q(B)} fixed in each
+`q(mu)`--`sigma2` subcycles performed while holding `q(B)` fixed in each
 outer iteration after the first. The default is 5. When this value is
 positive, the first outer iteration uses one subcycle; setting it to zero
 recovers the previous update order with no pre-fSuSiE variance update.}
-
-\item{solver_failure}{Either \code{"error"} (the default) or \code{"log1p"}. The latter
-records a failed VGA row and uses a log1p fallback instead of stopping.}
 }
 \value{
-A list containing posterior moments, fitted values, \code{sigma2}, an
-iteration-level \code{convergence_trace}, solver failures, and the inner
-\code{susiF.obj}. \code{est_effect_fm} is the raw variational posterior mean effect
-matrix in the original X units; \code{postprocessed_effect_fm} is retained for
-reporting. \code{sigma2_used_for_final_susif} records the variance used to fit
-the final inner posterior, before its subsequent M-step. The
-\code{sigma2_subcycle_trace} records every conditional variance update and its
-conditional partial objective before the fSuSiE block. The
-\code{partial_objective_trace} contains only the Poisson latent and Gaussian
-coupling terms. The legacy \code{elbo_trace} component is retained as an alias,
-but is not a complete joint ELBO.
+A list containing posterior moments, fitted values, `sigma2`, an
+  iteration-level `convergence_trace`, solver failures, and the inner
+  `susiF.obj`. `est_effect_fm` is the raw variational posterior mean effect
+  matrix in the original X units; `postprocessed_effect_fm` is retained for
+  reporting. `sigma2_used_for_final_susif` records the variance used to fit
+  the final inner posterior, before its subsequent M-step. The
+  `sigma2_subcycle_trace` records every conditional variance update and its
+  conditional partial objective before the fSuSiE block. The
+  `partial_objective_trace` contains only the Poisson latent and Gaussian
+  coupling terms. The legacy `elbo_trace` component is retained as an alias,
+  but is not a complete joint ELBO.
 }
 \description{
 Fine-mapping of inhomogeneous Poisson process data with a
-Gaussian variational approximation for the latent log-intensity and an
-inner \code{\link[=susiF]{susiF()}} fit for the structured genetic mean.
+  Gaussian variational approximation for the latent log-intensity and an
+  inner [susiF()] fit for the structured genetic mean.
 }
 \details{
 The noise-variance update is
 \deqn{\sigma^2 = \mathrm{mean}\{(\bar\mu-\bar B)^2 + V_\mu + V_B\}.}
-Here \code{B} denotes the complete structured Gaussian mean, including the
-plug-in intercept. \code{V_B} is computed from the raw fSuSiE variational
+Here `B` denotes the complete structured Gaussian mean, including the
+plug-in intercept. `V_B` is computed from the raw fSuSiE variational
 factors, including both SNP-selection uncertainty and conditional
 wavelet-coefficient uncertainty.
 
-During each Gaussian block update, \code{\link[=susiF]{susiF()}} centers but does not scale the
+During each Gaussian block update, [susiF()] centers but does not scale the
 latent response and holds its residual variance fixed at the current outer
-\code{sigma2}. Post-processing is used only for reported effect curves; it does
+`sigma2`. Post-processing is used only for reported effect curves; it does
 not feed the variational moments or the variance update. The
-latent Gaussian posterior and \code{sigma2} are conditionally subcycled with the
+latent Gaussian posterior and `sigma2` are conditionally subcycled with the
 current structured posterior held fixed before each fSuSiE update. The first
 outer iteration uses at most one such subcycle; later iterations use
-\code{sigma2_subcycles}. A final \code{sigma2} M-step is performed after updating the
+`sigma2_subcycles`. A final `sigma2` M-step is performed after updating the
 structured posterior. The
-\code{partial_objective_trace} still excludes the fSuSiE prior/KL contribution,
+`partial_objective_trace` still excludes the fSuSiE prior/KL contribution,
 so convergence is based on parameter changes rather than this diagnostic.
 }
 \seealso{
-\code{\link[=susiF]{susiF()}}, \code{\link[=vga_pois_solver]{vga_pois_solver()}}
+[susiF()], [vga_pois_solver()]
 }

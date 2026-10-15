@@ -82,7 +82,7 @@ expected level of coverage of the cs if not specified set to 0.95}
 
 \item{e}{threshold value to avoid computing posterior that have low alpha value. Set it to 0 to compute the entire posterio. default value is 0.001}
 
-\item{estimate_sigma2}{Logical; if \code{FALSE}, keep \code{obj$sigma2} fixed during
+\item{estimate_sigma2}{Logical; if `FALSE`, keep `obj$sigma2` fixed during
 all IBSS updates.}
 }
 \description{
