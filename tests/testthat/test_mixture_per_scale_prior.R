@@ -30,9 +30,9 @@ if (!exists("colScale", mode = "function")) {
 test_that("mixture-per-scale prior end-to-end sanity", {
   # --------- Data gen ----------
   f1 <- simu_IBSS_per_level(lev_res = 9, alpha = 1, prop_decay = 1.5)
-  if (interactive()) {
-    plot(f1$sim_func, type = "l", ylab = "y")
-  }
+  #if (interactive()) {
+  #  plot(f1$sim_func, type = "l", ylab = "y")
+  #}
   N <- 500
   P <- 10
   lfsr_curve <- 0.05
@@ -139,10 +139,10 @@ test_that("mixture-per-scale prior end-to-end sanity", {
     "mixture_normal_per_scale"
   )
 
-  if (interactive()) {
-    plot(Bhat, post_mat_mean(G_prior, Bhat, Shat, indx_lst = indx_lst, lowc_w = NULL))
-    plot(Shat, post_mat_sd(G_prior, Bhat, Shat, indx_lst = indx_lst, lowc_w = NULL))
-  }
+  #if (interactive()) {
+    #  plot(Bhat, post_mat_mean(G_prior, Bhat, Shat, indx_lst = indx_lst, lowc_w = NULL))
+    #  plot(Shat, post_mat_sd(G_prior, Bhat, Shat, indx_lst = indx_lst, lowc_w = NULL))
+  #}
 
   expect_equal(class(get_pi_G_prior(G_prior))[1], "pi_mixture_normal_per_scale")
   expect_equal(class(get_sd_G_prior(G_prior))[1], "sd_mixture_normal_per_scale")

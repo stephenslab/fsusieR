@@ -96,14 +96,14 @@ G_prior<- init_prior.default(Y=Y_f,
                 tol_null_prior=0)$G_prior
 
 
-plot( Bhat,post_mat_mean(G_prior,Bhat,Shat,
-                         indx_lst=indx_lst,
-                         lowc_wc=lowc_wc))
+#plot( Bhat,post_mat_mean(G_prior,Bhat,Shat,
+#                         indx_lst=indx_lst,
+#                        lowc_wc=lowc_wc))
 
 
 
-plot( Shat,  (post_mat_sd(G_prior,Bhat,Shat, indx_lst=indx_lst,
-                          lowc_wc=lowc_wc) ))
+#plot( Shat,  (post_mat_sd(G_prior,Bhat,Shat, indx_lst=indx_lst,
+#                          lowc_wc=lowc_wc) ))
 get_pi_G_prior(G_prior)
 get_sd_G_prior(G_prior)
 L <- L_mixsq(G_prior, Bhat, Shat)

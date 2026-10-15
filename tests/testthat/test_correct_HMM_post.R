@@ -22,8 +22,8 @@ f1[60:length(f1)] <-0
 f1[ 70] <- -2
 #first effect)
 f2 <-  0.1*DJ.EX(128)$bumps
-plot( f2, type ="l", ylab="effect", col="blue")
-lines(f1, col="red")
+#plot( f2, type ="l", ylab="effect", col="blue")
+#lines(f1, col="red")
 beta0       <- 0
 beta1       <- 1
 beta2       <- 1
@@ -35,23 +35,23 @@ for ( i in 1:N)
 {
   noise <- rnorm(length(f1), sd=  sd_noise)
   noisy.data [[i]] <-   beta1*G[i,pos1]*f1 + beta1*G[i,pos2]*f2  + noise
-  
+
 }
 noisy.data <- do.call(rbind, noisy.data)
 Y <- noisy.data
 
 out <- susiF(Y,X,L=2 , prior = 'mixture_normal_per_scale',
-               
+
              post_processing = "HMM" )
- 
+
 out1 <- susiF(Y,X,L=2 , prior = 'mixture_normal_per_scale'   )
 lines(out$fitted_func[[1]])
 
 
 susiF.obj <- susiF(Y,X,L=2 , prior = 'mixture_normal_per_scale',
-             
+
              post_processing = "HMM" )
- 
+
 
 devtools::load_all(".")
 
@@ -59,25 +59,25 @@ Xb    = colScale(X)
 Yb      <- colScale(Y, scale=FALSE)
 out2  <- HMM_regression( obj=out1,
                         Y=Yb,
-                        X=X 
+                        X=X
 )
 
 #seems related to the variance scale of X
 
 
-plot (out  $fitted_func[[1]])
-lines(susiF.obj$fitted_func[[1]])
+#plot (out  $fitted_func[[1]])
+#lines(susiF.obj$fitted_func[[1]])
 
-lines(out2$fitted_func[[1]])
- 
+#lines(out2$fitted_func[[1]])
 
-plot(out  $fitted_func[[1]],out2$fitted_func[[1]] )
-abline(a=0,b=1)
 
-plot (out  $lfsr_func[[1]])
-lines(susiF.obj$lfsr_func[[1]])
+#plot(out  $fitted_func[[1]],out2$fitted_func[[1]] )
+#abline(a=0,b=1)
 
-lines(out2$lfsr_func[[1]])
+#plot (out  $lfsr_func[[1]])
+#lines(susiF.obj$lfsr_func[[1]])
 
-plot(out  $lfsr_func[[1]],out2$lfsr_func[[1]] )
-abline(a=0,b=1)
+#lines(out2$lfsr_func[[1]])
+
+#plot(out  $lfsr_func[[1]],out2$lfsr_func[[1]] )
+#abline(a=0,b=1)

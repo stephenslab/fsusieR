@@ -104,12 +104,12 @@ fitted_trend <- lapply(1:length(idx), function(l)
   fitted_trend[[l]]/susiF.obj$csd_X[idx[l]]
 )
 
-plot(fitted_trend[[2]])
-  lines(f1)
-plot(fitted_trend[[1]])
-lines(f2)
-plot(est_lfsr[[1]])
-  plot(est_lfsr[[2]])
+#plot(fitted_trend[[2]])
+#  lines(f1)
+#plot(fitted_trend[[1]])
+#lines(f2)
+#plot(est_lfsr[[1]])
+#  plot(est_lfsr[[2]])
 
 test_that("performance in low variance and sharp transition should be",{
   expect_gt( cor(f1, fitted_trend[[2]] ), 0.999  )
