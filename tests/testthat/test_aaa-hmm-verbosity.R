@@ -1,3 +1,5 @@
+context("HMM post-processing")
+
 test_that("susiF keeps internally requested HMM post-processing quiet", {
   postprocess_verbose <- logical(0)
 
