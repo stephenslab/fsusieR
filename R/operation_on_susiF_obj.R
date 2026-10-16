@@ -1816,6 +1816,7 @@ update_cal_indf <- function(obj, Y, X, indx_lst, TI=FALSE,...)
 #
 #' @importFrom wavethresh wr
 #' @importFrom wavethresh wd
+#' @export
 update_cal_indf.susiF <- function(obj, Y, X, indx_lst, TI = FALSE, ...) {
 
   N <- nrow(Y)

@@ -80,10 +80,13 @@
 #'
 #' @param L_start number of effect initialized at the start of the algorithm
 #'
-#' @param nullweight numeric value for penalizing likelihood at point mass 0. This number roughly corresponds
-#' to the number of zeros observation you add  (useful in small sample size). Default is 10 as recommended by Stephens in
-#' False discovery rate a new deal. Setting it too low tend lead to adding false discoveries. Setting it too
-#' high may reduce power.
+#' @param nullweight Finite numeric value at least 1, using the same convention
+#' as \code{ashr::ash}. Adds \code{(nullweight - 1) * log(pi0)} to the mixture
+#' log-likelihood, where \code{pi0} is the weight on the point mass at zero.
+#' The default is 10; 1 gives no penalty. For \code{mixture_normal_per_scale},
+#' the penalty is applied separately at each scale. Retained SNP probabilities
+#' are normalized to sum to one, so \code{max_SNP_EM} does not rescale the
+#' penalty. Larger values favor more mass at zero and may reduce power.
 #'
 #' @param thresh_lowcount numeric, used to check the wavelet coefficients have
 #'  problematic distribution (very low dispersion even after standardization).
@@ -112,8 +115,10 @@
 #'
 #' @param family see documentation of wd from wavethresh package
 #'
-#' @param max_SNP_EM maximum number of SNP used for learning the prior. By default, set to 1000. Reducing this may help reduce
-#'the computational time. We advise to keep it at least larger than 50
+#' @param max_SNP_EM Maximum number of SNPs used for learning the prior.
+#' Default is 100. Reducing this may reduce computational time. The retained
+#' SNP probabilities are renormalized; changing the cutoff can still change
+#' the fitted prior because different SNPs contribute to its estimation.
 #'
 #' @param cor_small logical set to FALSE by default. If TRUE used the Bayes factor from Valen E Johnson JRSSB 2005 instead of Wakefield approximation for Gen Epi 2009
 #' The Bayes factor from Valen E Johnson JRSSB 2005 tends to have better coverage in small sample sizes. We advise using this parameter if n<50
@@ -307,7 +312,7 @@ susiF <- function(Y, X, L = 2,
                   min_purity=0.5,
                   filter_cs =TRUE,
                   init_pi0_w= 1,
-                  nullweight= .1 ,
+                  nullweight= 10,
                   control_mixsqp =  list(verbose=FALSE,
                                          eps = 1e-6,
                                          numiter.em = 40
@@ -334,6 +339,11 @@ susiF <- function(Y, X, L = 2,
 
 )
 {
+
+  if (!is.numeric(nullweight) || length(nullweight) != 1L ||
+      !is.finite(nullweight) || nullweight < 1) {
+    stop("`nullweight` must be a finite number at least 1 (1 gives no penalty)")
+  }
 
   if(max_SNP_EM<10){
     stop("Argument max_SNP_EM has to be larger than 10")

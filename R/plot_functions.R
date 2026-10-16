@@ -293,7 +293,7 @@ plot_susiF_effect <- function (obj,
   }
 
   # Finish up the plot.
-  plot_colors <- plot_colors[-1][indx_effect]
+  plot_colors <- plot_colors[-1][seq_along(indx_effect)]
   return(out +
          facet_grid(CS~.,scales = facet_scale) +
          scale_color_manual("Credible set",values = plot_colors) +

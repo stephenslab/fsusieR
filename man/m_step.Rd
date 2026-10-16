@@ -53,8 +53,8 @@ m_step(
 
 \item{control_mixsqp}{list of parameter for mixsqp function see mixsqp package}
 
-\item{nullweight}{numeric value for penalizing likelihood at point mass 0 (should be between 0 and 1)
-(usefull in small sample size)
+\item{nullweight}{ASH null-component prior parameter, at least 1. Adds
+\code{(nullweight - 1) * log(pi0)} to each mixture's log-likelihood.
  @param  tol_null_prior tolerance for the mixture on the null component if the mass on the point mass is large than 1- tol_null_prior then set BF=1}
 
 \item{\dots}{Other arguments.}

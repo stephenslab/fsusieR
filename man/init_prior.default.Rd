@@ -38,7 +38,7 @@
 
 \item{control_mixsqp}{list of parameter for mixsqp function see  mixsqp package}
 
-\item{nullweight}{numeric value for penalizing likelihood at point mass 0 (should be between 0 and 1)}
+\item{nullweight}{ASH null-component prior parameter; see \code{\link{susiF}}.}
 
 \item{gridmult}{numeric used to control the number of component used in the mixture prior (see ashr package}
 

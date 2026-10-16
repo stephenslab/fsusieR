@@ -178,77 +178,73 @@ cal_purity <- function(l_cs,X){
 #'
 #' @description Extract coordinates of the regions affected by the different CS
 #'
-#' @details return a matrix with 3 columns. Each lines corresponds to a regions
-#' in which the estimated credible bands are "crossing zero"/i.e. the effects are likely not to be 0 in this region.
-#' the second column corresponds to the start of the region  and the third to the end of the affected region
+#' @details Each row corresponds to a contiguous region where the credible
+#' band excludes zero (SMASH or TI), or the local false sign rate is below
+#' lfsr_thresh (HMM).
 #'
-#' @param obj at fitted obj object
+#' @param obj a fitted susiF object
 #' @param lfsr_thresh threshold for affected region when using HMM postprocessing
+#' @return A data frame with columns CS, Start and End. If no regions are
+#' affected, the data frame has zero rows.
 #' @importFrom stats complete.cases
 #'
 #' @export
 #'
-affected_reg <- function( obj, lfsr_thresh=0.05){
+affected_reg <- function(obj, lfsr_thresh = 0.05) {
   outing_grid <- obj$outing_grid
-
-  reg <-  list()
+  reg <- list()
   h <- 1
-  if(!is.null (obj$cred_band)){
 
-    for (   l in 1:length(obj$cs)){
+  # SMASH or TI: the credible band is entirely below or above zero.
+  if (!is.null(obj$cred_band)) {
+    for (l in seq_along(obj$cs)) {
+      pos_up <- which(obj$cred_band[[l]][1, ] < 0)
+      pos_low <- which(obj$cred_band[[l]][2, ] > 0)
 
-      pos_up <-  which(obj$cred_band[[l]][1,]<0)
-      pos_low <- which(obj$cred_band[[l]][2,]>0)
-
-
-      reg_up <- split( pos_up,cumsum(c(1,diff( pos_up)!=1)))
-
-      reg_low <- split( pos_low,cumsum(c(1,diff( pos_low)!=1)))
-      if( length(reg_up[[1]]) >0){
-        for( k in 1:length(reg_up)){
-          reg[[h]] <- c(l, outing_grid[reg_up[[k]][1]], outing_grid[reg_up[[k]][length(reg_up[[k]])]])
-
-          h <- h+1
+      if (length(pos_up) > 0) {
+        reg_up <- split(pos_up, cumsum(c(1, diff(pos_up) != 1)))
+        for (k in seq_along(reg_up)) {
+          idx <- reg_up[[k]]
+          reg[[h]] <- c(l, outing_grid[idx[1]], outing_grid[idx[length(idx)]])
+          h <- h + 1
         }
       }
 
-      if( length(reg_low[[1]]) >0){
-        for( k in 1:length(reg_low )){
-          reg[[h]] <- c(l, outing_grid[reg_low [[k]][1]], outing_grid[reg_low [[k]][length(reg_low [[k]])]])
-
-          h <- h+1
+      if (length(pos_low) > 0) {
+        reg_low <- split(pos_low, cumsum(c(1, diff(pos_low) != 1)))
+        for (k in seq_along(reg_low)) {
+          idx <- reg_low[[k]]
+          reg[[h]] <- c(l, outing_grid[idx[1]], outing_grid[idx[length(idx)]])
+          h <- h + 1
         }
       }
-
-
-
     }
   }
 
-  if(!is.null(obj$lfsr_func)){
+  # HMM: the local false sign rate is below the requested threshold.
+  if (!is.null(obj$lfsr_func)) {
+    for (l in seq_along(obj$cs)) {
+      pos_up <- which(obj$lfsr_func[[l]] < lfsr_thresh)
+      if (length(pos_up) == 0) next
 
-    for (   l in 1:length(obj$cs)){
-
-      pos_up <-  which(obj$lfsr_func[[l]] < lfsr_thresh)
-      pos_low <- which(obj$cred_band[[l]][2,]>0)
-
-      reg_up <- split( pos_up,cumsum(c(1,diff( pos_up)!=1)))
-      for( k in 1:length(reg_up)){
-        reg[[h]] <- c(l, outing_grid[reg_up[[k]][1]], outing_grid[reg_up[[k]][length(reg_up[[k]])]])
-
-        h <- h+1
+      reg_up <- split(pos_up, cumsum(c(1, diff(pos_up) != 1)))
+      for (k in seq_along(reg_up)) {
+        idx <- reg_up[[k]]
+        reg[[h]] <- c(l, outing_grid[idx[1]], outing_grid[idx[length(idx)]])
+        h <- h + 1
       }
-
-
-
     }
   }
 
-  reg <-  do.call(rbind, reg)
-  colnames(reg) <- c("CS", "Start","End")
+  if (length(reg) == 0) {
+    return(data.frame(CS = integer(), Start = numeric(), End = numeric()))
+  }
+
+  reg <- do.call(rbind, reg)
+  colnames(reg) <- c("CS", "Start", "End")
   reg <- as.data.frame(reg)
-  reg <- reg[order(reg$CS, reg$Start),]
-  reg <- reg[complete.cases(reg),]
+  reg <- reg[order(reg$CS, reg$Start), ]
+  reg <- reg[complete.cases(reg), ]
   return(reg)
 }
 

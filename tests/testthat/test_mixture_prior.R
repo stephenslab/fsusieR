@@ -10,7 +10,7 @@ lowc_wc=NULL
 N=500
 P=10
 set.seed(23)
-nullweight=0.1
+nullweight=10
 G = matrix(sample(c(0, 1,2), size=N*P, replace=T), nrow=N, ncol=P) #Genotype
 beta0       <- 0
 beta1       <- 1

@@ -17,7 +17,7 @@ susiF(
   min_purity = 0.5,
   filter_cs = TRUE,
   init_pi0_w = 1,
-  nullweight = 0.1,
+  nullweight = 10,
   control_mixsqp = list(verbose = FALSE, eps = 1e-06, numiter.em = 40),
   thresh_lowcount = 0,
   cal_obj = FALSE,
@@ -83,10 +83,13 @@ cs and cs with estimated prior equal to 0). Set as TRUE by default.}
 \item{init_pi0_w}{starting value of weight on null component in mixsqp
 (between 0 and 1)}
 
-\item{nullweight}{numeric value for penalizing likelihood at point mass 0. This number roughly corresponds
-to the number of zeros observation you add  (useful in small sample size). Default is 10 as recommended by Stephens in
-False discovery rate a new deal. Setting it too low tend lead to adding false discoveries. Setting it too
-high may reduce power.}
+\item{nullweight}{Finite numeric value at least 1, using the same convention
+as \code{ashr::ash}. Adds \code{(nullweight - 1) * log(pi0)} to the mixture
+log-likelihood, where \code{pi0} is the weight on the point mass at zero.
+The default is 10; 1 gives no penalty. For \code{mixture_normal_per_scale},
+the penalty is applied separately at each scale. Retained SNP probabilities
+are normalized to sum to one, so \code{max_SNP_EM} does not rescale the
+penalty. Larger values favor more mass at zero and may reduce power.}
 
 \item{control_mixsqp}{list of parameter for mixsqp function see  mixsqp package}
 
@@ -118,8 +121,10 @@ for more details). From the ash function:  multiplier by which the default grid 
 \item{max_scale}{numeric, define the maximum of wavelet coefficients used in the analysis (2^max_scale).
 Set 10 true by default.}
 
-\item{max_SNP_EM}{maximum number of SNP used for learning the prior. By default, set to 1000. Reducing this may help reduce
-the computational time. We advise to keep it at least larger than 50}
+\item{max_SNP_EM}{Maximum number of SNPs used for learning the prior.
+Default is 100. Reducing this may reduce computational time. The retained
+SNP probabilities are renormalized; changing the cutoff can still change
+the fitted prior because different SNPs contribute to its estimation.}
 
 \item{max_step_EM}{max_step_EM}
 

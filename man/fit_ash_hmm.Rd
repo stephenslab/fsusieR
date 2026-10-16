@@ -55,7 +55,7 @@ fit_ash_hmm(
   prune_start = 5L,
   prune_every = 5L,
   prune_min_state_count = 1,
-  prune_min_state_fraction = 0.0001,
+  prune_min_state_fraction = 1e-04,
   prune_max_fraction = 0.25,
   prune_max_loglik_loss = 0.05,
   merge_distance = NULL,
