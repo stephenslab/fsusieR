@@ -1,5 +1,4 @@
-rm(list=ls())
-devtools::load_all(".")
+# The test runner loads fsusieR; reloading here invalidates its namespace references.
 
 library(fsusieR)
 library(ashr)
@@ -52,8 +51,6 @@ susiF.obj <- susiF(Y,X,L=2 , prior = 'mixture_normal_per_scale',
 
              post_processing = "HMM" )
 
-
-devtools::load_all(".")
 
 Xb    = colScale(X)
 Yb      <- colScale(Y, scale=FALSE)
