@@ -22,7 +22,7 @@ init_prior <- function(  ...)
 #
 #' @param v1 a vector of ones of length equal to nrow(Y)
 #' @param control_mixsqp list of parameter for mixsqp function see  mixsqp package
-#' @param nullweight numeric value for penalizing likelihood at point mass 0 (should be between 0 and 1)
+#' @param nullweight ASH null-component prior parameter; see \code{\link{susiF}}.
 # (usefull in small sample size)
 #' @param sigma2 finite positive residual variance used to initialize the
 #' marginal-regression standard errors. Defaults to one for backward

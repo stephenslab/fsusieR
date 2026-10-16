@@ -36,7 +36,7 @@ test_that("mixture-per-scale prior end-to-end sanity", {
   N <- 500
   P <- 10
   lfsr_curve <- 0.05
-  nullweight <- 10 / sqrt(N)
+  nullweight <- 10
 
   set.seed(23)
   G <- matrix(sample(c(0,1,2), size = N * P, replace = TRUE), nrow = N, ncol = P)
@@ -250,7 +250,7 @@ test_that("susiF single-effect recovers one curve", {
   sim <- simu_test_function(rsnr = 2, is.plot = FALSE)
   Y <- sim$noisy.data
   X <- sim$G
-  out <- susiF(Y, X, L = 1, prior = "mixture_normal_per_scale", nullweight = 0)
+  out <- susiF(Y, X, L = 1, prior = "mixture_normal_per_scale", nullweight = 1)
   expect_equal(unlist(out$alpha), c(1, rep(0, 9)), tol = 1e-5)
   expect_equal(sum(abs(unlist(out$fitted_func) - sim$f1)), 0, tol = 0.2 * length(sim$f1))
 })
@@ -262,7 +262,7 @@ test_that("susiF two-effects recovers two curves", {
   Y <- sim$noisy.data
   X <- sim$G
   out <- susiF(Y, X, L = 2, prior = "mixture_normal_per_scale",
-               nullweight = 0.75, init_pi0_w = 1)
+               nullweight = 10, init_pi0_w = 1)
   expect_equal(Reduce("+", out$alpha), c(1, 1, rep(0, 8)), tol = 1e-5)
 
   d1 <- min(sqrt(mean( unlist(out$fitted_func[[1]]) - sim$f1)^2),
@@ -292,7 +292,7 @@ test_that("Objective, variance, and KL update hook up", {
   indx_lst <- gen_wavelet_indx(9)
   tt <- cal_Bhat_Shat(Y_f, X, v1, lowc_wc = NULL)
   Bhat <- tt$Bhat; Shat <- tt$Shat
-  nullweight <- 10 / sqrt(N)
+  nullweight <- 10
 
   G_prior <- init_prior(
     Y = Y_f, X = X,

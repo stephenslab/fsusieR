@@ -15,7 +15,7 @@ Pois_fSuSiE(
   tol = 0.001,
   elbo_tol = NULL,
   control_mixsqp = list(verbose = FALSE, eps = 1e-06, numiter.em = 4),
-  nullweight = 0.1,
+  nullweight = 10,
   cov_lev = 0.95,
   min_purity = 0.5,
   cor_small = FALSE,

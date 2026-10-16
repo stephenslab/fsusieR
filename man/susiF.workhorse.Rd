@@ -52,8 +52,7 @@ than \code{tol}.}
 
 \item{lowc_wc}{list of wavelet coefficients that exhibit too little variance}
 
-\item{nullweight}{numeric value for penalizing likelihood at point mass 0 (should be between 0 and 1)
-(usefull in small sample size)}
+\item{nullweight}{ASH null-component prior parameter; see \code{\link{susiF}}.}
 
 \item{cal_obj}{logical if set as TRUE compute ELBO for convergence monitoring}
 

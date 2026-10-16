@@ -311,7 +311,9 @@ remap_data <- function(Y,pos, verbose=TRUE, max_scale=10){
 # This function reconstructs variance of the mean estimate for a
 # given wavelet basis given a wst object.
 # code from the smashr package
+# Internal variance helper; the .var suffix does not denote an S3 class.
 #
+#' @exportS3Method NULL
 #' @importFrom wavethresh av.basis
 #' @importFrom wavethresh nlevelsWT
 AvBasis.var <- function (wst, Ccode = TRUE, ...) {
@@ -501,6 +503,8 @@ wd.var <- function (data, filter.number = 10, family = "DaubLeAsymm",
 # This function converts variances of detail coefficients for a given
 # wavelet basis from wd objects to wst objects.
 #code from the smashr package
+# Internal variance helper; the .var suffix does not denote an S3 class.
+#' @exportS3Method NULL
 #' @importFrom wavethresh wst
 #' @importFrom wavethresh getarrvec
 #' @importFrom wavethresh accessD
