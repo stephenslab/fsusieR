@@ -222,6 +222,7 @@ init_EBmvFR_obj <- function(G_prior, Y, X, ..., lowc_wc = NULL)
 
 
 #' @rdname test_stop_cond
+#' @param nullweight Null-component penalty for EBmvFR; see \code{EBmvFR}.
 #
 #' @method test_stop_cond EBmvFR
 #
@@ -229,16 +230,17 @@ init_EBmvFR_obj <- function(G_prior, Y, X, ..., lowc_wc = NULL)
 #
 #' @export
 #' @keywords internal
-test_stop_cond.EBmvFR <- function(obj, check, cal_obj, Y, X, D, C, indx_lst,...)
+test_stop_cond.EBmvFR <- function(obj, check, cal_obj, Y, X, D, C, indx_lst,
+                                 nullweight = 1, ...)
 {
   if (cal_obj) {
-    value <- .ebmvfr_objective(obj, Y, X)
+    value <- .ebmvfr_objective(obj, Y, X, nullweight)
     previous <- utils::tail(obj$ELBO, 1L)
     obj$ELBO <- c(obj$ELBO, value)
     if (length(previous)) {
       change <- value - previous
       if (change < -1e-8 * (1 + abs(previous))) {
-        warning("EBmvFR ELBO decreased; inspect the fit for numerical problems")
+        warning("EBmvFR penalized ELBO decreased; inspect the fit for numerical problems")
       }
       check <- abs(change)
     }
@@ -249,10 +251,16 @@ test_stop_cond.EBmvFR <- function(obj, check, cal_obj, Y, X, D, C, indx_lst,...)
   obj
 }
 
-.ebmvfr_objective <- function(obj, Y, X) {
+.ebmvfr_objective <- function(obj, Y, X, nullweight = 1) {
   nobs <- nrow(Y) * length(obj$active_wc)
-  -nobs / 2 * log(2 * pi * obj$sigma2) -
+  value <- -nobs / 2 * log(2 * pi * obj$sigma2) -
     get_ER2(obj, Y, X) / (2 * obj$sigma2) - sum(obj$KL)
+  if (nullweight > 1) {
+    active <- lengths(obj$prior_groups) > 0
+    pi0 <- vapply(obj$G_prior[active], function(g) g$fitted_g$pi[1], numeric(1))
+    value <- value + (nullweight - 1) * sum(log(pi0))
+  }
+  value
 }
 
 
@@ -403,15 +411,17 @@ update_prior_EBmvFR <- function(obj,
                                control_mixsqp,
                                indx_lst,
                                lowc_wc,
-                               nullweight) {
-  # Kim et al.'s M-step holds q fixed and averages its responsibilities.
+                               nullweight = 1) {
+  # Hold q fixed and add ASH's null-component pseudocount before normalizing.
   # The legacy optimizer arguments remain accepted for call compatibility.
   for (s in seq_along(obj$G_prior)) {
     counts <- obj$mixture_counts[[s]]
     totals <- colSums(counts)
     if (sum(totals) == 0) next  # A completely masked scale has no data.
     old_pi <- obj$G_prior[[s]]$fitted_g$pi
-    new_pi <- totals / sum(totals)
+    penalized_totals <- totals
+    penalized_totals[1] <- penalized_totals[1] + (nullweight - 1)
+    new_pi <- penalized_totals / sum(penalized_totals)
     keep <- which(totals > 0)
     # q is unchanged: only its categorical prior contribution to KL moves.
     obj$KL <- obj$KL + drop(counts[, keep, drop = FALSE] %*%

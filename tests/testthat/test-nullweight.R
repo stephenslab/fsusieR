@@ -20,7 +20,7 @@ test_that("mixture updates match ASH independently of the SNP cutoff", {
                   control = control, outputlevel = 0)$fitted_g$pi
       }))
 
-      for (cutoff in c(10, 20, 40)) {
+      for (cutoff in c(1, 10, 20, 40)) {
         fit <- EM_pi(G_prior, Bhat, Shat, indx,
                      control_mixsqp = control, lowc_wc = NULL,
                      nullweight = nullweight, max_SNP_EM = cutoff,
@@ -36,6 +36,13 @@ test_that("mixture updates match ASH independently of the SNP cutoff", {
 test_that("susiF rejects nullweight values outside the ASH convention", {
   for (value in list(0, 0.1, -1, Inf, NA_real_, numeric(0), c(1, 10), "10")) {
     expect_error(susiF(nullweight = value),
+                 "nullweight.*finite number at least 1")
+  }
+})
+
+test_that("EBmvFR rejects nullweight values outside the ASH convention", {
+  for (value in list(0, 0.1, -1, Inf, NA_real_, numeric(0), c(1, 10), "10")) {
+    expect_error(EBmvFR(nullweight = value),
                  "nullweight.*finite number at least 1")
   }
 })

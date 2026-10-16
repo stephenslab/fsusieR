@@ -157,26 +157,28 @@ test_that("EBmvFR ELBO equals exact evidence for orthogonal X and fixed hyperpar
   }
 })
 
-test_that("every EBmvFR coordinate block increases the same ELBO for correlated X", {
+test_that("every EBmvFR coordinate block increases the penalized ELBO for correlated X", {
   dat <- ebmvfr_test_data()
-  for (per_scale in c(FALSE, TRUE)) {
-    obj <- init_EBmvFR_obj(ebmvfr_test_prior(per_scale), dat$Z, dat$X)
-    previous <- .ebmvfr_objective(obj, dat$Z, dat$X)
-    for (iter in 1:8) {
-      for (j in 1:3) {
-        obj <- fit_effect.EBmvFR(obj, j, dat$X, dat$Z[, -8], dat$Z[, 8], dat$idx, NULL)
-        value <- .ebmvfr_objective(obj, dat$Z, dat$X)
+  for (nullweight in c(1, 10)) {
+    for (per_scale in c(FALSE, TRUE)) {
+      obj <- init_EBmvFR_obj(ebmvfr_test_prior(per_scale), dat$Z, dat$X)
+      previous <- .ebmvfr_objective(obj, dat$Z, dat$X, nullweight)
+      for (iter in 1:8) {
+        for (j in 1:3) {
+          obj <- fit_effect.EBmvFR(obj, j, dat$X, dat$Z[, -8], dat$Z[, 8], dat$idx, NULL)
+          value <- .ebmvfr_objective(obj, dat$Z, dat$X, nullweight)
+          expect_gte(value - previous, -1e-9)
+          previous <- value
+        }
+        obj <- update_prior_EBmvFR(obj, nullweight = nullweight)
+        value <- .ebmvfr_objective(obj, dat$Z, dat$X, nullweight)
+        expect_gte(value - previous, -1e-9)
+        previous <- value
+        obj <- update_residual_variance(obj, estimate_residual_variance(obj, dat$Z, dat$X))
+        value <- .ebmvfr_objective(obj, dat$Z, dat$X, nullweight)
         expect_gte(value - previous, -1e-9)
         previous <- value
       }
-      obj <- update_prior_EBmvFR(obj)
-      value <- .ebmvfr_objective(obj, dat$Z, dat$X)
-      expect_gte(value - previous, -1e-9)
-      previous <- value
-      obj <- update_residual_variance(obj, estimate_residual_variance(obj, dat$Z, dat$X))
-      value <- .ebmvfr_objective(obj, dat$Z, dat$X)
-      expect_gte(value - previous, -1e-9)
-      previous <- value
     }
   }
 })
@@ -185,6 +187,8 @@ test_that("masked wavelet columns do not bias EBmvFR priors or residual variance
   dat <- ebmvfr_test_data()
   mask <- c(dat$idx[[1]], dat$idx[[2]])
   prior <- ebmvfr_test_prior(TRUE)
+  # Even a zero null weight on an excluded scale must not affect the penalty.
+  prior[[1]]$fitted_g$pi <- c(0, 0.5, 0.5)
   obj <- init_EBmvFR_obj(prior, dat$Z, dat$X, lowc_wc = mask)
   for (j in 1:3) obj <- fit_effect.EBmvFR(obj, j, dat$X, dat$Z[, -8], dat$Z[, 8], dat$idx, mask)
   obj <- update_prior_EBmvFR(obj)
@@ -197,6 +201,71 @@ test_that("masked wavelet columns do not bias EBmvFR priors or residual variance
   expect_equal(estimate_residual_variance(obj, changed, dat$X),
                get_ER2(obj, dat$Z, dat$X) / (nrow(dat$Z) * (8 - length(mask))))
   expect_true(is.finite(.ebmvfr_objective(obj, dat$Z, dat$X)))
+  penalized <- update_prior_EBmvFR(obj, nullweight = 10)
+  expect_equal(penalized$G_prior[1:2], prior[1:2])
+  penalty <- 9 * sum(vapply(penalized$G_prior[3:4],
+                            function(g) log(g$fitted_g$pi[1]), numeric(1)))
+  expect_equal(.ebmvfr_objective(penalized, dat$Z, dat$X, 10) -
+                 .ebmvfr_objective(penalized, dat$Z, dat$X, 1), penalty)
+})
+
+test_that("EBmvFR prior updates match ASH on fixed normal means", {
+  dat <- ebmvfr_test_data()
+  b <- c(3, 0, -2, 0.2, 1, 4, -4, 0.1)
+  mle <- list(Bhat = matrix(b, 1), Shat = matrix(1, 1, length(b)))
+  g <- ashr::normalmix(c(0.8, 0.1, 0.1), 0, c(0, 1, 3))
+  for (per_scale in c(FALSE, TRUE)) {
+    prior <- ebmvfr_test_prior(per_scale)
+    for (s in seq_along(prior)) prior[[s]]$fitted_g <- g
+    for (nullweight in c(1, 10)) {
+      obj <- init_EBmvFR_obj(prior, dat$Z, dat$X)
+      # Hold coefficient estimates and standard errors fixed to isolate prior fitting.
+      for (iter in seq_len(2000)) {
+        old_pi <- unlist(get_pi_G_prior(obj$G_prior))
+        for (j in seq_len(ncol(dat$X))) {
+          obj <- update_effect.EBmvFR(obj, j, mle, NULL, dat$idx)
+        }
+        obj <- update_prior_EBmvFR(obj, nullweight = nullweight)
+        if (max(abs(unlist(get_pi_G_prior(obj$G_prior)) - old_pi)) < 1e-10) break
+      }
+      expected <- unlist(lapply(obj$prior_groups, function(idx) {
+        bhat <- rep(b[idx], ncol(dat$X))
+        ashr::ash(bhat, rep(1, length(bhat)), g = g,
+                  mixcompdist = "normal", nullweight = nullweight,
+                  control = list(verbose = FALSE, eps = 1e-10, numiter.em = 40),
+                  outputlevel = 0)$fitted_g$pi
+      }))
+      expect_equal(as.numeric(unlist(get_pi_G_prior(obj$G_prior))), expected,
+                   tolerance = 1e-6)
+    }
+  }
+})
+
+test_that("EBmvFR nullweight affects public fits independently of max_SNP_EM", {
+  dat <- ebmvfr_test_data()
+  for (prior in c("mixture_normal", "mixture_normal_per_scale")) {
+    args <- list(Y = dat$Z, X = dat$X, prior = prior, verbose = FALSE,
+                 cal_obj = TRUE, maxit = 20, tol = 0)
+    unpenalized <- do.call(EBmvFR, c(args, list(nullweight = 1)))
+    penalized <- do.call(EBmvFR, c(args, list(nullweight = 10)))
+    default <- do.call(EBmvFR, args)
+    cutoff <- do.call(EBmvFR, c(args, list(nullweight = 10, max_SNP_EM = 1)))
+    pi0 <- function(fit) vapply(fit$G_prior, function(g) g$fitted_g$pi[1], numeric(1))
+    expect_gt(sum(pi0(penalized)), sum(pi0(unpenalized)))
+    for (fit in list(default, cutoff)) {
+      expect_equal(fit$G_prior, penalized$G_prior)
+      expect_equal(fit$fitted_wc, penalized$fitted_wc)
+      expect_equal(fit$ELBO, penalized$ELBO)
+    }
+    # Independently reconstruct the monitored objective, including its first value.
+    X <- colScale(dat$X)
+    W <- DWT2(colScale(dat$Z, scale = FALSE))
+    Z <- cbind(W$D, W$C)
+    initial_prior <- update_prior(penalized$G_prior, penalized$pi_hist[[1]])
+    initial <- init_EBmvFR_obj(initial_prior, Z, X)
+    expect_equal(penalized$ELBO[1], .ebmvfr_objective(initial, Z, X, 10))
+    expect_equal(tail(penalized$ELBO, 1), .ebmvfr_objective(penalized, Z, X, 10))
+  }
 })
 
 test_that("EBmvFR public fits support small p, ELBO and parameter stopping", {

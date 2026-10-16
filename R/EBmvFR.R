@@ -5,8 +5,9 @@
 #' @details Fits a factorized variational posterior by coordinate ascent in
 #' wavelet space. Normal-mixture prior variances are on the coefficient scale
 #' and are not multiplied by the residual variance. Mixture weights are
-#' updated by averaging posterior component responsibilities, separately at
-#' each wavelet scale when using \code{mixture_normal_per_scale}.
+#' updated from posterior component counts plus \code{nullweight - 1} extra
+#' counts for the null component, separately at each wavelet scale when using
+#' \code{mixture_normal_per_scale}.
 #' A shared residual variance is estimated from the expected residual sum of
 #' squares over the retained wavelet columns.
 #'
@@ -32,7 +33,7 @@
 #'
 #'
 #' @param tol Non-negative convergence tolerance. With \code{cal_obj=TRUE},
-#'   stop when the absolute ELBO change is at most \code{tol}. Otherwise,
+#'   stop when the absolute penalized ELBO change is at most \code{tol}. Otherwise,
 #'   check relative changes in coefficients and residual variance, and
 #'   absolute changes in mixture probabilities. An explicitly supplied
 #'   tolerance is always respected. When omitted, the default is 0.1 for
@@ -40,12 +41,19 @@
 #'
 #' @param maxit Maximum number of complete coordinate-ascent sweeps.
 #'
-#' @param init_pi0_w,control_mixsqp,nullweight,max_step_EM,max_SNP_EM Legacy
+#' @param nullweight Finite numeric value at least 1, using the same convention
+#'   as \code{ashr::ash}. Adds \code{(nullweight - 1) * log(pi0)} to the ELBO
+#'   for each fitted mixture, where \code{pi0} is its null-component weight.
+#'   The default is 10; 1 gives no penalty. The penalty is applied once for
+#'   \code{mixture_normal} and once per retained scale for
+#'   \code{mixture_normal_per_scale}, without scaling by the number of predictors
+#'   or wavelet coefficients. Completely excluded scales are left unchanged.
+#' @param init_pi0_w,control_mixsqp,max_step_EM,max_SNP_EM Legacy
 #'   optimizer controls retained for call compatibility. These do not control
 #'   the coordinate-ascent updates, which use one exact responsibility M-step
-#'   per sweep and do not penalize the null mixture weight.
-#' @param cal_obj If TRUE, record and monitor the ELBO, including the initial
-#'   value. If FALSE, monitor parameter changes without storing ELBO history.
+#'   per sweep over all predictors.
+#' @param cal_obj If TRUE, record and monitor the penalized ELBO, including the
+#'   initial value. If FALSE, monitor parameter changes without storing ELBO history.
 #' @param quantile_trans logical if set as TRUE perform normal quantile transform
 #' on wavelet coefficients
 #' @param thresh_lowcount numeric, used to check the wavelet coefficients have
@@ -69,8 +77,8 @@
 #'   current prior, \code{sigma2} the fitted noise variance, and
 #'   \code{active_wc} the retained wavelet columns. \code{niter} counts
 #'   completed sweeps and \code{converged} indicates whether the requested
-#'   stopping criterion was reached. \code{ELBO} is populated only when
-#'   \code{cal_obj=TRUE}.
+#'   stopping criterion was reached. \code{ELBO} includes the null-weight penalty
+#'   and is populated only when \code{cal_obj=TRUE}.
 #' @examples
 #'
 #'
@@ -169,7 +177,7 @@ EBmvFR <- function(Y, X,
                    maxit = 100,
                    tol = 0.1,
                    init_pi0_w= 1,
-                   nullweight ,
+                   nullweight = 10,
                    control_mixsqp =  list(verbose=FALSE,
                                           eps = 1e-6,
                                           numiter.em = 4
@@ -191,9 +199,9 @@ EBmvFR <- function(Y, X,
   {
     stop("Error: provide valid prior input")
   }
-  if(missing(nullweight))
-  {
-    nullweight <- 10#/(sqrt(nrow(X)))
+  if (!is.numeric(nullweight) || length(nullweight) != 1L ||
+      !is.finite(nullweight) || nullweight < 1) {
+    stop("`nullweight` must be a finite number at least 1 (1 gives no penalty)")
   }
   if(missing(tol) && !cal_obj){
     tol <-10^-3
