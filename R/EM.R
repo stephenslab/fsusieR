@@ -1,7 +1,7 @@
 #
 #
 #
-# @title EM algorithm to select mixture weight in a  Empirical Bayes way
+# @title EM algorithm to select mixture weight in a  Empirical Bayes way.
 #
 # @description Select the mixture weight by maximizing the marginal likelihood
 #
