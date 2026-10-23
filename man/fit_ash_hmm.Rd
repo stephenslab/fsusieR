@@ -245,7 +245,9 @@ one deletion batch. It must lie strictly between zero and one.}
 \item{prune_max_loglik_loss}{Maximum allowed decrease in the deletion-check
 criterion. This is the full HMM marginal log likelihood under exact
 training and the mean-field state ELBO under variational training. The
-historical argument name is retained for compatibility.}
+historical argument name is retained for compatibility. A deletion must
+also preserve or improve the penalized training objective; this allowance
+never authorizes a decrease in that objective.}
 
 \item{merge_distance}{Distance below which adjacent fitted centers are
 considered near duplicates. `NULL` uses `0.05 * median(se)`.}
