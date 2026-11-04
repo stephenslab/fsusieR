@@ -171,7 +171,9 @@
 #' @param prune_max_loglik_loss Maximum allowed decrease in the deletion-check
 #'   criterion. This is the full HMM marginal log likelihood under exact
 #'   training and the mean-field state ELBO under variational training. The
-#'   historical argument name is retained for compatibility.
+#'   historical argument name is retained for compatibility. A deletion must
+#'   also preserve or improve the penalized training objective; this allowance
+#'   never authorizes a decrease in that objective.
 #' @param merge_distance Distance below which adjacent fitted centers are
 #'   considered near duplicates. `NULL` uses `0.05 * median(se)`.
 #' @param null_model_selection Either `"bic"` for the strict all-zero safety
@@ -796,10 +798,17 @@ fit_ash_hmm <- function(y, se, mu = NULL, prior_sd = NULL,
     objective_new <- objective_value(
       fb_new$log_likelihood, A_new, rho_new, init_prob_new)
 
-    if (objective_new < objective - 1e-7 * (1 + abs(objective))) {
-      warning("The fixed-dimension EM objective decreased beyond numerical tolerance.")
+    if (isTRUE(objective_new < objective - 1e-7 * (1 + abs(objective)))) {
+      warning("Rejected a decreasing fixed-dimension EM update.")
     }
     delta_em <- objective_new - objective
+    if (!is.finite(objective_new) || delta_em < 0) {
+      # Retain the previous fit and its actual objective, rather than accepting
+      # worse parameters or replacing the recorded value by a running maximum.
+      converged <- is.finite(delta_em) &&
+        abs(delta_em) <= tolerance * (1 + abs(objective))
+      break
+    }
     states_pruned_iter <- 0L
 
     # Dynamic deletion is deliberately outside the fixed-dimensional EM step.
@@ -878,18 +887,20 @@ fit_ash_hmm <- function(y, se, mu = NULL, prior_sd = NULL,
                 fb_try$log_likelihood, A_try, rho_try, init_try,
                 transition_prior_try, mask_try, mixture_prior_try,
                 mixture_active_try, init_prior_try)
-              accepted <- list(
-                drop = drop, keep = keep, A = A_try, rho = rho_try,
-                mu = mu_try, init_prob = init_try, mask = mask_try,
-                transition_prior = transition_prior_try,
-                mixture_prior = mixture_prior_try,
-                init_prior = init_prior_try,
-                mixture_active = mixture_active_try,
-                fixed_pointmass_states = fixed_pointmass_try,
-                fixed_mean_states = fixed_mean_try,
-                component_log_emission = component_log_emission_try,
-                log_emission = log_emission_try, fb = fb_try,
-                objective = objective_try)
+              if (is.finite(objective_try) && objective_try >= objective_new) {
+                accepted <- list(
+                  drop = drop, keep = keep, A = A_try, rho = rho_try,
+                  mu = mu_try, init_prob = init_try, mask = mask_try,
+                  transition_prior = transition_prior_try,
+                  mixture_prior = mixture_prior_try,
+                  init_prior = init_prior_try,
+                  mixture_active = mixture_active_try,
+                  fixed_pointmass_states = fixed_pointmass_try,
+                  fixed_mean_states = fixed_mean_try,
+                  component_log_emission = component_log_emission_try,
+                  log_emission = log_emission_try, fb = fb_try,
+                  objective = objective_try)
+              }
             }
           }
           number_to_try <- floor(number_to_try / 2L)

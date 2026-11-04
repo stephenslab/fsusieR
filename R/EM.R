@@ -1,7 +1,7 @@
 #
 #
 #
-# @title EM algorithm to select mixture weight in a  Empirical Bayes way
+# @title EM algorithm to select mixture weight in a  Empirical Bayes way.
 #
 # @description Select the mixture weight by maximizing the marginal likelihood
 #
@@ -171,7 +171,7 @@ cal_L_mixsq_s_per_scale <- function(G_prior,s, Bhat, Shat ,indx_lst,is.EBmvFR=FA
     log=TRUE) -log(sdmat )
   )
   #dealing in case of due to small sd due to small sample size
-  L     <-  apply(L, 2, function(x){
+  L[]   <-  apply(L, 2, function(x){
     x[which(is.na(x))] <- median(x, na.rm=T)
     return(x)
   })
@@ -232,7 +232,7 @@ L_mixsq.mixture_normal <- function(G_prior,
     ) -log(sdmat )
   )
   #dealing in case of due to small sd due to small sample size
-  L     <-  apply(L, 2, function(x){
+  L[]   <-  apply(L, 2, function(x){
     x[which(is.na(x))] <- median(x, na.rm=T)
     return(x)
   })
