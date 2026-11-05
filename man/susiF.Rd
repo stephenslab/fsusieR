@@ -36,7 +36,7 @@ susiF(
   e = 0.001,
   tol_null_prior = 0.001,
   lbf_min = 0.1,
-  standardize_Y = TRUE,
+  standardize_Y = FALSE,
   residual_variance = NULL
 )
 }
