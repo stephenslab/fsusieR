@@ -21,26 +21,29 @@ knitr::opts_chunk$set(
   out.width = "100%"
 )
 has_mvsusie <- requireNamespace("mvsusieR", quietly = TRUE)
+has_step_comparison <- has_mvsusie &&
+  utils::packageVersion("mvsusieR") >= "0.2.1" &&
+  requireNamespace("mashr", quietly = TRUE)
 ```
 
-This vignette illustrates some of the limitations of SuSiE when
-analyzing molecular traits or traits/responses variables that are
-functions. We use a simple example where the effect of a SNP spans
-over multiple CpG. We start by fine-mapping the effect of the genotype
-on each CpG in a sequential fashion. Then, we show that SuSiE can
-output inconsistent results. We also look at mvSuSiE under different
-prior and residual-variance initializations. Finally we show that
-fSuSiE can handle this problem and output much more interpretable
-results.
+We use two simulated methylation profiles to compare approaches to
+fine-mapping genetic effects across CpGs. In the first example, a single
+SNP has a smooth effect. We compare per-CpG SuSiE, multivariate SuSiE
+(mvSuSiE) under several prior and residual covariance settings, and
+fSuSiE. In the second example, three SNPs have step-shaped effects. We
+compare fSuSiE with mvSuSiE under three effect priors, each with the
+residual covariance estimated or fixed.
 
 ```{r load-pkgs, warning = FALSE, message = FALSE}
 library(fsusieR)
 library(susieR)
 library(ggplot2)
 library(cowplot)
+
+method_colors <- c(fSuSiE = "firebrick", mvSuSiE = "steelblue4")
 ```
 
-## Simulation
+## Example 1. A smooth effect
 
 Let's simulate a simple effect of a SNP on a set of CpGs. The effect
 of the SNP is a cosine function that spans over 40 CpGs.
@@ -90,7 +93,7 @@ data.frame(
 )
 ```
 
-## Method 1: Per-CpG SuSiE
+### Method 1. Per-CpG SuSiE
 
 Once the data is simulated, we can run SuSiE on each CpG. For the sake
 of simplicity, we only run SuSiE with L = 1 as we are aware that there
@@ -166,7 +169,7 @@ the SuSiE results for CpGs 88 and 91. At CpG 88, the credible set
 misses the true SNP. At CpG 91, the true SNP is present, but it is not
 the lead variant.
 
-## Method 2: mvSuSiE
+### Method 2. mvSuSiE
 
 mvSuSiE treats `Y` as a multivariate response. Its behavior depends
 strongly on the prior and residual-variance initialization. The
@@ -306,7 +309,7 @@ plot_mv_curve <- function(curve, main) {
   plot(effect, pch = 20L, col = "grey30", cex = 0.7, ylim = yrng,
        xlab = "position", ylab = "effect", main = main)
   abline(h = 0, lty = 3, col = "grey50")
-  lines(curve, col = "firebrick", lwd = 2)
+  lines(curve, col = method_colors[["mvSuSiE"]], lwd = 2)
 }
 
 par(mfrow = c(1L, 2L), mar = c(4, 4, 2.5, 1))
@@ -331,7 +334,7 @@ fail: the PIPs collapse to zero and no credible set is returned.
 cat("mvSuSiE is not installed, so this comparison is skipped.")
 ```
 
-## Method 3: fSuSiE
+### Method 3. fSuSiE
 
 Now compare to an analysis of these data using fSuSiE, which involves
 a single call to the "susiF" function. Here we use trend-filtering
@@ -350,11 +353,11 @@ true causal SNP.
 ```{r plot-fsusie, fig.height = 3.2, fig.width = 8, warning = FALSE, message = FALSE}
 df_f_pip <- data.frame(snp = keep, pip = fit_f$pip)
 P_pip <- ggplot(df_f_pip, aes(x = snp, y = pip)) +
-  geom_point(color = "grey55", size = 0.8) +
+  geom_point(color = method_colors[["fSuSiE"]], size = 0.8) +
   geom_vline(xintercept = true_pos, linetype = "dashed",
-             color = "firebrick", alpha = 0.7) +
+             color = "grey60") +
   geom_point(data = df_f_pip[df_f_pip$snp == true_pos, , drop = FALSE],
-             color = "firebrick", size = 2.3) +
+             color = method_colors[["fSuSiE"]], size = 2.3) +
   coord_cartesian(ylim = c(0, 1)) +
   labs(x = "SNP original index", y = "PIP", title = "fSuSiE PIPs") +
   theme_classic()
@@ -368,10 +371,10 @@ df_f_curve <- data.frame(
 )
 
 P_effect <- ggplot(df_f_curve, aes(x = position)) +
-  geom_ribbon(aes(ymin = lower, ymax = upper), fill = "skyblue",
-              alpha = 0.45) +
+  geom_ribbon(aes(ymin = lower, ymax = upper), fill = method_colors[["fSuSiE"]],
+              alpha = 0.2) +
   geom_point(aes(y = truth), color = "grey30", size = 1.1) +
-  geom_line(aes(y = estimate), color = "firebrick", linewidth = 1) +
+  geom_line(aes(y = estimate), color = method_colors[["fSuSiE"]], linewidth = 1) +
   geom_hline(yintercept = 0, linetype = "dotted", color = "grey50") +
   labs(x = "CpG position", y = "effect",
        title = "fSuSiE recovered effect curve") +
@@ -380,8 +383,202 @@ P_effect <- ggplot(df_f_curve, aes(x = position)) +
 plot_grid(P_pip, P_effect, nrow = 1L, rel_widths = c(1, 1.25))
 ```
 
-These plots show two other results: on the left-hand side, the
-fine-mapping signal (PIPs); on the right-hand side, the estimated
-effect on the methylation levels (red = posterior mean, light blue =
-credible bands). Together, these are the outputs needed to reason
-about both the causal SNP and the shape of its effect across CpGs.
+The left panel shows fSuSiE PIPs. The right panel shows the estimated
+effect in red, its credible band in pale red, and the simulated effect
+as gray points.
+
+## Example 2. Step-shaped effects
+
+We use the simulation from the [methylation vignette](methyl_demo.html),
+with 100 individuals, 32 ordered CpGs, and 12 candidate SNPs. SNP-1 and
+SNP-9 have opposite effects at CpGs 9 through 16. SNP-3 affects CpGs 25
+through 32. SNP-4 is a perturbed copy of SNP-3 and has zero effect.
+
+```{r step-simulation}
+set.seed(1)
+n_step <- 100L
+n_cpg_step <- 32L
+n_snp_step <- 12L
+snp_step <- paste0("SNP-", seq_len(n_snp_step))
+causal_step <- c(1L, 3L, 9L)
+maf_step <- 0.05 + 0.45 * runif(n_snp_step)
+
+X_step <- (runif(n_step * n_snp_step) < maf_step) +
+          (runif(n_step * n_snp_step) < maf_step)
+X_step <- matrix(X_step, n_step, n_snp_step, byrow = TRUE)
+storage.mode(X_step) <- "double"
+X_step[, 4] <- X_step[, 3] + 0.03 * rnorm(n_step)
+colnames(X_step) <- snp_step
+
+effect_step <- matrix(0, n_snp_step, n_cpg_step)
+effect_step[1, 9:16] <- 2.3
+effect_step[9, 9:16] <- -2.3
+effect_step[3, 25:32] <- 2
+colnames(effect_step) <- paste0("CpG-", seq_len(n_cpg_step))
+Y_step <- X_step %*% effect_step +
+  matrix(3 * rnorm(n_step * n_cpg_step), n_step, n_cpg_step)
+Y_step <- Y_step - min(Y_step)
+```
+
+### fSuSiE effect profiles
+
+We fit fSuSiE with up to ten single effects and disable its optional
+credible-set filter. The plot shows the fitted effect and 95% pointwise
+credible intervals for each credible set. The dashed line marks zero.
+
+```{r step-fsusie, message = FALSE}
+L_step <- 10L
+fit_step_f <- susiF(Y_step, X_step, L = L_step, filter_cs = FALSE,
+                   standardize_Y = TRUE, post_processing = "TI",
+                   verbose = FALSE)
+fit_step_f$cs
+```
+
+Each of the three credible sets contains a causal SNP. One set contains
+both SNP-3 and SNP-4, reflecting the uncertainty between these highly
+correlated candidates.
+
+```{r step-effect-profiles, fig.height = 2.6, fig.width = 7}
+cs_label <- vapply(fit_step_f$cs, function(cs) {
+  paste(snp_step[cs], collapse = ", ")
+}, character(1))
+step_profiles <- do.call(rbind, lapply(seq_along(cs_label), function(i) {
+  profile <- get_fitted_effect(fit_step_f, l = i, cred_band = TRUE,
+                               alpha = 0.05)
+  data.frame(CpG = seq_len(n_cpg_step), estimate = profile$effect,
+             lower = profile$cred_band["low", ],
+             upper = profile$cred_band["up", ],
+             credible_set = cs_label[i])
+}))
+step_profiles$credible_set <- factor(step_profiles$credible_set,
+                                     levels = cs_label)
+ggplot(step_profiles, aes(CpG, estimate, ymin = lower, ymax = upper)) +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "grey50") +
+  geom_pointrange(color = method_colors[["fSuSiE"]], linewidth = 0.35) +
+  facet_wrap(~credible_set, nrow = 1) +
+  scale_x_continuous(breaks = c(1, 8, 16, 24, 32)) +
+  labs(x = "CpG index", y = "Estimated effect") +
+  theme_classic()
+```
+
+### Comparing mvSuSiE priors and residual covariance settings
+
+A diagonal covariance gives independent effects across CpGs a priori.
+A canonical mixture includes CpG-specific and shared effect patterns.
+The mashr mixture estimates weights over scaled canonical covariances
+from the 12 marginal association profiles at this locus. These
+covariances do not encode CpG order. fSuSiE uses that order in its
+wavelet representation.
+
+For each prior, we start from the sample covariance of the CpG
+profiles. With `estimate_residual_variance = TRUE`, mvSuSiE updates this
+matrix during fitting. With `FALSE`, it holds the initial matrix fixed.
+All six fits allow up to ten single effects and use the default
+credible-set filtering. fSuSiE uses its own response standardization
+and residual model.
+
+```{r step-mvsusie-missing, eval = !has_step_comparison, echo = FALSE, results = "asis"}
+cat("Install mvsusieR (version 0.2.1 or later) and mashr to run the prior comparison.\n")
+```
+
+```{r step-mvsusie-fits, eval = has_step_comparison, message = FALSE}
+prior_step_diag <- mvsusieR::create_mixture_prior(
+  mixture_prior = list(matrices = list(0.2 * diag(apply(Y_step, 2, var))),
+                       weights = 1)
+)
+prior_step_canon <- mvsusieR::create_mixture_prior(R = n_cpg_step)
+Z_step <- susieR::calc_z(X_step, Y_step, center = TRUE, scale = TRUE)
+mash_data_step <- mashr::mash_set_data(
+  Bhat = Z_step, Shat = matrix(1, n_snp_step, n_cpg_step)
+)
+mash_fit_step <- mashr::mash(mash_data_step,
+                            Ulist = mashr::cov_canonical(mash_data_step),
+                            outputlevel = 0)
+prior_step_mash <- mvsusieR::create_mixture_prior(fitted_g = mash_fit_step$fitted_g)
+
+step_priors <- list(Diagonal = prior_step_diag, Canonical = prior_step_canon,
+                    "mashr mixture" = prior_step_mash)
+step_settings <- expand.grid(
+  prior = names(step_priors), estimate_residual = c(TRUE, FALSE),
+  KEEP.OUT.ATTRS = FALSE, stringsAsFactors = FALSE
+)
+fit_step_mv <- Map(function(prior, estimate_residual) {
+  mvsusieR::mvsusie(
+    X_step, Y_step, L = L_step, prior_variance = step_priors[[prior]],
+    estimate_residual_variance = estimate_residual,
+    estimate_prior_variance = TRUE, standardize = TRUE, verbose = FALSE
+  )
+}, step_settings$prior, step_settings$estimate_residual)
+step_settings$residual <- factor(
+  ifelse(step_settings$estimate_residual, "Estimated", "Fixed"),
+  levels = c("Estimated", "Fixed")
+)
+```
+
+The table summarizes all six mvSuSiE fits and the fSuSiE reference.
+Each panel shows one mvSuSiE fit in blue alongside the same fSuSiE
+posterior inclusion probabilities (PIPs) in red. Gray dashed lines
+mark the three SNPs that affect the simulated profiles.
+
+```{r step-credible-sets, eval = has_step_comparison}
+step_cs <- c(list(fit_step_f$cs),
+             lapply(fit_step_mv, function(fit) fit$sets$cs))
+step_mv_pips <- lapply(fit_step_mv, function(fit) fit$pip)
+format_step_cs <- function(sets) {
+  if (length(sets) == 0L) return("None")
+  paste(vapply(sets, function(cs) {
+    paste0("{", paste(snp_step[cs], collapse = ", "), "}")
+  }, character(1)), collapse = "; ")
+}
+step_table <- data.frame(
+  Method = c("fSuSiE", rep("mvSuSiE", nrow(step_settings))),
+  Prior = c("Wavelet", step_settings$prior),
+  "Residual covariance" = c("fSuSiE model", as.character(step_settings$residual)),
+  "Number of CSs" = lengths(step_cs),
+  "Credible sets" = vapply(step_cs, format_step_cs, character(1)),
+  "Maximum PIP" = c(max(fit_step_f$pip), vapply(step_mv_pips, max, numeric(1))),
+  Converged = c("N/A", vapply(fit_step_mv, function(fit) {
+    if (isTRUE(fit$converged)) "Yes" else "No"
+  }, character(1))),
+  row.names = NULL, check.names = FALSE
+)
+knitr::kable(step_table, digits = 4)
+```
+
+```{r step-pip-plot, eval = has_step_comparison, fig.width = 7, fig.height = 3.4}
+step_pip_data <- data.frame(
+  SNP = rep(seq_len(n_snp_step), times = nrow(step_settings)),
+  PIP = unlist(step_mv_pips, use.names = FALSE),
+  Prior = factor(rep(step_settings$prior, each = n_snp_step),
+                 levels = names(step_priors)),
+  Residual = rep(step_settings$residual, each = n_snp_step)
+)
+step_reference <- data.frame(SNP = seq_len(n_snp_step), PIP = fit_step_f$pip)
+ggplot(step_pip_data, aes(SNP, PIP)) +
+  geom_vline(xintercept = causal_step, linetype = "dashed",
+             color = "grey65", alpha = 0.7) +
+  geom_point(data = step_reference, aes(color = "fSuSiE"),
+             shape = 16, size = 1.35) +
+  geom_point(aes(color = "mvSuSiE"), shape = 16, size = 1) +
+  facet_grid(Residual ~ Prior) +
+  scale_color_manual(NULL, values = method_colors) +
+  scale_x_continuous(breaks = c(1, 3, 6, 9, 12)) +
+  scale_y_continuous(breaks = c(0, 0.5, 1)) +
+  labs(x = "SNP index", y = "PIP") +
+  theme_classic(base_size = 10) +
+  theme(legend.position = "bottom")
+```
+
+```{asis, echo = has_step_comparison}
+### Conclusion
+
+fSuSiE gave the best recovery of causal signals in the step-shaped
+simulation. It returned three credible sets, each containing a
+different causal SNP. The only credible set among the six mvSuSiE fits
+came from the mashr prior with estimated residual covariance. It
+contained SNP-8, whose simulated effect was zero.
+
+In the smooth-effect simulation, fSuSiE recovered the causal SNP using
+its default residual model. mvSuSiE also recovered that SNP when
+initialized with the true residual covariance.
+```
