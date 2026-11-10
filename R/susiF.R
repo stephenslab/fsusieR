@@ -334,7 +334,7 @@ susiF <- function(Y, X, L = 2,
                   e = 0.001,
                   tol_null_prior=0.001,
                   lbf_min=0.1,
-                  standardize_Y=FALSE,
+                  standardize_Y=TRUE,
                   residual_variance=NULL
 
 )
