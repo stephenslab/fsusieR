@@ -228,6 +228,8 @@ EBmvFR <- function(Y, X,
   {
     stop("Error: number of position provided different from the number of column of Y")
   }
+  if (!is.numeric(pos) || any(!is.finite(pos)) || any(diff(pos) <= 0))
+    stop("pos must be finite and strictly increasing in the order of Y columns")
 
 
 
@@ -240,7 +242,7 @@ EBmvFR <- function(Y, X,
 
     start_pos <- min( pos)
     end_pos <-max(pos)
-    outing_grid   <- start_pos + (end_pos-start_pos)/(length(pos))*inter_pol.obj$grid
+    outing_grid   <- start_pos + (end_pos-start_pos)/length(inter_pol.obj$grid)*inter_pol.obj$grid
     if(verbose)
     {
       message( "Response matrix dimensions not equal to nx 2^J \n or unevenly spaced data \n interpolation procedure used")

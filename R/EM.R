@@ -50,7 +50,8 @@ EM_pi <- function(G_prior,Bhat, Shat, indx_lst,
 
 ## Deal with overfitted cases
 
-  Shat[ is.na(Shat) ] <- 1e-32 #some rare case in overfitting and numerical limitation of Rfast
+  if (any(!is.finite(Bhat)) || any(!is.finite(Shat)))
+    stop("Bhat and Shat must be finite")
   Shat[ Shat<=0 ] <- 1e-32
   lBF <- log_BF(G_prior,
                 Bhat,Shat,
@@ -61,20 +62,7 @@ EM_pi <- function(G_prior,Bhat, Shat, indx_lst,
 
   # par(mfrow=c(2,1))
   # plot(lBF)
-  if(length(lBF)==1){
-
-
-    out <- list(tpi_k =get_pi_G_prior(G_prior ),lBF = lBF)
-    class(out) <- c("EM_pi","list")
-    return(out)
-
-  }
-
-
-  if(sum(is.na(lBF))>0){
-    lBF[which(is.na(lBF))] <- 3*max(lBF, na.rm=TRUE)# normally due to problem related to
-    #too little residual variance
-  }
+  if (any(!is.finite(lBF))) stop("Non-finite single-SNP log Bayes factors")
 
   if( length(lBF)> max_SNP_EM){ # basically allow running EM only on data point with most signal
     idx <- order(lBF, decreasing = TRUE)[1:ceiling(max_SNP_EM)]
@@ -84,6 +72,23 @@ EM_pi <- function(G_prior,Bhat, Shat, indx_lst,
   }
 
   Lmat  <-  L_mixsq(G_prior, Bhat[idx,,drop=FALSE], Shat[idx,,drop=FALSE], indx_lst)
+  # Masked coefficients have equal likelihood under every mixture component,
+  # so they supply no artificial evidence for the null during prior learning.
+  if (length(lowc_wc)) {
+    groups <- if (inherits(G_prior, "mixture_normal_per_scale"))
+      indx_lst else list(seq_len(ncol(Bhat)))
+    for (s in seq_along(groups)) {
+      masked <- which(groups[[s]] %in% lowc_wc)
+      rows <- unlist(lapply(masked, function(j)
+        1L + (j - 1L) * length(idx) + seq_along(idx)))
+      if (!length(rows)) next
+      if (inherits(G_prior, "mixture_normal_per_scale")) {
+        Lmat[[s]][rows, ] <- 1
+      } else {
+        Lmat[rows, ] <- 1
+      }
+    }
+  }
   J <- dim(Bhat)[1]
   tsd_k <- get_sd_G_prior(G_prior)
 
@@ -95,10 +100,11 @@ EM_pi <- function(G_prior,Bhat, Shat, indx_lst,
   zeta <- rep(1/J,J) #assignation initial value
   k <- 0 #counting the number of iteration
 
-  while( k <=max_step &  abs(newloglik-oldloglik)>=espsilon)
+  while( k < max_step & abs(newloglik-oldloglik)>=espsilon)
   {
     # E step----
-    oldloglik <- cal_lik(lBF,zeta)
+    oldloglik <- .fs_log_mean_exp(lBF) +
+      .fs_prior_penalty(list(tpi_k), nullweight)
     zeta      <- cal_zeta(lBF)
 
     # M step ----
@@ -120,7 +126,8 @@ EM_pi <- function(G_prior,Bhat, Shat, indx_lst,
                    df = df)
 
 
-    newloglik <- cal_lik(lBF,zeta)
+    newloglik <- .fs_log_mean_exp(lBF) +
+      .fs_prior_penalty(list(tpi_k), nullweight)
 
     k <- k+1
 
@@ -175,7 +182,7 @@ cal_L_mixsq_s_per_scale <- function(G_prior,s, Bhat, Shat ,indx_lst,is.EBmvFR=FA
     x[which(is.na(x))] <- median(x, na.rm=T)
     return(x)
   })
-  L = exp(L)
+  L = exp(L - apply(L, 1L, max))
   if(!is.EBmvFR){
     L <- rbind(c(100, rep( 0,(ncol(L)-1)  )),#adding penalty line
                L)
@@ -236,7 +243,7 @@ L_mixsq.mixture_normal <- function(G_prior,
     x[which(is.na(x))] <- median(x, na.rm=T)
     return(x)
   })
-  L= exp(L)
+  L= exp(L - apply(L, 1L, max))
   if( !is.EBmvFR ){
     L <- rbind(c(100, rep( 0,(ncol(L)-1)  )),#adding penalty line
                L)

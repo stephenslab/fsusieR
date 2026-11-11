@@ -95,5 +95,7 @@ has no effect unless the \code{\link{susiF}} option
 \item{x}{Output of the susiF function.}
 }
 \description{
-Various visualizations of fSuSiE results.
+Various visualizations of fSuSiE results. The PIP plot
+shows every credible-set membership; SNPs shared by several sets have
+concentric colored outlines at their marginal PIP.
 }

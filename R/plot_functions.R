@@ -8,7 +8,9 @@ plot_colors <- c("black", "dodgerblue2", "green4", "#6A3D9A", "#FF7F00",
 #'
 #' @title fSuSiE Plots
 #'
-#' @description Various visualizations of fSuSiE results.
+#' @description Various visualizations of fSuSiE results. The PIP plot
+#' shows every credible-set membership; SNPs shared by several sets have
+#' concentric colored outlines at their marginal PIP.
 #
 #' @param obj Output of the susiF function.
 #'
@@ -74,11 +76,13 @@ plot_susiF <- function (obj,
   }
   which_plot <- match.arg(which_plot)
 
-  p1 <- plot_susiF_pip(obj,title,pos_SNP,point_shape,point_size,font_size)
+  if (which_plot != "effect")
+    p1 <- plot_susiF_pip(obj,title,pos_SNP,point_shape,point_size,font_size)
 
-  p2 <- plot_susiF_effect(obj,effect,title,cred_band,show_affected_region,
-                          show_outing_grid,lfsr_curve,line_width,dot_size,
-                          font_size)
+  if (which_plot != "pip")
+    p2 <- plot_susiF_effect(obj,effect,title,cred_band,show_affected_region,
+                            show_outing_grid,lfsr_curve,line_width,dot_size,
+                            font_size)
 
   if (which_plot == "both")
     return(list(pip = p1,effect = p2))
@@ -122,26 +126,45 @@ plot_susiF_pip <- function (obj,
                             point_shape,
                             point_size = 1.25,
                             font_size = 10) {
+  CS <- ring_size <- NULL
   if (missing(pos_SNP)) {
     pos_SNP <- 1:length(obj$pip)
   }
   if (missing(point_shape)) {
     point_shape <- rep(19,length(pos_SNP))
   }
-  L <- obj$L
   y <- obj$pip
-  col_y <- rep(0,length(y))
-  for (l in 1:L) {
-    col_y[which(1:length(y) %in% obj$cs[[l]])] <- l
+  if (length(pos_SNP) != length(y) ||
+      !length(point_shape) %in% c(1L, length(y))) {
+    stop("pos_SNP and point_shape must match the original SNP columns")
   }
-  CS <- factor(col_y,
-               levels = 0:L,
-               labels = c("none",1:L))
-  df <- data.frame(y = y,CS = CS,pos_SNP)
-  return(ggplot(df,aes(y = y,x = pos_SNP,color = CS)) +
-         geom_point(size = point_size,
-                    shape = point_shape) +
-         scale_color_manual("CS",values = plot_colors) +
+  df <- data.frame(y = y, pos_SNP = pos_SNP)
+  # A SNP can belong to several CSs. Never overwrite its earlier memberships:
+  # draw one concentric outline per membership around the same PIP marker.
+  members <- lapply(seq_along(obj$cs), function(l) {
+    j <- as.integer(obj$cs[[l]])
+    if (anyNA(j) || any(j < 1L | j > length(y)))
+      stop("Credible-set indices are outside the original SNP columns")
+    data.frame(snp = j, CS = rep(l, length(j)))
+  })
+  members <- do.call(rbind, members)
+  out <- ggplot(df, aes(y = y, x = pos_SNP)) +
+    geom_point(size = point_size, shape = point_shape, color = "black")
+  if (!is.null(members) && nrow(members)) {
+    members$y <- y[members$snp]
+    members$pos_SNP <- pos_SNP[members$snp]
+    members$ring_size <- point_size + 1 +
+      1.5 * (stats::ave(members$snp, members$snp, FUN = seq_along) - 1)
+    ids <- sort(unique(members$CS))
+    members$CS <- factor(members$CS, levels = ids)
+    colors <- rep(plot_colors[-1], length.out = max(ids))
+    out <- out +
+      geom_point(data = members,
+                 aes(color = CS, size = ring_size), shape = 1, stroke = 0.7) +
+      ggplot2::scale_size_identity() +
+      scale_color_manual("CS", values = stats::setNames(colors[ids], ids))
+  }
+  return(out +
          labs(x = "SNP",y = "PIP",title = title) +
          theme_cowplot(font_size = font_size))
 }
@@ -293,7 +316,9 @@ plot_susiF_effect <- function (obj,
   }
 
   # Finish up the plot.
-  plot_colors <- plot_colors[-1][seq_along(indx_effect)]
+  plot_colors <- stats::setNames(
+    rep(plot_colors[-1], length.out = max(indx_effect))[indx_effect],
+    indx_effect)
   return(out +
          facet_grid(CS~.,scales = facet_scale) +
          scale_color_manual("Credible set",values = plot_colors) +

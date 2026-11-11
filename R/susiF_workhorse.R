@@ -71,218 +71,75 @@ susiF.workhorse <- function(obj,
                             estimate_sigma2=TRUE){
 
   if (!is.logical(estimate_sigma2) || length(estimate_sigma2) != 1L ||
-      is.na(estimate_sigma2)) {
+      is.na(estimate_sigma2))
     stop("`estimate_sigma2` must be TRUE or FALSE")
-  }
+  if (length(maxit) != 1L || !is.finite(maxit) || maxit < 1L ||
+      maxit != floor(maxit)) stop("maxit must be a positive integer")
 
-  G_prior  <- get_G_prior(obj )
-  Y_f      <-  cbind( W$D,W$C)
-  update_Y <- Y_f
-  # numerical value to check breaking condition of while
-  # numerical value to check breaking condition of while
-  check <- 3*tol
-  v1    <-  rep(1, dim(X)[1])
+  Y_f <- cbind(W$D, W$C)
+  df <- if (cor_small) nrow(X) - 1L else NULL
+  obj$converged <- FALSE
+  obj$niter <- 0L
+  obj$ELBO <- numeric(0)
 
-
-  if (cor_small){
-    df = nrow(X)-1
-  }else{
-    df =NULL
-  }
-
-  if(missing(tt)){
-    init=FALSE
-  }else{
-    init=FALSE
-  }
-  if( obj$L_max==1)
-  {
-    tt   <-cal_Bhat_Shat(Y       = update_Y,
-                         X       = X,
-                         sigma2  = obj$sigma2,
-                         lowc_wc = lowc_wc )
-    Bhat <- tt$Bhat
-    Shat <- tt$Shat #UPDATE. could be nicer
-    if(is.pois){
-      Shat <- update_Shat_pois(Shat     = Shat,
-                               indx_lst = indx_lst,
-                               lowc_wc  = lowc_wc
-                               )
-    }
-    tpi  <- get_pi(obj,1)
-    G_prior <- update_prior(G_prior = G_prior,
-                            tpi     = tpi ) #allow EM to start close to previous solution (to double check)
-
-    EM_out  <- EM_pi(G_prior        = G_prior,
-                     Bhat           = Bhat,
-                     Shat           = Shat,
-                     indx_lst       = indx_lst,
-                     init_pi0_w     = init_pi0_w,
-                     control_mixsqp = control_mixsqp,
-                     lowc_wc        = lowc_wc,
-                     nullweight     = nullweight,
-                     max_SNP_EM     = max_SNP_EM,
-                     max_step       = max_step_EM,
-                     df             = df
-
-    )
-
-    obj <-  update_susiF_obj(obj = obj ,
-                                   l         = 1,
-                                   EM_pi     = EM_out,
-                                   Bhat      = Bhat,
-                                   Shat      = Shat,
-                                   indx_lst  = indx_lst,
-                                   lowc_wc   = lowc_wc,
-                                   cov_lev   =  cov_lev,
-                                   e         = e
-    )
-
-    if (isTRUE(estimate_sigma2)) {
-      sigma2 <- estimate_residual_variance(obj,
-                                           Y = Y_f,
-                                           X = X)
-      obj <- update_residual_variance(obj, sigma2 = sigma2)
-    }
-    obj <- update_KL(obj,
-                     X = X,
-                     D = W$D,
-                     C = W$C,
-                     indx_lst = indx_lst)
-
-    obj <- update_ELBO(obj  = obj,
-                             get_objective( obj = obj,
-                                            Y         = Y_f,
-                                            X         = X,
-                                            D         = W$D,
-                                            C         = W$C,
-                                            indx_lst  = indx_lst
-                             )
-    )
-
-  }else{
-    ##### Start While -----
-    iter <- 1
-
-    while( (check >tol & iter <maxit))
-    {
-
-      for( l in 1:obj$L)
-      {
-
-        #print(obj$alpha[[l]])
-        update_Y  <-  cal_partial_resid(
-          obj = obj,
-          l         = (l-1)  ,
-          X         = X,
-          D         = W$D,
-          C         = W$C,
-          indx_lst  = indx_lst
-        )
-
-        if(verbose){
-          print(paste("Fitting effect ", l,", iter" ,  iter ))
-        }
-
-        if(init){#recycle operation used to fit the prior
-
-
-          EM_out <- gen_EM_out (tpi_k= get_pi_G_prior(G_prior),
-                                lBF  = log_BF  (G_prior  = G_prior,
-                                                Bhat     = tt$Bhat,
-                                                Shat     = tt$Shat,
-                                                lowc_wc  = lowc_wc,
-                                                indx_lst = indx_lst,
-                                                df       = df
-                                )
-          )
-
-          init <- FALSE
-        }else{
-
-
-          tt   <- cal_Bhat_Shat(Y = update_Y,
-                                X = X,
-                                sigma2 = obj$sigma2,
-                                lowc_wc =lowc_wc )
-
-          tpi <-  get_pi(obj,l)
-          G_prior <- update_prior(G_prior, tpi= tpi ) #allow EM to start close to previous solution (to double check)
-          if(is.pois){
-            tt$Shat <- update_Shat_pois(Shat     = tt$Shat,
-                                        indx_lst = indx_lst,
-                                        lowc_wc  = lowc_wc
-            )
-         #   print( tt$Shat)
-          }
-
-          EM_out  <- EM_pi(G_prior        = G_prior,
-                           Bhat           = tt$Bhat,
-                           Shat           = tt$Shat,
-                           indx_lst       = indx_lst,
-                           init_pi0_w     = init_pi0_w,
-                           control_mixsqp = control_mixsqp,
-                           lowc_wc        = lowc_wc,
-                           nullweight     = nullweight,
-                           max_SNP_EM     = max_SNP_EM,
-                           max_step       = max_step_EM,
-                           df             = df,
-                           tol_null_prior = obj$tol_null_prior
-          )
-           #plot(EM_out$lBF/(sum( EM_out$lBFlBF)))
-        }
-
-        #print(hist(EM_out$lBF))
-        obj <-  update_susiF_obj(obj   = obj ,
-                                       l           = l,
-                                       EM_pi       = EM_out,
-                                       Bhat        = tt$Bhat,
-                                       Shat        = tt$Shat,
-                                       indx_lst    = indx_lst,
-                                       lowc_wc     = lowc_wc,
-                                       df          = df
-        )
-
-      }#end for l in 1:L  -----
-
-      # plot(obj$lBF[[1]])
-      #plot(obj$lBF[[2]])
-
-      #plot(obj$lBF[[3]])
-      # save(obj, file ="D:/Document/Serieux/Travail/Package/susiF.alpha/pb_object.RData")
-      # break
-      ####Check greedy/backfit and stopping condition -----
-
-      obj <- greedy_backfit (obj,
-                                   verbose    = verbose,
-                                   cov_lev    = cov_lev,
-                                   X          = X,
-                                   min_purity = min_purity
-      )
-
-      if (isTRUE(estimate_sigma2)) {
-        sigma2 <- estimate_residual_variance(obj,
-                                             Y = Y_f,
-                                             X = X)
-        obj <- update_residual_variance(obj = obj, sigma2 = sigma2)
+  # Even with one effect, the residual variance and learned prior need iteration.
+  for (iter in seq_len(maxit)) {
+    previous <- obj
+    obj$greedy_backfit_update <- FALSE
+    for (l in seq_len(obj$L)) {
+      if (verbose) print(paste("Fitting effect", l, ", iter", iter))
+      residual <- cal_partial_resid(obj, l - 1L, X, W$D, W$C, indx_lst)
+      tt <- cal_Bhat_Shat(residual, X, sigma2 = obj$sigma2,
+                          lowc_wc = lowc_wc)
+      if (is.pois)
+        tt$Shat <- update_Shat_pois(tt$Shat, indx_lst, lowc_wc)
+      prior <- update_prior(get_G_prior(obj), tpi = get_pi(obj, l))
+      em <- EM_pi(prior, tt$Bhat, tt$Shat, indx_lst,
+                  init_pi0_w = init_pi0_w, control_mixsqp = control_mixsqp,
+                  lowc_wc = lowc_wc, nullweight = nullweight,
+                  max_SNP_EM = max_SNP_EM, max_step = max_step_EM, df = df,
+                  tol_null_prior = obj$tol_null_prior)
+      obj <- update_susiF_obj(obj, l, em, tt$Bhat, tt$Shat, indx_lst,
+                              lowc_wc = lowc_wc, df = df,
+                              cov_lev = cov_lev, e = e)
+      if (cal_obj) {
+        # Compute KL before another update changes this posterior's residual
+        # or noise variance; the stored Bayes factor refers to this update.
+        obj$KL[l] <- cal_KL_l(obj, l, X, W$D, W$C, indx_lst)
       }
-      obj <- test_stop_cond(      obj      = obj,
-                                  check     = check,
-                                  cal_obj   = cal_obj,
-                                  Y         = Y_f,
-                                  X         = X,
-                                  D         = W$D,
-                                  C         = W$C,
-                                  indx_lst  = indx_lst)
-      #  print(obj$alpha)
-      #print(obj$ELBO)
-      check <- obj$check
+    }
 
-      iter <- iter +1
+    obj <- greedy_backfit(obj, verbose, cov_lev, X, min_purity,
+                           allow_expand = iter < maxit)
+    if (estimate_sigma2)
+      obj <- update_residual_variance(
+        obj, estimate_residual_variance(obj, Y_f, X))
 
-
-    }#end while
-  }#end else in if(L==1)
-
- return(obj)
+    same_effects <- obj$L == previous$L && !obj$greedy_backfit_update
+    check <- Inf
+    if (same_effects) {
+      # Alpha alone cannot detect convergence for one SNP or a null effect.
+      scale <- max(sqrt(previous$sigma2), abs(unlist(previous$fitted_wc)))
+      check <- max(
+        abs(unlist(obj$alpha) - unlist(previous$alpha)),
+        abs(unlist(obj$est_pi) - unlist(previous$est_pi)),
+        abs(unlist(obj$fitted_wc) - unlist(previous$fitted_wc)) / scale,
+        abs(obj$sigma2 - previous$sigma2) /
+          max(obj$sigma2, previous$sigma2))
+    }
+    if (cal_obj && !obj$greedy_backfit_update) {
+      value <- get_objective(obj, Y_f, X, W$D, W$C, indx_lst) +
+        .fs_prior_penalty(obj$est_pi, nullweight)
+      obj$ELBO <- c(obj$ELBO, value)
+      if (same_effects && length(obj$ELBO) > 1L)
+        check <- abs(diff(tail(obj$ELBO, 2L)))
+    }
+    obj$check <- check
+    obj$niter <- iter
+    if (is.finite(check) && check <= tol) {
+      obj$converged <- TRUE
+      break
+    }
+  }
+  obj
 }

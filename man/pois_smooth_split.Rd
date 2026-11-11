@@ -24,9 +24,25 @@ pois_smooth_split(
 \arguments{
 \item{x}{data vector}
 
+\item{s}{Exposure factors; defaults to one.}
+
 \item{Eb_init, sigma2_init}{initial values of smooth mean and nugget effect.}
 
+\item{est_sigma2}{Whether to estimate the residual variance.}
+
 \item{maxiter, tol}{max iteration and tolerance for stopping it.}
+
+\item{filter.number, family}{Wavelet filter settings.}
+
+\item{verbose}{Whether to print progress.}
+
+\item{printevery}{Progress reporting interval.}
+
+\item{ebnm_params}{Arguments to the empirical Bayes normal-means fit.}
+
+\item{optim_method}{Optimization method passed to \code{stats::optim}.}
+
+\item{link}{Either "log" or "log1p".}
 }
 \description{
 Smooth over-dispersed Poisson sequence

@@ -89,13 +89,12 @@ cal_partial_resid.susiF <- function(obj, l, X, D, C, indx_lst, ...) {
 #' @param Y functional phenotype used in the original fit
 #'
 #' @param X matrix of  covariates  used in the original fit
-#' @param to name of the type of postprocessing you wish to change the susiF  object  to be fitted with
-#' current option "TI" or "hMM"
+#' @param to Post-processing method: "TI", "HMM", "smash", or "none".
 #' @param verbose If \code{verbose = TRUE}, the algorithm's progress,
 #' and a summary of the optimization settings are printed on the
 #' console.
 #' @param filter_cs logical, if TRUE filters the credible set (removing low-purity)
-#' cs and cs with estimated prior equal to 0). Set as TRUE by default.
+#' cs and cs with estimated prior equal to 0). Defaults to FALSE.
 #' @param max_scale numeric, define the maximum of wavelet coefficients used in the analysis (2^max_scale).
 #'        Set 10 true by default.
 #' @param filter.number see documentation of wd from wavethresh package
@@ -115,59 +114,41 @@ change_fit= function( obj,
 ){
 
 
-  post_processing=to
-  if (is.null( obj$pos))
-  {
-    pos <- 1:dim(Y)[2]
-  }else{
-    pos=obj$pos
+  post_processing <- match.arg(to, c("TI", "HMM", "smash", "none"))
+  if (missing(filter.number) && !is.null(obj$filter.number))
+    filter.number <- obj$filter.number
+  if (missing(family) && !is.null(obj$family)) family <- obj$family
+  if (missing(max_scale) && !is.null(obj$max_scale)) max_scale <- obj$max_scale
+  X <- as.matrix(X)
+  Y <- as.matrix(Y)
+  if (ncol(X) != length(obj$pip) || nrow(X) != nrow(Y))
+    stop("X and Y must use the original rows and SNP columns of the fit")
+  pos <- obj$original_grid
+  if (is.null(pos)) pos <- seq_len(ncol(Y))
+  if (length(pos) != ncol(Y)) stop("Y does not match the original response grid")
+  # Returned alpha/CS fields already use original SNP indices. Removing
+  # constant X columns again would shift the lead SNPs onto other variants.
+  mapped <- remap_data(Y, pos, verbose = verbose, max_scale = max_scale)
+  indx_lst <- gen_wavelet_indx(log2(ncol(mapped$Y)))
+  if (post_processing %in% c("TI", "none")) {
+    Y <- mapped$Y
+    grid <- mapped$outing_grid
+  } else {
+    grid <- pos
   }
-
-  names_colX <-  colnames(X)
-  tidx <- which(apply(X,2,var)==0)
-  if( length(tidx)>0){
-    warning(paste("Some of the columns of X are constants, we removed" ,length(tidx), "columns"))
-    X <- X[,-tidx]
+  if (filter_cs) {
+    obj <- check_cs(obj, X = X)
+    obj <- merge_effect(obj)
   }
-  map_data <- remap_data(Y=Y,
-                         pos= pos,
-                         verbose=vebose,
-                         max_scale=max_scale)
-
-  outing_grid <- map_data$outing_grid
-  Y           <- map_data$Y
-  X <- colScale(X)
-
-  indx_lst <-  gen_wavelet_indx(log2(length( outing_grid)))
-  # centering input
-  #Y0 <-  colScale(Y , scale=FALSE)
-  Y  <- colScale(Y )
-  # out <- out_prep(     obj            = obj,
-  #
-  #                     X             = X,
-  #                     indx_lst      = indx_lst,
-  #                     filter_cs     = filter_cs,
-  #                      outing_grid   = outing_grid,
-  #                     filter.number = filter.number,
-  #                     family        = family,
-  #                      post_processing=  post_processing,
-  #                     tidx          = tidx,
-  #                     names_colX    = names_colX,
-  #                     pos           = pos
-  #)
-
-  obj <-  update_cal_fit_func(obj,
-                              Y             =     sweep(Y  , 2, attr(Y , "scaled:scale"),  "*"),
-                              X             = X,
-                              indx_lst      = indx_lst,
-                              post_processing = post_processing,
-                              filter.number = filter.number,
-                              family        = family)
-  return( obj )
-
-
+  obj <- update_cal_pip(obj)
+  obj <- update_cal_fit_func(obj, indx_lst = indx_lst, Y = Y, X = X,
+                            post_processing = post_processing,
+                            filter.number = filter.number, family = family,
+                            verbose = verbose)
+  obj <- update_cal_indf(obj, Y = Y, X = X, indx_lst = indx_lst)
+  obj$outing_grid <- grid
+  obj
 }
-
 
 #' @title Check purity credible sets
 #
@@ -214,8 +195,28 @@ check_cs.susiF <- function(obj, min_purity=0.5,X,  ...)
 .fs_effect_fields <- c(
   "alpha", "lBF", "fitted_wc", "fitted_wc2", "cs", "est_sd",
   "est_pi", "cred_band", "lfsr_wc", "KL", "fitted_func",
-  "fitted_var", "lfsr_func", "posthoc", "purity"
+  "fitted_var", "lfsr_func", "posthoc", "purity", "lbf"
 )
+
+# SNP assignments still sum to one when the coefficient prior is null.
+# Such assignments do not represent a nonzero effect and must not enter PIPs.
+.fs_null_effects <- function(obj) {
+  if (is.null(obj$est_pi) || is.null(obj$G_prior))
+    return(rep(FALSE, length(obj$alpha)))
+  tol <- if (is.null(obj$tol_null_prior)) 0.001 else obj$tol_null_prior
+  vapply(obj$est_pi, function(pi) {
+    pi0 <- if (inherits(obj$G_prior, "mixture_normal_per_scale"))
+      vapply(pi, function(x) x[1L], numeric(1)) else pi[1L]
+    length(pi0) > 0L && all(is.finite(pi0)) &&
+      all(pi0 >= 1 | pi0 > 1 - tol)
+  }, logical(1))
+}
+
+.fs_cs_summary <- function(obj) {
+  obj$cs_size <- lengths(obj$cs)
+  obj$n_cs <- sum(obj$cs_size > 0L)
+  obj
+}
 
 .fs_validate_effect_alignment <- function(obj, fields = .fs_effect_fields) {
   if (length(obj$L) != 1L || !is.finite(obj$L) || obj$L < 1L) {
@@ -267,10 +268,15 @@ discard_cs.susiF <- function(obj, cs, out_prep=FALSE,  ...)
   }
 
   # The returned object and the IBSS routines both require L >= 1.
-  if (length(cs) == old_L) {
+  discard_all <- length(cs) == old_L
+  if (discard_all) {
     cs <- cs[-1L]
   }
   if (length(cs) == 0L) {
+    if (discard_all && out_prep) {
+      obj$cs[[1L]] <- integer(0)
+      obj <- update_cal_pip(obj)
+    }
     return(obj)
   }
 
@@ -290,13 +296,14 @@ discard_cs.susiF <- function(obj, cs, out_prep=FALSE,  ...)
 
   obj$L <- old_L - length(cs)
   if (out_prep) {
+    if (discard_all) obj$cs[[1L]] <- integer(0)
     obj <- update_cal_pip(obj)
   } else {
     obj$greedy_backfit_update <- TRUE
     obj$ELBO <- -Inf
   }
   .fs_validate_effect_alignment(obj)
-  obj
+  .fs_cs_summary(obj)
 }
 
 #' @title Update residual variance
@@ -367,6 +374,7 @@ expand_susiF_obj <- function(obj,L_extra)
     obj$est_pi[[l]]      <- obj$est_pi[[1]]
     obj$est_sd[[l]]      <- obj$est_sd[[1]]
     obj$lBF[[l]]         <- rep(NA_real_, length(obj$lBF[[1]]))
+    if (!is.null(obj$lbf)) obj$lbf[l] <- NA_real_
     obj$cred_band[[l]]   <- matrix(
       0,
       ncol = ncol(obj$cred_band[[1]]),
@@ -387,6 +395,8 @@ expand_susiF_obj <- function(obj,L_extra)
   .fs_validate_effect_alignment(obj)
   obj
 }
+
+
 
 #' Access fitted effect
 #'
@@ -527,7 +537,39 @@ get_lBF.susiF <- function(obj, l,...)
 
 
 
+# @title Access CS level log Bayes factors
+#
+# @param obj a susiF object defined by init_susiF_obj function
+#
+#
+# @return a vector of log Bayes Factors
+#
+# @export
+#
 
+
+get_lbf <- function(obj,...)
+  UseMethod("get_lbf")
+# @rdname get_lbf
+#
+# @method get_lbf susiF
+#
+# @export get_lbf.susiF
+#
+#' @export
+#' @keywords internal
+get_lbf.susiF<- function(obj,...){
+
+    lbf <- vapply(obj$lBF, function(z) {
+      if (!is.null(obj$variable_index))
+        z <- z[obj$variable_index]
+
+      m <- max(z)
+      if (is.infinite(m)) return(m)
+      m + log(mean(exp(z - m)))
+    }, numeric(1))
+  return(lbf)
+  }
 
 
 
@@ -749,6 +791,8 @@ get_alpha.susiF <-  function(obj, l,...  )
 # and a summary of the optimization settings, are printed to the
 # console.
 #' @param cov_lev the desired level of converage
+#' @param allow_expand Whether another fitting sweep is available for any
+#'   newly added effects. Set to FALSE on the final permitted sweep.
 #' @return susiF object
 #
 #' @export
@@ -774,7 +818,7 @@ greedy_backfit.susiF <-  function(obj,
                                   verbose,
                                   cov_lev,
                                   X,
-                                  min_purity,...  )
+                                  min_purity, allow_expand = TRUE, ...  )
 {
 
 
@@ -858,6 +902,7 @@ greedy_backfit.susiF <-  function(obj,
     return(obj)
   }
   if(obj$greedy & (length(dummy.cs)==0)){
+    if (!allow_expand) return(obj)
 
     tt <- obj$L_max -obj$L
     temp <- min( ifelse(tt>0,tt,0 ) , 7)
@@ -888,6 +933,8 @@ greedy_backfit.susiF <-  function(obj,
     obj <- expand_susiF_obj(obj,L_extra = 7)
     return(obj)
   }
+
+  obj
 
 }
 
@@ -994,6 +1041,7 @@ init_susiF_obj <- function(L_max,
   obj <- list( fitted_wc       = fitted_wc,
                fitted_wc2      = fitted_wc2,
                lBF             = lBF,
+               lBF             = c(),
                KL              = KL,
                cred_band       = cred_band,
                ELBO            = ELBO,
@@ -1186,6 +1234,7 @@ out_prep.susiF <- function(obj ,
                            names_colX =NULL,
                            pos,
                            verbose=TRUE,
+                           min_purity=0.5,
                            ...)
 {
 
@@ -1196,7 +1245,7 @@ out_prep.susiF <- function(obj ,
   if(filter_cs)
   {
     obj  <- check_cs(obj,
-                     min_purity = 0.5,
+                     min_purity = min_purity,
                      X          = X
     )
 
@@ -1238,6 +1287,7 @@ out_prep.susiF <- function(obj ,
                                             kept_index = kept_index,
                                             original_P = original_P)
   obj$outing_grid   <-  outing_grid
+  obj$lbf = get_lbf(obj)
   # obj$purity        <-  cal_purity(l_cs= obj$cs, X=X)
   obj$original_grid <- pos
   return(obj)
@@ -1376,8 +1426,7 @@ rename_format_output <- function(obj, names_colX = NULL, tidx = integer(),
       seq_along(obj$fitted_func)
     )
   }
-  obj$n_cs <- length(obj$cs)
-  obj$cs_size <- lengths(obj$cs)
+  obj <- .fs_cs_summary(obj)
   .fs_validate_effect_alignment(obj)
   obj
 }
@@ -1722,13 +1771,14 @@ update_cal_pip.susiF <- function (obj,...)
   {
     stop("Error: some alpha value not updated, please update alpha value first")
   }
-  tpip <- list()
-  for ( l in 1:obj$L)
-  {
-    tpip[[l]] <- rep(1, lengths(obj$alpha)[[l]])-obj$alpha[[l]]
+  active <- which(!.fs_null_effects(obj))
+  if (!length(active)) {
+    obj$pip <- 0 * obj$alpha[[1L]]
+  } else {
+    alpha <- do.call(rbind, obj$alpha[active])
+    obj$pip <- -expm1(colSums(log1p(-alpha)))
   }
-  obj$pip <- 1-  apply( do.call(rbind,tpip),2, prod)
-  return(obj)
+  .fs_cs_summary(obj)
 }
 
 #' @title Update susiF by computing credible sets
@@ -1757,39 +1807,29 @@ update_cal_cs  <- function(obj, cov_lev=0.95,...)
 #'
 update_cal_cs.susiF <- function(obj, cov_lev=0.95, l,...)
 {
-  if( !missing(l)){
-    if(sum( is.na(unlist(obj$alpha[[l]]))))
-    {
-
-      stop("Error: some alpha value not updated, please update alpha value first")
+  if (length(cov_lev) != 1L || !is.finite(cov_lev) ||
+      cov_lev <= 0 || cov_lev > 1)
+    stop("cov_lev must be in (0, 1]")
+  null <- .fs_null_effects(obj)
+  for (k in if (missing(l)) seq_len(obj$L) else l) {
+    a <- obj$alpha[[k]]
+    if (any(!is.finite(a)) || any(a < 0 | a > 1))
+      stop("alpha must contain finite probabilities")
+    if (null[k] || sum(a) == 0) {
+      obj$cs[[k]] <- integer(0)
+      next
     }
-    temp        <- obj$alpha[[l]]
-
-    # check if temp has only 0 (i.e.  not yet updated)
-    #  if(sum(temp==0)==length(temp)){
-    temp_cumsum        <- cumsum( temp[order(temp, decreasing =TRUE)])
-    max_indx_cs        <- min(c(which( temp_cumsum >cov_lev ), obj$P))
-    obj$cs[[l]]        <- order(temp, decreasing = TRUE)[1:max_indx_cs ]
-    return(obj)
+    if (abs(sum(a) - 1) > 1e-8)
+      stop("Single-effect alpha probabilities must sum to one")
+    index <- order(a, decreasing = TRUE)
+    index <- index[a[index] > 0]
+    size <- which(cumsum(a[index]) >= cov_lev - 1e-12)[1L]
+    if (is.na(size)) size <- length(index)
+    obj$cs[[k]] <- index[seq_len(size)]
+    names(obj$cs[[k]]) <- names(a)[obj$cs[[k]]]
   }
-
-  if(sum( is.na(unlist(obj$alpha))))
-  {
-    stop("Error: some alpha value not updated, please update alpha value first")
-  }
-  for ( l in 1:obj$L)
-  {
-    temp        <- obj$alpha[[l]]
-
-    # check if temp has only 0 (i.e.  not yet updated)
-    #  if(sum(temp==0)==length(temp)){
-    temp_cumsum <- cumsum( temp[order(temp, decreasing =TRUE)])
-    max_indx_cs <-  min(c(which( temp_cumsum >cov_lev ), obj$P))
-    obj$cs[[l]]  <- order(temp, decreasing = TRUE)[1:max_indx_cs ]
-    names(obj$cs[[l]]) <- names(obj$alpha[[l]])[obj$cs[[l]]]
-  }
-
-  return(obj)
+  obj$cov_lev <- cov_lev
+  .fs_cs_summary(obj)
 }
 
 #@title Update susiF by computing predicted curves
@@ -1906,8 +1946,34 @@ update_cal_fit_func.susiF <- function(obj,
                                       verbose=FALSE,
                                       ...)
 {
-
-
+  null <- which(.fs_null_effects(obj))
+  if (length(null)) {
+    active <- setdiff(seq_len(obj$L), null)
+    if (length(active)) {
+      reduced <- obj
+      for (field in .fs_effect_fields) {
+        if (length(obj[[field]]) == obj$L)
+          reduced[[field]] <- obj[[field]][active]
+      }
+      reduced$L <- length(active)
+      reduced <- update_cal_fit_func(
+        reduced, indx_lst = indx_lst, Y = Y, X = X,
+        post_processing = post_processing, filter.number = filter.number,
+        family = family, verbose = verbose)
+    }
+    fields <- c("fitted_func", "fitted_var", "cred_band")
+    if (post_processing == "HMM") fields <- c("fitted_func", "lfsr_func")
+    for (field in fields) {
+      zero <- if (field == "cred_band")
+        matrix(0, 2L, ncol(Y), dimnames = list(c("up", "low"), NULL)) else
+        rep(if (field == "lfsr_func") 1 else 0, ncol(Y))
+      obj[[field]] <- rep(list(zero), obj$L)
+      if (length(active) && !is.null(reduced[[field]]))
+        obj[[field]][active] <- reduced[[field]]
+    }
+    if (post_processing == "HMM") obj$cred_band <- NULL
+    return(obj)
+  }
   if(sum( is.na(unlist(obj$alpha))))
   {
     stop("Error: some alpha value not updated, please update alpha value first")
@@ -1973,7 +2039,8 @@ update_cal_fit_func.susiF <- function(obj,
     ## csd_Y_pos factors caused fitted_func to come out shrunk by a factor
     ## of roughly csd_Y_pos (~5x in typical genotype noise simulations).
 
-    temp <- wavethresh::wd(rep(0, obj$n_wac))
+    temp <- wavethresh::wd(rep(0, obj$n_wac),
+                          filter.number = filter.number, family = family)
 
     csd_Yf    <- obj$csd_Yf
     csd_Y_pos <- obj$csd_Y_pos
@@ -2132,6 +2199,40 @@ update_lBF.susiF <- function    (obj,l, lBF,...)
   }
 
   obj$lBF[[l]] <- lBF
+  obj$lbf[l] <- .fs_log_mean_exp(lBF)
+  return(obj)
+}
+
+
+
+#' @title Update susiF CS level log Bayes factor
+#
+#' @param obj a susiF object defined by init_susiF_obj function
+#' @param lbf vector of length p, containing the updated log Bayes factors
+#' @return susiF object
+#' @export
+#' @keywords internal
+
+
+update_lbf  <- function    (obj,   lbf,...)
+  UseMethod("update_lbf")
+
+#' @rdname update_lbf
+#
+#' @method update_lbf susiF
+#
+#' @export update_lbf.susiF
+#
+#' @export
+#' @keywords internal
+
+
+update_lbf.susiF <- function    (obj,   ...)
+{
+  lbf= get_lbf(obj)
+
+  obj$lbf <- lbf
+
   return(obj)
 }
 
@@ -2409,7 +2510,7 @@ which_dummy_cs.susiF <- function(obj, min_purity=0.5,X,median_crit=FALSE,lbf_min
       if (length(obj$cs[[l]])==1)
       {
 
-        if( obj$est_pi[[l]][1]>1-obj$tol_null_prior){# check if the estimated prior is exactly 0
+        if (.fs_null_effects(obj)[l]) {
 
           dummy.cs<-  c( dummy.cs,l)
         }
@@ -2425,7 +2526,7 @@ which_dummy_cs.susiF <- function(obj, min_purity=0.5,X,median_crit=FALSE,lbf_min
           dummy.cs<-  c( dummy.cs,l)
 
         }else{
-          if(obj$est_pi[[l]][1]>1-obj$tol_null_prior){
+          if (.fs_null_effects(obj)[l]) {
             dummy.cs<-  c( dummy.cs,l)
           }
 
@@ -2447,7 +2548,7 @@ which_dummy_cs.susiF <- function(obj, min_purity=0.5,X,median_crit=FALSE,lbf_min
       if (length(obj$cs[[l]])==1)
       {
 
-        if(  mean(sapply(obj$est_pi[[l]],"[[",1))>1-obj$tol_null_prior){# check if the estimated prior is exactly 0
+        if (.fs_null_effects(obj)[l]) {
 
           dummy.cs<-  c( dummy.cs,l)
         }
@@ -2463,7 +2564,7 @@ which_dummy_cs.susiF <- function(obj, min_purity=0.5,X,median_crit=FALSE,lbf_min
           dummy.cs<-  c( dummy.cs,l)
 
         }else{
-          if(  mean(sapply(obj$est_pi[[l]],"[[",1))> 1-obj$tol_null_prior){
+          if (.fs_null_effects(obj)[l]) {
             dummy.cs<-  c( dummy.cs,l)
           }
 

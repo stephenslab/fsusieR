@@ -28,8 +28,6 @@ pois_mean_GP(
 \item{maxiter}{max number of iterations}
 
 \item{tol}{tolerance for stopping the updates}
-
-\item{w}{prior weights}
 }
 \value{
 a list of

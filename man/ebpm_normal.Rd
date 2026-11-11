@@ -32,6 +32,8 @@ ebpm_normal(
 
 \item{tol}{tolerance for stopping the updates}
 
+\item{vga_tol}{Tolerance for the inner variational Gaussian solver.}
+
 \item{conv_type}{convergence criteria, default to be elbo}
 
 \item{return_sigma2_trace}{whether return the trace of sigma2 estiamtes}

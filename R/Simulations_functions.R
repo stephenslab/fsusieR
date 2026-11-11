@@ -24,6 +24,8 @@
 #'out$emp_pi0
 simu_IBSS_ash_vanilla <- function( lev_res=8, length_grid= 10, pi0= 0.85)
 {
+  if (length(pi0) != 1L || !is.finite(pi0) || pi0 < 0 || pi0 > 1)
+    stop("pi0 must be a probability")
   #define mixutre components
   grid <- c(0,cumsum(rchisq(length_grid -1,df=1) )) # grid of sd for the ash mixture
   tt <- runif(length_grid-1)
@@ -35,7 +37,7 @@ simu_IBSS_ash_vanilla <- function( lev_res=8, length_grid= 10, pi0= 0.85)
   #generating a set of wavelet coefficients under this model
   tem_func <- rep(0, 2^lev_res)
   twav <- wavethresh::wd(tem_func)
-  while ( sum(twav$D ==0 ) == length(twav$D))#to ensure that there is at least one coefficient different from 0
+  while (pi0 < 1 && all(twav$D == 0))
   {
     clust  <-  c()
     for ( i in 1:length(twav$D))
@@ -44,14 +46,14 @@ simu_IBSS_ash_vanilla <- function( lev_res=8, length_grid= 10, pi0= 0.85)
     }
     for( i in 1:length(twav$D))
     {
-      twav$D[i] <-  ifelse(clust[i]==1,0,rnorm(1, mean=0, sd= grid[clust]))
+      twav$D[i] <-  ifelse(clust[i]==1,0,rnorm(1, mean=0, sd= grid[clust[i]]))
     }
   }
   sim_func <- wavethresh::wr(twav)
   out <- list( sim_func  = sim_func,
                true_coef =twav$D,
                true_g=true_g,
-               emp_pi0 =length(which(twav$D==0))/(2^lev_res))
+               emp_pi0 =mean(twav$D == 0))
   return(out)
 }
 
@@ -66,9 +68,11 @@ simu_IBSS_ash_vanilla <- function( lev_res=8, length_grid= 10, pi0= 0.85)
 #' @param pi0 vector of length lev_res, contain  digits  between 0 and 1, which corresponds corresponds to the
 #'    proportion of wavelet coefficients that are exactly 0 at a given level of resolution
 #'
-#' @param alpha numeric >0, control smoothness of the curves, should be positive and up 4, in particular, $d_{sl} ~  pi_{0,sl}   delta_0 + sum_k  pi_k N(0, 2^{- alpha * s}   sigma_k^2)$
+#' @param alpha Positive smoothness parameter. At scale s, component
+#'   standard deviations are divided by \code{2^(alpha * s)}.
 #'
-#' @param prop_decay numeric >0, control the proportion of non-zero wavelet coefficient per scale, $pi_{0,sl} = 1- exp(-prop_decay*s)$
+#' @param prop_decay Non-negative decay parameter. The default null
+#'   probability at scale s is \code{1 - exp(-prop_decay * s)}.
 #'
 #' @importFrom stats rchisq
 #' @importFrom stats runif
@@ -98,6 +102,9 @@ simu_IBSS_per_level  <-function( lev_res=7,
   {
     pi0 <- 1-exp(- (  prop_decay*(1:lev_res)))
   }
+  if (length(pi0) == 1L) pi0 <- rep(pi0, lev_res)
+  if (length(pi0) != lev_res || any(!is.finite(pi0)) ||
+      any(pi0 < 0 | pi0 > 1)) stop("pi0 must contain one probability per scale")
   #usefull to parse the indexes of wavelt coefficients
 
   indx_lst <- list()
@@ -125,7 +132,7 @@ simu_IBSS_per_level  <-function( lev_res=7,
   tem_func <- rep(0, 2^lev_res)
   twav <- wavethresh::wd(tem_func)
 
-  while ( sum(twav$D ==0 ) == length(twav$D))#to ensure that ther is at least one coefficient different from 0
+  while (any(pi0 < 1) && all(twav$D == 0))
   {
     for ( i in 1:lev_res)
     {

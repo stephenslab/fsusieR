@@ -33,7 +33,7 @@
 #'  can be to narrow and so should be used with caution.
 #'
 #' @param prior specify the prior used in susiF. The two available choices are
-#' available "mixture_normal_per_scale", "mixture_normal". Default "mixture_normal_per_scale",
+#' available "mixture_normal_per_scale", "mixture_normal". Default "mixture_normal",
 #' if this susiF is too slow, consider using  "mixture_normal"  using  "mixture_normal" which  is up to 40\% faster but may lead to slight power loss
 #'
 #' @param verbose If \code{verbose = TRUE}, the algorithm's progress,
@@ -41,13 +41,12 @@
 #' console.
 #'
 #'
-#' @param tol a small, non-negative number specifying the convergence
-#' tolerance for the IBSS fitting procedure. The fitting procedure
-#' will halt when the difference in the variational lower bound or
-#' \dQuote{ELBO} (the objective function to be maximized), is less
-#' than \code{tol}.
+#' @param tol Non-negative convergence tolerance. With \code{cal_obj=TRUE},
+#' monitor the absolute penalized ELBO change. Otherwise monitor absolute
+#' changes in SNP and mixture probabilities and relative changes in
+#' coefficient means and residual variance.
 #'
-#' @param maxit Maximum number of IBSS iterations.
+#' @param maxit Maximum number of complete IBSS sweeps.
 #'
 #' @param cov_lev numeric between 0 and 1, corresponding to the
 #' expected level of coverage of the CS if not specified, set to 0.95
@@ -65,8 +64,8 @@
 #' @param  cal_obj logical if set as TRUE compute ELBO for convergence monitoring
 #'
 #' @param standardize_Y Logical; center and scale the response before and after
-#'   the wavelet transform. The default preserves the historical fSuSiE
-#'   behavior. Set to `FALSE` when a residual variance on the input-response
+#'   the wavelet transform. The default is `FALSE`, preserving response
+#'   units. Use `FALSE` when a residual variance on the input-response
 #'   scale is supplied.
 #'
 #' @param residual_variance Optional finite positive residual variance. When
@@ -137,11 +136,12 @@
 #'   probabilities for each effect and each original column of X.}
 #'
 #' \item{pip}{Vector of length p containing the posterior inclusion
-#'   probability for each original covariate. Excluded constant columns have
-#'   probability zero.}
+#'   probability for each original covariate, excluding null-prior effects.
+#'   Excluded constant columns have probability zero.}
 #'
 #' \item{cs}{List of length L. Each element is the credible set of
-#' the lth effect.}
+#' the lth effect, or integer(0) when no set is reported. An all-null fit
+#' retains one internal effect with an empty set and zero PIPs.}
 #'
 #' \item{purity}{List of length L. Each element is the purity of the
 #'   lth effect.}
@@ -155,8 +155,16 @@
 #'
 #' \item{sigma2}{The estimated residual variance.}
 #'
-#' \item{lBF}{List of length L containing the log-Bayes factor for
-#'   each effect.}
+#' \item{lBF}{List of length L containing per-SNP natural-log Bayes factors
+#'   for each single effect. Excluded constant columns have value -Inf.}
+#'
+#' \item{lbf}{Vector of length L containing single-effect natural-log Bayes
+#'   factors: log(mean(exp(lBF[[l]]))) over the SNPs retained for fitting,
+#'   computed stably. These use the partial residual and learned prior at
+#'   the corresponding single-effect update.}
+#'
+#' \item{niter, converged}{Number of completed IBSS sweeps and whether the
+#'   requested convergence tolerance was reached.}
 #'
 #' \item{ind_fitted_func}{Matrix of the individual estimated
 #'   genotype effect.}
@@ -174,7 +182,9 @@
 #'
 #' \item{est_sd}{Ehe estimated prior mixture for each effect.}
 #'
-#' \item{ELBO}{The ELBO value at each iteration of the algorithm.}
+#' \item{ELBO}{The penalized ELBO after completed sweeps when
+#'   \code{cal_obj=TRUE}. Structural changes during greedy/backfit search
+#'   restart the trace.}
 #'
 #' \item{fitted_wc}{List of length L. Each element is a matrix
 #'   containing the conditional wavelet coefficients (first moment) for
@@ -348,6 +358,17 @@ susiF <- function(Y, X, L = 2,
   if(max_SNP_EM<10){
     stop("Argument max_SNP_EM has to be larger than 10")
   }
+  if (length(max_step_EM) != 1L || !is.finite(max_step_EM) ||
+      max_step_EM < 0 || max_step_EM != floor(max_step_EM))
+    stop("max_step_EM must be a non-negative integer")
+  if (length(max_scale) != 1L || !is.finite(max_scale) ||
+      max_scale < 2 || max_scale > 15 || max_scale != floor(max_scale))
+    stop("max_scale must be an integer from 2 to 15")
+  if (length(tol_null_prior) != 1L || !is.finite(tol_null_prior) ||
+      tol_null_prior < 0 || tol_null_prior >= 1)
+    stop("tol_null_prior must be in [0, 1)")
+  if (length(e) != 1L || !is.finite(e) || e < 0 || e > 1)
+    stop("e must be in [0, 1]")
 
 
   prior           <- match.arg(prior)
@@ -382,6 +403,20 @@ susiF <- function(Y, X, L = 2,
   pt <- proc.time()
 
   X <- as.matrix(X)
+  Y <- as.matrix(Y)
+  if (!is.numeric(X) || !is.numeric(Y) || nrow(X) != nrow(Y) ||
+      nrow(X) < 2L || ncol(Y) < 4L ||
+      any(!is.finite(X)) || any(!is.finite(Y)))
+    stop("Y and X must be finite numeric matrices with matching rows, at least two rows and four response columns")
+  if (length(tol) != 1L || !is.finite(tol) || tol < 0 ||
+      length(maxit) != 1L || !is.finite(maxit) || maxit < 1L ||
+      maxit != floor(maxit))
+    stop("tol must be non-negative and maxit must be a positive integer")
+  if (length(cov_lev) != 1L || !is.finite(cov_lev) || cov_lev <= 0 || cov_lev > 1)
+    stop("cov_lev must be in (0, 1]")
+  if (length(min_purity) != 1L || !is.finite(min_purity) ||
+      min_purity < 0 || min_purity > 1)
+    stop("min_purity must be in [0, 1]")
   if (ncol(X) < 1L) {
     stop("X must contain at least one covariate column")
   }
@@ -417,6 +452,8 @@ susiF <- function(Y, X, L = 2,
   {
     stop("Error: number of position provided different from the number of column of Y")
   }
+  if (!is.numeric(pos) || any(!is.finite(pos)) || any(diff(pos) <= 0))
+    stop("pos must be finite and strictly increasing in the order of Y columns")
 
   if(prior== "mixture_normal"){
    # nullweight= nullweight*2
@@ -457,7 +494,7 @@ susiF <- function(Y, X, L = 2,
     Y0 <-  Y
     outing_grid =pos
   }else{
-    Y0 <-  Y
+    Y0 <-  map_data$Y
     outing_grid <- map_data$outing_grid
   }
 
@@ -554,11 +591,15 @@ if (is.null(csd_Y_pos)) csd_Y_pos <- rep(1, ncol(Y))
                                  backfit=backfit,
                                  tol_null_prior= tol_null_prior,
                            cov_lev=cov_lev)
+  obj$lbf_min <- lbf_min
 
   if (!is.null(residual_variance)) {
     obj <- update_residual_variance(obj, residual_variance)
   }
   obj$standardize_Y <- standardize_Y
+  obj$filter.number <- filter.number
+  obj$family <- family
+  obj$max_scale <- max_scale
   obj$residual_variance_fixed <- !is.null(residual_variance)
   obj$csd_Y_pos <- csd_Y_pos
   obj$csd_Yf <- csd_Yf
@@ -601,6 +642,7 @@ if (is.null(csd_Y_pos)) csd_Y_pos <- rep(1, ncol(Y))
 
                         indx_lst      = indx_lst,
                         filter_cs     = filter_cs,
+                        min_purity    = min_purity,
                         outing_grid   = outing_grid,
                         filter.number = filter.number,
                         family        = family,

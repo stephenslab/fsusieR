@@ -1,9 +1,15 @@
 .fs_log_mean_exp <- function(x) {
   max_x <- max(x)
-  if (is.infinite(max_x) && max_x < 0) {
-    return(-Inf)
-  }
+  if (is.infinite(max_x)) return(max_x)
   max_x + log(mean(exp(x - max_x)))
+}
+
+.fs_prior_penalty <- function(weights, nullweight) {
+  if (nullweight == 1) return(0)
+  pi0 <- unlist(lapply(weights, function(pi) {
+    if (is.list(pi)) vapply(pi, function(x) x[1L], numeric(1)) else pi[1L]
+  }))
+  (nullweight - 1) * sum(log(pi0))
 }
 
 #' @title Compute KL divergence effect l
@@ -100,6 +106,7 @@ loglik_SFR <- function    (obj, l,  ...)
 loglik_SFR.susiF <- function (obj, l, Y , X, indx_lst, ...)
 {
   lBF            <- get_lBF(obj,l)
+  if (!is.null(obj$variable_index)) lBF <- lBF[obj$variable_index]
   lBF_model      <- .fs_log_mean_exp(lBF)
   return(lBF_model + sum(dnorm(Y,0,sd = sqrt(obj$sigma2),log = TRUE)))
 }

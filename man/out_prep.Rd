@@ -27,6 +27,7 @@ out_prep(obj, Y, X, indx_lst, outing_grid, ...)
   names_colX = NULL,
   pos,
   verbose = TRUE,
+  min_purity = 0.5,
   ...
 )
 }

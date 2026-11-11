@@ -6,6 +6,15 @@
 \usage{
 pois_mean_GP_opt_obj(theta, x, s, beta, sigma2, n)
 }
+\arguments{
+\item{theta}{Variational means followed by log variances.}
+
+\item{x, s}{Counts and exposure factors.}
+
+\item{beta, sigma2}{Prior means and variances.}
+
+\item{n}{Number of observations.}
+}
 \description{
 calculate objective function
 }
