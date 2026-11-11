@@ -1,0 +1,31 @@
+.Rproj.user
+inst/doc
+inst/
+# History files
+.Rhistory
+.Rapp.history
+
+# Session Data files
+.RData
+.RDataTmp
+
+# User-specific files
+.Ruserdata
+
+# Example code in package build process
+*-Ex.R
+# RStudio files
+.Rproj.user/
+
+# Auto-generated documentation
+docs/
+
+# Pixi files
+pixi.lock
+
+# Local scratch files and package build/check output
+/tmp/
+/*.Rcheck/
+/fsusieR_*.tar.gz
+/fsusieR_*.zip
+/Rplots.pdf

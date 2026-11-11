@@ -1,0 +1,10 @@
+During startup - Warning messages:
+1: Setting LC_COLLATE=C.UTF-8 failed 
+2: Setting LC_CTYPE=C.UTF-8 failed 
+3: Setting LC_MONETARY=C.UTF-8 failed 
+4: Setting LC_TIME=C.UTF-8 failed 
+i Loading fsusieR
+Writing 'greedy_backfit.Rd'
+Writing 'fsusie_plots.Rd'
+Writing 'susiF.Rd'
+Deleting 'pois_mean_GP_opt_obj_gradient.Rd'

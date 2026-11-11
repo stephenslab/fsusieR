@@ -1,0 +1,13 @@
+review-cs-pip: ...............................................................................................................
+
+== DONE ========================================================================
+i Loading fsusieR
+Writing 'ebpm_normal.Rd'
+Writing 'vga_pois_solver.Rd'
+Writing 'vga_pois_solver_newton_1iter.Rd'
+Writing 'pois_mean_GP.Rd'
+Writing 'pois_mean_GP_opt_obj.Rd'
+Writing 'pois_mean_GP_opt_obj_gradient.Rd'
+Writing 'pois_smooth_split.Rd'
+Writing 'simu_IBSS_per_level.Rd'
+Writing 'log_BF.Rd'

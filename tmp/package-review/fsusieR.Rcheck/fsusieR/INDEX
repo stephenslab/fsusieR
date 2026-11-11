@@ -1,0 +1,52 @@
+Binomial_fSuSiE         Binomial functional SuSiE
+EBmvFR                  Empirical Bayes multivariate functional
+                        regression
+EBmvFR.workhorse        Empirical Bayes multivariate functional
+                        regression
+HFT                     Perform Haar-Fisz tranform on count matrix
+HMM_regression          Compute refined estimate using HMM regression
+Pois_fSuSiE             Poisson functional SuSiE
+TI_regression           Compute refined estimate using translation
+                        invariant wavelet transform
+affected_reg            Extract coordinates of the regions affected by
+                        the different CS
+ash_hmm_version         Return the implementation version.
+bin_Y                   Binned reponsed data
+cal_Bhat_Shat           Compute Bhat / Shat for one outcome block
+                        (joint-sigma2 form)
+change_fit              Change postprocessing used in susiF object
+colScale                Scaling function from r-blogger
+ebpm_normal             Solve Gaussian approximation to Poisson mean
+                        problem
+fit_ash_hmm             Fit an adaptive-shrinkage hidden Markov model
+fit_binary_markov       Fit the exact two-state binary Markov model
+fit_hmm                 Backward-compatible ash-HMM entry point
+fsusie_log_plot         fSuSiE Plots using Gviz
+get_fitted_effect       Access fitted effect l
+init_EBmvFR_obj         Create an EBmvFR object
+init_susiF_obj          Initialize a susiF object using regression
+                        coefficients
+plot_susiF              fSuSiE Plots
+pois_mean_GP            Solve Gaussian approximation to Poisson mean
+                        problem
+pois_mean_GP_opt_obj    calculate objective function
+pois_mean_GP_opt_obj_gradient
+                        calculate gradient vector
+pois_smooth_split       Smooth over-dispersed Poisson sequence
+remap_data              Ramp matrix of unevenly space data (or non
+                        power of two)
+simu_IBSS_ash_vanilla   Simulate data under a simple mixture normal
+                        prior
+simu_IBSS_per_level     Simulate data under the mixture normal prior
+smash_dwt               Empirical Bayes wavelet smoothing via DWT
+smash_regression        Compute refined estimate using translation
+                        invariant wavelet transform
+susiF                   Sum of Single Function
+susiF.workhorse         Sum of Single Function
+univariate_functional_regression
+                        Wrapper for univariate functional regression
+                        used on susiF
+vga_binomial_solver     Solve the binomial logistic-normal VGA problem
+vga_pois_solver         Optimize vga poisson problem
+vga_pois_solver_newton_1iter
+                        Optimize vga poisson problem 1 iteration.

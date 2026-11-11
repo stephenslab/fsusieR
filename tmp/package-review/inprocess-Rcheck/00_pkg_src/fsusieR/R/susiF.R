@@ -1,0 +1,643 @@
+#' @title Sum of Single Function
+#'
+#' @description Implementation of the SuSiF method.
+#'
+#' @details Implementation of the SuSiF method
+#'
+#'
+#' @param Y functional phenotype, matrix of size N by size J. The
+#'   underlying algorithm uses wavelet, which assumes that J is of the
+#'   form J^2. If J is not a power of 2, susiF internally remaps the data
+#'   into a grid of length 2^J
+#'
+#' @param X matrix of size n by p containing the covariates. Constant columns
+#' are excluded during fitting, but returned variant-indexed fields and
+#' credible-set indices use the original p-column coordinate system.
+#'
+#' @param L upper bound on the number of effects to fit (if not specified, set to =2)
+#'
+#' @param pos vector of length J, corresponding to position/time pf
+#' the observed column in Y, if missing, suppose that the observation
+#' are evenly spaced
+#'
+#' @param  post_processing character, use "TI" for translation invariant wavelet estimates,
+#' "HMM" for hidden Markov model (useful for estimating non-zero regions),
+#' "none" for simple wavelet estimate (not recommended) and "smashr" experimental. In general we recommend using TI as post processing,
+#'  Nonetheless the HMM perform particularly well when analysing data with say few sampling points (i.e ncol(Y)<30) or when the data are particularly noisy (low signal noise ratio).
+#'  However, we found that the HMM post processing is quite sensitive to the Gaussian assumption and we advise to use data transformation if your data are not
+#'  normally distributed, e.g., using log1p(Y[i, ] / si) for count data,
+#'  where si is the individual scaling factor defined by
+#'  \eqn{s_i = \frac{\sum_{j=1}^p \tilde{Y}_{ij}}
+#'  {\frac{1}{n}\sum_{i=1}^n\sum_{j=1}^p \tilde{Y}_{ij}}}.
+#'  or using M-value instead of Beta value when analysing DNA methylation data. The option smashr is experimental and tend to give good point estimate but the credible band
+#'  can be to narrow and so should be used with caution.
+#'
+#' @param prior specify the prior used in susiF. The two available choices are
+#' available "mixture_normal_per_scale", "mixture_normal". Default "mixture_normal",
+#' if this susiF is too slow, consider using  "mixture_normal"  using  "mixture_normal" which  is up to 40\% faster but may lead to slight power loss
+#'
+#' @param verbose If \code{verbose = TRUE}, the algorithm's progress,
+#' and a summary of the optimization settings are printed on the
+#' console.
+#'
+#'
+#' @param tol a small, non-negative number specifying the convergence
+#' tolerance for the IBSS fitting procedure. The fitting procedure
+#' will halt when the difference in the variational lower bound or
+#' \dQuote{ELBO} (the objective function to be maximized), is less
+#' than \code{tol}.
+#'
+#' @param maxit Maximum number of IBSS iterations.
+#'
+#' @param cov_lev numeric between 0 and 1, corresponding to the
+#' expected level of coverage of the CS if not specified, set to 0.95
+#'
+#' @param min_purity minimum purity for estimated credible sets
+#'
+#' @param filter_cs logical, if TRUE filters the credible set (removing low-purity)
+#' cs and cs with estimated prior equal to 0). Set as TRUE by default.
+#'
+#' @param init_pi0_w starting value of weight on null component in mixsqp
+#'  (between 0 and 1)
+#'
+#' @param control_mixsqp list of parameter for mixsqp function see  mixsqp package
+#'
+#' @param  cal_obj logical if set as TRUE compute ELBO for convergence monitoring
+#'
+#' @param standardize_Y Logical; center and scale the response before and after
+#'   the wavelet transform. The default is `FALSE`, preserving response
+#'   units. Use `FALSE` when a residual variance on the input-response
+#'   scale is supplied.
+#'
+#' @param residual_variance Optional finite positive residual variance. When
+#'   supplied, this value is held fixed throughout IBSS. This is used by
+#'   Poisson fSuSiE so that the Gaussian block uses the current outer
+#'   variational variance rather than estimating a second variance on a
+#'   standardized scale.
+#'
+#' @param quantile_trans logical, if set as TRUE perform normal quantile, transform
+#' on wavelet coefficients
+#'
+#' @param L_start number of effect initialized at the start of the algorithm
+#'
+#' @param nullweight Finite numeric value at least 1, using the same convention
+#' as \code{ashr::ash}. Adds \code{(nullweight - 1) * log(pi0)} to the mixture
+#' log-likelihood, where \code{pi0} is the weight on the point mass at zero.
+#' The default is 10; 1 gives no penalty. For \code{mixture_normal_per_scale},
+#' the penalty is applied separately at each scale. Retained SNP probabilities
+#' are normalized to sum to one, so \code{max_SNP_EM} does not rescale the
+#' penalty. Larger values favor more mass at zero and may reduce power.
+#'
+#' @param thresh_lowcount numeric, used to check the wavelet coefficients have
+#'  problematic distribution (very low dispersion even after standardization).
+#'  Basically, check if the median of the absolute value of the distribution of
+#'   a wavelet coefficient is below this threshold. If yes, the algorithm discards
+#'   this wavelet coefficient (setting its estimated effect and posterior SD to 0).
+#'   Set to 0 by default. It can be useful when analyzing sparse data from sequence
+#'    based assay or small samples.
+#'
+#' @param greedy logical, if TRUE allows greedy search for extra effect
+#'  (up to L specified by the user). Set as TRUE by default
+#'
+#' @param backfit logical, if TRUE, allow discarding effect via back fitting.
+#'  Set as true by default as TRUE. We advise keeping it as TRUE.
+#'
+#' @param gridmult numeric used to control the number of components used in the mixture prior (see ashr package
+#'  for more details). From the ash function:  multiplier by which the default grid values for mixed differ from one another.
+#'   (Smaller values produce finer grids.). Increasing this value may reduce computational time.
+#'
+#' @param max_scale numeric, define the maximum of wavelet coefficients used in the analysis (2^max_scale).
+#'        Set 10 true by default.
+#'
+#' @param max_step_EM max_step_EM
+#'
+#' @param filter.number see documentation of wd from wavethresh package
+#'
+#' @param family see documentation of wd from wavethresh package
+#'
+#' @param max_SNP_EM Maximum number of SNPs used for learning the prior.
+#' Default is 100. Reducing this may reduce computational time. The retained
+#' SNP probabilities are renormalized; changing the cutoff can still change
+#' the fitted prior because different SNPs contribute to its estimation.
+#'
+#' @param cor_small logical set to FALSE by default. If TRUE used the Bayes factor from Valen E Johnson JRSSB 2005 instead of Wakefield approximation for Gen Epi 2009
+#' The Bayes factor from Valen E Johnson JRSSB 2005 tends to have better coverage in small sample sizes. We advise using this parameter if n<50
+#'
+#' @param e threshold value is used to avoid computing posteriors that have low alpha values. Set it to 0 to compute the entire posterior. default value is 0.001
+#' @param tol_null_prior threshold to consider prior to be null. If the estimated weight on the point mass at zero is larger than 1-tol_null_prior
+#' then set prior weight on point mass to be 1. In the mixture normal this corresponds to removing the effect. In the mixutre per scale prior this corresponds
+#' to setting the prior of a given scale to at point mass at 0.
+#' @param lbf_min numeric  discard low purity cs in the IBSS fitting procedure if the largest log Bayes factors is lower than this value
+#' @importFrom stats var
+#'
+#' @return A \code{"susiF"} object with some or all of the following
+#' elements:
+#'
+#' \item{alpha}{List of length L containing the posterior inclusion
+#'   probabilities for each effect and each original column of X.}
+#'
+#' \item{pip}{Vector of length p containing the posterior inclusion
+#'   probability for each original covariate. Excluded constant columns have
+#'   probability zero.}
+#'
+#' \item{cs}{List of length L. Each element is the credible set of
+#' the lth effect.}
+#'
+#' \item{purity}{List of length L. Each element is the purity of the
+#'   lth effect.}
+#'
+#' \item{fitted_func}{List of length L. Each element is a vector of
+#'   length J containing the Lth estimated single effect.}
+#'
+#' \item{cred_band}{List of length L. Each element is a list of
+#'   length J, containing the credible band of the Lth effect at each
+#'   position}
+#'
+#' \item{sigma2}{The estimated residual variance.}
+#'
+#' \item{lBF}{List of length L containing per-SNP natural-log Bayes factors
+#'   for each single effect. Excluded constant columns have value -Inf.}
+#'
+#' \item{lbf}{Vector of length L containing single-effect natural-log Bayes
+#'   factors: log(mean(exp(lBF[[l]]))) over the SNPs retained for fitting,
+#'   computed stably. These use the partial residual and learned prior at
+#'   the corresponding single-effect update.}
+#'
+#' \item{niter, converged}{Number of completed IBSS sweeps and whether the
+#'   requested convergence tolerance was reached.}
+#'
+#' \item{ind_fitted_func}{Matrix of the individual estimated
+#'   genotype effect.}
+#'
+#' \item{outing_grid}{The grid on which the effects are estimated. Ssee
+#'   the introductory vignette for more details.}
+#'
+#' \item{runtime}{runtime of the algorithm}
+#'
+#' \item{G_prior}{A list of of ash objects containing the prior
+#'   mixture component.}
+#'
+#' \item{est_pi}{List of length L. Each element contains the
+#'   estimated prior mixture weights for each effect.}
+#'
+#' \item{est_sd}{Ehe estimated prior mixture for each effect.}
+#'
+#' \item{ELBO}{The ELBO value at each iteration of the algorithm.}
+#'
+#' \item{fitted_wc}{List of length L. Each element is a matrix
+#'   containing the conditional wavelet coefficients (first moment) for
+#'   a single effect. For internal use only. The results in
+#'   \code{fitted_func} will correspond to this wavelet coefficient if
+#'   \code{post_processing = "none"} (which is not recommended).}
+#'
+#' \item{fitted_wc2}{List of length L. Each element is a matrix
+#'   containing the conditional wavelet coefficients (second-moment) for
+#'   a single effect.}
+#'
+#' \item{variable_index}{Original column positions retained for fitting.}
+#'
+#' \item{removed_variable_index}{Original constant-column positions excluded
+#'   from fitting.}
+#'
+#' \item{n_cs, cs_size}{Number of reported credible sets and their sizes.}
+#'
+#' @export
+#'
+#' @examples
+#'library(fsusieR)
+#'set.seed(1)
+#'#Example using curves simulated under the Mixture normal per scale prior
+#'rsnr <- 0.2 #expected root signal noise ratio
+#'N <- 100    #Number of individuals
+#'P <- 100     #Number of covariates/SNP
+#'pos1 <- 1   #Position of the causal covariate for effect 1
+#'pos2 <- 5   #Position of the causal covariate for effect 2
+#'lev_res <- 7#length of the molecular phenotype (2^lev_res)
+#'f1 <-  simu_IBSS_per_level(lev_res )$sim_func#first effect
+#'f2 <- simu_IBSS_per_level(lev_res )$sim_func #second effect
+#'
+#'plot( f1, type ="l", ylab="effect", col="blue")
+#'abline(a=0,b=0)
+#'lines(f2, type="l", col="green")
+#'
+#'legend(x=100,
+#'       y=3,
+#'       lty = rep(1,3),
+#'       legend= c("effect 1", "effect 2" ),
+#'       col=c("black","blue","yellow"))
+#'G = matrix(sample(c(0, 1,2), size=N*P, replace=TRUE), nrow=N, ncol=P) #Genotype
+#'beta0       <- 0
+#'beta1       <- 1
+#'beta2       <- 1
+#'noisy.data  <- list()
+#'
+#'for ( i in 1:N)
+#'{
+#'  f1_obs <- f1
+#'  f2_obs <- f2
+#'  noise <- rnorm(length(f1), sd=  (1/  rsnr ) * var(f1))
+#'  noisy.data [[i]] <-   beta1*G[i,pos1]*f1_obs + beta2*G[i,pos2]*f2_obs + noise
+#'
+#'}
+#'noisy.data <- do.call(rbind, noisy.data)
+#'
+#'
+#'
+#'
+#'plot( noisy.data[1,], type = "l", col=(G[1, pos1]*3+1),
+#'      main ="Observed curves \n   colored by the causal effect" , ylim= c(-40,40), xlab="")
+#'for ( i in 2:N)
+#'{
+#'  lines( noisy.data[i,], type = "l", col=(G[i, pos1]*3+1))
+#'
+#'}
+#'legend(x=0.3,
+#'       y=-10,
+#'       lty = rep(1,3),
+#'       legend= c("0", "1","2"),
+#'       col=c("black","blue","yellow"))
+#'
+#'
+#'
+#'Y <- noisy.data
+#'X <- G
+#'#Running fSuSiE
+#'
+#'out <- susiF(Y,X,L=2 , prior = 'mixture_normal_per_scale')
+#'
+#'plot_susiF(out)
+#'
+#'
+#'
+#'#### Find out which regions are affected by the different CS
+#'
+#'affected_reg(obj = out)
+#'
+#' # This corresponds to the regions where the credible bands are
+#' # "crossing zero"/i.e. the effects are likely not to be 0 in this
+#' # region.
+#' #
+#' # You can also access the information directly in the output of
+#' # susiF as follows.
+#'par(mfrow=c(1,2))
+#'
+#'
+#'plot( f2, type="l", main="Estimated effect 1", xlab="")
+#'lines(unlist(out$fitted_func[[1]]),col='blue' )
+#'lines(unlist(out$cred_band[[1]][1,]),col='darkblue',lty=2 )
+#'lines(unlist(out$cred_band[[1]][2,]),col='darkblue' ,lty=2 )
+#'abline(a=0,b=0)
+#'legend(x= 35,
+#'       y=3,
+#'       lty= rep(1,2),
+#'       legend = c("effect 1"," fSuSiE est "),
+#'       col=c("black","blue" )
+#')
+#'plot( f1, type="l", main="Estimated effect 2", xlab="")
+#'lines(unlist(out$fitted_func[[2]]),col='darkgreen' )
+#'lines(unlist(out$cred_band[[2]][1,]),col='darkgreen',lty=2 )
+#'lines(unlist(out$cred_band[[2]][2,]),col='darkgreen' ,lty=2 )
+#'#'abline(a=0,b=0)
+#'legend(x= 20,
+#'       y=-1.5,
+#'       lty= rep(1,2),
+#'       legend = c("effect 2"," fSuSiE est "),
+#'       col=c("black","green" )
+#')
+#'
+#'
+#'par(mfrow=c(1,1))
+#'
+
+
+susiF <- function(Y, X, L = 2,
+                  pos = NULL,
+                  prior = c("mixture_normal","mixture_normal_per_scale" ),
+                  verbose = TRUE,
+                  maxit = 100,
+                  tol = 1e-6,
+                  cov_lev = 0.95,
+                  min_purity=0.5,
+                  filter_cs =TRUE,
+                  init_pi0_w= 1,
+                  nullweight= 10,
+                  control_mixsqp =  list(verbose=FALSE,
+                                         eps = 1e-6,
+                                         numiter.em = 40
+                  ),
+                  thresh_lowcount=0,
+                  cal_obj=FALSE,
+                  L_start = 3,
+                  quantile_trans=FALSE,
+                  greedy =TRUE,
+                  backfit =TRUE,
+                  gridmult= sqrt(2),
+                  max_scale=10,
+                  max_SNP_EM=100,
+                  max_step_EM=1,
+                  cor_small=FALSE,
+                  filter.number = 10,
+                  family =  "DaubLeAsymm",
+                  post_processing=c("smash","TI","HMM","none"),
+                  e = 0.001,
+                  tol_null_prior=0.001,
+                  lbf_min=0.1,
+                  standardize_Y=FALSE,
+                  residual_variance=NULL
+
+)
+{
+
+  if (!is.numeric(nullweight) || length(nullweight) != 1L ||
+      !is.finite(nullweight) || nullweight < 1) {
+    stop("`nullweight` must be a finite number at least 1 (1 gives no penalty)")
+  }
+
+  if(max_SNP_EM<10){
+    stop("Argument max_SNP_EM has to be larger than 10")
+  }
+
+
+  prior           <- match.arg(prior)
+  post_processing <- match.arg( post_processing)
+
+  if (!is.logical(standardize_Y) || length(standardize_Y) != 1L ||
+      is.na(standardize_Y)) {
+    stop("`standardize_Y` must be TRUE or FALSE")
+  }
+  if (!is.null(residual_variance)) {
+    if (length(residual_variance) != 1L ||
+        !is.finite(residual_variance) || residual_variance <= 0) {
+      stop("`residual_variance` must be a finite positive scalar")
+    }
+    if (isTRUE(standardize_Y)) {
+      stop("Fixed `residual_variance` requires `standardize_Y = FALSE`")
+    }
+    if (isTRUE(quantile_trans)) {
+      stop("Fixed `residual_variance` is incompatible with `quantile_trans`")
+    }
+    residual_variance <- as.numeric(residual_variance)
+  }
+
+ if(post_processing=="none"){
+  warning("Option none is not recommended and the effect estimate can be poor")
+ }
+  if(post_processing=="smash"){
+    #warning("Option is experimental, the credible band tend to be to narrow")
+  }
+
+  ####Cleaning input -----
+  pt <- proc.time()
+
+  X <- as.matrix(X)
+  Y <- as.matrix(Y)
+  if (!is.numeric(X) || !is.numeric(Y) || nrow(X) != nrow(Y) ||
+      nrow(X) < 2L || ncol(Y) < 4L ||
+      any(!is.finite(X)) || any(!is.finite(Y)))
+    stop("Y and X must be finite numeric matrices with matching rows, at least two rows and four response columns")
+  if (length(tol) != 1L || !is.finite(tol) || tol < 0 ||
+      length(maxit) != 1L || !is.finite(maxit) || maxit < 1L ||
+      maxit != floor(maxit))
+    stop("tol must be non-negative and maxit must be a positive integer")
+  if (length(cov_lev) != 1L || !is.finite(cov_lev) || cov_lev <= 0 || cov_lev > 1)
+    stop("cov_lev must be in (0, 1]")
+  if (length(min_purity) != 1L || !is.finite(min_purity) ||
+      min_purity < 0 || min_purity > 1)
+    stop("min_purity must be in [0, 1]")
+  if (ncol(X) < 1L) {
+    stop("X must contain at least one covariate column")
+  }
+  if (length(L) != 1L || !is.finite(L) || L < 1L || L != as.integer(L)) {
+    stop("L must be a positive integer")
+  }
+  if (length(L_start) != 1L || !is.finite(L_start) ||
+      L_start < 1L || L_start != as.integer(L_start)) {
+    stop("L_start must be a positive integer")
+  }
+  if(L>ncol(X)){
+    L <-ncol(X)
+  }
+
+  if(L_start>ncol(X)){
+    L_start <-ncol(X)
+  }
+
+
+  if(L_start >L)
+  {
+    L_start <- L
+  }
+  ## Input error messages
+
+  if (is.null(pos))
+  {
+    pos <- 1:dim(Y)[2]
+  }
+
+  #reshaping of the data
+  if ( !(length(pos)==dim(Y)[2])) #miss matching positions and number of observations
+  {
+    stop("Error: number of position provided different from the number of column of Y")
+  }
+  if (!is.numeric(pos) || any(!is.finite(pos)) || any(diff(pos) <= 0))
+    stop("pos must be finite and strictly increasing in the order of Y columns")
+
+  if(prior== "mixture_normal"){
+   # nullweight= nullweight*2
+  }
+  names_colX <- colnames(X)
+  original_P <- ncol(X)
+  X_variance <- apply(X, 2, stats::var)
+  tidx <- which(!is.finite(X_variance) | X_variance == 0)
+  kept_index <- setdiff(seq_len(original_P), tidx)
+  if (length(kept_index) == 0L) {
+    stop("All columns of X are constant")
+  }
+  if (length(tidx) > 0L) {
+    warning(paste("Some of the columns of X are constants, we removed",
+                  length(tidx), "columns"))
+    X <- X[, kept_index, drop = FALSE]
+  }
+  L <- min(L, ncol(X))
+  L_start <- min(L_start, L)
+  if( verbose){
+    if (isTRUE(standardize_Y)) {
+      print("Scaling columns of X and Y to have unit variance")
+    } else {
+      print("Scaling columns of X and centering Y without variance scaling")
+    }
+  }
+  X0=X
+  X <- colScale(X)
+  #browser()
+  map_data <- remap_data(Y=Y,
+                         pos=pos,
+                         verbose=verbose,
+                         max_scale=max_scale)
+
+# keep the same input format
+  if (post_processing %in% c("smash", "HMM")) {
+
+    Y0 <-  Y
+    outing_grid =pos
+  }else{
+    Y0 <-  map_data$Y
+    outing_grid <- map_data$outing_grid
+  }
+
+
+  Y           <- map_data$Y
+
+  # centering and scaling covariate
+
+  # centering input
+   #fit user function on interpolated functions
+
+Y <- colScale(Y, scale = standardize_Y)
+csd_Y_pos <- attr(Y, "scaled:scale")
+if (is.null(csd_Y_pos)) csd_Y_pos <- rep(1, ncol(Y))
+
+  W <- DWT2(Y,
+            filter.number = filter.number,
+            family        = family)
+  Y_f      <-  cbind( W$D,W$C)
+  Y_f  <- colScale(Y_f, scale = standardize_Y)
+  csd_Yf <- attr(Y_f, "scaled:scale")
+  if (is.null(csd_Yf)) csd_Yf <- rep(1, ncol(Y_f))
+  W$C=Y_f[, ncol(Y)]
+  W$D=Y_f[, -ncol(Y)]
+
+  if(verbose){
+    print("Starting initialization")
+  }
+  if(verbose){
+    print("Data transform")
+  }
+  ### Definition of some static parameters ---
+
+  indx_lst <-  gen_wavelet_indx(log2(length(map_data$outing_grid)))
+  rm( map_data)
+  #removing wc with variance 0 or below a certain level
+
+  lowc_wc <-   which_lowcount(Y_f,thresh_lowcount)
+  if(verbose){
+    print( paste("Discarding ", length(lowc_wc), "wavelet coefficients out of ", ncol(Y_f)))
+  }
+  if(length(lowc_wc)> (ncol(Y_f )-3)){
+   print("almost all the wavelet coefficients are null/low variance, consider using univariate fine mapping")
+    return(NULL)
+  }
+
+
+  if(quantile_trans)# important to do it after testing for lowcount
+  {
+    W$C <- Quantile_transform(W$C )
+
+    W$D <- apply( W$D,2,  Quantile_transform )
+    Y_f      <-  cbind( W$D,W$C)
+  }
+
+  v1       <-  rep(1, dim(X)[1])### used in fit_lm to add a column of 1 in the design matrix
+  # Wavelet transform of the inputs
+
+
+  update_D <- W
+  if(verbose){
+    print("Data transform done")
+  }
+  ### Definition of some dynamic parameters ------
+  if(verbose){
+    print("Initializing prior")
+  }
+ # browser()
+     #Using a column like phenotype, temporary matrix that will be regularly updated
+  temp        <- init_prior(Y              = cbind( W$D,W$C),
+                            X              = X,
+                            prior          = prior ,
+                            v1             = v1,
+                            indx_lst       = indx_lst,
+                            lowc_wc        = lowc_wc,
+                            control_mixsqp = control_mixsqp,
+                            nullweight     = nullweight,
+                            gridmult       = gridmult,
+                            max_SNP_EM     = max_SNP_EM,
+                            max_step_EM    = max_step_EM,
+                            cor_small      = cor_small,
+                            tol_null_prior = tol_null_prior,
+                            sigma2         = if (is.null(residual_variance)) 1 else residual_variance)
+  G_prior     <- temp$G_prior
+  tt          <- temp$tt
+
+  #Recycled for the first step of the while loop
+  obj   <-  init_susiF_obj(L_max=L,
+                                 G_prior=G_prior,
+                                 Y=Y,
+                                 X=X,
+                                 L_start=L_start,
+                                 greedy=greedy,
+                                 backfit=backfit,
+                                 tol_null_prior= tol_null_prior,
+                           cov_lev=cov_lev)
+  obj$lbf_min <- lbf_min
+
+  if (!is.null(residual_variance)) {
+    obj <- update_residual_variance(obj, residual_variance)
+  }
+  obj$standardize_Y <- standardize_Y
+  obj$residual_variance_fixed <- !is.null(residual_variance)
+  obj$csd_Y_pos <- csd_Y_pos
+  obj$csd_Yf <- csd_Yf
+
+  if(verbose){
+    print("Initialization done")
+  }
+  # numerical value to check breaking condition of while
+
+
+
+  obj     <- susiF.workhorse(obj      = obj,
+                                   W              = W,
+                                   X              = X,
+                                   tol            = tol,
+                                   init_pi0_w     = init_pi0_w ,
+                                   control_mixsqp = control_mixsqp ,
+                                   indx_lst       = indx_lst,
+                                   lowc_wc        = lowc_wc,
+                                   nullweight     = nullweight,
+                                   cal_obj        = cal_obj,
+                                   verbose        = verbose,
+                                   cov_lev        = cov_lev,
+                                   min_purity     = min_purity,
+                                   maxit          = maxit,
+                                   tt             = tt,
+                                   max_SNP_EM     = max_SNP_EM,
+                                   max_step_EM    = max_step_EM,
+                                   cor_small      = cor_small,
+                                   e              = e,
+                                   estimate_sigma2 = is.null(residual_variance)
+                                 )
+    #browser()
+  #preparing output
+  obj <- out_prep(     obj            = obj,
+                        Y             =    Y0,#colScale(Y0, scale = FALSE),
+                        X             =  X0 ,# sweep(
+                        #sweep(X , 2, attr(X, "scaled:scale"), "*"),
+                      #  2, attr(X , "scaled:center"), "+")
+
+                        indx_lst      = indx_lst,
+                        filter_cs     = filter_cs,
+                        min_purity    = min_purity,
+                        outing_grid   = outing_grid,
+                        filter.number = filter.number,
+                        family        = family,
+                        post_processing=  post_processing,
+                        tidx          = tidx,
+                        kept_index    = kept_index,
+                        original_P    = original_P,
+                        names_colX    = names_colX,
+                        pos           = pos,
+                        verbose       = verbose
+  )
+  obj$runtime <- proc.time()-pt
+  return(obj)
+}

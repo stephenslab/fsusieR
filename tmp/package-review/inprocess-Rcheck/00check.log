@@ -1,0 +1,34 @@
+* using log directory 'C:/Document/Serieux/Travail/Package/fsusieR/fsusieR.Rcheck'
+* using R version 4.6.1 (2026-06-24 ucrt)
+* using platform: x86_64-w64-mingw32
+* R was compiled by
+    gcc.exe (GCC) 14.3.0
+    GNU Fortran (GCC) 14.3.0
+* running under: Windows 11 x64 (build 26300)
+* using session charset: ASCII
+* current time: 2026-11-06 14:42:20 UTC
+* using options '--no-examples --no-tests --no-manual --ignore-vignettes'
+* checking for file 'fsusieR/DESCRIPTION' ... OK
+* checking extension type ... Package
+* this is package 'fsusieR' version '0.3.59'
+* package encoding: UTF-8
+* checking package namespace information ... OK
+* checking package dependencies ... ERROR
+Packages required but not available:
+  'wavethresh', 'ashr', 'mixsqp', 'matrixStats', 'ggplot2', 'cowplot',
+  'smashr', 'Rcpp', 'ebnm', 'Rfast'
+
+Packages suggested but not available:
+  'susieR', 'knitr', 'gridExtra', 'rmarkdown', 'coloc', 'testthat',
+  'reshape2', 'AnnotationHub', 'org.Hs.eg.db', 'GenomicRanges', 'Gviz',
+  'haarfisz', 'TxDb.Hsapiens.UCSC.hg38.knownGene', 'LaplacesDemon',
+  'AnnotationDbi'
+
+The suggested packages are required for a complete check.
+Checking can be attempted without them by setting the environment
+variable _R_CHECK_FORCE_SUGGESTS_ to a false value.
+
+See section 'The DESCRIPTION file' in the 'Writing R Extensions'
+manual.
+* DONE
+Status: 1 ERROR

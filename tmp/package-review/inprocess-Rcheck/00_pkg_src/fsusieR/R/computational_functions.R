@@ -1,0 +1,1820 @@
+################################## susiF computational FUNCTIONS ############################
+
+
+#' @title Compute correlation between credible sets
+#
+#' @param obj a susiF object
+#' @param  X matrix of covariates
+#'
+#' @importFrom stats median
+#' @importFrom stats cor
+#'
+#' @export
+#' @keywords internal
+cal_cor_cs <- function(obj,X){
+
+  if(length(obj$cs)==1)
+  {return(obj)}else{
+
+    mat_cor <- matrix(NA, ncol = length(obj$cs),
+                      nrow= length(obj$cs))
+
+    for ( l in 1:length(obj$cs)){
+
+      for ( k in 1:length(obj$cs)){
+
+        temp <- max(do.call( c,
+                             sapply( 1:length(obj$cs[[l]]),
+                                     function(l1)
+                                       sapply( 1:length(obj$cs[[k]]),
+                                               function( k1)  cor(X[,c(obj$cs[[l]][l1],
+                                                                       obj$cs[[k]][k1])])[2,1],
+                                               simplify=FALSE)
+                             )
+        )
+        )
+        mat_cor[l,k] <-temp
+        mat_cor[k,l] <-temp
+
+      }
+    }
+  }
+  obj$cs_cor <- mat_cor
+  return(obj)
+}
+#' @title Compute Bhat / Shat for one outcome block (joint-sigma2 form)
+#'
+#' @description Marginal OLS coefficient and its joint-sigma2 standard error,
+#'   suitable for the SER kernel inside SuSiE-style IBSS updates.
+#'
+#'   Replaces the previous per-(SNP, trait) marginal-residual-variance form
+#'   that was breaking variational consistency.  The per-SNP regressions are
+#'   gone, so this is also substantially faster (one matrix multiply instead
+#'   of J*p univariate fits).
+#'
+#' @param Y           N x J outcome matrix (one column per wavelet position
+#'                    or per univariate trait inside the modality).
+#' @param X           N x p predictor matrix (assumed centred/scaled, but
+#'                    correctness does not depend on that).
+#' @param v1          Ignored legacy third argument, retained so older
+#'                    positional calls continue to work.
+#' @param sigma2      Numeric, length 1 or length J.  The CURRENT IBSS
+#'                    residual-variance estimate for each column of Y.  A
+#'                    scalar is recycled to length J via rep_len.
+#' @param lowc_wc     Optional integer vector of column indices of Y to mask
+#'                    (low-count wavelet coefficients).  Bhat zeroed, Shat
+#'                    set to 1 so they contribute nothing to BF.
+#' @param ind_analysis  Optional. NULL -> use all rows.
+#'                      If a list, ind_analysis[[j]] is the row subset for
+#'                      column j of Y (per-trait missingness).
+#'                      If a vector, common subset for all columns.
+#' @param resid_var   Ignored — kept for backward signature compatibility.
+#'                    Pass sigma2 instead.
+#' @param ...         Swallowed.
+#'
+#' @return list with components Bhat (p x J) and Shat (p x J).
+#' @export
+cal_Bhat_Shat <- function(Y, X, v1 = NULL,
+                          lowc_wc      = NULL,
+                          ind_analysis = NULL,
+                          sigma2       = NULL,
+                          resid_var    = NULL,    # ignored; superseded by sigma2
+                          ...) {
+
+  ## sigma2 missing => fall back to per-(k, j) marginal-regression Shat.
+  ##
+  ## This form does NOT match the SER kernel's variational consistency
+  ## requirements and must NOT be used inside the IBSS loop -- all IBSS
+  ## callers in this package now pass sigma2 explicitly.  The fallback is
+  ## here so the post-processing helpers (univariate_TI_regression,
+  ## univariate_HMM_regression, univariate_smash_regression, ...), which
+  ## do single-SNP refits where the per-(k,j) Shat IS the natural form,
+  ## keep working without each helper having to build its own sigma2.
+  marginal_mode <- is.null(sigma2)
+
+  J <- ncol(Y)
+  if (!marginal_mode) sigma2 <- rep_len(as.numeric(sigma2), J)
+
+  if (is.null(ind_analysis)) {
+    d    <- colSums(X^2)
+    Bhat <- crossprod(X, Y) / d                # p x J
+    if (marginal_mode) {
+      ## Shat[k, j] = sqrt( sum_i (Y[i,j] - X[i,k]*Bhat[k,j])^2 / (n-1) ) / sqrt(d[k])
+      ## Vectorised: Var_marg[k,j] = sum(Y[,j]^2)/(n-1) - Bhat[k,j]^2 * d[k]/(n-1)
+      n         <- nrow(X)
+      ssY       <- colSums(Y * Y)                              # length J
+      var_marg  <- outer(rep(1, ncol(X)), ssY) / (n - 1) -
+                   (Bhat^2) * (d / (n - 1))                    # p x J
+      var_marg  <- pmax(var_marg, 0)
+      Shat      <- sqrt(var_marg) / sqrt(d)                    # p x J
+    } else {
+      ## Shat[k, j] = sqrt(sigma2[j] / d[k])
+      Shat <- sqrt(outer(1 / d, sigma2, FUN = "*"))
+    }
+
+  } else if (is.list(ind_analysis)) {
+    p    <- ncol(X)
+    Bhat <- matrix(0, p, J)
+    Shat <- matrix(0, p, J)
+    for (j in seq_len(J)) {
+      idx       <- ind_analysis[[j]]
+      Xj        <- X[idx, , drop = FALSE]
+      yj        <- Y[idx, j]
+      dj        <- colSums(Xj^2)
+      Bhat[, j] <- crossprod(Xj, yj) / dj
+      if (marginal_mode) {
+        nj         <- length(idx)
+        ssYj       <- sum(yj * yj)
+        var_marg_j <- ssYj / (nj - 1) - (Bhat[, j]^2) * dj / (nj - 1)
+        var_marg_j <- pmax(var_marg_j, 0)
+        Shat[, j]  <- sqrt(var_marg_j) / sqrt(dj)
+      } else {
+        Shat[, j] <- sqrt(sigma2[j] / dj)
+      }
+    }
+
+  } else {
+    Xi   <- X[ind_analysis, , drop = FALSE]
+    Yi   <- Y[ind_analysis, , drop = FALSE]
+    d    <- colSums(Xi^2)
+    Bhat <- crossprod(Xi, Yi) / d
+    if (marginal_mode) {
+      ni        <- length(ind_analysis)
+      ssY       <- colSums(Yi * Yi)
+      var_marg  <- outer(rep(1, ncol(Xi)), ssY) / (ni - 1) -
+                   (Bhat^2) * (d / (ni - 1))
+      var_marg  <- pmax(var_marg, 0)
+      Shat      <- sqrt(var_marg) / sqrt(d)
+    } else {
+      Shat <- sqrt(outer(1 / d, sigma2, FUN = "*"))
+    }
+  }
+
+  ## Mask low-confidence wavelet positions / traits
+  if (!is.null(lowc_wc)) {
+    Bhat[, lowc_wc] <- 0
+    Shat[, lowc_wc] <- 1
+  }
+
+  Shat <- pmax(Shat, 1e-32)
+
+  list(Bhat = Bhat, Shat = Shat)
+}
+
+
+
+#' @title Compute likelihood for the weighted ash problem
+#
+#' @description Add description here.
+#
+#' @param lBF vector of log Bayes factors
+#'
+#' @param zeta assignment probabilities
+#'
+#' @return Likelihood value
+#'
+#' @export
+#' @keywords internal
+cal_lik <- function(lBF,zeta)
+{
+  out <- sum( zeta*exp(lBF - max(lBF ) ))
+  return(out)
+}
+
+#' @title Compute conditional local false sign rate
+#
+#' @description Compute conditional local false sign rate
+#' @param G_prior mixture normal prior
+#
+#' @param Bhat  matrix pxJ regression coefficient, Bhat[j,t] corresponds to regression coefficient of Y[,t] on X[,j]
+#
+#' @param Shat matrix pxJ standard error, Shat[j,t] corresponds to standard error of the regression coefficient of Y[,t] on X[,j]
+#
+#' @param indx_lst list generated by \code{\link{gen_wavelet_indx}} for the given level of resolution, used only with class mixture_normal_per_scale
+#' @param \dots Other arguments.
+#
+#
+#' @return pxJ matrix of local false sign rate
+#
+#' @export
+#' @keywords internal
+
+
+cal_clfsr <- function (G_prior, Bhat, Shat,...)
+  UseMethod("cal_clfsr")
+
+
+#' @rdname cal_clfsr
+#
+#' @method cal_clfsr mixture_normal
+#
+#' @export cal_clfsr.mixture_normal
+#
+#
+#
+#' @importFrom ashr set_data
+#' @importFrom ashr get_fitted_g
+#' @export
+#' @keywords internal
+#
+cal_clfsr.mixture_normal  <- function(G_prior,
+                                      Bhat,
+                                      Shat,...)
+{
+  t_col_post <- function(t){
+    m <- G_prior [[1]]
+    data <-  ashr::set_data(Bhat[t,] ,Shat[t,] )
+    return(calc_lfsr( m ,data))
+  }
+
+  out <- lapply(1:(dim(Bhat)[1] ),t_col_post )
+  out <- t(Reduce("cbind", out))
+  class(out) <- "clfsr_wc"
+  return(out)
+}
+
+
+#' @rdname cal_clfsr
+#
+#' @method cal_clfsr mixture_normal_per_scale
+#
+#' @export cal_clfsr.mixture_normal_per_scale
+#
+#
+#
+#' @importFrom ashr set_data
+#' @importFrom ashr get_fitted_g
+#
+#' @export
+#' @keywords internal
+#
+
+cal_clfsr.mixture_normal_per_scale <- function( G_prior ,
+                                                Bhat,
+                                                Shat,
+                                                indx_lst,...  )
+{
+  t_col_post <- function(t ){
+
+    t_m_post <- function(s){
+      m <- G_prior [[ s]]
+
+      data <-  ashr::set_data(Bhat[t,indx_lst[[s]] ],
+                              Shat[t, indx_lst[[s]] ]
+      )
+      return(calc_lfsr( m ,data))
+    }
+    return(unlist(lapply( c((length(indx_lst)  -1): 1,length(indx_lst)   ), #important to maintain the ordering of the wavethresh package !!!!
+                          t_m_post )))
+  }
+
+  out <- lapply( 1:(dim(Bhat)[1]),
+                 FUN= t_col_post)
+
+
+  out <- t(Reduce("cbind", out))
+  class(out) <- "clfsr_wc"
+  return(out)
+}
+
+
+
+#' @title Compute conditional local false sign rate
+#' @description Compute conditional local false sign rate
+#'
+#' @param clfsr_wc an object of the class "clfsr_wc" generated by \code{\link{cal_clfsr}}
+#'
+#' @param alpha  vector of length P containning
+#'
+#' @return  J local false sign rate
+#'
+#' @export
+#' @keywords internal
+
+cal_lfsr  <- function (clfsr_wc, alpha){
+  out <-  c(alpha %*%clfsr_wc)
+  return( out)
+}
+
+#' @title Compute assignment probabilities from log Bayes factors
+#'
+#' @description Add description here.
+#'
+#' @param lBF vector of log Bayes factors
+#' @export
+#' @keywords internal
+cal_zeta <- function(lBF)
+{
+  out <- exp(lBF - max(lBF ) ) /sum( exp(lBF - max(lBF ) ))
+  return(out)
+}
+
+
+
+
+
+# @title Regress column l of Y on column j of X
+#
+# @description Regress column l of Y on column j of X
+#
+# @param Y  functional phenotype, matrix of size N by size J. The underlying algorithm uses wavelets that assume that J is of the form J^2. If J is not a power of 2, susiF internally remaps the data into a grid of length 2^J
+#
+# @param X matrix of size n by p in
+#
+# @param v1 vector of 1 of length n
+#
+# @param l Y column index
+#
+# @param j X column index
+#
+# @param lowc_wc wavelet coefficient with low count to be discarded
+#
+#
+# @return vector of 2 containing the regression coefficient and standard error
+#
+# @export
+#
+fit_lm <- function( l,j,Y,X,v1, lowc_wc =NULL ,...)  ## Speed Gain
+{
+
+  if( !is.null(lowc_wc)){
+
+    if (l %in%lowc_wc){
+      return(c(0,
+               1
+      )
+      )
+
+    }else{
+
+
+      return(  fast_lm(x=X[,j] ,
+                       y= Y[,l]
+      )
+      )
+    }
+
+  }else{
+    return(  fast_lm(X[,j] ,
+                     Y[,l]
+    )
+    )
+  }
+
+
+
+
+
+}
+
+# @title Fit ash of coefficient from scale s
+#
+# @description Add description here.
+#
+# @param Bhat  matrix pxJ regression coefficient, Bhat[j,t] corresponds to regression coefficient of Y[,t] on X[,j]
+#
+# @param Shat matrix pxJ standard error, Shat[j,t] corresponds to standard error of the regression coefficient of Y[,t] on X[,j]
+#
+# @param s scale of interest
+#
+# @param indx_lst list generated by \code{\link{gen_wavelet_indx}} for the given level of resolution, used only with class mixture_normal_per_scale
+#
+# @param lowc_wc wavelet coefficient with low count to be discarded
+#
+# @return an ash object
+#
+#' @importFrom ashr ash
+#
+# @export
+#
+fit_ash_level <- function (Bhat, Shat, s, indx_lst, lowc_wc,...)
+{
+  if( !is.null(lowc_wc)){
+
+
+    t_ind <-indx_lst[[s]]
+    t_ind <-  t_ind[which(t_ind %!in% lowc_wc)]
+
+
+    if( length(t_ind)==0){ #create a ash object with full weight on null comp
+      out <- ashr::ash(rnorm(100, sd=0.1),
+                       rep(1,100),
+                       mixcompdist = "normal" ,
+                       outputlevel=0)
+      out$fitted_g$pi  <- c(1, rep(0, (length(out$fitted_g$pi )-1) ))
+    }else{
+      out <- ashr::ash(as.vector(Bhat[,t_ind]),
+                       as.vector(Shat[,t_ind]),
+                       mixcompdist = "normal" ,
+                       outputlevel=0)
+    }
+
+  }else{
+    out <- ashr::ash(as.vector(Bhat[,indx_lst[[s]]]),
+                     as.vector(Shat[,indx_lst[[s]]]),
+                     mixcompdist = "normal" ,
+                     outputlevel=0)
+  }
+
+  return(out)
+}
+
+#'@title Compute refined estimate using HMM regression
+#'
+#' @description    Compute refined estimate using HMM regression
+#'
+#' @param obj  a susiF object
+#' @param Y  matrix of responses
+#' @param X matrix containing the covariates
+#' @param verbose logical
+#' @param fit_indval logical if set to true compute fitted value (default value TRUE)
+#'
+#' @param \dots Other arguments.
+#' @export
+
+
+HMM_regression<- function (obj,
+                           Y,
+                           X,
+                           verbose=TRUE,
+                           fit_indval=TRUE,...)
+  UseMethod("HMM_regression")
+
+
+#' @rdname HMM_regression
+#'
+#' @method HMM_regression susiF
+#'
+#' @importFrom stats lm
+#'
+#' @export HMM_regression.susiF
+#'
+#' @export
+#'
+HMM_regression.susiF <- function( obj,
+                                  Y ,
+                                  X ,
+                                  verbose=FALSE,
+                                  fit_indval=TRUE ,...
+){
+  if(verbose){
+    print( "Fine mapping done, refining effect estimates using HMM regression")
+  }
+  idx <- do.call( c, lapply( 1:length(obj$cs),
+                             function(l){
+                               tp_id <-  which.max(obj$alpha[[l]])
+                             }
+  )
+  )
+
+
+
+
+  sub_X <- data.frame(X[, idx, drop = FALSE])
+  # lm omits aliased columns (including duplicate lead SNPs). Keep coefficient
+  # matrices two-dimensional and map estimable coefficients by column name.
+  coefficients <- lapply(seq_len(ncol(Y)), function(j) {
+    summary(lm(Y[, j] ~ ., data = sub_X))$coefficients[-1L, c(1L, 2L), drop = FALSE]
+  })
+  obj$fitted_func <- rep(list(rep(0, ncol(Y))), length(idx))
+  obj$lfsr_func <- rep(list(rep(1, ncol(Y))), length(idx))
+  for (l in seq_along(idx)) {
+    name <- names(sub_X)[l]
+    if (!name %in% rownames(coefficients[[1L]])) next
+    est <- vapply(coefficients, function(coef) coef[name, 1L], numeric(1))
+    se <- vapply(coefficients, function(coef) coef[name, 2L], numeric(1))
+    invalid <- !is.finite(est) | !is.finite(se) | se <= 0
+    est[invalid] <- 0
+    se[invalid] <- 1
+    fit <- fit_hmm(x = est, sd = se, verbose = verbose, maxit = 100)
+    obj$fitted_func[[l]] <- fit$posterior$mean
+    obj$lfsr_func[[l]] <- fit$posterior$lfsr
+  }
+  obj
+}
+
+# Evaluate mixtures as log likelihood ratios, avoiding density underflow.
+.fs_mixture_lbf <- function(g, b, se, df = NULL) {
+  use <- which(g$pi > 0)
+  log_components <- vapply(use, function(k) {
+    if (g$sd[k] == 0) return(rep(log(g$pi[k]), length(b)))
+    if (is.null(df)) {
+      ratio <- (g$sd[k] / se)^2
+      lr <- -0.5 * log1p(ratio) +
+        0.5 * (b / se)^2 * (1 - 1 / (1 + ratio))
+    } else {
+      lr <- LaplacesDemon::dstp(b, tau = 1 / (se^2 + g$sd[k]^2),
+                                nu = df, log = TRUE) -
+        LaplacesDemon::dstp(b, tau = 1 / se^2, nu = df, log = TRUE)
+    }
+    log(g$pi[k]) + lr
+  }, numeric(length(b)))
+  log_components <- matrix(log_components, nrow = length(b))
+  matrixStats::rowLogSumExps(log_components)
+}
+
+#' @title Compute Log-Bayes Factor
+#'
+#' @description Compute Log-Bayes Factor
+#'
+#' @param G_prior Mixture normal prior.
+#'
+#' @param Bhat p x J matrix of regression coefficients;
+#' \code{Bhat[j,t]} gives regression coefficient of \code{Y[,t]} on
+#' \code{X[,j]}.
+#'
+#' @param Shat p x J matrix of standard errors; \code{Shat[j,t]}
+#'   gives standard error of the regression coefficient of
+#'   \code{Y[,t]} on {X[,j]}.
+#'
+#' @param indx_lst List generated by \code{\link{gen_wavelet_indx}}
+#'   for the given level of resolution, used only with class
+#'   \dQuote{mixture_normal_per_scale}
+#'
+#' @param lowc_wc wavelet coefficient with low count to be discarded
+#' @param df degree of freedom, if set to NULL use normal distribution
+#' @param indx_lst list generated by \code{\link{gen_wavelet_indx}} for the given level of resolution, used only with class mixture_normal_per_scale
+#' @param \dots Other arguments.
+#' @return  The log-Bayes factor for each covariate.
+#'
+#' @export
+#' @keywords internal
+log_BF <- function (G_prior, Bhat, Shat,lowc_wc,indx_lst, df=NULL,...)
+  UseMethod("log_BF")
+
+#' @rdname log_BF
+#'
+#' @importFrom stats dnorm
+#'
+#' @method log_BF mixture_normal
+#'
+#' @export log_BF.mixture_normal
+#'
+#' @export
+#' @keywords internal
+log_BF.mixture_normal <- function(G_prior, Bhat, Shat, lowc_wc,
+                                  indx_lst, df = NULL, ...) {
+  columns <- setdiff(seq_len(ncol(Bhat)), lowc_wc)
+  if (!length(columns)) return(rep(0, nrow(Bhat)))
+  values <- .fs_mixture_lbf(G_prior[[1L]]$fitted_g,
+                            c(Bhat[, columns, drop = FALSE]),
+                            pmax(c(Shat[, columns, drop = FALSE]), 1e-32), df)
+  rowSums(matrix(values, nrow = nrow(Bhat)))
+}
+
+#' @rdname log_BF
+#'
+#' @method log_BF mixture_normal_per_scale
+#'
+#' @export log_BF.mixture_normal_per_scale
+#'
+#' @importFrom ashr set_data
+#'
+#'
+#'
+#' @export
+#' @keywords internal
+log_BF.mixture_normal_per_scale <- function(G_prior, Bhat, Shat,
+                                            lowc_wc, indx_lst, df = NULL, ...) {
+  result <- rep(0, nrow(Bhat))
+  for (s in seq_along(indx_lst)) {
+    columns <- setdiff(indx_lst[[s]], lowc_wc)
+    if (!length(columns)) next
+    values <- .fs_mixture_lbf(G_prior[[s]]$fitted_g,
+                              c(Bhat[, columns, drop = FALSE]),
+                              pmax(c(Shat[, columns, drop = FALSE]), 1e-32), df)
+    result <- result + rowSums(matrix(values, nrow = nrow(Bhat)))
+  }
+  result
+}
+
+#' @title Compute posterior mean under mixture normal prior
+#'
+#' @description Add description here.
+#'
+#' @param G_prior mixture normal prior
+#'
+#' @param Bhat  matrix pxJ regression coefficient, Bhat[j,t] corresponds to regression coefficient of Y[,t] on X[,j]
+#'
+#' @param Shat matrix pxJ standard error, Shat[j,t] corresponds to standard error of the regression coefficient of Y[,t] on X[,j]
+#'
+#' @param lBF log BF
+#'
+#' @param indx_lst list generated by \code{\link{gen_wavelet_indx}} for the given level of resolution, used only with class mixture_normal_per_scale
+#'
+#' @param lowc_wc wavelet coefficient with low count to be discarded
+#' @param e threshold value to avoid computing posterior that have low alpha value. Set it to 0 to compute the entire posterior. default value is 0.001
+#' @param \dots Other arguments.
+#' @return pxJ matrix of posterior mean
+#'
+#'
+#'
+#' @export
+#' @keywords internal
+
+post_mat_mean <- function (G_prior, Bhat, Shat,lBF,lowc_wc,indx_lst,
+                           e,...)
+  UseMethod("post_mat_mean")
+
+
+#' @rdname post_mat_mean
+#'
+#' @method post_mat_mean mixture_normal
+#'
+#' @export post_mat_mean.mixture_normal
+#'
+#'
+#'
+#' @importFrom ashr set_data
+#'
+#' @export
+#' @keywords internal
+#'
+post_mat_mean.mixture_normal  <- function( G_prior,
+                                           Bhat,
+                                           Shat,
+                                           lBF=NULL,
+                                           lowc_wc,
+                                           indx_lst,
+                                           e=0.001,...  )
+{
+
+
+
+  if( !is.null( lBF)){
+
+    alpha  <- cal_zeta(   lBF)
+    idx_c <-  which( alpha >e )
+  }else{
+    idx_c=NULL
+  }
+
+  if (is.null(lBF)) {
+
+    t_col_post <- function(t){
+      m <- G_prior [[1]]
+      data <-  ashr::set_data(Bhat[t, ] ,Shat[t,] )
+      return(ashr::postmean(ashr::get_fitted_g(m),data))
+    }
+
+
+
+    out <- lapply( 1:(dim(Bhat)[1]),
+                   FUN= t_col_post)
+
+    out <- t(Reduce("cbind", out))
+
+
+    if( !is.null(lowc_wc)){
+      out[, lowc_wc] <-0
+    }
+  }else{
+    t_out <- 0*Bhat
+    if (!length(idx_c)) return(t_out)
+
+
+
+    t_col_post <- function(t){
+      m <- G_prior [[1]]
+      data <-  ashr::set_data(Bhat[t, ] ,Shat[t,] )
+      return(ashr::postmean(ashr::get_fitted_g(m),data))
+    }
+
+
+
+    out <- lapply(idx_c,
+                  FUN= t_col_post)
+
+    out <- t(Reduce("cbind", out))
+
+
+
+    t_out[idx_c,] <- out
+    out <- t_out
+    if( !is.null(lowc_wc)){
+      out[, lowc_wc] <-0
+    }
+  }
+
+
+
+  return(out)
+}
+
+
+
+#' @rdname post_mat_mean
+#'
+#' @method post_mat_mean mixture_normal_per_scale
+#'
+#' @export post_mat_mean.mixture_normal_per_scale
+#'
+#' @export
+#' @keywords internal
+#'
+#' @importFrom ashr set_data
+post_mat_mean.mixture_normal_per_scale <- function( G_prior,
+                                                    Bhat,
+                                                    Shat,
+                                                    lBF=NULL,
+                                                    lowc_wc,
+                                                    indx_lst,
+                                                    e=0.001,
+                                                    ...  )
+{
+
+
+
+  if( !is.null( lBF)){
+
+    alpha  <- cal_zeta(   lBF)
+    idx_c <-  which( alpha >e )
+  }else{
+    idx_c=NULL
+  }
+
+
+  if (is.null(lBF)) {
+
+    t_col_post <- function(t  ){
+
+      t_m_post <- function(s ){
+        m <- G_prior [[ s]]
+
+        data <-  ashr::set_data(Bhat[t,indx_lst[[s]] ],
+                                Shat[t, indx_lst[[s]] ]
+        )
+        return(ashr::postmean(ashr::get_fitted_g(m),data))
+      }
+      return(unlist(lapply( c((length(indx_lst)  -1): 1,length(indx_lst)   ), #important to maintain the ordering of the wavethresh package !!!!
+                            t_m_post  )
+      )
+      )
+    }
+
+
+
+    out <- lapply( 1:(dim(Bhat)[1]),
+                   FUN= t_col_post)
+
+    out <- t(Reduce("cbind", out))
+
+
+    if( !is.null(lowc_wc)){
+      out[, lowc_wc] <-0
+    }
+  }else{
+
+    t_out <- 0*Bhat
+    if (!length(idx_c)) return(t_out)
+
+    t_col_post <- function(t  ){
+
+      t_m_post <- function(s ){
+        m <- G_prior [[ s]]
+
+        data <-  ashr::set_data(Bhat[t,indx_lst[[s]] ],
+                                Shat[t, indx_lst[[s]] ]
+        )
+        return(ashr::postmean(ashr::get_fitted_g(m),data))
+      }
+      return(unlist(lapply( c((length(indx_lst)  -1): 1,length(indx_lst)   ), #important to maintain the ordering of the wavethresh package !!!!
+                            t_m_post  )
+      )
+      )
+    }
+
+
+
+    out <- lapply( idx_c,
+                   FUN= t_col_post)
+
+    out <- t(Reduce("cbind", out))
+
+    t_out[idx_c,] <- out
+    out <- t_out
+    if( !is.null(lowc_wc)){
+      out[, lowc_wc] <-0
+    }
+
+  }
+
+
+  return(out)
+
+}
+
+
+
+
+#'@title Compute posterior standard deviation under mixture normal prior
+#'
+#' @description Compute posterior standard deviation under mixture normal prior
+#'
+#' @param G_prior mixture normal prior
+#'
+#' @param Bhat  matrix pxJ regression coefficient, Bhat[j,t] corresponds to regression coefficient of Y[,t] on X[,j]
+#'
+#' @param Shat matrix pxJ standard error, Shat[j,t] corresponds to standard error of the regression coefficient of Y[,t] on X[,j]
+#'
+#' @param lBF log BF
+#'
+#' @param indx_lst list generated by \code{\link{gen_wavelet_indx}} for the given level of resolution, used only with class mixture_normal_per_scale
+#'
+#' @param lowc_wc wavelet coefficient with low count to be discarded
+#' @param e threshold value to avoid computing posterior that have low alpha value
+#' @param \dots Other arguments.
+#' @return pxJ matrix of posterior standard deviation
+#'
+#' @export
+#' @keywords internal
+
+
+post_mat_sd <- function (G_prior, Bhat, Shat,lBF,lowc_wc,indx_lst,
+                         e,...)
+  UseMethod("post_mat_sd")
+
+#' @rdname post_mat_sd
+#'
+#' @method post_mat_sd mixture_normal
+#'
+#' @export post_mat_sd.mixture_normal
+#'
+#'
+#'
+#' @importFrom ashr set_data
+#'
+#' @export
+#' @keywords internal
+#'
+post_mat_sd.mixture_normal  <- function( G_prior,
+                                         Bhat,
+                                         Shat,
+                                         lBF=NULL,
+                                         lowc_wc,
+                                         indx_lst,
+                                         e=0.001,...  )
+{
+  idx_c <- if (is.null(lBF)) {
+    seq_len(nrow(Bhat))
+  } else {
+    which(cal_zeta(lBF) > e)
+  }
+
+  # Coefficients skipped by the alpha threshold are approximated by a
+  # point mass at zero. Giving them unit posterior variance would inject
+  # artificial uncertainty into ERSS.
+  out <- matrix(0, nrow=nrow(Bhat), ncol=ncol(Bhat))
+  if (length(idx_c) > 0L) {
+    t_col_post <- function(t) {
+      m <- G_prior[[1]]
+      data <- ashr::set_data(Bhat[t, ], Shat[t, ])
+      ashr::postsd(ashr::get_fitted_g(m), data)
+    }
+    out[idx_c, ] <- do.call(rbind, lapply(idx_c, t_col_post))
+  }
+  if (!is.null(lowc_wc)) {
+    out[, lowc_wc] <- 0
+  }
+
+  out
+}
+
+#' @rdname post_mat_sd
+#'
+#' @method post_mat_sd mixture_normal_per_scale
+#'
+#' @export post_mat_sd.mixture_normal_per_scale
+#'
+#'
+#'
+#' @importFrom ashr set_data
+#'
+#' @export
+#' @keywords internal
+#'
+post_mat_sd.mixture_normal_per_scale <-  function( G_prior,
+                                                   Bhat,
+                                                   Shat,
+                                                   lBF=NULL,
+                                                   lowc_wc,
+                                                   indx_lst,
+                                                   e=0.001,...  )
+{
+  idx_c <- if (is.null(lBF)) {
+    seq_len(nrow(Bhat))
+  } else {
+    which(cal_zeta(lBF) > e)
+  }
+
+  # See the mixture_normal method above: skipped coefficients are treated
+  # as exactly zero by this approximation.
+  out <- matrix(0, nrow=nrow(Bhat), ncol=ncol(Bhat))
+  if (length(idx_c) > 0L) {
+    t_col_post <- function(t) {
+      t_sd_post <- function(s) {
+        m <- G_prior[[s]]
+        data <- ashr::set_data(Bhat[t, indx_lst[[s]]],
+                               Shat[t, indx_lst[[s]]])
+        ashr::postsd(ashr::get_fitted_g(m), data)
+      }
+      # Preserve the coefficient ordering used by wavethresh.
+      unlist(lapply(c((length(indx_lst) - 1):1, length(indx_lst)),
+                    t_sd_post))
+    }
+    out[idx_c, ] <- do.call(rbind, lapply(idx_c, t_col_post))
+  }
+  if (!is.null(lowc_wc)) {
+    out[, lowc_wc] <- 0
+  }
+
+  out
+}
+
+
+
+
+
+#'@title Compute refined estimate using translation invariant wavelet transform
+#'
+#' @description  Compute refined estimate using translation invariant wavelet transform
+#'
+#' @param obj  a susiF object
+#'
+#' @param Y  matrix of responses
+#'
+#' @param X matrix containing the covariates
+#' @param verbose logical
+#' @param filter.number see wd description in wavethresh package description
+#' @param family  see wd description in wavethresh package description
+#' @param alpha required confidence level
+#' @param n_iter numeric number of iteration
+#' @param \dots Other arguments.
+#' @export
+
+
+TI_regression <- function (obj,Y,X, verbose ,
+                           filter.number , family   ,
+                           alpha,n_iter ,
+                           ...)
+  UseMethod("TI_regression")
+
+
+#' @rdname TI_regression
+#'
+#' @method TI_regression susiF
+#'
+#' @export TI_regression.susiF
+#'
+#'
+#' @importFrom ashr ash
+#' @importFrom wavethresh wd
+#' @importFrom wavethresh convert
+#' @importFrom wavethresh nlevelsWT
+#' @importFrom wavethresh av.basis
+#'
+#' @export
+#'
+
+
+
+TI_regression.susiF <- function( obj,Y,X, verbose=TRUE,
+                                 filter.number = 1, family = "DaubExPhase" ,
+                                 alpha=0.05,n_iter=5,
+                                 ... ){
+
+  if(verbose){
+    print( "Fine mapping done, refining effect estimates using cylce spinning wavelet transform")
+  }
+
+  idx <- do.call( c, lapply( 1:length(obj$cs),
+                             function(l){
+                               tp_id <-  which.max(obj$alpha[[l]])
+                             }
+  )
+  )
+
+  N <- nrow(X)
+  sub_X <- data.frame (X[, idx, drop=FALSE])
+  if(length(idx)> length(unique(idx))){
+
+    sub_X[,duplicated(idx)]<- 0* sub_X[,duplicated(idx)]
+
+  }
+
+
+  L <- length(idx)
+
+  refined_est <- list(
+    f            = vector("list", L),
+    f2           = vector("list", L),
+    credband     = vector("list", L),
+    idx_lead_cov = integer(L)
+  )
+
+
+  for (l in seq_len(L)) {
+    refined_est$f[[l]]        <- rep(0, ncol(Y))
+    refined_est$f2[[l]]       <- rep(0, ncol(Y))
+    refined_est$credband[[l]] <- rep(0, ncol(Y))
+    refined_est$idx_lead_cov[l] <- which.max(obj$alpha[[l]])
+  }
+
+
+
+  if(L==1){
+    t_res=univariate_TI_regression(Y ,X [,idx[ 1],drop =FALSE ])
+    refined_est$f[[1]]  <- t_res$effect_estimate
+    refined_est$f2[[1]] <- t_res$fitted_var
+    refined_est$credband[[1]] <-  t_res$cred_band
+  }else{
+
+    ## Multi-effect TI refit: Gauss-Seidel sweeps over the L lead covariates.
+    ## At each sweep we form the partial residual
+    ##   Y_res = Y - sum_{k != l} X[, idx[k]] * f_k
+    ## and re-fit effect l against its OWN lead SNP idx[l] (a single-SNP
+    ## stationary-wavelet regression).  The previous version called
+    ## univariate_TI_regression(Y_res, X[, idx[1]]) inside the inner loop,
+    ## i.e. it re-fit every effect against effect 1's lead SNP, which
+    ## broke the refined estimates whenever L > 1.
+    ##
+    ## univariate_TI_regression delegates to cal_Bhat_Shat without sigma2,
+    ## which now (intentionally) falls back to the per-(k,j) marginal-
+    ## regression Shat -- the right form here, because each call IS a
+    ## single-SNP simple regression and we want the per-wavelet-position
+    ## residual variance taken from Y_res itself.
+
+    for ( k in 1:n_iter){
+      for (l in 1:length(idx)) {
+
+        Y_res= Y- Reduce("+" , lapply( (1:length(idx)) [-l] ,
+                                       function(l)  X[, idx[ l],drop =FALSE ]%*% refined_est$f[[l]] )
+        )
+
+
+        t_res=univariate_TI_regression(Y_res ,X [,idx[ l],drop =FALSE ])
+        refined_est$f[[l]]  <- t_res$effect_estimate
+        refined_est$f2[[l]] <- t_res$fitted_var
+        refined_est$credband[[l]] <-  t_res$cred_band
+
+      }
+    }
+  }
+
+
+
+  for ( l in 1:length(idx)){
+    obj$fitted_var[[l]]   <-  refined_est$f2[[l]]
+    obj$fitted_func[[l]]  <-  refined_est$f[[l]]
+    obj$cred_band[[l]]    <-  refined_est$credband[[l]]
+
+    names(obj$fitted_func)[l] <- paste("Effect_estimate_",l, sep = "")
+    names(obj$fitted_var)[l]  <- paste("Variance_estimate_effect_",l, sep = "")
+    names(obj$cred_band)[l]   <- paste("credible_band_effect_",l, sep = "")
+  }
+
+
+
+
+
+  rm( refined_est)
+
+  return(obj)
+
+}
+
+
+
+
+#univariateHMM regression
+# Y is  a matrix of observed function
+# X is a 1 column matrix
+univariate_HMM_regression   <- function(Y, X  ) {
+
+
+  ## Input hygiene
+
+  Y <- as.matrix(Y)
+  X <- as.matrix(X)
+  stopifnot(ncol(X) == 1)
+
+
+
+  ## Scale X (matches original intent)
+  Y <- colScale(Y)
+  csd_Y <- attr(Y, "scaled:scale")
+  X <- colScale(X)
+  csd_X <- attr(X, "scaled:scale")
+
+
+  ## Regression via cal_Bhat_Shat
+  ## Equivalent to lm(Y[,j] ~ -1 + X[,1]) for all j
+
+  res <- cal_Bhat_Shat(Y, X)
+
+  est <- as.numeric(res$Bhat[1, ])
+  sds <- as.numeric(res$Shat[1, ])
+
+
+  ## Defensive fixes (same spirit as original)
+
+  bad <- is.na(sds) | sds <= 0
+  if (any(bad)) {
+    est[bad] <- 0
+    sds[bad] <- median(sds[!bad], na.rm = TRUE)
+  }
+  s =  fit_hmm(x=est ,sd= sds  )
+  out = list( effect_estimate=s$x_post*csd_Y/(csd_X),
+              lfsr=s$lfsr,
+              lBF= s$log_BF)
+  return(out)
+}
+
+#univariate TI regression
+# Y is  a matrix of observed function
+# X is a 1 column matrix
+
+
+#univariate TI regression
+# Y is  a matrix of observed function
+# X is a 1 column matrix
+
+
+#univariate TI regression
+# Y is  a matrix of observed function
+# X is a 1 column matrix
+univariate_TI_regression <- function( Y,X,
+                                      filter.number = 1 ,
+                                      family = "DaubExPhase",
+                                      alpha=0.05){
+  X     <- colScale(X)
+  Y     <- colScale(Y)
+  csd_X <-   attr(X, "scaled:scale")
+  csd_Y <-   attr(Y, "scaled:scale")
+
+  dummy_station_wd <- wavethresh::wd(Y[1,], type="station",
+                                     filter.number = filter.number ,
+                                     family = family)
+
+
+  Y_f <- do.call(rbind, lapply(1:nrow(Y),
+                               function( i) wavethresh::wd(Y[i,],
+                                                           type="station",
+                                                           filter.number = filter.number ,
+                                                           family = family
+                               )$D))
+  Y_c <- do.call(rbind, lapply(1:nrow(Y),
+                               function( i)  wavethresh::wd(Y[i,],
+                                                            type="station",
+                                                            filter.number = filter.number ,
+                                                            family = family)$C))
+
+  refined_est <- list(wd=rep( 0, ncol(Y_f)),
+                      wdC= rep( 0, ncol(Y_c)),
+                      wdC2= rep( 0, ncol(Y_c)),
+                      wd2=rep( 0, ncol(Y_f)),
+                      fitted_func=list(),
+                      fitted_var=list(),
+                      idx_lead_cov = 1
+  )
+
+
+
+  res <- cal_Bhat_Shat(Y_f, matrix(X[,1], ncol=1))
+  wd <- rep( 0 ,length(res$Bhat))
+  wd2 <- rep(0, length(res$Shat))
+  temp <-   lapply(1:nrow(dummy_station_wd$fl.dbase$first.last.d),
+                   function(s){
+                     level <- s
+                     n <- 2^wavethresh::nlevelsWT(dummy_station_wd)
+                     first.last.d <-dummy_station_wd$fl.dbase$first.last.d
+                     first.level <- first.last.d[level, 1]
+                     last.level <- first.last.d[level, 2]
+                     offset.level <- first.last.d[level, 3]
+                     first.level <- first.last.d[level, 1]
+                     idx <- (offset.level + 1 - first.level):(offset.level +n - first.level)
+                     t_ash <- ashr::ash(c( res$Bhat[idx]), (c(res$Shat[idx])),
+                                        nullweight=30 ,mixcompdist = "normal")
+
+                     wd [idx] <- t_ash$result$PosteriorMean
+                     wd2[idx] <- t_ash$result$PosteriorSD^2
+
+                     out  <- list( wd,
+                                   wd2)
+                   }
+  )
+
+
+  wd <- Reduce("+", lapply(1:length(temp), function(s) temp[[s]][[1]]))
+  wd2 <-  Reduce("+", lapply(1:length(temp), function(s) temp[[s]][[2]]))
+
+
+  refined_est$wd  <- wd
+  refined_est$wd2 <-  wd2
+  res <- cal_Bhat_Shat(Y_c, matrix(X[,1], ncol=1))
+  t_ash <- ashr::ash(c( res$Bhat),c(res$Shat), nullweight=3,mixcompdist = "normal")
+  refined_est$wdC  <- t_ash$result$PosteriorMean
+
+  refined_est$wdC2  <- t_ash$result$PosteriorSD^2
+
+  coeff= qnorm(1-( alpha)/2)
+
+
+
+  dummy_station_wd$C <- refined_est$wdC
+  dummy_station_wd$D <- refined_est$wd
+  mywst <- wavethresh::convert(dummy_station_wd  )
+  nlevels <-wavethresh::nlevelsWT(mywst)
+  refined_est$fitted_func =  wavethresh::av.basis(mywst, level = (dummy_station_wd$nlevels-1), ix1 = 0,
+                                                  ix2 = 1, filter = mywst$filter) *csd_Y/(csd_X)
+  mv.wd = wd.var(rep(0, ncol(Y)),   type = "station")
+
+  mv.wd$D <-  (refined_est$wd2 )
+  #mv.wd$C <-   refined_est$wdC2
+  fitted_var   <-  AvBasis.var(convert.var(mv.wd)) *((csd_Y/(csd_X))^2)
+  fitted_func  <-  refined_est$fitted_func
+  up                         <-   fitted_func + coeff* sqrt( fitted_var ) #*sqrt(obj$N-1)
+  low                        <-   fitted_func - coeff*sqrt( fitted_var ) #*sqrt(obj$N-1)
+  cred_band   <- rbind(up, low)
+
+
+  rownames( cred_band ) <- c("up","low")
+  out = list( effect_estimate=fitted_func,
+              cred_band=cred_band,
+              fitted_var= fitted_var)
+  return(out)
+
+}
+univariate_smash_regression <- function(Y, X, alpha = 0.05) {
+
+
+  ## Input hygiene
+
+  Y <- as.matrix(Y)
+  X <- as.matrix(X)
+  stopifnot(ncol(X) == 1)
+
+  coeff <- qnorm(1 - alpha / 2)
+
+
+  ## Scale X (matches original intent)
+
+  Y  <- colScale(Y)
+  csd_Y <- attr(Y , "scaled:scale")
+
+  X  <- colScale(X)
+  csd_X <- attr(X , "scaled:scale")
+  res <- cal_Bhat_Shat(Y , X )
+
+  est  <- as.numeric(res$Bhat[1, ])
+  sds <- as.numeric(res$Shat[1, ])
+  ## Defensive fixes (same spirit as original)
+
+  bad <- is.na(sds) | sds <= 0
+  if (any(bad)) {
+    est[bad] <- 0
+    sds[bad] <- median(sds[!bad], na.rm = TRUE)
+  }
+
+
+  ## SMASH smoothing
+
+  s <- smashr::smash.gaus(
+    x         = est,
+    sigma    = sds,
+    ashparam = list(optmethod = "mixSQP"),
+    post.var = TRUE
+  )
+
+
+  ## SMASH retains the coarsest mean but omits its uncertainty.
+  ## Reflected copies share noise: combine their weights before squaring.
+  mean_weights <- tabulate(smashr::reflect(seq_along(est))$x,
+                           nbins = length(est))
+  mean_var <- sum((mean_weights / sum(mean_weights) * sds)^2)
+
+  ## Undo X scaling
+  fitted_func <- s$mu.est*csd_Y/csd_X
+  fitted_var  <- (s$mu.est.var + mean_var)*(csd_Y/csd_X)^2
+
+
+  ## Credible band
+
+  up  <- fitted_func + coeff * sqrt(fitted_var)
+  low <- fitted_func - coeff * sqrt(fitted_var)
+
+  cred_band <- rbind(up = up, low = low)
+
+
+  ## Output
+
+  list(
+    effect_estimate = fitted_func,
+    cred_band       = cred_band,
+    fitted_var      = fitted_var
+  )
+}
+
+
+
+#univariate TI regression
+# Y is  a matrix of observed function
+# X is a 1 column matrix
+univariate_TI_regression_IS <- function( Y,X,
+                                         filter.number = 1 ,
+                                         family = "DaubExPhase",
+                                         alpha=0.05){
+  X     <- colScale(X)
+  csd_X <-   attr(X, "scaled:scale")
+
+  dummy_station_wd <- wavethresh::wd(Y[1,], type="station",
+                                     filter.number = filter.number ,
+                                     family = family)
+
+
+  Y_f <- do.call(rbind, lapply(1:nrow(Y),
+                               function( i) wavethresh::wd(Y[i,],
+                                                           type="station",
+                                                           filter.number = filter.number ,
+                                                           family = family
+                               )$D))
+  Y_c <- do.call(rbind, lapply(1:nrow(Y),
+                               function( i)  wavethresh::wd(Y[i,],
+                                                            type="station",
+                                                            filter.number = filter.number ,
+                                                            family = family)$C))
+
+  refined_est <- list(wd=rep( 0, ncol(Y_f)),
+                      wdC= rep( 0, ncol(Y_c)),
+                      wd2=rep( 0, ncol(Y_f)),
+                      fitted_func=list(),
+                      fitted_var=list(),
+                      idx_lead_cov = 1
+  )
+
+
+
+  res <- cal_Bhat_Shat(Y_f, matrix(X[,1], ncol=1))
+  wd <- rep( 0 ,length(res$Bhat))
+  wd2 <- rep(0, length(res$Shat))
+
+
+
+
+
+  t_ash <- ashr::ash(c( res$Bhat ), (c(res$Shat )),
+                     nullweight=3,mixcompdist = "normal")
+
+  wd <- t_ash$result$PosteriorMean
+  wd2 <-t_ash$result$PosteriorSD^2
+
+
+  refined_est$wd  <- wd
+  refined_est$wd2 <-  wd2
+  res <- cal_Bhat_Shat(Y_c, matrix(X[,1], ncol=1))
+  t_ash <- ashr::ash(c( res$Bhat),c(res$Shat), nullweight=3,mixcompdist = "normal")
+  refined_est$wdC  <- t_ash$result$PosteriorMean
+
+
+
+  coeff= qnorm(1-( alpha)/2)
+
+
+
+  dummy_station_wd$C <- refined_est$wdC
+  dummy_station_wd$D <- refined_est$wd
+  mywst <- wavethresh::convert(dummy_station_wd  )
+  nlevels <-wavethresh::nlevelsWT(mywst)
+  refined_est$fitted_func =  wavethresh::av.basis(mywst, level = (dummy_station_wd$nlevels-1), ix1 = 0,
+                                                  ix2 = 1, filter = mywst$filter) *1/(csd_X)
+  mv.wd = wd.var(rep(0, ncol(Y)),   type = "station")
+  mv.wd$D <-  (refined_est$wd2 )
+
+  fitted_var   <-  AvBasis.var(convert.var(mv.wd)) *(1/(csd_X)^2)
+  fitted_func  <-  refined_est$fitted_func
+  up                         <-   fitted_func + coeff* sqrt( fitted_var ) #*sqrt(obj$N-1)
+  low                        <-   fitted_func - coeff*sqrt( fitted_var ) #*sqrt(obj$N-1)
+  cred_band   <- rbind(up, low)
+
+
+  rownames( cred_band ) <- c("up","low")
+  out = list( effect_estimate=fitted_func,
+              cred_band=cred_band,
+              fitted_var= fitted_var)
+  return(out)
+
+}
+
+
+
+#'@title Wrapper for univariate functional  regression used on susiF
+#'
+#' @description  Compute refined estimate using translation invariant wavelet transform
+#' @param method  method to be used, allowed values are "TI", "HMM","smash"
+#' @param Y  matrix of responses
+#'
+#' @param X a one column matrix containing the covariate of interest
+#' @param verbose logical
+#' @param filter.number see wd description in wavethresh package description
+#' @param family  see wd description in wavethresh package description
+#' @param alpha required confidence level
+#' @param \dots Other arguments.
+#' @export
+
+
+univariate_functional_regression <- function(Y,X,
+                                             method=c("TI", "HMM","smash"),
+                                             filter.number = 1 ,
+                                             verbose=FALSE,
+                                             family = "DaubExPhase",
+                                             alpha=0.05, ...){
+  method          <- match.arg(method)
+  if( method=="TI"){
+
+    out  =  univariate_TI_regression( Y=Y,
+                                      X=X,
+                                      filter.number =filter.number  ,
+                                      family = family,
+                                      alpha=  alpha)
+  }
+  if( method=="HMM"){
+    out= univariate_HMM_regression( Y=Y,
+                                    X=X
+                                     )
+
+  }
+  if(method=="smash"){
+    out= univariate_smash_regression ( Y=Y,
+                                       X=X,
+                                       alpha=  alpha
+    )
+  }
+
+  return(out)
+}
+
+
+
+#'@title Compute refined estimate using translation invariant wavelet transform
+#'
+#' @description e Compute refined estimate using translation invariant wavelet transform
+#'
+#' @param obj  a susiF object
+#'
+#' @param Y  matrix of responses
+#'
+#' @param X matrix containing the covariates
+#' @param verbose logical
+#' @param filter.number see wd description in wavethresh package description
+#' @param family  see wd description in wavethresh package description
+#' @param alpha required confidence level
+#' @param \dots Other arguments.
+#' @export
+
+
+smash_regression <- function (obj,Y,X, verbose ,
+                              filter.number , family  ,
+                              alpha  ,...)
+  UseMethod("smash_regression")
+
+
+#' @rdname smash_regression
+#'
+#' @method smash_regression susiF
+#'
+#' @export smash_regression.susiF
+#'
+#'
+#' @importFrom ashr ash
+#' @importFrom wavethresh wd
+#' @importFrom wavethresh convert
+#' @importFrom wavethresh nlevelsWT
+#' @importFrom wavethresh av.basis
+#'
+#' @export
+#'
+smash_regression.susiF <- function(  obj,Y,X, verbose=TRUE,
+                                     filter.number = 10, family = "DaubLeAsymm" ,
+                                     alpha=0.95,...
+){
+
+  if(verbose){
+    print( "Fine mapping done, refining effect estimates using cylce spinning wavelet transform")
+  }
+
+  idx <- do.call( c, lapply( 1:length(obj$cs),
+                             function(l){
+                               tp_id <-  which.max(obj$alpha[[l]])
+                             }
+  )
+  )
+
+  N <- nrow(X)
+  sub_X <- data.frame (X[, idx, drop=FALSE])
+  if(length(idx)> length(unique(idx))){
+
+    sub_X[,duplicated(idx)]<- 0* sub_X[,duplicated(idx)]
+
+  }
+
+
+  L <- length(idx)
+
+  refined_est <- list(
+    f            = vector("list", L),
+    f2           = vector("list", L),
+    credband     = vector("list", L),
+    idx_lead_cov = integer(L)
+  )
+
+
+  for (l in seq_len(L)) {
+    refined_est$f[[l]]        <- rep(0, ncol(Y))
+    refined_est$f2[[l]]       <- rep(0, ncol(Y))
+    refined_est$credband[[l]] <- rep(0, ncol(Y))
+    refined_est$idx_lead_cov[l] <- which.max(obj$alpha[[l]])
+  }
+
+
+
+ if(L==1){
+   t_res=univariate_smash_regression(Y ,X [,idx[ 1],drop =FALSE ])
+   refined_est$f[[1]]  <- t_res$effect_estimate
+   refined_est$f2[[1]] <- t_res$fitted_var
+   refined_est$credband[[1]] <-  t_res$cred_band
+ }else{
+
+
+  for ( k in 1:5){
+    for (l in 1:length(idx)) {
+
+      Y_res= Y- Reduce("+" , lapply( (1:length(idx)) [-l] ,
+                                     function(l)  X[, idx[ l],drop =FALSE ]%*% refined_est$f[[l]] )
+      )
+
+      t_res=univariate_smash_regression(Y_res ,X [,idx[ l],drop =FALSE ])
+      refined_est$f[[l]]  <- t_res$effect_estimate
+      refined_est$f2[[l]] <- t_res$fitted_var
+      refined_est$credband[[l]] <-  t_res$cred_band
+
+
+
+    }
+  }
+ }
+
+  for ( l in 1:length(idx)){
+    obj$fitted_var[[l]]   <-  refined_est$f2[[l]]
+    obj$fitted_func[[l]]  <-  refined_est$f[[l]]
+    obj$cred_band[[l]]    <-  refined_est$credband[[l]]
+
+    names(obj$fitted_func)[l] <- paste("Effect_estimate_",l, sep = "")
+    names(obj$fitted_var)[l]  <- paste("Variance_estimate_effect_",l, sep = "")
+    names(obj$cred_band)[l]   <- paste("credible_band_effect_",l, sep = "")
+  }
+
+
+
+
+
+  rm( refined_est)
+
+  return(obj)
+
+}
+
+
+
+
+
+
+
+
+smash_lw  <- function(noisy_signal, noise_level = 1, n.shifts = 50,
+                      family = "DaubExPhase", filter.number = 10 ) {
+  library(wavethresh)
+  library(ashr)
+
+  x <- noisy_signal
+  n <- length(x)
+  if( length(noise_level)==1){
+
+    sds <- rep(noise_level, n)
+  }else{
+    sds=noise_level
+  }
+  if ((log2(n) %% 1) != 0) {
+    next_pow2 <- 2^ceiling(log2(n))
+    extra <- next_pow2 - n
+    reflect_part <- rev(x[1:extra])
+    x_padded <- c(x, reflect_part)
+    sds_padded <- c(sds, rev(sds[1:extra]))
+  } else {
+    x_padded <- x
+    sds_padded <- sds
+  }
+
+  x_reflect <- c(x_padded, rev(x_padded))
+  s_reflect <- c(sds_padded, rev(sds_padded))
+  pos_interest <- 1:n
+  pos_interest_padded <- (length(x_padded) + 1):(length(x_padded) + n)
+
+  n_r <- length(x_reflect)
+  k <- floor(n / n.shifts)
+
+  W <- GenW(n = length(x_reflect), filter.number = filter.number, family = family)
+  wavelet_var <- apply(W^2, 1, function(row) sum(row * (s_reflect^2)))
+
+  est <- list()
+  est_var <- list()
+
+  for (i in 1:n.shifts) {
+    shifted_x <- c(x_reflect[(i * k + 1):n_r], x_reflect[1:(i * k)])
+    shifted_var <- wavelet_var
+    wd_shifted <- wavethresh::wd(shifted_x, filter.number = filter.number, family = family)
+
+    idx_wave <- gen_wavelet_indx(log2(length(shifted_x)))
+
+    temp <- lapply(1:(length(idx_wave) - 1), function(s) {
+      t_ash <- ashr::ash(wd_shifted$D[idx_wave[[s]]],
+                         sqrt(shifted_var[idx_wave[[s]]]),
+                         nullweight = 300)
+      list(wd = t_ash$result$PosteriorMean,
+           wd2 = t_ash$result$PosteriorSD^2)
+    })
+
+    d <- rep(0, length(wd_shifted$D))
+    d2 <- rep(0, length(wd_shifted$D)  +1 )
+    for (s in 1:(length(idx_wave) - 1)) {
+      d[idx_wave[[s]]] <-  temp[[s]]$wd
+      d2[idx_wave[[s]]] <- temp[[s]]$wd2
+    }
+
+    wd_shifted$D <- d
+    tt <- wavethresh::wr(wd_shifted)
+
+    #mv.wd = wd.var(rep(0,length(noisy_signal)),   type = "station")
+    # mv.wd$D=d2
+    #ab_var=   AvBasis.var(convert.var( mv.wd))
+    s_var <- apply(W^2, 1, function(row) sum(row * d2))
+
+    est[[i]] <- tt
+    est_var[[i]] <- s_var
+  }
+
+  recover_x <- function(shifted_x, i, k) {
+    n <- length(shifted_x)
+    shift_back <- (n - i * k) %% n
+    c(shifted_x[(shift_back + 1):n], shifted_x[1:shift_back])
+  }
+
+  est_f <- lapply(1:length(est), function(i) recover_x(est[[i]], i, k = k))
+  est_v_f <- lapply(1:length(est_var), function(i) recover_x(est_var[[i]], i, k = k))
+
+  est_f <- do.call(rbind, est_f)
+  est_v_f <- do.call(rbind, est_v_f)
+
+  est_final <- list()
+  est_var_final <- list()
+
+  for (i in 1:nrow(est_f)) {
+    est_final[[i]] <- 0.5 * (est_f[i, pos_interest] + rev(est_f[i, pos_interest_padded]))
+    est_var_final[[i]] <- 0.5 * (est_v_f[i, pos_interest] + rev(est_v_f[i, pos_interest_padded]))
+  }
+
+  est_mean <- colMeans(do.call(rbind, est_final))
+  est_var <- colMeans(do.call(rbind, est_var_final))
+
+  return(list(mu.est = est_mean, mu.est.var = est_var))
+}
+
+smash_2lw= function( noisy_signal, noise_level=1, n.shifts=50 ){
+
+  if( n.shifts>length(noisy_signal)){
+    n.shifts=length(noisy_signal)-1
+  }
+  family =  "DaubExPhase"
+  filter.number=1
+  if( length(noise_level)==1){
+    noise_level=rep(noise_level, length(noisy_signal))
+  }
+
+
+  x=noisy_signal
+  n= length(x)
+  if( length(noise_level)==1){
+    sds= rep( noise_level, length(x))
+  }else{
+    sds=noise_level
+  }
+
+
+  if ((log2(n) %% 1) != 0) {
+    next_pow2 <- 2^ceiling(log2(n))
+    extra <- next_pow2 - n
+    reflect_part <- rev(x[1:extra])
+    x_padded <- c(  x, reflect_part)
+
+    sds_padded <- c( sds, rev(sds[1:extra]))
+
+  } else {
+    x_padded <- x
+    sds_padded <- sds
+  }
+
+
+
+  if ((log2(n) %% 1) != 0) {
+    next_pow2 <- 2^ceiling(log2(n))
+    extra <- next_pow2 - n
+    reflect_part <- rev(x[1:extra])
+    x_padded <- c(x, reflect_part)
+    sds_padded <- c(sds, rev(sds[1:extra]))
+  } else {
+    x_padded <- x
+    sds_padded <- sds
+  }
+
+  x_reflect <- c(x_padded, rev(x_padded))
+  s_reflect <- c(sds_padded, rev(sds_padded))
+  pos_interest <- 1:n
+  pos_interest_padded <- (length(x_padded) + 1):(length(x_padded) + n)
+
+  n_r <- length(x_reflect)
+  k <- floor(n / n.shifts)
+
+  W <-  wavethresh::GenW(n = length(x_reflect), filter.number = filter.number, family = family)
+
+  # Compute wavelet coefficient variances
+  wavelet_var <- apply(W^2, 1, function(row) sum(row * (s_reflect^2)))
+
+  est <- list()
+  est_var <- list()
+
+
+
+  for (i in 1:n.shifts) {
+    shifted_x <- c(x_reflect[(i * k + 1):n_r], x_reflect[1:(i * k)])
+    shifted_var <- wavelet_var
+    wd_shifted <- wavethresh::wd(shifted_x, filter.number = filter.number, family = family)
+
+    idx_wave <- gen_wavelet_indx(log2(length(shifted_x)))
+
+    temp <- lapply(1:(length(idx_wave) - 1), function(s) {
+      t_ash <- ashr::ash(c(wd_shifted$D[idx_wave[[s]]]), sqrt(shifted_var[idx_wave[[s]]]) ,mixcompdist = "normal")
+      out <- list(wd = t_ash$result$PosteriorMean, wd2 = t_ash$result$PosteriorSD^2)
+    })
+
+    d <- rep(0, length(wd_shifted$D))
+    d2 <- rep(0, length(wd_shifted$D)+1)
+    for (s in 1:(length(idx_wave) - 1)) {
+      d[idx_wave[[s]]] <- temp[[s]]$wd
+      d2[idx_wave[[s]]] <- temp[[s]]$wd2
+    }
+
+    wd_shifted$D <- d
+    tt <- wavethresh::wr(wd_shifted)  # Wavelet filter
+
+    # Corrected posterior variance calculation
+    s_var <- apply(W^2, 1, function(row) sum(row * d2))
+
+    est[[i]] <- tt
+    est_var[[i]] <- s_var
+  }
+
+
+
+  recover_x <- function(shifted_x, i, k ) {
+    n <- length(shifted_x)
+    shift_back <- (n  - i*k  ) %% n  # Ensure non-negative index
+    recovered_x <- c(shifted_x[(shift_back + 1):n], shifted_x[1:shift_back])
+    return(recovered_x)
+  }
+
+  est_f=list()
+  est_v_f=list()
+  for ( i in 1: length(est)){
+    est_f[[i]]=recover_x(shifted_x=est[[i]],i,k=k)
+    est_v_f[[i]]=recover_x(shifted_x=est_var[[i]],i,k=k)
+  }
+
+  est_f=do.call(rbind, est_f)
+  est_v_f=do.call(rbind, est_v_f)
+
+  est_final=list()
+  est_var_final=list()
+
+  for( i in 1:nrow(est_f)){
+    est_final[[i]] = 0.5* ( est_f[ i ,pos_interest]+ rev(est_f[i ,pos_interest_padded]))
+    est_var_final[[i]] = 0.5* ( est_v_f[ i ,pos_interest]+ rev(est_v_f[i ,pos_interest_padded]))
+
+  }
+
+
+
+  return( list(mu.est=  apply(do.call(rbind, est_final),2,mean) , # colMeans(do.call(rbind, est_final)),
+               mu.est.var=   apply(do.call(rbind, est_var_final),2,mean) )# colMeans(do.call(rbind, est_var_final)))
+  )
+
+
+}

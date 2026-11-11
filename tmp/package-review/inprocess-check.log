@@ -1,0 +1,54 @@
+During startup - Warning messages:
+1: Setting LC_COLLATE=C.UTF-8 failed 
+2: Setting LC_CTYPE=C.UTF-8 failed 
+3: Setting LC_MONETARY=C.UTF-8 failed 
+4: Setting LC_TIME=C.UTF-8 failed 
+* using log directory 'C:/Document/Serieux/Travail/Package/fsusieR/fsusieR.Rcheck'
+* using R version 4.6.1 (2026-06-24 ucrt)
+* using platform: x86_64-w64-mingw32
+* R was compiled by
+    gcc.exe (GCC) 14.3.0
+    GNU Fortran (GCC) 14.3.0
+* running under: Windows 11 x64 (build 26300)
+* using session charset: ASCII
+* current time: 2026-11-06 14:42:20 UTC
+* using options '--no-examples --no-tests --no-manual --ignore-vignettes'
+* checking for file 'fsusieR/DESCRIPTION' ... OK
+* checking extension type ... Package
+* this is package 'fsusieR' version '0.3.59'
+* package encoding: UTF-8
+* checking package namespace information ... OK
+Warning: unable to access index for repository https://CRAN.R-project.org/src/contrib:
+  cannot open URL 'https://CRAN.R-project.org/src/contrib/PACKAGES'
+Warning: unable to access index for repository https://bioconductor.org/packages/3.23/bioc/src/contrib:
+  cannot open URL 'https://bioconductor.org/packages/3.23/bioc/src/contrib/PACKAGES'
+Warning: unable to access index for repository https://bioconductor.org/packages/3.23/data/annotation/src/contrib:
+  cannot open URL 'https://bioconductor.org/packages/3.23/data/annotation/src/contrib/PACKAGES'
+Warning: unable to access index for repository https://bioconductor.org/packages/3.23/data/experiment/src/contrib:
+  cannot open URL 'https://bioconductor.org/packages/3.23/data/experiment/src/contrib/PACKAGES'
+* checking package dependencies ... ERROR
+Packages required but not available:
+  'wavethresh', 'ashr', 'mixsqp', 'matrixStats', 'ggplot2', 'cowplot',
+  'smashr', 'Rcpp', 'ebnm', 'Rfast'
+
+Packages suggested but not available:
+  'susieR', 'knitr', 'gridExtra', 'rmarkdown', 'coloc', 'testthat',
+  'reshape2', 'AnnotationHub', 'org.Hs.eg.db', 'GenomicRanges', 'Gviz',
+  'haarfisz', 'TxDb.Hsapiens.UCSC.hg38.knownGene', 'LaplacesDemon',
+  'AnnotationDbi'
+
+The suggested packages are required for a complete check.
+Checking can be attempted without them by setting the environment
+variable _R_CHECK_FORCE_SUGGESTS_ to a false value.
+
+See section 'The DESCRIPTION file' in the 'Writing R Extensions'
+manual.
+* DONE
+
+Status: 1 ERROR
+See
+  'C:/Document/Serieux/Travail/Package/fsusieR/fsusieR.Rcheck/00check.log'
+for details.
+
+Error in do_exit(1L) : .check_packages() exit status 1
+Execution halted

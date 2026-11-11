@@ -1,0 +1,59 @@
+During startup - Warning messages:
+1: Setting LC_COLLATE=C.UTF-8 failed 
+2: Setting LC_CTYPE=C.UTF-8 failed 
+3: Setting LC_MONETARY=C.UTF-8 failed 
+4: Setting LC_TIME=C.UTF-8 failed 
+[1] "C:\\Users\\willi\\AppData\\Local\\Packages\\sandbox.{b7b6a5a9-b99b-42b5-943d-d2cb0ecab0d5}\\AC\\Temp\\RtmpeufW5j"
+[1] "C:/Document/Serieux/Travail/Package/fsusieR"
+[1] TRUE
+-- R CMD build -----------------------------------------------------------------
+During startup - Warning messages:
+
+1: Setting LC_COLLATE=C.UTF-8 failed 
+
+2: Setting LC_CTYPE=C.UTF-8 failed 
+
+3: Setting LC_MONETARY=C.UTF-8 failed 
+
+4: Setting LC_TIME=C.UTF-8 failed 
+
+* checking for file 'C:\Document\Serieux\Travail\Package\fsusieR/DESCRIPTION' ... OK
+
+Error in setwd(dirname(pkgdir)) : cannot change working directory
+
+Execution halted
+
+Error in `(function (command = NULL, args = character(), error_on_status = TRUE, ...`:
+! System command 'Rcmd.exe' failed
+---
+Exit status: 1
+stdout & stderr: <printed>
+---
+Backtrace:
+ 1. pkgbuild::build(".", dest_path = "tmp/package-review", vignettes = FALSE...
+ 2. pkgbuild:::withr_with_makevars(compiler_flags(debug = FALSE), { ...
+ 3. pkgbuild:::withr_with_envvar(c(R_MAKEVARS_USER = makevars_file), { ...
+ 4. base::force(code)
+ 5. base::force(code)
+ 6. pkgbuild:::withr_with_temp_libpaths(rcmd_build_tools(options$cmd, c(options$path, ...
+ 7. base::force(code)
+ 8. pkgbuild::rcmd_build_tools(options$cmd, c(options$path, options$args), ...
+ 9. pkgbuild::with_build_tools({ ...
+10. pkgbuild:::withr_with_path(rtools_path(), code)
+11. base::force(code)
+12. base::withCallingHandlers(callr::rcmd_safe(..., env = env, spinner = FALSE, ...
+13. callr::rcmd_safe(..., env = env, spinner = FALSE, show = FALSE, ...
+14. callr:::run_r(options)
+15. base::with(options, with_envvar(env, do.call(processx::run, c(list(bin, ...
+16. base::with.default(options, with_envvar(env, do.call(processx::run, ...
+17. base::eval(substitute(expr), data, enclos = parent.frame())
+18. base::eval(substitute(expr), data, enclos = parent.frame())
+19. callr:::with_envvar(env, do.call(processx::run, c(list(bin, args = real_cmdargs,...
+20. base::force(code)
+21. base::do.call(processx::run, c(list(bin, args = real_cmdargs, stdout_line_call...
+22. (function (command = NULL, args = character(), error_on_status = TRUE, ...
+23. base::throw(new_process_error(res, call = sys.call(), echo = echo, ...
+24. | base::signalCondition(cond)
+25. (function (e) ...
+26. asNamespace("callr")$err$throw(e)
+Execution halted

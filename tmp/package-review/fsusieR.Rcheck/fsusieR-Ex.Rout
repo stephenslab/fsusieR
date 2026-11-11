@@ -1,0 +1,552 @@
+
+R version 4.6.1 (2026-06-24 ucrt) -- "Happy Hop"
+Copyright (C) 2026 The R Foundation for Statistical Computing
+Platform: x86_64-w64-mingw32/x64
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+> pkgname <- "fsusieR"
+> source(file.path(R.home("share"), "R", "examples-header.R"))
+> options(warn = 1)
+> options(pager = "console")
+> library('fsusieR')
+> 
+> base::assign(".oldSearch", base::search(), pos = 'CheckExEnv')
+> base::assign(".old_wd", base::getwd(), pos = 'CheckExEnv')
+> cleanEx()
+> nameEx("EBmvFR")
+> ### * EBmvFR
+> 
+> flush(stderr()); flush(stdout())
+> 
+> ### Name: EBmvFR
+> ### Title: Empirical Bayes multivariate functional regression
+> ### Aliases: EBmvFR
+> 
+> ### ** Examples
+> 
+> 
+> 
+> library(ashr)
+
+Attaching package: 'ashr'
+
+The following object is masked from 'package:fsusieR':
+
+    get_pi0
+
+> library(wavethresh)
+Loading required package: MASS
+WaveThresh: R wavelet software, release 4.7.2, installed
+
+Copyright Guy Nason and others 1993-2022
+
+Note: nlevels has been renamed to nlevelsWT
+
+> set.seed(1)
+> #Example using curves simulated under the Mixture normal per scale prior
+> rsnr <- 1 #expected root signal noise ratio
+> N <- 100    #Number of individuals
+> P <- 10     #Number of covariates/SNP
+> pos1 <- 1   #Position of the causal covariate for effect 1
+> pos2 <- 5   #Position of the causal covariate for effect 2
+> lev_res <- 7#length of the molecular phenotype (2^lev_res)
+> f1 <-  simu_IBSS_per_level(lev_res )$sim_func#first effect
+> f2 <- simu_IBSS_per_level(lev_res )$sim_func #second effect
+> 
+> plot( f1, type ="l", ylab="effect", col="blue")
+> abline(a=0,b=0)
+> lines(f2, type="l", col="green")
+> 
+> legend(x=100,
++       y=3,
++       lty = rep(1,3),
++       legend= c("effect 1", "effect 2" ),
++       col=c("black","blue","yellow"))
+> G = matrix(sample(c(0, 1,2), size=N*P, replace=TRUE), nrow=N, ncol=P) #Genotype
+> beta0       <- 0
+> beta1       <- 1
+> beta2       <- 1
+> noisy.data  <- list()
+> 
+> for ( i in 1:N)
++ {
++  f1_obs <- f1
++  f2_obs <- f2
++  noise <- rnorm(length(f1), sd=  (1/  rsnr ) * var(f1))
++  noisy.data [[i]] <-   beta1*G[i,pos1]*f1_obs + beta2*G[i,pos2]*f2_obs + noise
++ 
++ }
+> noisy.data <- do.call(rbind, noisy.data)
+> 
+> 
+> 
+> 
+> plot( noisy.data[1,], type = "l", col=(G[1, pos1]*3+1),
++      main="Observed curves \n colored by the causal effect", ylim= c(-40,40), xlab="")
+> for ( i in 2:N)
++ {
++  lines( noisy.data[i,], type = "l", col=(G[i, pos1]*3+1))
++ 
++ }
+> legend(x=0.3,
++       y=-10,
++       lty = rep(1,3),
++       legend= c("0", "1","2"),
++       col=c("black","blue","yellow"))
+> 
+> 
+> 
+> Y <- noisy.data
+> X <- G
+> #Running Empirical Bayes multivariate function regression
+> 
+> out <- EBmvFR(Y,X )
+[1] "Starting initialization"
+[1] "Discarding  0 wavelet coefficients out of  128"
+[1] "Initialization done"
+[1] "Fitting iter 1"
+[1] "Fitting iter 2"
+[1] "Fitting iter 3"
+[1] "Fitting iter 4"
+[1] "Fitting iter 5"
+[1] "Fitting iter 6"
+[1] "Fitting iter 7"
+[1] "Fitting iter 8"
+[1] "Fitting iter 9"
+[1] "Fitting iter 10"
+[1] "Fitting iter 11"
+[1] "Fitting iter 12"
+[1] "Fitting iter 13"
+[1] "Fitting iter 14"
+[1] "Fitting iter 15"
+[1] "Fitting iter 16"
+[1] "Fitting iter 17"
+[1] "Fitting iter 18"
+[1] "Fitting iter 19"
+[1] "Fitting iter 20"
+[1] "Fitting iter 21"
+[1] "Fitting iter 22"
+[1] "Fitting iter 23"
+[1] "Fitting iter 24"
+[1] "Fitting iter 25"
+[1] "Fitting iter 26"
+[1] "Fitting iter 27"
+[1] "Fitting iter 28"
+[1] "Fitting iter 29"
+[1] "Fitting iter 30"
+[1] "Fitting iter 31"
+[1] "Fitting iter 32"
+[1] "Fitting iter 33"
+[1] "Fitting iter 34"
+[1] "Fitting iter 35"
+[1] "Fitting iter 36"
+[1] "Fitting iter 37"
+[1] "Fitting iter 38"
+[1] "Fitting iter 39"
+[1] "Fitting iter 40"
+[1] "Fitting iter 41"
+[1] "Fitting iter 42"
+[1] "Fitting iter 43"
+[1] "Fitting iter 44"
+[1] "Fitting iter 45"
+> #the easiest way to visualize the result is to use the plot_susiF function
+> 
+> plot( f1, type="l", main="Estimated effect 1", xlab="")
+> lines(unlist(out$fitted_func[1,]),col='blue' )
+> abline(a=0,b=0)
+> legend(x= 60,
++       y=3,
++       lty= rep(1,2),
++       legend = c("effect 1"," EBmvFR est "),
++       col=c("black","blue" )
++ )
+> plot( f2, type="l", main="Estimated effect 2", xlab="")
+> lines(unlist(out$fitted_func[5,]),col='green' )
+> abline(a=0,b=0)
+> legend(x= 85,
++       y= 2,
++       lty= rep(1,2),
++       legend = c("effect 2"," EBmvFR est "),
++       col=c("black","green" )
++ )
+> 
+> par(mfrow=c(1,1))
+> 
+> 
+> 
+> graphics::par(get("par.postscript", pos = 'CheckExEnv'))
+> cleanEx()
+
+detaching 'package:wavethresh', 'package:MASS', 'package:ashr'
+
+> nameEx("ebpm_normal")
+> ### * ebpm_normal
+> 
+> flush(stderr()); flush(stdout())
+> 
+> ### Name: ebpm_normal
+> ### Title: Solve Gaussian approximation to Poisson mean problem
+> ### Aliases: ebpm_normal
+> 
+> ### ** Examples
+> 
+> ## Not run: 
+> ##D n = 1000
+> ##D mu = rnorm(n)
+> ##D x = rpois(n,exp(mu))
+> ##D ebpm_normal(x)
+> ## End(Not run)
+> 
+> 
+> 
+> cleanEx()
+> nameEx("fit_ash_hmm")
+> ### * fit_ash_hmm
+> 
+> flush(stderr()); flush(stdout())
+> 
+> ### Name: fit_ash_hmm
+> ### Title: Fit an adaptive-shrinkage hidden Markov model
+> ### Aliases: fit_ash_hmm
+> 
+> ### ** Examples
+> 
+> ## Not run: 
+> ##D set.seed(1)
+> ##D truth <- c(rep(0, 50), rep(2, 50), rep(0, 50))
+> ##D se <- rep(0.5, length(truth))
+> ##D y <- rnorm(length(truth), truth, se)
+> ##D 
+> ##D fit <- fit_ash_hmm(y, se, nonnegative_state_means = TRUE)
+> ##D fit$posterior$mean
+> ##D fit$step_selection$segments
+> ##D 
+> ##D # Use a signed grid when negative state centers are scientifically possible.
+> ##D signed_fit <- fit_ash_hmm(y - 1, se, nonnegative_state_means = FALSE)
+> ## End(Not run)
+> 
+> 
+> 
+> 
+> cleanEx()
+> nameEx("gen_wavelet_indx")
+> ### * gen_wavelet_indx
+> 
+> flush(stderr()); flush(stdout())
+> 
+> ### Name: gen_wavelet_indx
+> ### Title: Generate list of index wavelet coefficients
+> ### Aliases: gen_wavelet_indx
+> ### Keywords: internal
+> 
+> ### ** Examples
+> 
+> library(wavethresh)
+Loading required package: MASS
+WaveThresh: R wavelet software, release 4.7.2, installed
+
+Copyright Guy Nason and others 1993-2022
+
+Note: nlevels has been renamed to nlevelsWT
+
+> tem_func <- rnorm( 2^8)
+> twav <- wd(tem_func)
+> indx_lst <- gen_wavelet_indx(8)
+> plot(accessD(twav,level=6), ( twav$D[unlist(indx_lst[(6+1)])]) )
+>  #should a straightline
+> 
+> 
+> 
+> 
+> cleanEx()
+
+detaching 'package:wavethresh', 'package:MASS'
+
+> nameEx("pois_smooth_split")
+> ### * pois_smooth_split
+> 
+> flush(stderr()); flush(stdout())
+> 
+> ### Name: pois_smooth_split
+> ### Title: Smooth over-dispersed Poisson sequence
+> ### Aliases: pois_smooth_split
+> 
+> ### ** Examples
+> 
+> set.seed(12345)
+> n=2^9
+> sigma=0.5
+> mu=c(rep(0.3,n/4), rep(3, n/4), rep(10, n/4), rep(0.3, n/4))
+> x = rpois(n,exp(log(mu)+rnorm(n,sd=sigma)))
+> fit = pois_smooth_split(x,maxiter=30)
+> plot(x,col='grey80')
+> lines(exp(fit$Eb))
+> fit$sigma2
+[1] 0.2320872
+> plot(fit$obj)
+> 
+> 
+> 
+> cleanEx()
+> nameEx("simu_IBSS_ash_vanilla")
+> ### * simu_IBSS_ash_vanilla
+> 
+> flush(stderr()); flush(stdout())
+> 
+> ### Name: simu_IBSS_ash_vanilla
+> ### Title: Simulate data under a simple mixture normal prior
+> ### Aliases: simu_IBSS_ash_vanilla
+> 
+> ### ** Examples
+> 
+> 
+> out <- simu_IBSS_ash_vanilla(lev_res=8, length_grid= 10, pi0= 0.85)
+> plot(out$sim_func, type="l", ylab="y")
+> out$emp_pi0
+[1] 0.8627451
+> 
+> 
+> 
+> cleanEx()
+> nameEx("simu_IBSS_per_level")
+> ### * simu_IBSS_per_level
+> 
+> flush(stderr()); flush(stdout())
+> 
+> ### Name: simu_IBSS_per_level
+> ### Title: Simulate data under the mixture normal prior
+> ### Aliases: simu_IBSS_per_level
+> 
+> ### ** Examples
+> 
+> out <- simu_IBSS_per_level(lev_res=9, alpha=1, prop_decay = 0.5)
+> plot(out$sim_func, type="l", ylab="y")
+> out$emp_pi0
+[1] 1.0000000 1.0000000 0.7500000 0.8750000 0.8750000 1.0000000 1.0000000
+[8] 0.9687500 0.9882812
+> temp_func <- simu_IBSS_per_level(lev_res=9, alpha=1, prop_decay = 0)
+> print( temp_func$emp_pi0)
+[1] 0 0 0 0 0 0 0 0 0
+> 
+> 
+> 
+> 
+> cleanEx()
+> nameEx("susiF")
+> ### * susiF
+> 
+> flush(stderr()); flush(stdout())
+> 
+> ### Name: susiF
+> ### Title: Sum of Single Function
+> ### Aliases: susiF
+> 
+> ### ** Examples
+> 
+> library(fsusieR)
+> set.seed(1)
+> #Example using curves simulated under the Mixture normal per scale prior
+> rsnr <- 0.2 #expected root signal noise ratio
+> N <- 100    #Number of individuals
+> P <- 100     #Number of covariates/SNP
+> pos1 <- 1   #Position of the causal covariate for effect 1
+> pos2 <- 5   #Position of the causal covariate for effect 2
+> lev_res <- 7#length of the molecular phenotype (2^lev_res)
+> f1 <-  simu_IBSS_per_level(lev_res )$sim_func#first effect
+> f2 <- simu_IBSS_per_level(lev_res )$sim_func #second effect
+> 
+> plot( f1, type ="l", ylab="effect", col="blue")
+> abline(a=0,b=0)
+> lines(f2, type="l", col="green")
+> 
+> legend(x=100,
++       y=3,
++       lty = rep(1,3),
++       legend= c("effect 1", "effect 2" ),
++       col=c("black","blue","yellow"))
+> G = matrix(sample(c(0, 1,2), size=N*P, replace=TRUE), nrow=N, ncol=P) #Genotype
+> beta0       <- 0
+> beta1       <- 1
+> beta2       <- 1
+> noisy.data  <- list()
+> 
+> for ( i in 1:N)
++ {
++  f1_obs <- f1
++  f2_obs <- f2
++  noise <- rnorm(length(f1), sd=  (1/  rsnr ) * var(f1))
++  noisy.data [[i]] <-   beta1*G[i,pos1]*f1_obs + beta2*G[i,pos2]*f2_obs + noise
++ 
++ }
+> noisy.data <- do.call(rbind, noisy.data)
+> 
+> 
+> 
+> 
+> plot( noisy.data[1,], type = "l", col=(G[1, pos1]*3+1),
++      main ="Observed curves \n   colored by the causal effect" , ylim= c(-40,40), xlab="")
+> for ( i in 2:N)
++ {
++  lines( noisy.data[i,], type = "l", col=(G[i, pos1]*3+1))
++ 
++ }
+> legend(x=0.3,
++       y=-10,
++       lty = rep(1,3),
++       legend= c("0", "1","2"),
++       col=c("black","blue","yellow"))
+> 
+> 
+> 
+> Y <- noisy.data
+> X <- G
+> #Running fSuSiE
+> 
+> out <- susiF(Y,X,L=2 , prior = 'mixture_normal_per_scale')
+[1] "Scaling columns of X and centering Y without variance scaling"
+[1] "Starting initialization"
+[1] "Data transform"
+[1] "Discarding  0 wavelet coefficients out of  128"
+[1] "Data transform done"
+[1] "Initializing prior"
+[1] "Initialization done"
+[1] "Fitting effect 1 , iter 1"
+[1] "Fitting effect 2 , iter 1"
+[1] "Discarding  0  effects"
+[1] "Greedy search and backfitting done"
+[1] "Fitting effect 1 , iter 2"
+[1] "Fitting effect 2 , iter 2"
+[1] "Fitting effect 1 , iter 3"
+[1] "Fitting effect 2 , iter 3"
+[1] "Fitting effect 1 , iter 4"
+[1] "Fitting effect 2 , iter 4"
+[1] "Fine mapping done, refining effect estimates using cylce spinning wavelet transform"
+> 
+> plot_susiF(out)
+$pip
+
+$effect
+
+> 
+> 
+> 
+> #### Find out which regions are affected by the different CS
+> 
+> affected_reg(obj = out)
+   CS Start End
+1   1     1  15
+6   1    38  49
+7   1    58  79
+2   1    85 102
+3   1   106 108
+4   1   111 125
+5   1   128 128
+9   2     1  14
+10  2    28  38
+8   2    46  92
+11  2   123 128
+> 
+> # This corresponds to the regions where the credible bands are
+> # "crossing zero"/i.e. the effects are likely not to be 0 in this
+> # region.
+> #
+> # You can also access the information directly in the output of
+> # susiF as follows.
+> par(mfrow=c(1,2))
+> 
+> 
+> plot( f2, type="l", main="Estimated effect 1", xlab="")
+> lines(unlist(out$fitted_func[[1]]),col='blue' )
+> lines(unlist(out$cred_band[[1]][1,]),col='darkblue',lty=2 )
+> lines(unlist(out$cred_band[[1]][2,]),col='darkblue' ,lty=2 )
+> abline(a=0,b=0)
+> legend(x= 35,
++       y=3,
++       lty= rep(1,2),
++       legend = c("effect 1"," fSuSiE est "),
++       col=c("black","blue" )
++ )
+> plot( f1, type="l", main="Estimated effect 2", xlab="")
+> lines(unlist(out$fitted_func[[2]]),col='darkgreen' )
+> lines(unlist(out$cred_band[[2]][1,]),col='darkgreen',lty=2 )
+> lines(unlist(out$cred_band[[2]][2,]),col='darkgreen' ,lty=2 )
+> #'abline(a=0,b=0)
+> legend(x= 20,
++       y=-1.5,
++       lty= rep(1,2),
++       legend = c("effect 2"," fSuSiE est "),
++       col=c("black","green" )
++ )
+> 
+> 
+> par(mfrow=c(1,1))
+> 
+> 
+> 
+> 
+> graphics::par(get("par.postscript", pos = 'CheckExEnv'))
+> cleanEx()
+> nameEx("vga_binomial_solver")
+> ### * vga_binomial_solver
+> 
+> flush(stderr()); flush(stdout())
+> 
+> ### Name: vga_binomial_solver
+> ### Title: Solve the binomial logistic-normal VGA problem
+> ### Aliases: vga_binomial_solver
+> 
+> ### ** Examples
+> 
+> successes <- c(0, 3, 8, 10)
+> totals <- rep(10, length(successes))
+> vga_binomial_solver(
++   init_val = stats::qlogis((successes + 0.5) / (totals + 1)),
++   x = successes,
++   trials = totals,
++   beta = 0,
++   sigma2 = 0.5
++ )
+$m
+[1] -1.2088414 -0.4615934  0.7000775  1.2088414
+
+$v
+[1] 0.2667308 0.2345655 0.2419699 0.2667308
+
+$convergence
+[1] 0
+
+$message
+[1] "CONVERGENCE: REL_REDUCTION_OF_F <= FACTR*EPSMCH"
+
+$objective
+[1] -25.32497
+
+> 
+> 
+> 
+> ### * <FOOTER>
+> ###
+> cleanEx()
+> options(digits = 7L)
+> base::cat("Time elapsed: ", proc.time() - base::get("ptime", pos = 'CheckExEnv'),"\n")
+Time elapsed:  11.66 0.82 12.85 NA NA 
+> grDevices::dev.off()
+null device 
+          1 
+> ###
+> ### Local variables: ***
+> ### mode: outline-minor ***
+> ### outline-regexp: "\\(> \\)?### [*]+" ***
+> ### End: ***
+> quit('no')

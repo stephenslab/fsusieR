@@ -1,0 +1,8 @@
+During startup - Warning messages:
+1: Setting LC_COLLATE=C.UTF-8 failed 
+2: Setting LC_CTYPE=C.UTF-8 failed 
+3: Setting LC_MONETARY=C.UTF-8 failed 
+4: Setting LC_TIME=C.UTF-8 failed 
+* checking for file 'C:/Document/Serieux/Travail/Package/fsusieR/DESCRIPTION' ... OK
+Error in setwd(dirname(pkgdir)) : cannot change working directory
+Execution halted

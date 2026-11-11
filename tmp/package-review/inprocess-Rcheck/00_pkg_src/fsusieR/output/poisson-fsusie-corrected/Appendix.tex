@@ -1,0 +1,880 @@
+
+
+
+
+
+
+
+\newpage
+\section{Split Variational inference}\label{sec:split_VA_sup}
+Consider the following model
+
+\begin{align}\label{eq:origianl_pb}
+ y_{ i }|  \mu_{i}\sim &\mathcal{D}\left(h ( \mu_{i })\right) \\
+ \mu_{i } \sim & f(.) 
+\end{align} 
+
+where $\mathcal{D}$ is a distribution in exponential family with canonical parameter $ \mu_{i }$ and link function
+$h^{-1}(·)$. This model is quite   general and  include many classical statistical inferential problem: mean inference \citep{stephens_false_2017,urbut_flexible_2019}, regression \citep{kim_flexible_2022,bai_spike-and-slab_2021} and matrix factorization  \citep{wang_empirical_2021} among others.  In the vast majority of application the primary objective is to perform inference on $\mu$. The most common approach to this problem is to find a posterior candidate $q_{\mu_i}$ that maximize the corresponding evidence lower bound (ELBO)
+
+
+ 
+\begin{equation}\label{eq:general_ELBO}
+    \tilde{F}(q_{\mu}; \sigma^2)
+    = \sum_i \mathbb{E}_{q_{\mu_i}}\!\left[
+        \log p(y_i\mid\mu_i)+\log f(\mu_i)-\log q_{\mu_i}(\mu_i)
+      \right]
+\end{equation}
+ However finding the distribution that maximize \ref{eq:general_ELBO}   is in generally non-trivial, especially when dealing  with non-Gaussian data. To alleviate these difficulties when dealing with non-Gaussian data, we introduce a splitting variable to approximate the posterior distribution $q_{\mu_i}$ in model  \ref{eq:general_ELBO}. Let's consider an   augmented version of model  \ref{eq:origianl_pb}, in which we introduce a  latent splitting variable $\mathbf{b}$, such that
+\begin{align}\label{eq:split_example_supp}
+    y_i|\mu_{i }& \sim \mathcal{D}(h(\mu_{i })) \\
+    \mu_{i }|b_i &\sim N(b_i, \sigma^2)\\
+    \mathbf{b} &\sim g(\cdot)
+\end{align}
+ 
+
+By introducing a splitting variable, we aim at reducing the inference complexity by  exploiting the conditional Gaussian distribution of $\mu_{i }$. The splitting approach    together with a
+mean-field approximation provide a much easier model fitting procedure especially in the  non Gaussian case. We describe this inference procedure in Algorithm \ref{alg:splitVA}.  Our approach  split the variational inference into two main parts. First, it finds a variational approximation (VA) of the  posterior  mean for $\mu_{i }$. In the second step, we treat the splitting variable in an Empirical Bayes (EB) way, by  estimating its  prior $g$   via maximum marginal likelihood and computing  a VA of the  posterior  mean of the splitting variable.
+ 
+ 
+
+ 
+%\subsection{Splitting}
+Assume the posterior of model \ref{eq:split_example_supp} factorizes as $q = \prod_i q_{\mu_{i }}(\mu_{i }) q_{\mathbf{b}}(\mathbf{b})$. Then the ELBO is
+
+
+\begin{equation}\label{eq:profiled_ELBO}
+    F(q,g;\sigma^2)
+    = \sum_i \mathbb{E}_{q}\!\left[
+        \log p(y_i\mid\mu_i)+\log p(\mu_i\mid b_i,\sigma^2)
+        -\log q_{\mu_i}(\mu_i)
+      \right]
+      +\mathbb{E}_{q}\!\left[
+        \log g(\mathbf b)-\log q_{\mathbf b}(\mathbf b)
+      \right]
+\end{equation}
+
+
+The ELBO \ref{eq:profiled_ELBO} can be interpreted as  a
+ \textit{profiled objective function} of $\tilde{F}$. In his thesis (section 4.2)   \cite{xie_empirical_2023}  showed that  $F(q_{i}, \sigma^2) = \max_{q_b} F(q_{\mu}, q_b; \sigma^2)$ is actually a lower bound of the objective function $\tilde{F}(q_{\mu_i},\sigma^2)$ of model \ref{eq:origianl_pb}.
+
+\begin{algorithm}
+\caption{Splitting Variational Inference for Poisson mean }\label{alg:splitVA}
+\begin{algorithmic} 
+\STATE \textbf{Input:} $\mathbf{y}$
+\STATE \textbf{Initialize:} $q, \sigma^2$
+\REPEAT 
+    \STATE Step 1) Given $q$ and $\sigma^2$, update $q_{\mu}$ by solving a VA mean problem with prior mean $\mathbb{E} \mathbf{b}$ and prior variance $\sigma^2$.
+    \STATE Step 2) Given $q_{\mu}$ and $\sigma^2$, update of $q_{\mathbf{b}}(\cdot)$ by solving the EB Gaussian model $(q_{\mathbf{b}}, \hat{g}) = \text{EBG}(q_{\mu}, \sigma^2)$.
+    \STATE Step 3) Given $q_{\mu}$ and $q_{\mathbf{b}}$, the update of $\sigma^2$ is $\sigma^2 = \sum_i \mathbb{E}_{q} (\mu_{i } - b_i)^2 / n$.
+\UNTIL converged
+\STATE \textbf{Output:} Fitted priors and posteriors.
+\end{algorithmic}
+\end{algorithm}
+
+
+
+ 
+
+%\subsubsection{Poisson Distribution}\ref{subsec:pois_normal_mean}
+We study the case when $y_i \sim \text{Poisson}(s_i \exp(\mu_{i }))$, $s_i > 0$ is a known scaling scalar. The prior of $\mu_{i }$ is a normal distribution with mean $\theta$ and variance $\sigma^2$. Recall we have assumed $q_{\mu} = N(\mu; \bar{\mu}_{i}, v_{i})$, then computing the approximate posterior of $\mu$ corresponds to the following   problem
+\begin{align}
+    (\bar{\mu}_{i}, \nu_i)  =& \arg\max_{m_i,\,v_i>0} F_i(m_i, v_i)\\
+    &\text{Where}\\
+F_i(m_i, v_i)=&   \mathbb{E}_q \log p(y_{i}| \mu_{i})+ \mathbb{E}_q \log p(\mu_{i}|\theta)- \mathbb{E}_q \log q_{i}(\mu_i) \\
+=&  \mathbb{E}_q\log p(y_{i}\mid \mu_{i}) + \mathbb{E}_q \log N(\mu_{i}; \theta, \sigma^2) - \mathbb{E}_q \log N(\mu_{i}; m_i, v_i)\\
+=&  \mathbb{E}_q \left[y_{i}\mu_{i} - s_i\exp(\mu_i) \right] - \mathbb{E}_q  \left[\frac{(\mu_{i}- \theta)^2}{2 \sigma^2} \right]- \mathbb{E}_q\left[ -\frac{1}{2}\log(v_i) - \frac{(\mu_{i}- m_i)^2}{2 v_i} \right]+\mathrm{const}\\
+=& y_{i}m_i-s_i\exp\left(m_i+\frac{v_i}{2}\right)-\frac{(m_i-\theta)^2+v_i}{2\sigma^2}+\frac{1}{2}\log v_i+\mathrm{const} \label{eq:Poisson_elbo}
+\end{align}
+
+
+
+ \cite{xie_empirical_2023} showed that this problem always admits a solution and is a strictly concave maximization problem (equivalently, minimizing its negative is a convex problem). Hence, a solution can be found using standard optimization algorithms (e.g., Newton's method or quasi-Newton methods).
+ 
+
+
+
+
+%\subsubsection{Binomial case  } 
+
+%We study the case when $y_i \sim \text{Binomial}(n_i ,\sigma(\mu_{i }))$, where $n_i>1$ is know and  $\sigma(.)$ is the sigmoid function. The prior of $\mu_{i }$ is a normal distribution with mean $\theta$ and variance $\sigma^2$. Recall we have assumed $q_{\mu} = N(\mu; \bar{\mu}_{i}, v_{i})$. So compute the approximate posterior in this case corresponds to solving the the following optimization problem
+
+
+
+%\begin{align}
+  %(\bar{\mu}_i , \nu_{i})&=argmax\left( \mathbb{E}_q \log(p(y_i | \mu_i))+ \mathbb{E}_q \log(p(\mu_i|\bar{\eta}_i ))- \mathbb{E}_q \log(q_{\mu_i})\right)\\
+ %& =- \ (y_i \bar\mu_i - n_i   \mathbb{E}_q  \log  \left(1+exp(\mu_i)\right)  \label{eq:Bionm_elbo} -  \frac{\bar{\mu}_i^2- +\nu_{i} 2 \bar{\mu}_i \bar{\eta}_i }{2\sigma^2}+ \frac{1}{2} \log  \nu_{i}  )\nonumber
+%\end{align}
+
+
+% This results is obtained using the   same reasoning as in  the Poisson case (above) but replacing the Poisson likelihood by the Binomial likelihood.   The integral
+%\begin{align}
+ %   \mathbb{E}_q  \log(1+exp(\mu_i))= \int \frac{1}{\sqrt{\pi}}  exp(- \mu_i^2) \log\left(  1 + \exp \left(\sqrt{2 \nu_{i}}\mu_i+ \bar{\mu}_i\right)  \right)  d\mu_i
+%\end{align}
+%  is approximated using Gauss Hermite quadrature approximation. Similarly  as to the Poisson case Xie and colleagues showed that \ref{eq:Bionm_elbo} is concave in $(\bar{\mu}_i , \nu_{i})$ which allow user efficient solving methods for estimating individual posterior mean.
+
+%\subsection{Empirical Bayes normal mean problem}
+
+
+
+\section{Extension to dense and sparse regression problem }
+
+
+  Suppose we observe N-independent inhomogeneous Poisson processes observed at T times points. We store the data in a matrix $\bY$, in which each line corresponds to the observed  Poisson process for an individual $\by_i= (y_{i,1}, \ldots, y_{i,T})$ with
+ \begin{align} \label{eq:Poisson_model_app}
+    y_{i,t} \sim Pois(s_i\exp(\mu_{i,t} ))
+ \end{align}
+
+
+where $s_i$ are known and  each  $\bm {\mu}_i$ is spatially structured  i.e. $|\bm {\mu}_{i,t}- \bm {\mu}_{i,t+1}|$ is small for most $t$. For the sake of simplicity, we assume that   $T=2^S$. 
+Suppose we observe $\bm{X}$ and $\bm{Z}$ two matrices of the covariate of dimension $N\times P_1$ and $N\times P_2$, respectively.   $\bm{X}$ refers to the matrix on which we are interested in performing variable selection with uncertainty quantification, and  $\bm{Z}$ is a matrix of observed confounders and/or technical factors that we want to account. We model the effect of $\bm{X}$ and $\bm{Z}$  on the observed model through the following model 
+
+
+ 
+ 
+ \begin{align}  \label{eq:Poisson_model_mat_sup_app}
+   \mathbf{  M }  &= {\bm 1}_N {\bm\mu_0}^{\intercal} +    \bX\bF + \bZ\bm{G} +\mathbf{ U}' 
+ \end{align}
+ Where $ \mathbf{  M } $ is a $N\times T$ matrix in which  $ \mathbf{  M } _{i,t} = \mu_{i,t}$, $\mathbf{U}'$ is a $N \times T$ matrix of independent identically distributed Gaussian noise and $ \bm\mu_0 $ is a vector in which each $\mu_{0,t}$ entry contains the intercept of the Poisson process at base pair $t$.   Let's denote projection matrix $\mathbf{W}$ into the wavelet space and write the projected version of model \ref{eq:Poisson_model_mat_sup_app} as
+ 
+ 
+ \begin{align} \label{eq:Poisson_model_mat_sup_app_proj} 
+   \mathbf{  A }  &= {\bm 1}_N {\bm\alpha_0}^{\intercal} +    \bX\bB + \bZ\bTheta +\mathbf{ U} 
+ \end{align}
+
+ Where $\mathbf{  A }=  \mathbf{  M } \mathbf{W} $,  $\bm\alpha_0= \bm\mu_0 \mathbf{W}  $, $\bB= \bF\mathbf{W}$ ,  $\bTheta= \bm{G}\mathbf{W}$  and $\mathbf{ U} =\mathbf{U}' \mathbf{ W}   $. While $\bm{X}$ and $\bm{Z}$ enter the linear model similarly, we treat them differently by using different prior that are designed to perform different tasks. We use an adaptive shrinkage prior on  $\bTheta$ that we describe below, and we use a sum of single effect prior on $\bm{B}$ (as describe in section~\ref{sec:model_desc} in the main text).
+ 
+\paragraph{Prior on $\bTheta$ }
+In the vein of   \cite{kim_flexible_2022}, we use adaptive shrinkage prior \citep{stephens_false_2017} to model the baseline and the noise covariate. It is straightforward to extend the idea of \cite{kim_flexible_2022}, to functional regression, by using  the following form of prior in the wavelet space.
+
+\begin{align}  
+ \alpha_{0,_{s,l}} &\sim  \pi_{0,s}\delta_0 +\sum_{k=1}^K \pi_{k,s} N(0,\sigma_{k,s }^2) \label{eq:mrash1}\\
+ \theta_{j,_{s,l}} &\sim  \pi_{0,s}\delta_0 +\sum_{k=1}^K \pi_{k,s} N(0,\sigma_{k,s }^2)  \label{eq:mrash2}
+\end{align}
+
+
+Where $ 0 \leq\sigma_{1,s } \leq \sigma_{2,s } \leq ... \leq \sigma_{K,s }$ are fixed and $ \pi_{0,s}, \pi_{1,s}, \dots , \pi_{K,s}$ are   unknown mixture proportion. To lighten the notation we use the same hyperparameters for the prior on $ \alpha_{0,_{s,l}}$ and $ \theta_{j,_{s,l}}$. However, in practice the hyperparameters of the prior for  $ \alpha_{0,_{s,l}}$ and $ \theta_{j,_{s,l}}$ are different. The prior \ref{eq:mrash1} and \ref{eq:mrash2} are design to approximate the non-parametric family of all scale mixtures of zero-mean normal distributions with high accuracy. These    mixtures (\ref{eq:mrash1},\ref{eq:mrash2}) encompass various distributions commonly used as priors in Bayesian regression models for different applications. These include normal distribution for ridge regression, point-normal (spike and slab), double-exponential or Laplace, horseshoe, normal-inverse-gamma prior, mixture of two normals (BSLMM), and a mixture of four zero-centered normals with different variances (BayesR). 
+
+
+We would like to highlight that model \ref{eq:mrash2}  prior is useful even outside of the context of fine mapping. For example, it can be used to account for batch effect or for prediction. Suppose, we only observe technical factors (here, batch number). Given that we have an estimate (e.g., posterior mean) of $\bar{\btheta}_{ j,{s,l}}$ for each $ \btheta_{j, {s,l}}$ under model \ref{eq:mrash2}, we can infer the individual.
+  "batch free"  intensity process $\bm {\mu}_i ^*= (\mu_{i,1}^*,\ldots , \mu_{i,T}^*)$
+by using the corrected intensities  
+ $\mathbf{  M } ^* =   (\mathbf{  A } -\bZ \Bar{\bTheta} ) \mathbf{W}^{-1} $. We can then reconstruct the corrected Poisson observation  sampling from
+ $  y_{i,t} ^* \sim Pois\!\left(s_i\exp(\mu_{i,t} ^*)\right)$
+
+
+\subsection{The variational empirical Bayes approximation}
+
+To fit model the regression model   \ref{eq:Poisson_model_mat_sup_app_proj}  to data stemming from \ref{eq:Poisson_model_app}   we use a split-variational Empirical Bayes (VEB) approach. 
+We consider   candidate posteriors of the form
+
+\begin{align}
+    q=&q(\bm{\mu}_0)q( \bB)q( \bTheta ) q(\mathbf{  M }) \\
+        =& q( \bB )q(\bTheta)  \prod_t\prod_i q( \mu_{i,t}) \prod_{s,l}q(\balpha_{0,_{s,l}})
+\end{align}
+ 
+In the line of  \cite{kim_flexible_2022} and \cite{wang_simple_2020}, we  further restrict the candidate posterior to distributions that factorize over the regression parameters as follow  $q(\bTheta)=\prod_j q(\btheta_j)$ and $q(\bB^{(1)},\ldots,\bB^{(E)})= \prod_e q_e(\bB^{(e)})  $. As we use a split variational inference, we also  restrict the  candidate posteriors for the entries of $\bm{M}$ to be Gaussian, i.e., $q( \mu_{i,t}) =  N( \mu_{i,t}; \Bar{\mu}_{i,t} ,  \nu _{\mu_{i,t}}) $. Thus leading to the following form for the candidate posterior.
+
+
+
+\begin{align} \label{eq:facto_form}
+    q=&\prod_e q_e(\bB^{(e)}) \prod_j q(\btheta_j) \prod_t\prod_i N(\mu_{i,t};\Bar{\mu}_{i,t},\nu_{\mu_{i,t}}) \prod_{s,l} q(\balpha_{0,_{s,l}})
+\end{align}
+
+In Algorithm \ref{alg:ibss},  we provide a high-level description of our two steps estimation procedure  for finding a candidate posterior of the form presented in \ref{eq:facto_form}.  In step  1) given that we initialized some candidate posterior for $q(\bB, \bTheta,\bm{\mu}_0)= q( \bB )q(\bTheta)  q(\bm{\mu}_0)$, we can estimate the candidate posterior $q(\mathbf{  M } ) $ of  $\mathbf{  M } $ by solving a Poisson Normal mean problem (see section \ref{subsec:pois_normal_mean}). In step 2)  given we have a  candidate posterior $q(\mathbf{  M } ) $, we can estimate candidate posterior of  $q(\bB, \bTheta,\bm{\mu}_0) =q( \bB )q(\bTheta)  q(\bm{\mu}_0)$  by fitting a Gaussian model to   $  \bar{\mathbf{  M }}$ the posterior mean of $   \mathbf{  M } $ under  $q(\mathbf{  M } ) $. in Algorithm \ref{alg:ibss}.  
+%TODO  Change the G for function to something else g is for the prior
+%\begin{align}
+%    \eta_{i,t} &=\mu_{0,t} + \bz_i^t\bm{g}_{t}+ \bx_i^t \bm{f}_{t} \\
+%   \eta_{i,_{s,l}}  &  =\alpha_{0,_{s,l}} + \bz_i^t \theta_{s,l}+ \bx_i^t \bbeta_{s,l} 
+%\end{align}
+ 
+
+%the linear predictor of $\mu_{i,t}$ or $ \alpha_{i,_{s,l}} $ depending on the indexing subscript,  where ($ \alpha_{i,_{s,l}} $)  are the entries of $\mathbf{A}$ in equation \ref{eq:Poisson_model_mat_proj}.    We note  $\bar \eta_{i,t} =  \mathbb{E}_q ( \eta_{i,t} ) $  and  $\Bar{\alpha}_{i,_{s,l}}= \mathbb{E}_q (\alpha_{i,_{s,l}} )$  corresponding expectation of its entries and $\Bar{\mathbf{A}} =\mathbb{E}_q (\mathbf{A})$. Note the $\Bar{\mathbf{  M } }= \mathbb{E}_q (\mathbf{A}) \mathbf{W}^{-1}$ and its entries are denoted $\Bar{\mu}_{i,t}$. W
+ 
+
+
+ 
+
+
+
+
+\begin{algorithm}
+\caption{Splitting Variational Bayes approach for inhomogeneous Poisson data high level} \label{alg:ibss}
+\begin{algorithmic}[1]
+ \STATE Input: $\bY , \bX, \bZ$ 
+ \STATE Initialize: $q, \sigma^2$ 
+\REPEAT  
+\STATE   Step 1 Given $ q_{\balpha_0}, q_{\btheta},q_{\bbeta } $  and $\sigma^2$, update $q_{\mathbf{  M }}$, by solving Poisson  Empirical Bayes normal mean problems with prior mean $(\bar\bA_0+ \bZ\bar\bTheta+\bX\bar\bB)\bW^{-1}$ and prior variance $ \sigma^2$ 
+\STATE Step 2 Given $q_{\mathbf{  M }}$ and $ \sigma ^2$, update $q_{\balpha_0}  , q_{\btheta}, q_{\bbeta }$ and $g= g _{\bbeta}(.)g_{\btheta} (.) g_{\balpha_0} (.)$, using the Empirical Bayes Gaussian regression model \ref{eq:Poisson_model_mat_sup_app_proj} and using $ \Bar{\mathbf{  M } }\mathbf{W}$ as a response
+\STATE  Step 3  Given $q_{\mathbf M}, q_{\balpha_0}, q_{\btheta},q_{\bbeta }$  update $\sigma ^2 $
+\UNTIL converged
+\end{algorithmic}
+\end{algorithm}
+
+
+\subsection{Empirical  Bayes regression problems}
+In this section, we focus on  Step 2  of Algorithm 1. We   solve Step 2 using a two-step procedure. In step 2) a) we  estimate $g_{\btheta}$ and approximate the posterior of  $\bTheta$ and in step 2) b) we estimate $g_{\bB}$ and approximate the posterior of   $\bB$. Below we  introduce some basic quantities for performing standard Empirical Bayes (EB)  that we will further use to obtain updates for  $\bTheta$ and $\bB$.
+
+\subsubsection{Simple empirical Bayes functional regression}
+We start by introducing the simplest model in which the log intensity and overall intensity are known and are only affected by a single covariate $\bx$. Let's consider the following Gaussian  regression model
+\begin{align} 
+    \bar{\bA} & = \bx  \bbeta^{ t}    +\bm{U}  \label{eq:simpleSFR_mix_per_scale}\\
+    (\bm{U}_{i,_{s,l}}) &   \sim N(0,\sigma^2) \\
+    \beta_{ s,l} &  \sim g(.)_{s}\\
+    g(.)_{s}&=\sum_{k=0}^K \pi_{k ,s} N(0,\sigma_{k }^2)
+\end{align}
+
+Where the quantities $(\pi_{k,s})$ are supposed to be known, $ \bar{\bA}_{.,_{s,l}}$ is the column of $\bar{\bA}$ which in our case corresponds to the estimated log intensity ratio $s,l$ (i.e, each column of $\bar{\bA}$ corresponds to a vector $\balpha_{s,l}$ estimated in Step 1 in algorithm 1), $\bx$ is a vector of length $n$, $ \bbeta$ is a vector of length $T$, $\bm{U}$ is a matrix of dimension $N\times T$, and   $i \in [1:N]$ and $ t \in [1:T]$. Note that we assume a homogeneous noise level across the log intensity ratio. A standard Empirical Bayes procedure  to fitting a regression model involves two steps
+
+\begin{itemize}
+    \item{Step a):} Estimate the prior density $g$ (i.e. estimating the quantities $(\pi_{k ,s})$) and the error variance by maximizing the marginal likelihood
+
+    \begin{align}
+        (\hat{g}, \hat{\sigma }^2) =argmax_{ g ,  \sigma  ^2}( p(\bar{\bA}| \bx , g, \sigma^2))
+    \end{align}
+    \item{Step b):}  Infer $ \bbeta$ based on its posterior distribution and the estimated prior
+
+\begin{align}
+    p_{post}( \bbeta |\balpha,\bx , g, \sigma^2) \propto p( \bar{\bA}| \bm{\beta }  ,\bX ,\hat{\sigma }^2) p(\bm{\beta }|   \hat{g}, \hat{\sigma }^2)
+\end{align}
+    
+\end{itemize}
+
+In terms of variational inference (VI) Step   a) is equivalent to maximizing $F_{simple}$ (see equation below) with respect to $g $ and Step  b) is equivalent to maximising the ELBO $F_{simple}$ with respect to $q_{\bbeta}$.
+
+
+
+\begin{align}\label{eq:elbo_simpleSFR}
+   F_{simple}(q, g,\sigma^2) = & \sum_i\sum_{s,l} \mathbb{E}  \log p(\bar{\alpha}_{i,_{s,l}}|\beta_{ s,l},\bx, \sigma^2) +   \mathbb{E} \log \frac{g_{\bbeta  } (\bbeta  ) }{q_{\bbeta  } (\bbeta )} \\
+   =& \sum_i\sum_{s,l} \mathbb{E}  \log p(\bar{\alpha}_{i,_{s,l}}|\beta_{ s,l},\bx, \sigma^2) + \sum_{s,l} \mathbb{E} \log \frac{g_{s} (\beta_{ s,l} ) }{q_{\beta_{s,l} } (\beta_{s,l} )}
+\end{align}
+
+
+\paragraph{Posterior quantities for model \ref{eq:simpleSFR_mix_per_scale}}
+Assume that the $(\pi_{k ,s})$ in model are known. Then 
+the posterior 
+
+the posterior mean  of each entry of $ \bbeta$ is given by
+\begin{align}
+     \mathbb{E}[\beta_{s,l}\mid\bar{\bA}_{.,_{s,l}},\bx,\sigma^2,(\sigma^2_k),(\pi_{k,s})]&
+      = \sum_{k=0}^K \mu_{1_k,_{s,l}} \Tilde{\pi}_{k, _{s,l}}
+\end{align}
+
+Where
+\begin{align}
+     \sigma_{1_k }^2    = \frac{1}{\frac{1}{\sigma_{\bbeta }^2}+\frac{1}{\sigma_{k}^2}}  \text{ and } 
+     \mu_{1_k,_{s,l}}    =  \frac{ \sigma_{1_k}^2}{\sigma_{\bbeta }^2}\hat{\beta} _{s,l}  \label{eq:post_mean_simple_prior}
+\end{align}
+in which $\hat{\beta}_{s,l},\sigma_{\bbeta }^2$ are the MLE  estimates of $\beta_{s,l }$ and its variance ,  $ \Tilde{\pi}_{k, _{s,l}}$ are defined as
+\begin{align}
+   \Tilde{\pi}_{k, _{s,l}}    & = \frac{\pi_{k,s} \BFu\left(\bar{\bA}_{.,_{s,l}},\bx, \sigma^2, \sigma_k^2 \right)}{ \sum_{k'=0}^K \pi_{k',s} \BFu\left(\bar{\bA}_{.,_{s,l}},\bx, \sigma^2 ,\sigma_{k'}^2 \right)}
+\end{align}
+
+Where  $\BFu\left(\bar{\bA}_{.,_{s,l}},\bx, \sigma^2, \sigma_{k }^2 \right)$ corresponds to the Bayes factor for testing if the effect of $\bx$  on column  $\bar{\bA}_{.,_{s,l}}$ is null using $N(0, \sigma_{k }^2)$ as prior for $\beta_{s,l}$. This quantity can be easily computed using results from \cite{wakefield_bayes_2009}   
+\begin{align}\label{eq:simpleBayeregBF}
+    \BFu\left(\bar{\bA}_{.,_{s,l}},\bx, \sigma^2, \sigma_{k }^2 \right)= \frac{  N(\hat{\beta} _{s,l},0,\sigma_k^2+\sigma_{ \bbeta}^2)}{  N(\hat{\beta} _{s,l},0,\sigma_{ \bbeta}^2)}
+\end{align}
+
+
+ 
+Lastly the  Bayes factor for the simple Bayesian functional regression using a mixture prior can be computed as follows:
+\begin{align}\label{eq:BFmix}
+    \BFm\left(\bar{\bA} ,\bx, \sigma^2 ,(\sigma^2_k) , (\pi_{k,s})    \right)&=\frac{p(\bar{\bA}|\bx, g, \sigma^2)}{p(\bar{\bA}|\bx,  \bbeta\equiv 0,\sigma^2)}\\
+          &= \frac{  \prod_{s,l} \sum_{k=0}^K  \pi_{k,s} N(\hat{\beta} _{s,l},0,\sigma_k^2+\sigma_{ \bbeta}^2)}{\prod_{s,l} N(\hat{\beta} _{s,l},0,\sigma_{ \bbeta}^2)}
+\end{align}
+
+
+
+ We refer to this estimation procedure as  for Bayesian simple functional regression (BSFR) a function that takes as input an (estimated) data matrix $\Bar{\bA}$  a vector of covariate $\bx$, a prior $g$, a noise variance $\sigma^2$ and that outputs the quantities needed to compute the posterior first and second moment of model \ref{eq:simpleSFR_mix_per_scale}
+
+\begin{align}
+    \text{BSFR}(\Bar{\bA},\bx,g,\sigma^2)& = ((\mu_{1_k,_{s,l}}),(s^2_{1_k,_{s,l}}),( \Tilde{\pi}_{k, _{s,l}}) )\label{eq:BSFR} 
+\end{align} 
+
+
+
+\paragraph{Maximum marginal likelihood of model \ref{eq:simpleSFR_mix_per_scale}}
+
+
+
+
+The marginal likelihood of model \ref{eq:simpleSFR_mix_per_scale} can be written as follow
+
+ 
+\begin{align}
+     p(\bar{\bA}|\bx, \bm\pi, \sigma^2 ,(\sigma^2_k)  ) =  \prod_{s,l} \sum_{k=0}^K  \pi_{k,s}L_{k,_{s,l}}
+ \end{align}
+
+Where $L_{k,_{s,l}}= N(\hat{\beta} _{s,l},0,\sigma_k^2+\sigma_{ \bbeta}^2)$. We can estimate the mixture weights $(\pi_{k,s})$  for model \ref{eq:simpleSFR_mix_per_scale} via   maximum marginal  likelihood, which correspond to  the following $S$ independent maximization problems
+
+\begin{align}
+    \hat{\bm{\pi}}_s = \arg\max _{\bm{\pi}_s \in \mathbb{S}^K}  \sum_{l} \log  \sum_{k=0}^K  \pi_{k,s}L_{k,_{s,l}}
+\end{align}
+
+
+ Given that we have estimated the vectors $(\hat{\bm{\pi}}_s)$ (e.g., using EM \cite{dempster_maximum_1977} or convex optimization methods \cite{kim_fast_2019}) we can then compute the posterior distribution of  $\bbeta$ in equation \ref{eq:simpleSFR_mix_per_scale} using the formula presented in the section above. We say that  $ \text{BSFR}(\Bar{\bA},\bX,\hat{g},  \sigma ^2) $ is an Empirical Bayes estimate of  $\bbeta$ for model  \ref{eq:simpleSFR_mix_per_scale}, where
+
+\begin{align}
+    \hat{g}  =\sum_{k=0}^K  \hat{\pi}_{k ,s} N(0,\sigma_{k }^2)
+\end{align}
+
+
+
+ 
+%Where $\bar{\alpha}_{i,_{s,l}}$ are the entries of $\bar{\bA}$ which are supposed to be known. We detail how to solve Step 2 a) and Step 2 b) for model \ref{eq:simpleSFR_mix_per_scale}  in section \ref{subsec:detalEBmvFR}. In the next section, we show that solving step  Step 2 a) and Step 2 b) for model \ref{eq:simpleSFR_mix_per_scale} allows to derive a variational approximation for $\bTheta$ that maximize the ELBO of model \ref{eq:Poisson_model_mat}    with respect to $(q_{\bTheta},g_{\bTheta})$.
+
+
+
+
+% \subsubsection{simple Bayesian  functional regression}\label{subsec:simpleBFR}
+%Let's consider a model in which we only observe one covariate that is likely to affect the outcome. To further simplify, we use a prior for each log intensity ratio, using the same one-component prior. We refer to this model as the {\em simple, functional Bayesian regression}  \ref{eq:simpleSFR}. We later extend these results for priors, which are a mixture of $K$ normal components. 
+
+
+
+%\begin{align}
+%    \bar{\bm{A}} & = \bx  \bm{\beta}^{t} +\bm{U}  \label{eq:simpleSFR}\\
+%    (\bm{U}_{i,t}) &   \sim N(0,\sigma^2) \\
+%    \beta_{s,l} &  \sim N(0,\sigma_0^2)
+%\end{align}
+
+%Where $\bar{\bm{A}}$  is a matrix of dimension $N\times T$, 
+
+%We denote $ \bar{\bm{A}}_{.,_{s,l}}$ is the column of $\bar{\bm{A}}$ corresponding to the estimated log intensity ratio $s,l$ (i.e, each column of $\bar{\bm{A}}$ corresponds to a vector $\balpha_{s,l}$ estimated in Step 1 in algorithm 1) . 
+
+%$ \bx$ is a vector of length $N$, $ \bm{\beta}$ is a vector of length $T$, $\bm{U}$ is a matrix of dimension $N\times T$, and   $i \in [1:N]$ and $ t \in [1:T]$.  Note that we assume a homogeneous noise level across the log intensity ratio. Then the component of $ \bm{\beta}$ can be estimated using  maximum likelihood, and as well as their corresponding variance $\sigma_{ \bm{\beta}}^2$ are:
+%\begin{align}
+%    \hat{\beta} _{s,l} & =  (\bx^t \bx )^{-1} x^t \bar{\bm{A}}_{.,_{s,l}}\\
+%    \sigma_{\bm{\beta} }^2 & = \frac{\sigma^2 }{\bx^t \bx }
+%\end{align}
+
+
+%Where $ \bar{\bm{A}}_{.,_{s,l}}$ is the column of $\bar{\bm{A}}$ corresponding to the estimated log intensity ratio $s,l$ (i.e, each column of $\bar{\bm{A}}$ corresponds to a vector $\balpha_{s,l}$ estimated in Step 1 in algorithm 1) . Thus, 
+%the posterior distribution of each component of  $ \bm{\beta}$ is 
+%\begin{align}
+%    \beta_{s,l} & | \bar{\bm{A}}_{.,_{s,l}}, \bx,  \sigma ^2, \sigma_0^2  \sim N(\mu_{1,_{s,l}},\sigma_1 ^2)\\
+%    \sigma_{1 }^2 &  = \frac{1}{\frac{1}{\sigma_{\bm{\beta} }^2}+\frac{1}{\sigma_{0}^2}} \label{eq:post_var_simple_prior}\\
+%     \mu_{1,_{s,l}} &  =  \frac{\sigma_{1 }^2}{\sigma_{\bm{\beta} }^2}\hat{\beta} _{s,l} \label{eq:post_mean_simple_prior} \\
+%\end{align}
+
+% Following \cite{wakefield_bayes_2009}, Bayes factor for comparing the estimate $\bf$ by the simple Bayesian functional regression  with the null ($H_0:  \bm{\beta}\equiv 0$) is given by:
+
+%\begin{align}
+%    \BFs\left(\bar{\bm{A}} , \bx, \sigma^2 ,\sigma_0 ^2  \right)&=\frac{p(\bar{\bm{A}} | \bx, \bm{\beta}, \sigma^2 ,\sigma_0 ^2 )}{p(\bar{\bm{A}} | \bx,  \bm{\beta}\equiv 0,\sigma^2 ,\sigma_0 ^2 )}\\
+%      & = \frac{ \prod _{s,l} \int p\left(\bar{\bm{A}}_{.s,l} |\bx,\beta_{s,l}, \sigma^2  \right) p(\beta_{s,l}|\sigma_0 ^2) d\beta_{s,l}}{\prod_{s,l} p(\bar{\bm{A}}_{.,_{s,l}}|\bx, \beta_{s,l}= 0,\sigma^2 ,\sigma_0 ^2 )} \label{eq:marginal_like_simpleBayereg} \\
+%& = \frac{\prod_{s,l} N(\hat{\beta} _{s,l},0,\sigma_0^2+\sigma_{ \bm{\beta}}^2)}{\prod_{s,l} N(\hat{\beta} _{s,l},0,\sigma_{ \bm{\beta}}^2)} \label{eq:simpleBayeregBF}\\
+%    &= \left(\frac{ \sigma_{\bm{\beta} ^2}}{\sigma_{ \bm{\beta}}^2+\sigma_0^2}\right)^{\frac{T}{2}} exp\left[ \frac{\sigma_0^2}{  \sigma_{ \bm{\beta}}^2+\sigma_0^2 } \left( \sum_{s,l} \frac{ z_{s,l}^2}{2} \right)\right]
+%\end{align}
+%Where $ z_{s,l}=\frac{\hat{\beta} _{s,l}}{\sigma_{\bm{\beta} }}$, and allow establishing results \ref{eq:BFmix}
+
+
+
+%In this section, we only provide the key quantities to compute the posterior of model \ref{eq:simpleSFR_mix_per_scale}; more details are provided in the details section. To lighten the notation, we assume that the grid of $(\sigma_{k}^2)$ is the same for every scale; in practice, we use a different grid of sigma for each scale. We also we assume that $\bar{\bA} $ is centered in a column-wise fashion (i.e. we assume that $\balpha_0 =0$). This assumption does not change the overall estimation procedure. Furthermore, for the sake of conciseness, we currently assume that we know $\sigma ^2$, the noise level; we will relax this assumption later.
+ 
+ 
+ 
+\section{Variational Empirical Bayes approach for multivariate  regression for functional data  with flexible prior}\label{sec:EBmvFR}
+Let's now consider the following regression model
+
+\begin{align}
+    \bar{\bA} & = \bZ  \bTheta+\bm{U}  \label{eq:EBmvFR}\\
+    \bm{U}_{i,_{s,l}} &   \sim N(0,\sigma^2) \\
+    \theta_{j,_{ s,l}} &  \sim \sum_{k=0}^K \pi_{k ,s} N(0,\sigma_{k }^2)\\
+\end{align}
+
+We refer to model \ref{eq:EBmvFR} as EBmvFR (Empirical Bayes multivariate functional regression). Where  $ \bar{\bA}_{.,_{s,l}}$ is the (centered) column of $\bar{\bA}$  (i.e, each column of $\bar{\bA}$ corresponds to a vector $\balpha_{s,l}$ estimated in Step 1 in algorithm 1).   $\bZ$ is $N\times P$ matrix and  $ \bTheta$ is $P\times T$ matrix of regression coefficients,  $\bm{U}$ is a matrix of dimension $N\times T$.  Following the work of \cite{kim_flexible_2022}), we fit model \ref{eq:EBmvFR} via VEB by approximating the intractable posterior distribution
+$    p(\bTheta |\bar{\bA}  ,\bZ,g, \sigma^2)  $, via a candidate posterior, $q$, of the form
+
+\begin{align}
+    q(\bTheta) = \prod_j^P q_j(\btheta_j)\label{eq:candidate_post_EBmvFR}
+\end{align}
+We remind the reader that as $\bTheta$ is a matrix of parameters, and that we denote  $\btheta_j = \bTheta{j,.}  $ and that $\btheta_{s,l} = \bTheta{.,_{s,l}}  $
+\paragraph{Form of the  ELBO}
+Using   the candidate posteriors of the form \ref{eq:candidate_post_EBmvFR}  leads to an ELBO of the form
+\begin{align}
+     F_{EBmvFR}(q, g) =   &\sum_i\sum_{s,l} \mathbb{E}  \log p(\bar{\alpha}_{i,_{s,l}}|\btheta_{ s,l}, \sigma^2) +\sum_j  \mathbb{E} \log \frac{g(\btheta_{j}) }{q_{\btheta_{j}} (\btheta_{j})}       \\ 
+     =&\sum_i\sum_{s,l} \mathbb{E}  \log p(\bar{\alpha}_{i,_{s,l}}|\btheta_{ s,l}, \sigma^2) +\sum_j \sum_{s,l} \mathbb{E} \log \frac{g_{s} (\theta_{j,_{ s,l}}) }{q_{\theta_{j,_{ s,l}}} (\theta_{j,_{ s,l}})} 
+\end{align}
+
+where $g_s= \sum_{k=0}^K \pi_{k ,s} N(0,\sigma_{k }^2)$
+\paragraph{Coordinate ascent update for EBmvFR}
+
+Suppose that the columns of $\bZ$ are centered and scaled (i.e., $\forall j \in \llbracket  1, P\rrbracket ,\sum_{i=1}^n \bZ_{i,j}=0$ and $\bZ_{.,j}^t \bZ_{.,j}=1$). let $\Bar{\btheta}_j = \mathbb{E}_q(\btheta_j)$ and $\Bar{\bTheta}=\mathbb{E}_q(\bTheta)$ be the expected values of $\btheta _j$ and $\bTheta$ with respect to $q$. We define $\bm{R}= \Bar{\bA}- \bZ\Bar{\bTheta}$ as the matrix of expected residuals with respect to $q$. Let $\bZ_{-j}$ be the design matrix excluding the  \textit{j th} column, $q_{-j}$ is shorthand for all the factors $q_{j'}$ except factor $j$. $\Bar{\bR}_j$ is the matrix of the expected residuals accounting for the linear effect of all variables other than $j$
+
+ 
+
+
+\begin{align}
+    \bar{\bR}_j= \Bar{\bA} - \bZ_{-j}\Bar{\bTheta}_{-j} = \Bar{\bA} -\sum_{j'\neq j } \bZ_{.,j'} \Bar{\btheta}_{j'}^t
+\end{align}
+
+Then the following results are direct consequences from the work of \cite{kim_flexible_2022} (see section \ref{subsec:detalEBmvFR} for more details)
+
+
+\begin{enumerate}
+    \item The coordinate ascent update $q^*_j = argmax_{q_{j}}(F_{EBmvFR}( g,q,\sigma^2))$ is obtained by computing the posterior using $BSFR(\bar{\bR}_j, \bZ_j, g,\sigma^2)$
+    \item  the coordinate ascent update 
+    $ g^* = argmax_{g}(F_{EBmvFR}( g,q,\sigma^2)) $
+    is obtained by solving the following $S$ maximization problems
+
+\begin{align}
+    \hat{\bm{\pi}}_s = \arg\max_{\bm{\pi}_s \in \mathbb{S}^K} \sum _{j=1}^P  \sum _{ l=1}^{2^s+1} \log  \sum_{k=0}^K  \pi_{k,s}L_{j,k,_{s,l}}
+\end{align}
+
+
+Where $BSFR$  is defined in \ref{eq:BSFR}, and $L_{j,k,_{s,l}}= N(\hat{\theta}_{j,_{s,l}};0, \sigma^2+\sigma_k^2)$ in Algorithm \ref{alg:EBmvFR}, where $\hat{\theta}_{j,_{s,l}}$ is the OLS estimates of the effect of $\bZ_j$ on column $s,l$ of $\Bar{\bR}_j$, which can be obtained using the output of  $BSFR(\bar{\bR}_j, \bZ_j, g,\sigma^2)$ (see \ref{subsec:detalEBmvFR_hyper} for details).
+ 
+\end{enumerate}
+   
+ 
+
+ 
+
+
+
+\begin{algorithm}
+\caption{ Coordinate ascent for fitting EBmvFR (known $\sigma^2$)} \label{alg:EBmvFR}
+\begin{algorithmic}[1]
+ \STATE Input  $\bar{\bA} , \bZ,\sigma^2$ 
+ \STATE Initialize: $q_1,\ldots, q_p, \hat{g},\bar{\bR} = \Bar{\bA} - \bZ\Bar{ \bTheta }$
+\REPEAT 
+\FOR{\( j = 1, \ldots, p \)}
+\STATE  $\bar{\bR}_{j} = \bar{\bA}-\sum_{j'\ne j}\bZ_{.,j'}\bar{\btheta}_{j'}^t$ 
+\STATE  $q_j^* \leftarrow BSFR(\bar{\bR}_{j},\bZ_{,j}, \hat{g},\sigma^2)$
+\STATE  $\bar{\btheta}_j\leftarrow\mathbb E_{q_j^*}[\btheta_j]$
+\ENDFOR
+\FOR{\( s = 1, \ldots, \log_2(T)\)}
+\STATE$\hat{\bm{\pi}}_s = \arg\max_{\bm{\pi}_s \in \mathbb{S}^K} \sum _{j=1}^P \sum_{l} \log  \sum_{k=0}^K  \pi_{k,s}L_{j,k,_{s,l}}$
+\ENDFOR
+\UNTIL converged
+\STATE Return $(\Bar{ \bTheta }, q_{\bTheta}=\prod_j q(\btheta_j ), (\hat{\bm{\pi}}_s))$
+\end{algorithmic}
+\end{algorithm}
+
+
+Algorithm \ref{alg:EBmvFR} corresponds to a function that maximizes $F_{EBmvFR}$ with respect to $q_{\bTheta} $ and $g$ when $g_{\bTheta} $ is a prior under the EBmvFR model. We note this algorithm as a function. 
+
+
+ 
+\begin{align}
+    EBmvFR(\Bar{\bA}, \bZ, \sigma^2) =\left(\Bar{ \bTheta }, q_{\bTheta}=\prod_j q(\btheta_j ),(\hat{\bm{\pi}}_s) \right)
+\end{align}
+
+\subsection{Details for the EBmvFR}\label{subsec:detalEBmvFR}
+ 
+
+
+%\paragraph{A note on $\hat{\sigma}^2$}
+%For the sake of keeping the message to the point, we have assumed that $\sigma^2$ is known. However, in practice the    Empirical Bayes estimate of $\bbeta$   is given by the output of $ \text{BSFR}(\Bar{\bA},\bX,\hat{g},  \hat{\sigma}^2) $, where $\hat{\sigma}^2$ is maximizing the marginal log likelihood of the model \ref{eq:simpleSFR_mix_per_scale}. For example one can select  such that $\hat{\sigma}^2= argmax_{ \sigma^2}(F_{EBmvFR}( q, \hat{g}, \sigma^2))$ where $F_{EBmvFR}$ is defined in equation \ref{eq:elbo_simpleSFR}. We will elaborate on the estimation $\hat{\sigma}^2$  in model \ref{eq:Poisson_model_mat} in the next sections.
+
+\subsubsection{Maximum likelihood for hyperparameter}\label{subsec:detalEBmvFR_hyper}
+
+At a coordinate update, condition on the current posterior means of the other regression coefficients and use the partial residual $\bar{\bR}_j$. Normal--normal conjugacy gives the following mixture marginal-likelihood factor for coefficient $(j,s,l)$:
+\begin{align}
+    L_{j,s,l}(g_s)
+    &=\sum_{k=0}^K\pi_{k,s}\bm L_{j,s,l,k},\\
+    \bm L_{j,s,l,k}
+    &=N\!\left(\hat\theta_{j,s,l};0,\sigma^2_{\hat\theta,j}+\sigma^2_k\right),
+    \qquad
+    \sigma^2_{\hat\theta,j}=\frac{\sigma^2}{\bZ_{.,j}^t\bZ_{.,j}}.
+\end{align}
+Here $\hat\theta_{j,s,l}$ is the OLS estimate of the effect of $\bZ_{.,j}$ on $\bar{\bR}_{j,.,s,l}$. Therefore the update of the shared mixture weights can be written as $S$ independent maximization problems
+
+\begin{align}
+    \bm{\pi_{s}}= \arg\max_{\bm\pi_s\in\mathbb{S}^K} \sum _{j=1}^P \sum _{ l=1}^{2^s+1} \log \sum _{k=0}^K \pi_{k,s} \bm{L}_{j,s,l,k} 
+\end{align}
+
+Each of these problems can be solved using the Expectation Maximization algorithm  (EM \citep{dempster_maximum_1977}) or via convex optimization methods as suggested by  \cite{kim_fast_2019}
+
+
+
+\subsection{KL divergence EBmvFR}\label{subsec:detalEBmvFR_KL}
+
+
+Following the work \cite{kim_flexible_2022}, the K-L divergence between $\btheta_j$ and its prior 
+
+
+\begin{align}\label{eq:KL_EBmvFR}
+    D_{KL}(q_{\btheta_j}||g_{\btheta_j}) = \sum_{s,l}\left( \sum_ {k=0}^K \Tilde{\pi}_{k, _{s,l}}\log\left(\frac{\Tilde{\pi}_{k, _{s,l}}}{\pi_{k,s}} \right) -\frac{1}{2}\sum_{k=1}^K  \Tilde{\pi}_{k, _{s,l}}\left[   1 +\log \left( \frac{s^2_{1,k,_{s,l}}}{\sigma^2_k}\right) - \frac{\mu_{1,k,_{s,l}}^2+s^2_{1,k,_{s,l}}}{\sigma^2_k}\right] \right)
+\end{align}
+
+
+Where the quantities $(\mu_{1,k,_{s,l}}),(s^2_{1,k,_{s,l}}),(\Tilde{\pi}_{k, _{s,l}}) $ are obtained  using the output of $BSFR(\bar{\bm{R}}_j, \bZ_j,g_{\btheta_j},\sigma^2) $ using    $g_{\btheta_j}$    as a prior where 
+
+\begin{align}
+    \btheta_j \sim  g_{\btheta_j}   \Leftrightarrow   \theta_{j,_{s,l}} \sim  \sum_k \pi_{k,s}N(0,\sigma^2_k)
+\end{align}
+
+
+\section{Empirical Bayes  Single Functional Regression}
+
+Here we introduce the main quantities to compute the posterior quantities under the  ``Single Function Regression" (SFR) model, which we use afterward to obtain VEB approximation of the posterior of the sum of single effect model. The SFR is a functional regression model in which only one of the considered covariates has a non-zero effect and can be framed as follow
+ \begin{align}\label{eq:SFR}
+    \bar{\bm{A}} &= \bX\bm{B}+\bm{U}\\
+        \bm{U}_{i,_{s,l}} &\sim N(0,\sigma^2)\\
+     \bB & = \bB^{(1)}\\
+     \bB^{(1)}&=\operatorname{diag}(\bgamma ^1)\bB ^1 \\
+ \bgamma ^1 & \sim Mult(1, \bm{p})\\
+    b^1_{j,s,l} &\sim  \sum_{k=0}^{K} \pi_{k,s} N(0,\sigma_{k,s}^2)
+\end{align}
+
+
+ 
+
+
+Where  $ \bX$ is a matrix of dimension $N\times P $, $\bm{B}$ is a matrix of length $P\times T$, where exactly only one row is different from $0_T$, $\bm{U}$ is a matrix of dimension $N\times T$, $ \bm{\beta}$ is a vector of length $2^S = T$, $\bm{p}$ is a vector length $P$, with components between 0 and 1 and the sum of its components sums to 1. This model can be fitted using the quantities defined in the previous section as well as the posterior distribution for $ \bgamma ^1  $. Following the seminal work of Wang and colleagues \citep{wang_simple_2020}:
+ 
+
+\begin{align}
+  \bgamma ^1|\bar{\bm{A}},  \bX, g, \sigma^2 \sim Mult(1, \bm{\omega})
+\end{align}
+ 
+Where the component of the posterior probability of inclusion $\bomega$ can be computed  as follow  
+
+\begin{align}
+  \omega_j=  p(\gamma_j^1 =1 |\bar{\bm{A}} , \bX, g, \sigma^2 )& = \frac{ p(\bar{\bm{A}} | \gamma_j^1=1, \bX, g, \sigma^2 ) p(\gamma_j^1=1)}{ \sum_{j'=1}^P p(\bar{\bm{A}} | \gamma_{j'}^1=1, \bX, g, \sigma^2 ) p(\gamma_{j'}^1=1)}\\
+  &= \frac{p_j  \BFm(\bar{\bm{A}} , \bX_{.,j }, \sigma^2, (\sigma^2_k)_{1:K}, (\pi_{k,s}))}{\sum_{j'=1}^P p_{j'} \BFm(\bar{\bm{A}} , \bX_{.,j'}, \sigma^2, (\sigma^2_k)_{1:K}, (\pi_{k,s}))} \label{eq:post_alpha_mix}
+\end{align}
+
+Where $\bX_{.,j }$ is the $j^{th}$ column of $\bX$ and $\BFm$ is defined in \ref{eq:BFmix}. The posterior first and second moments of the column of the entries of $\bm{B}$ in model \ref{eq:SFR} can be computed as follows:  
+\begin{align}\label{eq:ex__post}
+    \mathbf{E}[\beta_{j,_{s,l}}\mid\bar{\bm{A}},\bX]& =\omega_j\,\mathbf{E}[\beta_{j,_{s,l}}\mid\gamma_j^1=1,\bar{\bm{A}},\bX]\\
+   & =   \omega_j \sum_k \mu_{1,j,k,s,l} \Tilde{\pi}_{j,k,s,l} \label{eq:post_f_mix}\\
+    \mathbf{E}[\beta_{j,_{s,l}}^2] & =\omega_j\sum_k\Tilde{\pi}_{j,k,s,l}\left(s^2_{1,j,k,s,l}+\mu_{1,j,k,s,l}^2\right) \label{eq:post_f2_mix}
+\end{align}
+Where $s^2_{1,j,k,s,l}$ and $\mu_{1,j,k,s,l}$ are defined as in \ref{eq:post_mean_simple_prior}, with the predictor index $j$ made explicit. We refer to this estimation procedure as the single functional regression (SFR), a function that takes as input an (estimated) data matrix $\Bar{\bA}$, a matrix of covariates $\bX$, a prior $g$ for the single effect, and a noise variance $\sigma^2$, and outputs the posterior mean for $\bgamma^1$ and the posterior first and second moments of $\bB$.
+
+ \begin{align}
+    SFR(\bX,\bar{\bA},\sigma^2,g)=(\bomega,\bar{\bB},\overline{\bB^2})
+\end{align}
+Note that the output of the SFR function contains the necessary information to compute the posterior of $\bB=\operatorname{diag}(\bgamma^1)\bB^1$
+
+%  \subsubsection{Bayesian single functional regression with mixture prior}\label{appednix:SFR_mix}
+%Finally let's consider model \ref{eq:model_W} with mixture prior (written below for convenience):
+%  \begin{align}
+%    \bar{\bm{A}} &= \bX\bm{B}+\bm{U}\\
+%    \bm{U} &\sim N(0,\sigma^2)\\
+%    \bm{B} &= \gamma  \bm{\beta}^t\\
+%    \gamma & \sim Mult(1, \bm{p})\\
+%    \beta_{s,l} &\sim  \sum_{k=0}^{K} \pi_{k,s} N(0,\sigma_{k,s}^2)
+%\end{align}
+%Fitting \ref{eq:model_W} requires computing the following quantities:
+ 
+%\begin{align}
+%    \mathbf{E}[\beta_{j,_{s,l}}]& =   \omega_j \sum_k \mu_{j_{k},_{s,l}} \Tilde{\pi}_{k,s,_{sl}} \label{eq:post_f_mix}\\
+%    \mathbf{E}[\beta_{j,_{s,l}}^2] & =\omega_j (\sum_k\Tilde{\pi}_{k,s,_{sl}}\sigma_{1,_k}^2+ \sum_k \mu_{j_{k},_{s,l}}^2\Tilde{\pi}_{k,s,_{sl}} ) \label{eq:post_f2_mix}
+%\end{align}
+
+ \paragraph{Estimating hyperparameters $(\pi_{k,s}) $} \label{appendix:EB_SFR}
+For the  SFR model, we estimate $\sigma^2$ using the expected residuals (see section \ref{subsection:update_s2}), and the grid $\sigma_k^2$ is selected in an automatic fashion (see \cite{stephens_false_2017}) prior to the estimation procedure. We estimate the remaining $K\times S$  hyperparameters $(\pi_{k,s})$ in an empirical Bayes way, using an  EM algorithm that we depict  below.\\\\ 
+
+
+
+The log-likelihood can be written as
+ 
+\begin{align}\label{eq:like_SFR3_pi_sig0}
+    L(\bar{\bm{A}},\bX,  \sigma^2  , (\sigma^2_k),(\pi_{k,s}) )& =p(\bar{\bm{A}}|\bX, \sigma^2  , (\sigma^2_k),(\pi_{k,s}) )\\
+    &   \propto \sum_{j=1}^P p_j   \BFm\left( \bar{\bm{A}}, \bX_{.j}, \sigma^2, (\sigma^2_k) ,  (\pi_{k,s})   \right)
+\end{align}
+ To lighten the notation let's denote $ \BFm\left( \bar{\bm{A}}, \bX_{.j}, \sigma^2, (\sigma^2_k) ,  (\pi_{k,s})   \right) $ as  $\bm{BF}_j\left(    (\pi_{k,s})   \right)$. Introduce the latent variable $Z\in\llbracket 1:P\rrbracket$ with $p(Z=j)=p_j$ and $p(\bar{\bm A}\mid Z=j)\propto\bm{BF}_j((\pi_{k,s}))$, and denote
+\begin{align}
+ \zeta_{j,t+1} &=\mathbf{E}_{Z|\bar{\bm A},\bX} \left[I(Z=j) \right]_{t+1}\\
+ &= \frac{ p_j \bm{BF}_j\left(    (\pi^{(t)}_{k,s})   \right) }{ \sum_{j'=1}^P p_{j'}   \bm{BF}_{j'}\left(    (\pi^{(t)}_{k,s})   \right)}
+\end{align}
+ 
+
+Then following the work of Denault et al.  (fSuSiE)  the expected value of the complete log-likelihood is   proportional (with respect to $ (\pi_{k,s})  $) to
+
+\begin{align}
+  \log\left(  \prod_{j=1}^P\prod_{s=1}^S \left[ \prod_{ l=1}^{2^s+1} \left( \sum_{k=0}^K \pi_{k,s}  N(\hat{\beta} _{j,_{s,l}},0,\sigma_k^2+\sigma_{ \bm{\beta}}^2) \right) \right]^{\zeta_{j,t+1}}\right)
+\end{align}
+So finding the hyperparameters of the model \ref{eq:SFR} corresponds to the following  S independent weighted maximization problems
+ 
+ \begin{align}
+\label{eq:S_weigthed_ash_pb} 
+    \hat{\bm{\pi}}_s = \arg\max_{\bm{\pi}_s \in \mathbb{S}^K}
+    \sum_{j=1}^P\zeta_{j,t+1}\sum_{l=1}^{2^s+1}
+    \log\!\left(\sum_{k=0}^K \pi_{k,s}N(\hat{\beta}_{j,_{s,l}},0,\sigma_k^2+\sigma_{\bm{\beta}}^2)\right)
+ \end{align}
+ 
+ 
+ Given that the only unknown quantities are the mixture proportions, these are concave maximization problems (equivalently, their negative objectives are convex) and can be solved efficiently using interior point methods ~\citep{kim_fast_2019}.  Finally the posterior first and second posterior moment of the  Empirical Bayes Single Functional Regression, are  simply given by
+
+\begin{align}
+ SFR(\bX,\bar{\bA},\sigma^2,\hat g)
+\end{align}
+
+  where $(\hat\pi_{k,s})$ are solutions of the maximization problem \ref{eq:S_weigthed_ash_pb}.
+
+
+
+
+
+
+
+
+  
+\section{Variational Empirical Bayes approach for multivariate regression for  functional data with sum of Single Effect prior}\label{sec:fSuSIE}
+Let's consider the following model:
+
+
+
+ \begin{align}\label{eq:fsusie}
+    \bar{\bA} &= \bX\bB+\bm{U}\\
+    \bm{U}_{i,_{s,l}} &\sim N(0,\sigma^2)\\
+    \bB &=  \sum_e^E\bB^{(e)} \\
+    \bB^{(e)}&=\operatorname{diag}(\bgamma_e)\bB^e  \\
+    \bgamma_e & \sim Mult(1, \bm{p})\\
+    b^e_{j,{s,l}} &\sim  \sum_{k=0}^{K} \pi^e_{k,s} N(0,\sigma_{k,s}^2)
+\end{align}
+
+
+
+ 
+ 
+The full posterior of  \ref{eq:fsusie}  is a (likely) intractable problem, in the line of \cite{wang_simple_2020} we restrict our search to posterior that factorize as follow.
+ 
+ \begin{align}\label{eq:mean_feild_approx}
+  q(\bB^{(1)},\ldots ,\bB^{(E)})= \prod_{e=1}^E q_e(\bB^{(e)})   
+ \end{align}
+ 
+
+  \paragraph{Form of the  ELBO} Given that the candidate posterior   $q$ is of the form \ref{eq:mean_feild_approx}, then the  ELBO  for model \ref{eq:fsusie} can be written as:
+ 
+ \begin{align}\label{eq:elbo_frorm_mean_feild}
+     F_{fSuSiE}(q, g,\sigma^2, \bar{\bA}, \bX) = &-\frac{T N}{2}\log(2\pi\sigma^2) - \frac{1}{2\sigma^2}\mathbb{E}_{q}\left[ \sum_s\sum_l \left\| \bar{\balpha}_{s,l} - \sum_{e=1}^E \bX (\bbeta^e_{s,l})^{t} \right\|_2^2  \right] \\&+ \sum_{e=1}^E \mathbb{E}_{q_{e}}\left[  \log \frac{g_e(\bB^{(e)})}{q_{e}(\bB^{(e)})}\right]
+\end{align}
+ 
+Where $||.||$ is the euclidean norm and $\bm{g}=(g_1,...,g_E)$ is a collection of mixture  prior. Using proposition A.1\cite{wang_simple_2020} this expression futher simplifies as 
+
+
+\begin{align}
+    F_{fSuSiE}(q,g, \sigma^2,\bar{\bA},\bX) = &\mathbf{E}_q[\log p(\bar{\bA}|\bB, \bX)]+ \sum_e  \mathbf{E}_{q_e}\left[\log \frac{g_e(\bB^{(e)}) }{q_e(\bB^{(e)})}\right]\\
+    =  &\mathbf{E}_q[\log p(\bar{\bA}|\bB, \bX)] - \sum_e \operatorname{KL}(q_e(\bB^{(e)})\,\|\,g_e(\bB^{(e)}))\\
+     =&\mathbf{E}_q[\log p(\bar{\bA}|\bB, \bX)]+ \sum_e F_e(q_e,g_e, \sigma^2,\hat{\bm{R}}^e,\bX)\\
+     &-\sum_e \mathbf{E}_{q_e} [\log p( \hat{\bm{R}}^e |\bB^{(e)}, \bX) ]
+\end{align}
+
+Where $F_e$ is the ELBO for the $e^{th}$ SFR model and  $\hat{\bm{R}}^e$ corresponds to the expected residual without effect $e$, i.e.:
+
+
+ 
+
+\begin{align}\label{eq:expected_residuals}
+\hat{\bm{R}}^e =  \mathbf{E}_q \left[\bm{R}^e\right] =  \mathbf{E}_q \left[\bar{\bA} - \sum_{e' \neq e} \bX \bB^{e'}      \right] \end{align}
+
+Proof for this Proposition   in the univariate case is given in \cite{wang_simple_2020}, where
+
+
+
+Then the following results are direct consequences from the work of \cite{wang_simple_2020} 
+
+\begin{enumerate}
+    \item The coordinate ascent update $q^*_e = \arg\max_{q_{e}}F_{fSuSiE}(q,g,\sigma^2,\hat{\bm{R}}^e,\bX)$ is obtained by computing the posterior using $SFR(\bX,\hat{\bR}^e,\sigma^2,g_e)$
+    \item  the coordinate ascent update 
+    $ g_e^* = argmax_{g_e}(F_{fSuSiE}( g,q,\sigma^2)) $
+    is obtained by solving a convex optimization problem described in \ref{eq:S_weigthed_ash_pb} .
+
+
+\end{enumerate}
+
+ 
+
+
+\begin{algorithm}
+\caption{ Coordinate ascent for multivariate regression for  functional data with sum of Single prior (known $\sigma^2$)} \label{alg:fSuSIE}
+\begin{algorithmic}[1]
+ \STATE $\bar{\bA} , \bX,E,\sigma^2$
+ \STATE Initialize: $(q^*_e), (\hat{g}^e) ,(\hat{\bB}^{(e)}), (\bgamma_e )$
+\REPEAT 
+\FOR{\( e = 1, \ldots, E \)}
+\STATE $\hat{\bR}^e =\bar{\bA}-\sum_{e'\ne e}\bX\bar{\bB}^{(e')}$ 
+\STATE$q_e^* \leftarrow SFR(\bX,\hat{\bR}^e,\sigma^2,\hat{g}^e)$
+\STATE $\hat{g}^e  = argmax_{g^e} \left( F_{fSuSiE}(q^*,g, \sigma^2,\bar{\bA},\bX)\right) $ using equation \ref{eq:S_weigthed_ash_pb} 
+\ENDFOR
+\UNTIL converged
+\STATE Return $(\Bar{ \bB }, q_{\bB}=\prod_e q_e(\bB^{(e)}), (\hat{\bm{\pi}}^e_s))$
+\end{algorithmic}
+\end{algorithm}
+
+
+
+
+Algorithm \ref{alg:fSuSIE} corresponds to a function that maximizes $F_{ fSuSiE}$ with respect to $q_{\bB} $ and $g$ when $g_{\bB} $ is a prior under the fSuSiE model. We note this algorithm as a function. 
+
+
+ 
+\begin{align}
+    fSuSiE(\Bar{\bA}, \bX, E,\sigma^2) =\left(\Bar{ \bB }, q_{\bB}=\prod_e q_e(\bB^{(e)}), (\hat{\bm{\pi}}^e_s) \right)
+\end{align}
+
+
+\subsection{Details for the Sum of Single effect prior}\label{subsec:detail_fsusie}
+
+
+
+\subsubsection{Bayesian simple single functional regression}
+
+Let's recall the SFR model with a mixture prior on the effect component,
+ \begin{align}
+    \bar{\bm{A}} &= \bX\bm{B}+\bm{U}\\
+     \bB & = \bB^{(1)}\\
+     \bB^{(1)}&=\operatorname{diag}(\bgamma ^1)\bB ^1 \\
+     \bgamma^1 & \sim Mult(1, \bm{p})\\
+    b^1_{j,s,l} &\sim  \sum_{k=0}^{K} \pi_{k,s} N(0,\sigma_{k,s}^2)
+\end{align}
+
+
+ 
+%\subsubsection{Expected residual sum of squares} \label{subsubsec:erss}
+
+%Here, we focus on the second term of equation \ref{eq:elbo_frorm_mean_feild}, which we refer to as the ``expected residual sum of squares'' (ERSS). It is important to pay attention to this quantity as the expected residuals has a central role in our updating procedure. To compute this term, we need to compute $\mathbf{E}_{\bB\sim q_e}[ f^e_{j,_{s,l}}] $ and $\mathbf{E}_{\bB\sim q_e}[(f^{e}_{j,_{s,l}})^{2}]$,  given that  $g_e$ is a scale mixture prior, it is straightforward given to compute these quantities using the analytical formula provided in  \ref{eq:post_f_mix} \ref{eq:post_f2_mix}. Thus, the  ``expected residual sum of squares'' (ERSS)  can be written as:
+%\begin{align}\label{eq:ERSS}
+%    ERSS(\bar{\bA},\bX,\Bar{\bm{F}},\Bar{\bm{F}^2}) = \sum_s\sum_l || \balpha_{s,l} - \sum_{e=1}^E \bX \Bar{\bB}^e_{.,_{s,l}} ||^2 + \sum_{e=1}^E \sum_j\sum_s\sum_l Var  [{\beta}^e_{j,_{s,l}}]
+%\end{align}
+
+
+
+
+
+\subsubsection{ELBO for the $e$-th single effect}
+
+Similar to the SuSiE approach $F_e(q_e,g_e, \sigma^2,\hat{\bm{R}}^e,\bX)$ is equal to $\log L (\bm{R}^e , g_e, X, \sigma^2)$ at the maximum $\hat{q}_e= argmax_q F_e(q_e,g_e, \sigma^2,\hat{\bm{R}}^e,\bX)$, which can be computed as 
+
+\begin{align}
+    F_e(q_e,g_e, \sigma^2,\hat{\bm{R}}^e,\bX)= \log \left( \prod_{s,l,i} N(\hat{\bm{R}}^e_{i,s,l};0,\sigma^2) \right) + \log \left( \sum_j p_j BF_{mix} (\hat{\bm{R}}^e,\bX_{.,j},\sigma^2, (\sigma^2_{k}) ,(\pi_{k,s}))\right)
+\end{align}
+
+
+\subsubsection{KL divergence for the $e$-th effect}
+Following precedent derivations 
+\begin{align}
+ \mathbb{E}_{q_e}\left[  \log \frac{g_e(\bB^{(e)})}{q_e(\bB^{(e)})}\right] & = F_e(q_e,g_e, \sigma^2,\hat{\bm{R}}^e,\bX) + \frac{T N}{2} \log(2\pi \sigma^2) + \frac{1}{2\sigma^2} \mathbf{E}_{q_e}\left[ \left\| \hat{\bm{R}}^e - \bm{X} \bB^{(e)} \right\|_F^2\right]\\
+&= -\operatorname{KL}(q_e(\bB^{(e)})\,\|\,g_e(\bB^{(e)}))
+\end{align}
+
+
+
+
+
+ \section{VEB for model \ref{eq:Poisson_model_mat_sup_app_proj}}
+
+  
+
+\begin{theorem}
+    Algorithm  \ref{algo_cavi}  is a coordinate-ascent algorithm for model \ref{eq:Poisson_model_mat_sup_app_proj}  using candidate posterior of the form \ref{eq:facto_form}
+\end{theorem}
+
+
+
+\begin{algorithm}
+\caption{Splitting Variational Bayes approach for inhomogeneous Poisson detialed} 
+\begin{algorithmic}[1]\label{algo_cavi}
+ \STATE Input: $\bY, \bX, \bZ, E$  
+ \STATE Initialize: $q, \sigma^2$  
+ \REPEAT 
+ \STATE Step 1) Given $q_{\bB}$, $q_{\bTheta}$, $q_{\bA_0}$ and $\sigma^2$, update $q_{\bm M}$ (and hence $q_{\bA}$) by solving the Poisson normal-means problems.
+\STATE Step 2) a) Given $q_{\bA},q_{\bB},q_{\bA_0}$ and $\sigma^2$, $(q_{\bTheta},g_{\bTheta})\leftarrow EBmvFR(\bar\bA_{-\bar{\bB}},\bZ,\sigma^2)$.
+\STATE Step 2) b) Given $q_{\bA},q_{\bTheta},q_{\bA_0}$ and $\sigma^2$, $(q_{\bB},g_{\bB})\leftarrow fSuSiE(\bar\bA_{-\bar{\bTheta}},\bX,E,\sigma^2)$.
+\STATE Step 2) c) Given $q_{\bA},q_{\bB},q_{\bTheta}$ and $\sigma^2$, $(q_{\bA_0},g_{\balpha_0})\leftarrow EBNM(\bar\bA_{-(\bar{\bTheta},\bar{\bB})},\sigma^2)$.
+\STATE Step 3) Update $\sigma^{2*}\leftarrow\arg\max_{\sigma^2}F(q,g,\sigma^2)$.
+\UNTIL converged
+\end{algorithmic}
+\end{algorithm}
+
+Where the quantities $\bar\bA_{- \bar{\bB}},\bar\bA_{- \bar{\bTheta}}$ and $ \bar\bA_{- (\bar{\bTheta}, \bar{\bB})}$ are defined as 
+
+
+\begin{align}
+     \bar\bA_{- \bar{\bB}}&= \bar\bA - \bar\bA_0 -\bX\bar\bB\\
+     \bar\bA_{- \bar{\bTheta}}&= \bar\bA - \bar\bA_0 -\bZ\bar\bTheta\\
+     \bar\bA_{- (\bar{\bTheta}, \bar{\bB})}&= \bar\bA -\bZ\bar\bTheta  -\bX\bar\bB
+ \end{align}
+ 
+  
+
+
+ 
+\begin{proof}
+
+The ELBO for \ref{eq:Poisson_model_mat_sup_app_proj}  under the VA \ref{eq:facto_form} has the following form
+
+ 
+ 
+ \begin{align}\label{eq:ELBO}
+     F(q, g, \sigma^2) =& \sum_i \sum_t \mathbb{E}_q \log \frac{p(y_{i,t }|  \mu_{i,t}) }{q_{\mu_{i,t}}(\mu_{i,t} )}+ \sum_i\sum_{t}  \mathbb{E}_q  \log p(\mu_{i,t}|\mu_{0,t},  \bF, \bm{G}, \sigma^2)+ \\ 
+     &    \mathbb{E}_q  \log \frac{g_{\bF}  (\bF ) }{q_{\bF } (\bF )}+ \mathbb{E}_q  \log \frac{g_{\bm{G}}  (\bm{G} ) }{q_{\bm{G} } (\bm{G} )}+ \sum_{t}  \mathbb{E}_q \log \frac{g_{0,t}(  \mu_{0,t})}{q_{   \mu_{0,t}}(\mu_{0,t})}\\
+      =& \sum_i \sum_t \mathbb{E}_q \log \frac{p(y_{i,t }|  \mu_{i,t}) }{q_{\mu_{i,t}}(\mu_{i,t} )}+ \sum_i\sum_{s,l}  \mathbb{E}_q  \log p(\alpha_{i,_{s,l}}|\alpha_{0,_{s,l}},  \btheta_{ s,l}, \bbeta_{ s,l}, \sigma^2)+ \\ 
+     &    \mathbb{E}_q  \log \frac{g_{\bB}  (\bB ) }{q_{\bB } (\bB )}+ \mathbb{E}_q  \log \frac{g_{\bm{\Theta}}  (\bm{\Theta} ) }{q_{\bm{\Theta} } (\bm{\Theta} )}+ \sum_{s,l}  \mathbb{E}_q \log \frac{g_{0,s}(  \alpha_{0,_{s,l}})}{q_{   \alpha_{0,_{s,l}}}(\alpha_{0,_{s,l}})}\\
+     =& \sum_i \sum_t \mathbb{E}_q \log \frac{p(y_{i,t }|  \mu_{i,t}) }{q_{\mu_{i,t}}(\mu_{i,t} )}+ \sum_i\sum_{s,l}  \mathbb{E}_q  \log p(\alpha_{i,_{s,l}}|\alpha_{0,_{s,l}},  \btheta_{ s,l}, \bbeta_{ s,l}, \sigma^2)+\\
+     &\sum_{e=1}^E \mathbb{E}_q  \log \frac{g_{\bB^{(e)}}  ( \bB^{(e)}) }{q_{ \bB^{(e)} } ( \bB^{(e)} )}+ \sum_j \mathbb{E}_q  \log \frac{g_{\btheta }  (\btheta_j  ) }{q_{\btheta_{j}  } (\btheta_j )}+ \sum_{s,l}  \mathbb{E}_q \log \frac{g_{0,s}(  \alpha_{0,_{s,l}})}{q_{   \alpha_{0,_{s,l}}}(\alpha_{0,_{s,l}})}
+ \end{align}
+
+  
+
+\textbf{Update for $q_{\bm {\mu}}^{*}$}
+
+\begin{align}
+     q_{\bm {\mu}}^{*}&= \arg\max_{q_{\bm {\mu}}}\left\{\sum_i\sum_t \left( \mathbb{E}_q \log p(y_{i,t}| \mu_{i,t})+ \mathbb{E}_q \log p(\mu_{i,t}|\mu_{0,t},  \bF, \bm{G}, \sigma^2)- \mathbb{E}_q \log q_{\mu_{i,t}}(\mu_{i,t})\right)\right\}
+\end{align}
+Which is a Poisson Normal mean problem which can be solved using results from section \ref{subsec:pois_normal_mean}
+\textbf{Update for $ (q_{\bTheta}^{*},g_{\bTheta}^*)$}
+
+\begin{align}
+   \mathcal F_{\bTheta}(q_{\bTheta},g_{\bTheta}) =    &  \sum_i\sum_{s,l}  \mathbb{E}_q  \log p(\alpha_{i,_{s,l}}|\alpha_{0,_{s,l}},  \btheta_{ s,l}, \bbeta_{ s,l}, \sigma^2) +  \sum_j \mathbb{E}_q  \log \frac{g_{\btheta }  (\btheta_j  ) }{q_{\btheta_{j}  } (\btheta_j )} +Const\\
+   =& -\frac{1}{2\sigma^2} \sum_i\sum_{s,l} \mathbb{E}_q [(\alpha_{i,_{s,l}}-\alpha_{0,_{s,l}}- \bz_i^t\btheta_{ s,l}- \bx_i^t \bbeta_{ s,l})^2] +  \sum_j \mathbb{E}_q  \log \frac{g_{\btheta }  (\btheta_j  ) }{q_{\btheta_{j}  } (\btheta_j )} +Const\\
+  =&   \frac{1}{2\sigma^2} \sum_i\sum_{s,l} \mathbb{E}_q [2(\alpha_{i,_{s,l}}-\alpha_{0,_{s,l}}-\bx_i^t \bbeta_{ s,l})\bz_i^t\btheta_{ s,l} - (\bz_i^t\btheta_{ s,l})^2  ] +  \sum_j \mathbb{E}_q  \log \frac{g_{\btheta }  (\btheta_j  ) }{q_{\btheta_{j}  } (\btheta_j )} +Const\\
+   =&   \frac{1}{2\sigma^2} \sum_i\sum_{s,l}  \mathbb{E}_{q(\bTheta)}   [2(\bar{\alpha}_{i,_{s,l}}  -\bar{\alpha}_{0,_{s,l}}  - \bx_i^t \Bar{\bbeta}_{ s,l} )\bz_i^t\btheta_{ s,l} - (\bz_i^t\btheta_{ s,l})^2  ] +  \sum_j \mathbb{E}_{q(\bTheta)}    \log \frac{g_{\btheta }  (\btheta_j  ) }{q_{\btheta_{j}  } (\btheta_j )} +Const\\
+      =& \sum_i\sum_{s,l}  \mathbb{E}_{q(\bTheta)}  \log p(\bar{\alpha}_{i,_{s,l}}  -\bar{\alpha}_{0,_{s,l}}  - \bx_i^t \Bar{\bbeta}_{ s,l}   |\bz_i^t\btheta_{ s,l},   \sigma^2) +  \sum_j \mathbb{E}_{q(\bTheta)}  \log \frac{g_{\btheta }  (\btheta_j  ) }{q_{\btheta_{j}  } (\btheta_j )} +Const\\
+   (q_{\bTheta}^{*},g_{\bTheta}^*) = &\arg\max_{q_{\bTheta},g_{\bTheta}}\mathcal F_{\bTheta}(q_{\bTheta},g_{\bTheta})
+\end{align}
+
+Which corresponds to same problem as in section \ref{sec:EBmvFR} therefore an update of $(q_{\bTheta}^{*},g_{\bTheta}^*)$ can be obtain by using \ref{alg:EBmvFR}, which corresponds to evaluate the $EBmvFR$ function at points the points $   \bar\bA_{- \bar{\bB}}, \bZ, \sigma^2   $
+
+
+
+\textbf{Update for $ ( q_{\bB}^{*}, g^*_{\bB})$}\\
+By a similar reasoning
+\begin{align}
+  \mathcal F_{\bB}(q_{\bB},g_{\bB})=    &  \sum_i\sum_{s,l}  \mathbb{E}_{q }  \log p(\alpha_{i,_{s,l}}|\alpha_{0,_{s,l}},  \btheta_{ s,l}, \bbeta_{ s,l}, \sigma^2) +  \sum_e \mathbb{E}_q  \log \frac{g_{\bB^{(e)}}(\bB^{(e)})}{q_{\bB^{(e)}}(\bB^{(e)})} +Const\\
+      =& \sum_i\sum_{s,l}  \mathbb{E}_{q(\bB)}  \log p(\bar{\alpha}_{i,_{s,l}}  -\bar{\alpha}_{0,_{s,l}}  - \bz_i^t \Bar{\btheta}_{ s,l}   |\bx_i^t\bbeta_{ s,l},   \sigma^2) +  \sum_e \mathbb{E}_{q(\bB)}  \log \frac{g_{\bB^{(e)}}(\bB^{(e)})}{q_{\bB^{(e)}}(\bB^{(e)})} +Const\\
+  ( q_{\bB}^{*}, g^*_{\bB})= &\arg\max_{q_{\bB},g_{\bB}}\mathcal F_{\bB}(q_{\bB},g_{\bB})
+\end{align}
+
+Which corresponds to the same problem as in section \ref{sec:fSuSIE}; therefore $(q_{\bB}^{*},g_{\bB}^*)$ is obtained using \ref{alg:fSuSIE}, which corresponds to evaluating the $fSuSiE$ function at $\bar\bA_{- \bar{\bTheta}}, \bX, E, \sigma^2$.
+
+ 
+\textbf{Update for $ (q_{\balpha_0},g_{\balpha_0})$}
+By a similar reasoning
+\begin{align}
+  \mathcal F_{\balpha_0}(q_{\balpha_0},g_{\balpha_0})= & \sum_i\sum_{s,l}  \mathbb{E}_q  \log p(\bar{\alpha}_{i,_{s,l}}    - \bz_i^t \Bar{\btheta}_{ s,l} -\bx_i^t\bar{\bbeta}_{s,l}  |  \alpha_{0,_{s,l}},   \sigma^2) +  \sum_{s,l} \mathbb{E}_q  \log \frac{g_{ \alpha_{0,  s  } }  ( \alpha_{0,_{s,l}} ) }{q_{ \alpha_{0,_{s,l}}   } ( \alpha_{0,_{s,l}} )} +Const\\
+      =& \sum_{s} \left(\sum_i\sum_{ l}  \mathbb{E}_{q(\balpha_0)} \log p(\bar{\alpha}_{i,_{s,l}}    - \bz_i^t \Bar{\btheta}_{ s,l} -\bx_i^t\bar{\bbeta}_{s,l}  |  \alpha_{0,_{s,l}},   \sigma^2) +  \sum_{ l}\mathbb{E}_{q(\balpha_0)}  \log \frac{g_{ \alpha_{0,  s  } }  ( \alpha_{0,_{s,l}} ) }{q_{ \alpha_{0,_{s,l}}   } ( \alpha_{0,_{s,l}} )} \right) +Const\\
+  (q_{\balpha_0}^*,g_{\balpha_0}^*)= &\arg\max_{q_{\balpha_0},g_{\balpha_0}}\mathcal F_{\balpha_0}(q_{\balpha_0},g_{\balpha_0})
+\end{align}
+
+
+
+This corresponds to $S$ standard Empirical Bayes Normal Mean problem (EBNM), which can be solved by a standard approaches see \cite{willwerscheid_ebnm_2024} and reference therein.
+
+
+
+
+\end{proof}
+
+
+    \subsection{Update for $\sigma^2$ in  \ref{eq:Poisson_model_mat_sup_app_proj}}\label{subsection:update_s2}
+While we update each set of prior/parameter $(q_{\bTheta}, g_{\bTheta})$, $( q_{\bB},  g_{\bB} )$, $( q_{\bA_0},  g_{\balpha_0} )$ and $q_{\bm M}$ while keeping $\sigma^2$ and the other $q,g$ fixed, we select $\sigma^2$ using a separate optimization step in which we fix $q=\prod_jq(\btheta_j)\prod_e q_e(\bB^{(e)})\prod_{s,l}q(\balpha_{0,_{s,l}})\prod_{i,t}q(\mu_{i,t})$, take the partial derivative of the ELBO with respect to $\sigma^2$, and set it to zero, giving
+  
+
+
+
+
+\begin{align}
+    \hat{\sigma}^{2 } = &\arg\max_{\sigma^2} F(q,g,\sigma^2)\\
+    =& \frac{1}{NT}\sum_{i,s,l}\mathbf{E}_q\!\left[\left(\alpha_{i,_{s,l}}-\alpha_{0,_{s,l}}-\bz_i^t\btheta_{s,l}-\bx_i^t\bbeta_{s,l}\right)^2\right]
+\end{align}
+
+This is the variational M-step for $\sigma^2$. If $q$ were the exact conditional posterior and the structured mean were held fixed, it would reduce to the usual EM update associated with the integrated marginal likelihood and would share its stationary points. Under the Gaussian mean-field approximation used here, it instead maximizes the ELBO and need not equal the exact integrated-likelihood maximizer at each iteration.
+
+
+
+ 

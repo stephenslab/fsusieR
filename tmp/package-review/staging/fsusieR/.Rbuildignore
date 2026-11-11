@@ -1,0 +1,17 @@
+^.*\.Rproj$
+^\.Rproj\.user$
+^susiF\.alpha\.Rproj$
+^\.gitattributes$
+^\.github$
+^docs$
+^pb_susie\.RData$
+^_pkgdown\.yml$
+^LICENSE\.md$
+^\.pixi$
+^pixi\.toml$
+^pixi\.lock$
+^\.pixi/.*$
+^\.positai$
+^\.claude$
+^tmp$
+^fsusieR_.*\.tar\.gz$

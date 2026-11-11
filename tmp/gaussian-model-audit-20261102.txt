@@ -1,0 +1,54 @@
+
+PRIOR: mixture_normal
+Max log-BF error vs dense Gaussian integration: 7.105427358e-15
+Max posterior mean/variance error: 8.881784197e-16, 6.661338148e-16
+Immediate KL identity error: -3.552713679e-15
+Single-effect ELBO minus exact log evidence: 0
+True KL, recomputed KL after changing sigma2 only: 6.624738195, 1.010575038
+ELBO error caused by refreshing KL after variance change: 5.614163158
+Cached KL1, incorrectly refreshed KL1 after effect2 update: 6.624738195, 6.039351984
+KL2 identity error at its own update: 1.998401444e-15
+Global unit-change log-BF error with matching prior/noise: 4.440892099e-15
+
+PRIOR: mixture_normal_per_scale
+Max log-BF error vs dense Gaussian integration: 3.996802889e-15
+Max posterior mean/variance error: 1.110223025e-15, 1.1379786e-15
+Immediate KL identity error: -1.776356839e-15
+Single-effect ELBO minus exact log evidence: 0
+True KL, recomputed KL after changing sigma2 only: 6.622553027, 0.9445169972
+ELBO error caused by refreshing KL after variance change: 5.678036029
+Cached KL1, incorrectly refreshed KL1 after effect2 update: 6.622553027, 6.01350161
+KL2 identity error at its own update: 2.442490654e-15
+Global unit-change log-BF error with matching prior/noise: 2.664535259e-15
+
+TRANSFORMS
+Orthonormal DWT error: 1.259305882e-09
+Noise variances after both observed-SD scalings: 0.7546259136, 1.651722121
+Maximum absolute off-diagonal noise covariance: 0.6461423453
+Interpolation: input positions, output positions, covariance rank: 7, 8, 7
+Interpolation: max departure from identity noise covariance: 0.8718844793
+
+APPROXIMATION / MASKING / NUMERICS
+Diffuse alpha: max abs mean, max posterior SD: 0.02006173108, 0
+Exact conditional SD for the same row: 0.1381204864
+Masked-vs-omitted coefficient mixture-weight difference: 0.4914495982
+Extreme data log-BF: current: 363.0302433, -3.630302433
+Extreme data log-BF: stable reference: 496544.1621, -3.630302433
+
+SINGLE-EFFECT CONVERGENCE
+L=1 number of objective evaluations: 1
+Warning message:
+In susiF(Y1, X1, L = 1, standardize_Y = FALSE, post_processing = "none",  :
+  Option none is not recommended and the effect estimate can be poor
+Tracing function "update_susiF_obj.susiF" in package
+"namespace:fsusieR"
+[1] "update_susiF_obj.susiF"
+Warning message:
+In susiF(Y1, X1, L = 2, L_start = 2, standardize_Y = FALSE, post_processing = "none",  :
+  Option none is not recommended and the effect estimate can be poor
+Untracing function "update_susiF_obj.susiF" in package
+"namespace:fsusieR"
+Internal e values with public e=0, L=2: 0.001
+ERSS error on standardized X: -1.421085472e-14
+Residual variance M-step error: 0
+Audit complete. Source code was not modified.

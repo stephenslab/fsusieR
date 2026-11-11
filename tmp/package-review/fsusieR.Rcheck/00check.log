@@ -1,0 +1,87 @@
+* using log directory 'C:/Document/Serieux/Travail/Package/fsusieR/tmp/package-review/fsusieR.Rcheck'
+* using R version 4.6.1 (2026-06-24 ucrt)
+* using platform: x86_64-w64-mingw32
+* R was compiled by
+    gcc.exe (GCC) 14.3.0
+    GNU Fortran (GCC) 14.3.0
+* running under: Windows 11 x64 (build 26300)
+* using session charset: ASCII
+* current time: 2026-11-06 14:59:09 UTC
+* using options '--no-manual --ignore-vignettes'
+* checking for file 'fsusieR/DESCRIPTION' ... OK
+* checking extension type ... Package
+* this is package 'fsusieR' version '0.3.59'
+* package encoding: UTF-8
+* checking package namespace information ... OK
+* checking package dependencies ... INFO
+Packages suggested but not available for checking:
+  'coloc', 'Gviz', 'TxDb.Hsapiens.UCSC.hg38.knownGene'
+* checking if this is a source package ... OK
+* checking if there is a namespace ... OK
+* checking for executable files ... OK
+* checking for hidden files and directories ... OK
+* checking for portable file names ... OK
+* checking whether package 'fsusieR' can be installed ... OK
+* checking installed package size ... OK
+* checking package directory ... OK
+* checking DESCRIPTION meta-information ... OK
+* checking top-level files ... OK
+* checking for left-over files ... OK
+* checking index information ... OK
+* checking package subdirectories ... OK
+* checking code files for non-ASCII characters ... OK
+* checking R files for syntax errors ... OK
+* checking whether the package can be loaded ... OK
+* checking whether the package can be loaded with stated dependencies ... OK
+* checking whether the package can be unloaded cleanly ... OK
+* checking whether the namespace can be loaded with stated dependencies ... OK
+* checking whether the namespace can be unloaded cleanly ... OK
+* checking loading without being on the library search path ... OK
+* checking dependencies in R code ... OK
+* checking S3 generic/method consistency ... OK
+* checking replacement functions ... OK
+* checking foreign function calls ... NOTE
+Foreign function calls to a different package:
+  .C("av_basisWRAP", ..., PACKAGE = "wavethresh")
+  .C("comAB_WRAP", ..., PACKAGE = "wavethresh")
+  .C("comwd", ..., PACKAGE = "wavethresh")
+  .C("wavedecomp", ..., PACKAGE = "wavethresh")
+See chapter 'System and foreign language interfaces' in the 'Writing R
+Extensions' manual.
+* checking R code for possible problems ... NOTE
+fsusie_log_plot: no visible global function definition for 'genes'
+fsusie_log_plot: no visible binding for global variable 'txdb'
+fsusie_log_plot: no visible global function definition for
+  'subsetByOverlaps'
+fsusie_log_plot: no visible global function definition for 'GRanges'
+fsusie_log_plot: no visible global function definition for 'IRanges'
+fsusie_log_plot: no visible global function definition for 'DataTrack'
+fsusie_log_plot: no visible global function definition for
+  'IdeogramTrack'
+fsusie_log_plot: no visible global function definition for
+  'GenomeAxisTrack'
+fsusie_log_plot: no visible global function definition for
+  'GeneRegionTrack'
+fsusie_log_plot: no visible binding for global variable 'org.Hs.eg.db'
+fsusie_log_plot: no visible global function definition for
+  'AnnotationTrack'
+fsusie_log_plot: no visible global function definition for 'plotTracks'
+Undefined global functions or variables:
+  AnnotationTrack DataTrack GRanges GeneRegionTrack GenomeAxisTrack
+  IRanges IdeogramTrack genes org.Hs.eg.db plotTracks subsetByOverlaps
+  txdb
+* checking Rd files ... OK
+* checking Rd metadata ... OK
+* checking Rd cross-references ... OK
+* checking for missing documentation entries ... OK
+* checking for code/documentation mismatches ... OK
+* checking Rd \usage sections ... OK
+* checking Rd contents ... OK
+* checking for unstated dependencies in examples ... OK
+* checking files in 'vignettes' ... SKIPPED
+* checking examples ... OK
+* checking for unstated dependencies in 'tests' ... OK
+* checking tests ... OK
+  Running 'testthat.R'
+* DONE
+Status: 2 NOTEs
