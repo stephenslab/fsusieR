@@ -10,6 +10,7 @@
 #'@param q_init a list of init value of m_init(posterior mean) and v_init(posterior var).
 #'@param maxiter max number of iterations
 #'@param tol tolerance for stopping the updates
+#'@param vga_tol Tolerance for the inner variational Gaussian solver.
 #'@param conv_type convergence criteria, default to be elbo
 #'@param return_sigma2_trace whether return the trace of sigma2 estiamtes
 #'@return a list of
@@ -215,6 +216,9 @@ vga_pois_solution_is_valid = function(res, x, s, beta, sigma2,
 #'@param init_val initial value for posterior mean
 #'@param x,s data and scale factor
 #'@param beta,sigma2 prior mean and variance. Their length should be equal to n=length(x)
+#'@param maxiter Maximum solver iterations.
+#'@param tol Solver tolerance.
+#'@param method Either "newton" or "bisection".
 #'@export
 vga_pois_solver = function(init_val,x,s,beta,sigma2,maxiter=1000,tol=1e-5,method = 'newton'){
 
@@ -274,6 +278,10 @@ vga_pois_solver = function(init_val,x,s,beta,sigma2,maxiter=1000,tol=1e-5,method
 
 #'@title Optimize vga poisson problem 1 iteration.
 #'@description This function only performs vga for 1 iteration
+#'@param m,v Current variational means and variances.
+#'@param y Observed counts.
+#'@param s Exposure factors.
+#'@param beta,sigma2 Prior means and variances.
 #'@export
 vga_pois_solver_newton_1iter = function(m,v,y,s,beta,sigma2){
   if(is.null(v)){
@@ -327,6 +335,7 @@ h_m = function(m,x,s,beta,sigma2){
 #
 # }
 
+#' @rdname vga_pois_solver
 #'@export
 vga_pois_solver_bisection = function(x,s,beta,sigma2,maxiter=1000,tol=1e-5){
   n = length(x)
@@ -365,6 +374,8 @@ vga_pois_solver_bisection = function(x,s,beta,sigma2,maxiter=1000,tol=1e-5){
   return(list(m=m,v=v))
 }
 
+#' @rdname vga_pois_solver
+#' @param m Initial variational means for the Newton solver.
 #'@export
 vga_pois_solver_Newton = function(m,x,s,beta,sigma2,maxiter=1000,tol=1e-5){
 
@@ -465,7 +476,6 @@ vga_pois_solver_Newton = function(m,x,s,beta,sigma2,maxiter=1000,tol=1e-5){
 #'@description Gaussian prior, Gaussian posterior in Poisson mean problem.
 #'@param x data vector
 #'@param s scaling vector
-#'@param w prior weights
 #'@param prior_mean prior mean
 #'@param prior_var prior variance
 #'@param optim_method optimization method in `optim` function
@@ -493,6 +503,10 @@ pois_mean_GP = function(x,
                         optim_method = 'L-BFGS-B',
                         maxiter = 1000,
                         tol = 1e-5){
+
+  optim_control <- if (optim_method == "L-BFGS-B")
+    list(maxit = maxiter, factr = 100, pgtol = tol) else
+    list(maxit = maxiter, reltol = tol)
 
   # init the posterior mean and variance?
   n = length(x)
@@ -534,7 +548,7 @@ pois_mean_GP = function(x,
       #   m[i] = temp$m
       #   v[i] = temp$v
       # }
-      opt = optim(c(m,log(v)),
+      opt = stats::optim(c(m,log(v)),
                   fn = pois_mean_GP_opt_obj,
                   gr = pois_mean_GP_opt_obj_gradient,
                   x=x,
@@ -542,7 +556,7 @@ pois_mean_GP = function(x,
                   beta=beta,
                   sigma2=sigma2,
                   n=n,
-                  method = optim_method)
+                  method = optim_method, control = optim_control)
       m = opt$par[1:n]
       v = exp(opt$par[(n+1):(2*n)])
       obj[iter+1] = pois_mean_GP_obj(x,s,beta,sigma2,m,v)
@@ -560,7 +574,7 @@ pois_mean_GP = function(x,
     #   m[i] = temp$m
     #   v[i] = temp$v
     # }
-    opt = optim(c(m,log(v)),
+    opt = stats::optim(c(m,log(v)),
                 fn = pois_mean_GP_opt_obj,
                 gr = pois_mean_GP_opt_obj_gradient,
                 x=x,
@@ -568,7 +582,7 @@ pois_mean_GP = function(x,
                 beta=beta,
                 sigma2=sigma2,
                 n=n,
-                method = optim_method)
+                method = optim_method, control = optim_control)
     m = opt$par[1:n]
     v = exp(opt$par[(n+1):(2*n)])
     obj = pois_mean_GP_obj(x,s,prior_mean,prior_var,m,v)
@@ -585,43 +599,32 @@ pois_mean_GP = function(x,
 
 }
 #'calculate objective function
+#' @param theta Variational means followed by log variances.
+#' @param x,s Counts and exposure factors.
+#' @param beta,sigma2 Prior means and variances.
+#' @param n Number of observations.
 
 
-# Modify pois_mean_GP_opt_obj
-pois_mean_GP_opt_obj = function(theta,x,s,beta,sigma2,n){
-  m = theta[1:n]
-  v = theta[(n+1):(2*n)]
-
-  # Cap the values to avoid Inf
-  m = pmin(pmax(m, -20), 20)
-  log_v = pmin(pmax(v, -20), 10)
-
-  # Objective calculation with capped eta
-  eta = m + exp(log_v)/2
-  eta = pmin(eta, 25) # Exp(25) is large but finite
-
-  return(-sum(x*m - s*exp(eta) - (m^2 + exp(log_v) - 2*m*beta)/2/sigma2 + log_v/2))
+# Exact objective and derivative on the log-variance parameterization.
+# Different clipping rules in these two functions used to make optim follow
+# a gradient that was not the derivative of its objective.
+pois_mean_GP_opt_obj = function(theta, x, s, beta, sigma2, n) {
+  m <- theta[seq_len(n)]
+  log_v <- theta[n + seq_len(n)]
+  v <- exp(log_v)
+  -sum(x * m - s * exp(m + v / 2) -
+         (m^2 + v - 2 * m * beta) / (2 * sigma2) + log_v / 2)
 }
+
 #'calculate gradient vector
-pois_mean_GP_opt_obj_gradient = function(theta,x,s,beta,sigma2,n){
-  #m = theta[1:n]
-  #v = theta[(n+1):(2*n)]
-  #g1 = -(x-s*exp(m+exp(v)/2)-m/sigma2+beta/sigma2)
-  #g2 = -(-exp(v)/2*s*exp(m+exp(v)/2) - exp(v)/2/sigma2 + 1/2)
-  m = theta[1:n]
-  v = theta[(n+1):(2*n)]
-  v = pmin(pmax(v, log(1e-6)), log(1e2))   # constrain log(v)
-  sigma2 = max(sigma2, 1e-6)
-  eta = m + exp(v)/2
-  eta[eta > 20] <- 20
-  g1 = -(x - s*exp(eta) - m/sigma2 + beta/sigma2)
-  g2 = -(-exp(v)/2*s*exp(eta) - exp(v)/(2*sigma2) + 1/2)
-
-
-
-  return(c(g1,g2))
+#' @inheritParams pois_mean_GP_opt_obj
+pois_mean_GP_opt_obj_gradient = function(theta, x, s, beta, sigma2, n) {
+  m <- theta[seq_len(n)]
+  v <- exp(theta[n + seq_len(n)])
+  rate <- s * exp(m + v / 2)
+  c(rate - x + (m - beta) / sigma2,
+    (v * rate + v / sigma2 - 1) / 2)
 }
-
 
 pois_mean_GP_obj = function(x,s,beta,sigma2,m,v){
   return(sum(x*m-s*exp(m+v/2)-log(sigma2)/2-(m^2+v-2*m*beta+beta^2)/2/sigma2+log(v)/2))
@@ -637,6 +640,14 @@ pois_mean_GP_obj = function(x,s,beta,sigma2,m,v){
 #'@param x data vector
 #'@param maxiter,tol max iteration and tolerance for stopping it.
 #'@param Eb_init,sigma2_init initial values of smooth mean and nugget effect.
+#' @param s Exposure factors; defaults to one.
+#' @param est_sigma2 Whether to estimate the residual variance.
+#' @param filter.number,family Wavelet filter settings.
+#' @param verbose Whether to print progress.
+#' @param printevery Progress reporting interval.
+#' @param ebnm_params Arguments to the empirical Bayes normal-means fit.
+#' @param optim_method Optimization method passed to \code{stats::optim}.
+#' @param link Either "log" or "log1p".
 #'@examples
 #' set.seed(12345)
 #' n=2^9
@@ -679,7 +690,7 @@ pois_smooth_split <- function(x,
     s = rep(s,n)
   }
   if(is.null(Eb_init)){
-    Eb = log(runmed(x/s,1 + 2 * min((n-1)%/% 2, ceiling(0.1*n)))+0.01)
+    Eb = log(stats::runmed(x/s,1 + 2 * min((n-1)%/% 2, ceiling(0.1*n)))+0.01)
   }else{
     Eb = Eb_init
   }
@@ -704,7 +715,7 @@ pois_smooth_split <- function(x,
 
   for(iter in 1:maxiter){
     # get m, s^2
-    opt = optim(c(mu_pm, log(mu_pv)),
+    opt = stats::optim(c(mu_pm, log(mu_pv)),
                 fn = obj_fn,
                 gr = grad_fn,
                 lower = c(rep(-30, n), rep(-20, n)),
@@ -745,7 +756,7 @@ pois_smooth_split <- function(x,
 
   }
   return(list(Emean = exp(mu_pm+mu_pv/2),
-              Vmean = exp(mu_pv-1)*exp(2*mu_pm+mu_pv),
+              Vmean = expm1(mu_pv)*exp(2*mu_pm+mu_pv),
               Emu=mu_pm,
               Vmu=mu_pv,
               Eb=Eb,

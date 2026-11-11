@@ -6,6 +6,15 @@
 \usage{
 vga_pois_solver_newton_1iter(m, v, y, s, beta, sigma2)
 }
+\arguments{
+\item{m, v}{Current variational means and variances.}
+
+\item{y}{Observed counts.}
+
+\item{s}{Exposure factors.}
+
+\item{beta, sigma2}{Prior means and variances.}
+}
 \description{
 This function only performs vga for 1 iteration
 }

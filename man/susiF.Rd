@@ -36,7 +36,7 @@ susiF(
   e = 0.001,
   tol_null_prior = 0.001,
   lbf_min = 0.1,
-  standardize_Y = TRUE,
+  standardize_Y = FALSE,
   residual_variance = NULL
 )
 }
@@ -57,20 +57,19 @@ the observed column in Y, if missing, suppose that the observation
 are evenly spaced}
 
 \item{prior}{specify the prior used in susiF. The two available choices are
-available "mixture_normal_per_scale", "mixture_normal". Default "mixture_normal_per_scale",
+available "mixture_normal_per_scale", "mixture_normal". Default "mixture_normal",
 if this susiF is too slow, consider using  "mixture_normal"  using  "mixture_normal" which  is up to 40\% faster but may lead to slight power loss}
 
 \item{verbose}{If \code{verbose = TRUE}, the algorithm's progress,
 and a summary of the optimization settings are printed on the
 console.}
 
-\item{maxit}{Maximum number of IBSS iterations.}
+\item{maxit}{Maximum number of complete IBSS sweeps.}
 
-\item{tol}{a small, non-negative number specifying the convergence
-tolerance for the IBSS fitting procedure. The fitting procedure
-will halt when the difference in the variational lower bound or
-\dQuote{ELBO} (the objective function to be maximized), is less
-than \code{tol}.}
+\item{tol}{Non-negative convergence tolerance. With \code{cal_obj=TRUE},
+monitor the absolute penalized ELBO change. Otherwise monitor absolute
+changes in SNP and mixture probabilities and relative changes in
+coefficient means and residual variance.}
 
 \item{cov_lev}{numeric between 0 and 1, corresponding to the
 expected level of coverage of the CS if not specified, set to 0.95}
@@ -156,8 +155,8 @@ to setting the prior of a given scale to at point mass at 0.}
 \item{lbf_min}{numeric  discard low purity cs in the IBSS fitting procedure if the largest log Bayes factors is lower than this value}
 
 \item{standardize_Y}{Logical; center and scale the response before and after
-the wavelet transform. The default preserves the historical fSuSiE
-behavior. Set to `FALSE` when a residual variance on the input-response
+the wavelet transform. The default is `FALSE`, preserving response
+units. Use `FALSE` when a residual variance on the input-response
 scale is supplied.}
 
 \item{residual_variance}{Optional finite positive residual variance. When
@@ -174,11 +173,12 @@ elements:
   probabilities for each effect and each original column of X.}
 
 \item{pip}{Vector of length p containing the posterior inclusion
-  probability for each original covariate. Excluded constant columns have
-  probability zero.}
+  probability for each original covariate, excluding null-prior effects.
+  Excluded constant columns have probability zero.}
 
 \item{cs}{List of length L. Each element is the credible set of
-the lth effect.}
+the lth effect, or integer(0) when no set is reported. An all-null fit
+retains one internal effect with an empty set and zero PIPs.}
 
 \item{purity}{List of length L. Each element is the purity of the
   lth effect.}
@@ -192,8 +192,16 @@ the lth effect.}
 
 \item{sigma2}{The estimated residual variance.}
 
-\item{lBF}{List of length L containing the log-Bayes factor for
-  each effect.}
+\item{lBF}{List of length L containing per-SNP natural-log Bayes factors
+  for each single effect. Excluded constant columns have value -Inf.}
+
+\item{lbf}{Vector of length L containing single-effect natural-log Bayes
+  factors: log(mean(exp(lBF[[l]]))) over the SNPs retained for fitting,
+  computed stably. These use the partial residual and learned prior at
+  the corresponding single-effect update.}
+
+\item{niter, converged}{Number of completed IBSS sweeps and whether the
+  requested convergence tolerance was reached.}
 
 \item{ind_fitted_func}{Matrix of the individual estimated
   genotype effect.}
@@ -211,7 +219,9 @@ the lth effect.}
 
 \item{est_sd}{Ehe estimated prior mixture for each effect.}
 
-\item{ELBO}{The ELBO value at each iteration of the algorithm.}
+\item{ELBO}{The penalized ELBO after completed sweeps when
+  \code{cal_obj=TRUE}. Structural changes during greedy/backfit search
+  restart the trace.}
 
 \item{fitted_wc}{List of length L. Each element is a matrix
   containing the conditional wavelet coefficients (first moment) for

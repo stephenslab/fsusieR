@@ -30,7 +30,7 @@ test_that("SMASH retains uncertainty in a constant effect, including reflected g
   }
 })
 
-test_that("noise-only SMASH bands do not collapse onto a random nonzero mean", {
+test_that("a null fine-mapping fit does not refit an arbitrary noise SNP", {
   set.seed(13)
   n <- 80L
   p <- 6L
@@ -42,7 +42,12 @@ test_that("noise-only SMASH bands do not collapse onto a random nonzero mean", {
 
   expect_length(fit$cred_band, 1L)
   expect_true(all(is.finite(fit$fitted_var[[1]])))
-  expect_true(all(fit$fitted_var[[1]] > 0))
+  # The point-mass null has zero effect variance. Uncertainty in a nonnull
+  # SMASH refit is covered independently by the constant-effect test above.
+  expect_equal(fit$n_cs, 0)
+  expect_equal(unname(fit$pip), rep(0, p))
+  expect_equal(fit$fitted_func[[1]], rep(0, m))
+  expect_equal(fit$fitted_var[[1]], rep(0, m))
   # Inspect the bands directly to check uncertainty independently of region extraction.
   expect_false(any(fit$cred_band[[1]][1, ] < 0 |
                      fit$cred_band[[1]][2, ] > 0))

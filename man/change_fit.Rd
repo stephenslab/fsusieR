@@ -23,8 +23,7 @@ change_fit(
 
 \item{X}{matrix of  covariates  used in the original fit}
 
-\item{to}{name of the type of postprocessing you wish to change the susiF  object  to be fitted with
-current option "TI" or "hMM"}
+\item{to}{Post-processing method: "TI", "HMM", "smash", or "none".}
 
 \item{verbose}{If \code{verbose = TRUE}, the algorithm's progress,
 and a summary of the optimization settings are printed on the
@@ -34,7 +33,7 @@ console.}
 Set 10 true by default.}
 
 \item{filter_cs}{logical, if TRUE filters the credible set (removing low-purity)
-cs and cs with estimated prior equal to 0). Set as TRUE by default.}
+cs and cs with estimated prior equal to 0). Defaults to FALSE.}
 
 \item{filter.number}{see documentation of wd from wavethresh package}
 

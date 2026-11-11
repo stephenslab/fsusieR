@@ -21,7 +21,7 @@ log_BF(G_prior, Bhat, Shat, lowc_wc, indx_lst, df = NULL, ...)
 
 \item{Shat}{p x J matrix of standard errors; \code{Shat[j,t]}
 gives standard error of the regression coefficient of
-\code{Y[,t]} on {X[,j]}.}
+\code{Y[,t]} on \code{X[,j]}.}
 
 \item{lowc_wc}{wavelet coefficient with low count to be discarded}
 

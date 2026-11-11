@@ -22,3 +22,10 @@ docs/
 
 # Pixi files
 pixi.lock
+
+# Local scratch files and package build/check output
+/tmp/
+/*.Rcheck/
+/fsusieR_*.tar.gz
+/fsusieR_*.zip
+/Rplots.pdf

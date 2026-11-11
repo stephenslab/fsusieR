@@ -20,9 +20,11 @@ simu_IBSS_per_level(
 \item{pi0}{vector of length lev_res, contain  digits  between 0 and 1, which corresponds corresponds to the
 proportion of wavelet coefficients that are exactly 0 at a given level of resolution}
 
-\item{alpha}{numeric >0, control smoothness of the curves, should be positive and up 4, in particular, $d_{sl} ~  pi_{0,sl}   delta_0 + sum_k  pi_k N(0, 2^{- alpha * s}   sigma_k^2)$}
+\item{alpha}{Positive smoothness parameter. At scale s, component
+standard deviations are divided by \code{2^(alpha * s)}.}
 
-\item{prop_decay}{numeric >0, control the proportion of non-zero wavelet coefficient per scale, $pi_{0,sl} = 1- exp(-prop_decay*s)$}
+\item{prop_decay}{Non-negative decay parameter. The default null
+probability at scale s is \code{1 - exp(-prop_decay * s)}.}
 }
 \description{
 Simulate data under the mixture normal prior

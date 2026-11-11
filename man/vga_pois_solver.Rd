@@ -2,6 +2,8 @@
 % Please edit documentation in R/EB_poisson_mean_routines.R
 \name{vga_pois_solver}
 \alias{vga_pois_solver}
+\alias{vga_pois_solver_bisection}
+\alias{vga_pois_solver_Newton}
 \title{Optimize vga poisson problem}
 \usage{
 vga_pois_solver(
@@ -14,6 +16,10 @@ vga_pois_solver(
   tol = 1e-05,
   method = "newton"
 )
+
+vga_pois_solver_bisection(x, s, beta, sigma2, maxiter = 1000, tol = 1e-05)
+
+vga_pois_solver_Newton(m, x, s, beta, sigma2, maxiter = 1000, tol = 1e-05)
 }
 \arguments{
 \item{init_val}{initial value for posterior mean}
@@ -21,6 +27,14 @@ vga_pois_solver(
 \item{x, s}{data and scale factor}
 
 \item{beta, sigma2}{prior mean and variance. Their length should be equal to n=length(x)}
+
+\item{maxiter}{Maximum solver iterations.}
+
+\item{tol}{Solver tolerance.}
+
+\item{method}{Either "newton" or "bisection".}
+
+\item{m}{Initial variational means for the Newton solver.}
 }
 \description{
 This function tries Newton's method. If not working, then use bisection.

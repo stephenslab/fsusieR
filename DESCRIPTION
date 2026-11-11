@@ -23,7 +23,6 @@ Imports:
     ggplot2,
     cowplot(>= 1.1.3),
     smashr,
-    Rcpp,
     ebnm,
     Rfast
 Suggests:
@@ -43,10 +42,8 @@ Suggests:
     TxDb.Hsapiens.UCSC.hg38.knownGene,
     LaplacesDemon,
     AnnotationDbi
-LinkingTo: 
-    Rcpp
 License: BSD_3_clause + file LICENSE
-NeedsCompilation: yes
+NeedsCompilation: no
 ByteCompile: yes
 VignetteBuilder: knitr
 Config/roxygen2/version: 8.1.0

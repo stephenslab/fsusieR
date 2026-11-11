@@ -7,7 +7,7 @@
 \usage{
 greedy_backfit(obj, verbose, cov_lev, X, min_purity, ...)
 
-\method{greedy_backfit}{susiF}(obj, verbose, cov_lev, X, min_purity, ...)
+\method{greedy_backfit}{susiF}(obj, verbose, cov_lev, X, min_purity, allow_expand = TRUE, ...)
 }
 \arguments{
 \item{obj}{a susiF object defined by init_susiF_obj function}
@@ -19,6 +19,9 @@ greedy_backfit(obj, verbose, cov_lev, X, min_purity, ...)
 \item{X}{matrix of size n by p contains the covariates}
 
 \item{min_purity}{minimum purity for estimated credible sets}
+
+\item{allow_expand}{Whether another fitting sweep is available for any
+newly added effects. Set to FALSE on the final permitted sweep.}
 }
 \value{
 susiF object
